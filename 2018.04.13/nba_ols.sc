@@ -12,7 +12,7 @@ for OUTSTAT in dk_score# fd_score#; do
                --in_player_stats asst blks home "*_reb" "fg*" fouls "ft_*" mins pts starter \
                stls "tfg*" turnovers \
                --in_team_stats "*" --cur_opp_team_stats "*" \
-               --n_features_range 1 XXX \
+               --n_features_range 1 42 \
                --hist_agg_list mean median \
                --est ols
 
