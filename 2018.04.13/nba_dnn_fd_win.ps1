@@ -24,7 +24,7 @@ nba.db keras `
 --learning_method_list rmsprop sgd `
 --lr_range .0005 .01
 
-python -O .\scripts\meval_O.sc --progress --cache_dir "./casedata_cache" `
+python -O ".\scripts\meval_O.sc" --progress --cache_dir "./casedata_cache" `
 --scoring mae --seasons 2016 2015 2014 2013 2012 `
 --search_method bayes --search_iters 50 --search_bayes_init_pts 5 `
 --search_bayes_scorer mae `

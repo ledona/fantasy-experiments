@@ -1,6 +1,6 @@
 # RUN ON WINDOWS
 
-$Env:OUTSTAT = "fd_score#"
+$Env:OUTSTAT = "dk_score#"
 
 python -O ".\scripts\meval_O.sc" --progress --cache_dir "./casedata_cache" `
 --scoring mae --seasons 2016 2015 2014 2013 2012 `
