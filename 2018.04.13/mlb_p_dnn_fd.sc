@@ -5,7 +5,7 @@ meval_O.sc --progress --cache_dir "./casedata_cache" \
            --search_method bayes --search_iters 50 --search_bayes_init_pts 5 \
            --search_bayes_scorer mae \
            --folds 3 -o mlb_fantasy_p_dnn_rs \
-           mlb.db xgboost \
+           mlb.db keras \
            --model_player_stat $OUTSTAT \
            --player_pos P \
            --in_player_stats p_ip p_qs p_win p_er p_k p_hbp p_bb p_hits p_hr p_strikes p_wp \
@@ -31,7 +31,7 @@ meval_O.sc --progress --cache_dir "./casedata_cache" \
            --search_method bayes --search_iters 50 --search_bayes_init_pts 5 \
            --search_bayes_scorer mae \
            --folds 3 -o mlb_fantasy_p_dnn_ada \
-           mlb.db xgboost \
+           mlb.db keras \
            --model_player_stat $OUTSTAT \
            --player_pos P \
            --in_player_stats p_ip p_qs p_win p_er p_k p_hbp p_bb p_hits p_hr p_strikes p_wp \
