@@ -13,7 +13,7 @@ for OUTSTAT in dk_score# fd_score#; do
                --cur_opp_team_stats off_1b off_2b off_3b off_hr off_rbi off_runs off_bb off_sb \
                off_k off_rbi_w2 off_rlob off_sac \
                --extra_stats starter_phand \
-               --n_cases_range 500 20000 \
+               --n_cases_range 500 5000 \
                --n_games_range 1 6 \
                --hist_agg_list mean median none \
                --rf_trees_range 5 25 --rf_max_features_list sqrt log2 \
