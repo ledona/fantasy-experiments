@@ -1,7 +1,7 @@
 OUTSTAT=dk_score#
 
 meval_O.sc --progress --cache_dir "./casedata_cache" \
-           --scoring mae r2 --seasons 2017 2016 \
+           --scoring mae --seasons 2017 2016 \
            --search_method bayes --search_iters 50 --search_bayes_init_pts 5 \
            --search_bayes_scorer mae \
            --folds 3 -o mlb_fantasy_off_dnn_rs \
@@ -28,7 +28,7 @@ meval_O.sc --progress --cache_dir "./casedata_cache" \
            --lr_range .0005 .01
 
 meval_O.sc --progress --cache_dir "./casedata_cache" \
-           --scoring mae r2 --seasons 2017 2016 \
+           --scoring mae --seasons 2017 2016 \
            --search_method bayes --search_iters 50 --search_bayes_init_pts 5 \
            --search_bayes_scorer mae \
            --folds 3 -o mlb_fantasy_off_dnn_ada \
