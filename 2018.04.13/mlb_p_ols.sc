@@ -15,7 +15,7 @@ for OUTSTAT in dk_score# fd_score#; do
                --extra_stats starter_phand \
                --n_cases_range 500 5000 \
                --n_games_range 1 6 \
-               --n_featuers_range 1 24 \
+               --n_features_range 1 24 \
                --hist_agg_list mean median \
                --est ols
 done

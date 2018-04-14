@@ -17,7 +17,7 @@ for OUTSTAT in dk_score# fd_score#; do
                opp_starter_p_wp opp_starter_p_hbp opp_starter_p_win opp_starter_p_qs opp_starter_phand \
                --n_cases_range 500 20000 \
                --n_games_range 1 6 \
-               --n_featuers_range 1 40 \
+               --n_features_range 1 40 \
                --hist_agg_list mean median \
                --est ols
 done
