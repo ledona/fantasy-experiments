@@ -20,5 +20,5 @@ for OUTSTAT in dk_score# fd_score#; do
                --hist_agg_list mean median none \
                --alpha_range .00001 1  --alpha_range_def 6 log \
                --l1_ratio_range .05 .95 \
-               --est br lasso elasticnet
+               --est_list br lasso elasticnet
 done
