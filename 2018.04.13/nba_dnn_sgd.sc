@@ -1,16 +1,16 @@
 # RUN ON WINDOWS
 
 CACHE_DIR=~/windows_home/working/fantasy/casedata_cache
-DB=~/windows_home/working/fantasy/mlb.db
+DB=~/windows_home/working/fantasy/nba.db
 
 for OUTSTAT in fd_score# dk_score#; do
 
-    python -O ".\scripts\meval_O.sc" --progress --cache_dir "./casedata_cache" \
+    python -O "$FANTASY_HOME/scripts/meval_O.sc" --progress --cache_dir "$CACHE_DIR" \
            --scoring mae --seasons 2016 2015 2014 2013 2012 \
            --search_method bayes --search_iters 50 --search_bayes_init_pts 5 \
            --search_bayes_scorer mae \
            --folds 3 -o nba_fantasy_dnn_sgd \
-           nba.db keras \
+           "$DB" keras \
            --model_player_stat $OUTSTAT \
            --n_games_range 1 6 \
            --n_cases_range 500 10000 --n_cases_range_inc 500 \
