@@ -3,7 +3,7 @@ for OUTSTAT in dk_score# fd_score#; do
                --scoring mae --seasons 2017 2016 \
                --search_method bayes --search_iters 50 --search_bayes_init_pts 5 \
                --search_bayes_scorer mae \
-               --folds 3 -o mlb_fantasy_off_dnn_rs \
+               --folds 3 -o mlb_fantasy_off_dnn_sgd \
                mlb.db keras \
                --model_player_stat $OUTSTAT \
                --player_pos LF CF RF 1B 2B 3B SS C \
