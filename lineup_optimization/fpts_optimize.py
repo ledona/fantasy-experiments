@@ -4,6 +4,7 @@ tune lineup params while optimizing for fpts using perfect data
 import argparse
 import shlex
 from ledona import process_timer
+from dateutil.parser import parse
 
 from fantasy_py.calculation.regression.util.hyper_search import (
     add_searcher_cmd_line_args, DOMAIN_SEARCHERS)
@@ -40,7 +41,7 @@ def process_cmd_line(cmd_line_str=None):
     parser = argparse.ArgumentParser(description="tune lineup params while optimizing for fpts using perfect data")
     parser.add_argument("--cache_dir", required=True)
     parser.add_argument("--resume", default=False, action="store_true")
-    parser.add_argument("--progress", default=False, action="store_true")
+    parser.add_argument("--no_progress", default=True, dest="progress", action="store_false")
     parser.add_argument("--verbose", default=False, action="store_true")
     parser.add_argument("--generations", type=int)
     parser.add_argument("--generations_range", type=int, metavar=('min', 'max'), nargs=2)
@@ -56,7 +57,8 @@ def process_cmd_line(cmd_line_str=None):
     parser.add_argument("--runs_range", type=int, metavar=('min', 'max'), nargs=2)
 
     parser.add_argument("DB_FILE", help="The database file to match players and teams against")
-    parser.add_argument("dates", nargs='+', help="game dates to use for evaluation")
+    parser.add_argument("dates", nargs='+', type=parse,
+                        help="game dates to use for evaluation")
 
     add_searcher_cmd_line_args(parser)
 
