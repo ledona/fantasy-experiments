@@ -54,14 +54,14 @@ _SHARED_DNN='keras
            --dropout_range .3 .7
            --extra_stats venue_H venue_C'
 
-CALC_DNN_RS='$_SHARED_DNN
+CALC_DNN_RS="$_SHARED_DNN
            --learning_method_list rmsprop sgd
-           --lr_range .0005 .01'
+           --lr_range .0005 .01"
 
-CALC_DNN_ADA='$_SHARED_DNN
-            --learning_method_list adagrad adadelta adam adamax nadam'
+CALC_DNN_ADA="$_SHARED_DNN
+            --learning_method_list adagrad adadelta adam adamax nadam"
 
-CALC_XG='xgboost
+CALC_XG="xgboost
        --hist_agg_list mean median none
        --learning_rate_range .01 .2
        --subsample_range .5 1
@@ -69,23 +69,24 @@ CALC_XG='xgboost
        --max_depth_range 3 10
        --gamma_range 0 10000 --gamma_range_def 10 log
        --colsample_bytree_range 0.5 1
-       --rounds_range 75 150'
+       --rounds_range 75 150"
 
 
 usage()
 {
     echo "Create the cmd line meval to run.
-usage: mlb.sc (OFF|P) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA)"
+usage: mlb.sc (OFF|P) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd)"
 }
 
 TYPE=TYPE_${1}
 CALC=CALC_${2}
 
-if [ -z "${!TYPE}" ] | [ -z "${!CALC}" ]; then
+if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" ]; then
     usage
     exit 1
 fi
 
-CMD="python -O scripts/meval.sc $SHARED_ARGS mlb.db ${!CALC} ${!TYPE}"
+CMD="python -O scripts/meval.sc $SHARED_ARGS -o mlb_${1}_${2} mlb.db ${!CALC} ${!TYPE} 
+--model_player_stat ${3}_score#"
 
 echo $CMD
