@@ -51,8 +51,12 @@ _SHARED_DNN='keras
            --layers_range 1 5
            --units_range 20 100
            --activation_list linear relu tanh sigmoid
+<<<<<<< HEAD
            --dropout_range .3 .7
            --extra_stats venue_H venue_C'
+=======
+           --dropout_range .3 .7'
+>>>>>>> cfbd9e881c3a81b05361133f320ffcc63f12fa9b
 
 CALC_DNN_RS='$_SHARED_DNN
            --learning_method_list rmsprop sgd
