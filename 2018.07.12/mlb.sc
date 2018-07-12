@@ -74,7 +74,8 @@ CALC_XG='xgboost
 
 usage()
 {
-    echo "usage: mlb.sc (OFF|P) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA)"
+    echo "Create the cmd line meval to run.
+usage: mlb.sc (OFF|P) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA)"
 }
 
 TYPE=TYPE_${1}
