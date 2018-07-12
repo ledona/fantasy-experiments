@@ -10,18 +10,19 @@ TYPE_OFF='--player_pos LF CF RF 1B 2B 3B SS C
         off_bb off_sb off_k off_rbi_w2 off_rlob off_sac off_sb_c
         --cur_opp_team_stats p_ip p_hits p_er p_k p_bb p_hr p_pc p_strikes
         p_wp p_hbp p_win p_qs errors
-        --extra_stats opp_starter_p_ip opp_starter_p_hits opp_starter_p_er opp_starter_p_k
+        --extra_stats off_hit_side opp_starter_p_ip opp_starter_p_hits opp_starter_p_er opp_starter_p_k
         opp_starter_p_bb opp_starter_p_hr opp_starter_p_pc opp_starter_p_strikes
-        opp_starter_p_wp opp_starter_p_hbp opp_starter_p_win opp_starter_p_qs opp_starter_phand
+        opp_starter_p_wp opp_starter_p_hbp opp_starter_p_win opp_starter_p_loss opp_starter_p_qs
+        opp_starter_phand_C opp_starter_phand_H *_home_* team_win
         --n_cases_range 500 40000
         --n_games_range 1 7'
 
 TYPE_P='--player_pos P
-      --player_stats p_ip p_qs p_win p_er p_k p_hbp p_bb p_hits p_hr p_strikes p_wp
+      --player_stats p_ip p_qs p_win p_loss p_er p_k p_hbp p_bb p_hits p_hr p_strikes p_wp
       --team_stats p_win p_save p_hold errors
       --cur_opp_team_stats off_1b off_2b off_3b off_hr off_rbi off_runs off_bb off_sb
       off_k off_rbi_w2 off_rlob off_sac
-      --extra_stats starter_phand
+      --extra_stats starter_phand_C opp_*_hit_%_* *_home_* team_win
       --n_cases_range 500 10000
       --n_games_range 1 7'
 
@@ -50,7 +51,8 @@ _SHARED_DNN='keras
            --layers_range 1 5
            --units_range 20 100
            --activation_list linear relu tanh sigmoid
-           --dropout_range .3 .7'
+           --dropout_range .3 .7
+           --extra_stats venue_H venue_C'
 
 CALC_DNN_RS='$_SHARED_DNN
            --learning_method_list rmsprop sgd
