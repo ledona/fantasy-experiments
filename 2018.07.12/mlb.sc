@@ -5,26 +5,23 @@ SHARED_ARGS='--progress --cache_dir "./casedata_cache"  --scoring mae r2 --seaso
            --search_bayes_scorer mae
            --folds 3'
 
-TYPE_OFF='--player_pos LF CF RF 1B 2B 3B SS C
-        --player_stats off_1b off_2b off_3b off_hr off_rbi off_runs off_hbp
-        off_bb off_sb off_k off_rbi_w2 off_rlob off_sac off_sb_c
-        --cur_opp_team_stats p_ip p_hits p_er p_k p_bb p_hr p_pc p_strikes
-        p_wp p_hbp p_win p_qs errors
-        --extra_stats off_hit_side opp_starter_p_ip opp_starter_p_hits opp_starter_p_er opp_starter_p_k
-        opp_starter_p_bb opp_starter_p_hr opp_starter_p_pc opp_starter_p_strikes
-        opp_starter_p_wp opp_starter_p_hbp opp_starter_p_win opp_starter_p_loss opp_starter_p_qs
-        opp_starter_phand_C opp_starter_phand_H *_home_* team_win
-        --n_cases_range 500 40000
-        --n_games_range 1 7'
+SHARED_TYPE_ARGS="--n_games_range 1 7 --extra_stats *home* team_win venue_C"
 
-TYPE_P='--player_pos P
-      --player_stats p_ip p_qs p_win p_loss p_er p_k p_hbp p_bb p_hits p_hr p_strikes p_wp
-      --team_stats p_win p_save p_hold errors
-      --cur_opp_team_stats off_1b off_2b off_3b off_hr off_rbi off_runs off_bb off_sb
-      off_k off_rbi_w2 off_rlob off_sac
-      --extra_stats starter_phand_C opp_*_hit_%_* *_home_* team_win
-      --n_cases_range 500 10000
-      --n_games_range 1 7'
+# Input stats for offensive players tries to account for team offense production, player's
+# offense, opposing pitcher, opposing team and where the games are happening
+TYPE_OFF="$SHARED_TYPE_ARGS --player_pos LF CF RF 1B 2B 3B SS C
+        --player_stats off_*
+        --team_stats off_runs off_hit off_bb
+        --cur_opp_team_stats p_* errors
+        --extra_stats off_hit_side opp_starter_*
+        --n_cases_range 500 40000"
+
+TYPE_P="$SHARED_TYPE_ARGS --player_pos P
+      --player_stats p_*
+      --team_stats p_win p_runs p_save errors
+      --cur_opp_team_stats off_*
+      --extra_stats starter_phand_C opp_*_hit_%_* player_win
+      --n_cases_range 500 10000"
 
 CALC_OLS='sklearn --est ols
         --n_features_range 1 45
@@ -52,7 +49,7 @@ _SHARED_DNN='keras
            --units_range 20 100
            --activation_list linear relu tanh sigmoid
            --dropout_range .3 .7
-           --extra_stats venue_H venue_C'
+           --extra_stats venue_H'
 
 CALC_DNN_RS="$_SHARED_DNN
            --learning_method_list rmsprop sgd
