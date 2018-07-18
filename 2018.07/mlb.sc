@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SHARED_ARGS='--progress --cache_dir "./casedata_cache"  --scoring mae r2 --seasons 2017 2016 2015
+SHARED_ARGS='--progress --cache_dir "./casedata_cache"  --scoring mae r2
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
            --search_bayes_scorer mae
            --folds 3'
@@ -16,12 +16,16 @@ TYPE_OFF="$SHARED_TYPE_ARGS --player_pos LF CF RF 1B 2B 3B SS C
         --extra_stats off_hit_side opp_starter_*
         --n_cases_range 500 40000"
 
+SEASONS_OFF="--seasons 2017 2016 2015"
+
 TYPE_P="$SHARED_TYPE_ARGS --player_pos P
       --player_stats p_*
       --team_stats p_win p_runs p_save errors
       --cur_opp_team_stats off_*
       --extra_stats starter_phand_C opp_*_hit_%_* player_win
       --n_cases_range 500 10000"
+
+SEASONS_P="--seasons 2017 2016 2015 2014"
 
 CALC_OLS='sklearn --est ols
         --n_features_range 1 45
@@ -77,13 +81,14 @@ usage: mlb.sc (OFF|P) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd)"
 
 TYPE=TYPE_${1}
 CALC=CALC_${2}
+SEASONS=SEASONS_${1}
 
 if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" ]; then
     usage
     exit 1
 fi
 
-CMD="python -O scripts/meval.sc $SHARED_ARGS -o mlb_${1}_${2} mlb.db ${!CALC} ${!TYPE} 
+CMD="python -O scripts/meval.sc $SHARED_ARGS ${!SEASONS} -o mlb_${1}_${2} mlb.db ${!CALC} ${!TYPE}
 --model_player_stat ${3}_score#"
 
 echo $CMD
