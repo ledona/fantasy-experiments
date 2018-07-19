@@ -22,7 +22,7 @@ TYPE_P="$N_GAMES --player_pos P
       --player_stats p_*
       --team_stats p_win p_runs p_save errors
       --cur_opp_team_stats off_*
-      --n_cases_range 500 20000"
+      --n_cases_range 500 15000"
 EXTRAS_P="starter_phand_C opp_*_hit_%_* player_win"
 SEASONS_P="--seasons 2017 2016 2015 2014"
 
