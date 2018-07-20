@@ -59,7 +59,7 @@ _SHARED_DNN='keras
 
 CALC_DNN_RS="$_SHARED_DNN
            --learning_method_list rmsprop sgd
-           --lr_range .0005 .01"
+           --lr_range .005 .01"
 EXTRAS_DNN_RS="venue_C venue_H"
 
 CALC_DNN_ADA="$_SHARED_DNN
