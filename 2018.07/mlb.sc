@@ -15,7 +15,7 @@ TYPE_OFF="$N_GAMES --player_pos LF CF RF 1B 2B 3B SS C
         --team_stats off_runs off_hit off_bb
         --cur_opp_team_stats p_* errors
         --n_cases_range 500 40000"
-EXTRAS_OFF="off_hit_side opp_starter_*"
+EXTRAS_OFF="opp_starter_*"
 SEASONS_OFF="--seasons 2017 2016 2015"
 
 TYPE_P="$N_GAMES --player_pos P
@@ -96,6 +96,11 @@ fi
 EXTRA_STATS_TYPE_NAME=EXTRAS_${1}
 EXTRA_STATS_CALC_NAME=EXTRAS_${2}
 EXTRA_STATS="$SHARED_EXTRAS ${!EXTRA_STATS_TYPE_NAME} ${!EXTRA_STATS_CALC_NAME}"
+
+if [ "$2" != "OLS" ] && [ "$1" == "OFF" ]; then
+   # add off hit side to every offensive thing except OLS which doesn't support categoricals
+   EXTRA_STATS="$EXTRA_STATS off_hit_side"
+fi
 
 CMD="python -O scripts/meval.sc $SHARED_ARGS ${!SEASONS} -o mlb_${1}_${2} mlb.db ${!CALC} ${!TYPE}
 --model_player_stat ${3}_score# --extra_stats $EXTRA_STATS"
