@@ -1,38 +1,48 @@
 #!/bin/bash
 
+# Use this script to run individual nfl evaluations
+
 SHARED_MEVAL_ARGS='--progress --cache_dir ./casedata_cache  --scoring mae r2
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
            --search_bayes_scorer mae
-           --folds 2 --seasons 2017 2016 2015 2014 2013 2012 2011'
+           --folds 2 --seasons 2017 2016 2015 2014 2013 2012 2011 2010'
 
-SHARED_CALC_ARGS="--n_games_range 1 7 --n_cases_range 100 5000"
 SHARED_EXTRAS="*home* team_win"
 
 TYPE_QB="--player_pos QB
        --player_stats fumbles_lost passing_* rushing_* tds
        --team_stats pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_* yds pts turnovers"
+MAX_CASES_QB=1750
+OLS_FEATURES_QB=33
 
 TYPE_WT="--player_pos WR TE
        --player_stats fumbles_lost receiving_* tds
        --team_stats passing_yds pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_*"
+MAX_CASES_WT=9000
+OLS_FEATURES_WT=25
 
 TYPE_RB="--player_pos RB
        --player_stats fumbles_lost receiving_* rushing_* tds
        --team_stats passing_yds pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_*"
+MAX_CASES_RB=3500
+OLS_FEATURES_RB=29
 
 TYPE_K="--player_pos K
       --player_stats kicking_*
       --team_stats pts turnovers yds
       --cur_opp_team_stats def_* op_*"
+MAX_CASES_K=1750
+OLS_FEATURES_K=25
 
 TYPE_D="--team_stats def_* op_* pts yds turnovers
       --cur_opp_team_stats passing_yds pts rushing_yds turnovers"
+MAX_CASES_D=1750
+OLS_FEATURES_D=22
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 100
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
@@ -91,14 +101,24 @@ if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" ]; t
 fi
 
 if [ "$1" == "D" ]; then
-    MODEL_ARG="--model_team_stat"
+    MODEL_ARG="--model_team_stat ${3}_score_def#"
 else
-    MODEL_ARG="--model_player_stat"
+    MODEL_ARG="--model_player_stat ${3}_score_off#"
 fi
-MODEL_ARG="${MODEL_ARG} ${3}_score#"
+
+if [ "$2" == "OLS" ]; then
+    OLS_FEATURES=OLS_FEATURES_${1}
+    FEATURES_ARG="--n_features_range 1 ${!OLS_FEATURES}"
+else
+    FEATURES_ARGS=""
+fi
+
+
+MAX_CASES=MAX_CASES_${1}
+SHARED_CALC_ARGS="--n_games_range 1 7 --n_cases_range 100 ${!MAX_CASES}"
 
 
 CMD="python -O scripts/meval.sc $SHARED_MEVAL_ARGS -o nfl_${1}_${2} nfl.db
-     ${!CALC} $N_GAMES ${!TYPE} $MODEL_ARG"
+     ${!CALC} $SHARED_CALC_ARGS ${!TYPE} $MODEL_ARG $FEATURES_ARG"
 
 echo $CMD
