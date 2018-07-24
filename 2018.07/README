@@ -1,2 +1,13 @@
 mlb.sc - use this to to create the meval command line calls to perform evaluations
 gsheet.sc - use this to upload evaluation results to google sheets
+nfl.sc - Create meval calls for nfl. Use the following bash loop to run multiple mevals
+
+# for nfl set pos to one of these supported options QB|WT|R|K|D
+POS=XXX
+for method in OLS RF XG BLE DNN_RS DNN_ADA; do
+    for fantasy in fd dk; do
+        echo "$POS $method $fantasy"
+        cmd="experiments/2018.07/nfl.sc $POS $method $fantasy"
+        `$cmd`
+    done
+done
