@@ -89,13 +89,13 @@ CALC_XG="xgboost
 usage()
 {
     echo "Create the cmd line meval to run.
-usage: nfl.sc (QB|WT|R|K|D) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd)"
+usage: nfl.sc (QB|WT|R|K|D) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd|y)"
 }
 
 TYPE=TYPE_${1}
 CALC=CALC_${2}
 
-if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" ]; then
+if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" -a "$3" != "y" ]; then
     usage
     exit 1
 fi
