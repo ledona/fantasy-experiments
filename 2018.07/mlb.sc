@@ -81,14 +81,14 @@ EXTRAS_XG="venue_C"
 usage()
 {
     echo "Create the cmd line meval to run.
-usage: mlb.sc (OFF|P) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd)"
+usage: mlb.sc (OFF|P) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd|y)"
 }
 
 TYPE=TYPE_${1}
 CALC=CALC_${2}
 SEASONS=SEASONS_${1}
 
-if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" ]; then
+if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" -a "$3" != "y" ]; then
     usage
     exit 1
 fi
