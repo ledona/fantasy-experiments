@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# disable expansion so SHARED_ARGS wildcards are left untouched
+set -f
+
 # for this experiment will be used djshadow as the remote data repository
 if [[ $HOSTNAME == djshadow* ]]; then
     REMOTE_CACHE=""
@@ -15,9 +18,9 @@ SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE
            --folds 3"
 
 SHARED_CALC="--n_games_range 1 7
-        --player_stats '*'
-        --team_stats '*'
-        --cur_opp_team_stats '*'
+        --player_stats *
+        --team_stats *
+        --cur_opp_team_stats *
         --extra_stats team_win home_C player_pos_C player_home_H
         --n_cases_range 500 32000"
 
