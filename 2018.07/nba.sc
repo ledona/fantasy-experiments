@@ -24,7 +24,7 @@ SHARED_CALC="--n_games_range 1 7
         --n_cases_range 500 32000"
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 69
+        --n_features_range 1 68
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
