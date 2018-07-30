@@ -18,10 +18,10 @@ SHARED_CALC="--n_games_range 1 7
         --team_stats '*'
         --cur_opp_team_stats '*'
         --extra_stats team_win home_C player_pos_C player_home_H
-        --n_cases_range 500 40000"
+        --n_cases_range 500 32000"
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 45
+        --n_features_range 1 70
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
@@ -79,7 +79,7 @@ if [ -z "${!CALC}" ] || [ "$2" != "dk" -a "$2" != "fd" -a "$2" != "y" ]; then
     exit 1
 fi
 
-CMD="python -O scripts/meval.sc $SHARED_ARGS -o nba_${1}_${2} mlb.db ${!CALC}
+CMD="python -O scripts/meval.sc $SHARED_ARGS -o nba_${1}_${2} nba.db ${!CALC}
 $SHARED_CALC --model_player_stat ${2}_score#"
 
 echo $CMD
