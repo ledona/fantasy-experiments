@@ -1,12 +1,13 @@
 #!/bin/bash
 
+# for this experiment will be used djshadow as the remote data repository
 if [[ $HOSTNAME == djshadow* ]]; then
     REMOTE_CACHE=""
 else
-    REMOTE_CACHE="djshadow:working/fantasy/casedata_cache"
+    REMOTE_CACHE="--cache_remote djshadow:working/fantasy/casedata_cache"
 fi
 
-SHARED_ARGS="--progress --cache_dir ./casedata_cache --cache_remote $REMOTE_CACHE
+SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE
            --scoring mae r2
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
            --search_bayes_scorer mae
@@ -21,7 +22,7 @@ SHARED_CALC="--n_games_range 1 7
         --n_cases_range 500 32000"
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 70
+        --n_features_range 1 69
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
