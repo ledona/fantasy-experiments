@@ -30,7 +30,7 @@ for fantasy in fd dk y; do
           # subsheet names are like 'p_ols'
           subsheet=`echo $f | sed "s/.*${1}_\([^.]*\).*/\1/"`
           python scripts/meval_gsheet.sc --verbose \
-                 --sheet_name "models ${fantasy} ${m} 2018.07" \
+                 --sheet_name "models ${fantasy} 2018.07" \
                  --subsheet_title $subsheet --folder_path /fantasy/${1}/ \
                  --sort_by score_mae -- $f
     done
