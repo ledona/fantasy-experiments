@@ -3,6 +3,8 @@
 TYPES_mlb="OFF P"
 TYPES_nfl="QB WT R K D"
 
+FANTASIES="fd dk y"
+
 usage()
 {
     echo "Upload meval results to google sheets
@@ -19,7 +21,7 @@ TYPES=TYPES_${1}
 # need globbing, and some of the other scripts disable so...
 set +f
 
-for fantasy in fd dk y; do
+for fantasy in $FANTASIES; do
   for type in ${!TYPES}; do
       for f in experiments/2018.07/$1*_${type}_*${fantasy}*tsv; do
           # ignore the edge case of no files
