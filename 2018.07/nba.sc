@@ -18,13 +18,14 @@ SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE
            --folds 3"
 
 SHARED_CALC="--n_games_range 1 7
-        --player_stats *
+        --player_stats asst blks d_reb fg_att fg_made fouls ft_att ft_made mins o_reb
+                       pts starter stls tfg_att tfg_made turnovers
         --team_stats *
         --cur_opp_team_stats *
         --n_cases_range 500 32000"
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 68
+        --n_features_range 1 65
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
@@ -87,7 +88,7 @@ if [ "$1" != "OLS" ]; then
     EXTRA_STATS="$EXTRA_STATS player_pos_C"
 fi
 
-CMD="python -O scripts/meval.sc $SHARED_ARGS -o nba_${1}_${2} nba.db ${!CALC}
+CMD="python -O scripts/meval.sc $SHARED_ARGS -o nba_${1} nba.db ${!CALC}
 $SHARED_CALC $EXTRA_STATS --model_player_stat ${2}_score#"
 
 echo $CMD
