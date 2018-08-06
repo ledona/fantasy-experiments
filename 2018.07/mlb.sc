@@ -20,8 +20,8 @@ SEASONS_OFF="--seasons 2017 2016 2015"
 
 TYPE_P="$N_GAMES --player_pos P
       --player_stats p_bb p_cg p_er p_hbp p_hits p_hr p_ibb p_ip p_k p_loss
-                     p_pc p_po p_qs p_runs p_save p_strikes p_win p_wp
-      --team_stats p_win p_runs p_save errors
+                     p_pc p_po p_qs p_runs p_strikes p_win p_wp
+      --team_stats p_win p_runs p_save p_hold errors
       --cur_opp_team_stats off_*
       --n_cases_range 500 10000"
 EXTRAS_P="starter_phand_C opp_*_hit_%_* player_win"
