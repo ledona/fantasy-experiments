@@ -1,9 +1,16 @@
 #!/bin/bash
 
-SHARED_ARGS='--progress --cache_dir "./casedata_cache"  --scoring mae r2
+# for this experiment will be used djshadow as the remote data repository
+if [[ $HOSTNAME == djshadow* ]]; then
+    REMOTE_CACHE=""
+else
+    REMOTE_CACHE="--cache_remote djshadow:working/fantasy/casedata_cache"
+fi
+
+SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE  --scoring mae r2
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
            --search_bayes_scorer mae
-           --folds 3'
+           --folds 3"
 
 N_GAMES="--n_games_range 1 7"
 SHARED_EXTRAS="*home* team_win"
