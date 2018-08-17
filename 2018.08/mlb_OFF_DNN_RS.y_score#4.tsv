@@ -1,0 +1,72 @@
+{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["errors", "p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hold", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_qs", "p_runs", "p_save", "p_strikes", "p_win", "p_wp"], "extra_stats": ["home_C", "off_hit_side", "opp_starter_p_bb", "opp_starter_p_cg", "opp_starter_p_er", "opp_starter_p_hbp", "opp_starter_p_hits", "opp_starter_p_hr", "opp_starter_p_ibb", "opp_starter_p_ip", "opp_starter_p_k", "opp_starter_p_loss", "opp_starter_p_pc", "opp_starter_p_qs", "opp_starter_p_runs", "opp_starter_p_strikes", "opp_starter_p_win", "opp_starter_p_wp", "opp_starter_phand_C", "opp_starter_phand_H", "player_home_H", "team_home_H", "team_win", "venue_C", "venue_H"], "model_player_stat": "y_score#4", "model_team_stat": null, "player_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_bo", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "off_sbo"], "prev_opp_team_stats": [], "team_stats": ["off_bb", "off_hit", "off_runs"]}, "impute": true, "models_path": "/home/delano/working/fantasy/MODELS_keras", "normalize": true, "player_pos": ["1B", "2B", "3B", "C", "CF", "LF", "RF", "SS"]}, "datetime_utc": "20180816 053325", "db_id": 3, "db_path": "mlb.db", "fantasy_version": "v0.29.0-8-g5ebcbe8", "filename_prefix": "mlb_OFF_DNN_RS", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPConstantDist", "name": "hist_agg", "value": "none"}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 5, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["rmsprop", "sgd"]}, "lr": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.01, "low": 0.005, "max_float_percision": 10, "name": "lr"}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 40000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 100, "increment": 1, "low": 20, "name": "units"}}, "random_seed": 804690200, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2017, 2016, 2015]}
+score_mae	score_r2	activation	dropout	hist_agg	layers	learning_method	lr	n_cases	n_features	n_games	steps	units
+		relu	0.3654855399	none	4	sgd	0.009841488	38224	324	5	800	66
+		relu	0.618945869	none	4	sgd	0.0054523079	686	388	6	1000	93
+		linear	0.3072140711	none	3	sgd	0.0070572131	13620	260	4	700	61
+-4.448907	-0.0863665	tanh	0.4046764586	none	4	sgd	0.0097329669	22360	324	5	900	60
+-36518677.494703	-156774296371070.0	relu	0.6094983153	none	2	rmsprop	0.0088514534	28289	132	2	700	55
+-5.4546982	-0.4682673	linear	0.3966148444	none	4	rmsprop	0.009208223	38087	68	1	600	53
+-4.5337504	-0.0004212	relu	0.6678978968	none	3	rmsprop	0.0053513345	24119	260	4	900	30
+-4.5602699	-7.58e-05	relu	0.6678958197	none	3	rmsprop	0.0050000032	24118	260	4	1000	30
+-4.6376882	-0.0005105	relu	0.6678968373	none	3	rmsprop	0.0060169031	9232	260	4	900	30
+-4.5740555	-0.0002454	relu	0.6678968581	none	3	rmsprop	0.0066398843	19655	260	4	400	30
+-4.3577417	-0.1027972	tanh	0.4046762917	none	4	sgd	0.0067241869	22550	324	5	700	60
+-4.5828392	-0.0001752	relu	0.6678966024	none	3	rmsprop	0.0062290133	36389	260	4	600	30
+-4.5797423	-0.0006554	relu	0.6678968033	none	3	rmsprop	0.0058023647	27082	260	4	800	30
+-4.5839828	-9.49e-05	relu	0.6678968192	none	3	rmsprop	0.0057645289	15622	260	4	700	30
+-4.5772913	-9.86e-05	relu	0.660597634	none	3	rmsprop	0.0062069003	23063	260	4	800	33
+-4.5689735	-9e-06	relu	0.6342132652	none	3	rmsprop	0.0065068824	24565	260	4	700	35
+-4.5793065	-9.8e-05	relu	0.6579591161	none	3	rmsprop	0.0062368998	23213	260	4	800	33
+-4.5769088	-0.0002474	relu	0.6361926114	none	3	rmsprop	0.0064843771	24452	260	4	700	35
+-4.5702176	-9.63e-05	relu	0.6561451922	none	3	rmsprop	0.0062575237	23317	260	4	800	33
+-4.6215811	-0.0001116	relu	0.6376180955	none	3	rmsprop	0.0064681694	24371	260	4	700	35
+-4.6216522	-0.0001133	relu	0.6376181392	none	3	rmsprop	0.0064681689	24371	260	4	700	35
+-4.585175	-0.0007437	relu	0.6536748589	none	3	rmsprop	0.0062856109	23457	260	4	700	34
+-4.5850999	-0.0007455	relu	0.6536747722	none	3	rmsprop	0.0062856067	23457	260	4	700	34
+-4.5293241	-0.0002143	relu	0.639402418	none	3	rmsprop	0.006447882	24269	260	4	700	35
+-4.5839791	-0.0003187	relu	0.6528819234	none	3	rmsprop	0.0062946263	23502	260	4	700	34
+-4.583982	-0.0003188	relu	0.6528819229	none	3	rmsprop	0.0062946263	23502	260	4	700	34
+-4.579583	-0.0001026	relu	0.64068628	none	3	rmsprop	0.006433285	24196	260	4	700	35
+-4.5795648	-0.0001022	relu	0.6406862777	none	3	rmsprop	0.0064332851	24196	260	4	700	35
+-4.5796888	-0.000105	relu	0.6406862732	none	3	rmsprop	0.0064332852	24196	260	4	700	35
+-4.5795636	-0.0001022	relu	0.640686267	none	3	rmsprop	0.0064332853	24196	260	4	700	35
+-4.5795641	-0.0001022	relu	0.6406862595	none	3	rmsprop	0.0064332854	24196	260	4	700	35
+-4.5795687	-0.0001022	relu	0.640686251	none	3	rmsprop	0.0064332855	24196	260	4	700	35
+-4.5795925	-0.0001023	relu	0.6406862417	none	3	rmsprop	0.0064332856	24196	260	4	700	35
+-4.5795697	-0.0001023	relu	0.6406862317	none	3	rmsprop	0.0064332857	24196	260	4	700	35
+-4.5796291	-0.0001022	relu	0.6406862211	none	3	rmsprop	0.0064332859	24196	260	4	700	35
+-4.5796905	-0.0001011	relu	0.6406862102	none	3	rmsprop	0.006433286	24196	260	4	700	35
+-4.5795061	-0.0001007	relu	0.640686199	none	3	rmsprop	0.0064332862	24196	260	4	700	35
+-4.5330727	-0.0005543	relu	0.6485543713	none	3	rmsprop	0.0063438293	23748	260	4	700	34
+-4.5330387	-0.0005554	relu	0.6485544182	none	3	rmsprop	0.0063438286	23748	260	4	700	34
+-4.549806	-0.0002958	relu	0.6411490197	none	3	rmsprop	0.0064280242	24170	260	4	700	35
+-4.5498203	-0.0002955	relu	0.641149008	none	3	rmsprop	0.0064280243	24170	260	4	700	35
+-4.5498192	-0.0002958	relu	0.6411489961	none	3	rmsprop	0.0064280245	24170	260	4	700	35
+-4.5872806	-0.0001473	relu	0.6479372522	none	3	rmsprop	0.0063508458	23784	260	4	700	34
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6413276178	none	3	rmsprop	0.0064259937	24160	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6513816568	none	3	rmsprop	0.006311684	23587	260	4	700	34
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6476867368	none	2	rmsprop	0.0066625699	25928	132	2	400	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.4078306417	none	3	rmsprop	0.0075796442	12267	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6513545432	none	3	rmsprop	0.0062313495	19844	260	4	700	33
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6450825861	none	3	rmsprop	0.006256204	24166	260	4	500	36
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6415570251	none	3	rmsprop	0.0063740374	24271	324	5	700	65
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6012054315	none	3	rmsprop	0.0064369787	24174	260	4	700	52
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6420958127	none	4	rmsprop	0.0071404885	24167	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6559066412	none	3	rmsprop	0.0071369158	24151	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.41152129	none	3	rmsprop	0.0064199106	24160	196	3	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6862541687	none	3	rmsprop	0.0060163804	9235	260	4	900	30
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6141172399	none	3	rmsprop	0.0064159375	24145	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6416612361	none	3	rmsprop	0.0064250793	24175	260	4	700	42
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6410620947	none	3	rmsprop	0.0064309006	24199	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6411668542	none	3	rmsprop	0.0064296559	24192	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6582402705	none	3	rmsprop	0.0062328876	23209	260	4	800	33
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.641392129	none	3	rmsprop	0.006427128	24180	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6094982376	none	2	rmsprop	0.0088514611	28289	132	2	700	55
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		tanh	0.4046764629	none	4	sgd	0.0067241934	22550	324	5	700	60
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6417485412	none	3	rmsprop	0.0064232382	24163	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.642412802	none	3	rmsprop	0.0064157443	24131	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6382727864	none	3	rmsprop	0.0095794712	30683	196	3	800	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6417889583	none	3	rmsprop	0.0064225062	24156	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.6432762973	none	3	rmsprop	0.0064054605	24084	260	4	700	35
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		tanh	0.4377748683	none	4	rmsprop	0.0053377004	10288	132	2	800	78
+(sqlite3.OperationalError) unable to open database file (Background on this error at: http://sqlalche.me/e/e3q8)		relu	0.4710160507	none	2	sgd	0.0098971703	19087	196	3	600	76
