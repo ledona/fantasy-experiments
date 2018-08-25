@@ -30,7 +30,7 @@ for fantasy in $FANTASIES; do
         else
             TYPE_="${TYPE}_"
         fi
-        for f in experiments/2018.07/$1*_${TYPE_}*${fantasy}*tsv; do
+        for f in experiments/2018.08/$1*_${TYPE_}*${fantasy}*tsv; do
             # ignore the edge case of no files
             [ -e "$f" ] || continue
 
@@ -39,7 +39,7 @@ for fantasy in $FANTASIES; do
             # subsheet names are like 'p_ols'
             subsheet=`echo $f | sed "s/.*${1}_\([^.]*\).*/\1/"`
             python scripts/meval_gsheet.sc --verbose \
-                   --sheet_name "models ${fantasy} 2018.07" \
+                   --sheet_name "models ${fantasy} 2018.08" \
                    --subsheet_title $subsheet --folder_path /fantasy/${1}/ \
                    --sort_by score_mae -- $f
         done
