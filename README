@@ -22,6 +22,18 @@ Date            Fantasy  ModeledFor  -mae        r2          Details
 NFL
 
 Date            Fantasy  ModeledFor  -mae        r2         Details
+2018.08         FD       QB          -5.6316971  0.2077359  OLS
+2018.08         FD       WT          -3.5788654  0.2367806  OLS
+2018.08         FD       RB          -4.4933253  0.2584791  RF
+2018.08         FD       D           -4.3984913  -0.0158156 OLS
+2018.08         DK       QB          -6.2323067  0.227337   OLS
+2018.08         DK       WT          -4.775681   0.2640417  BLE
+2018.08         DK       RB          -4.9768302  0.2380144  BLE
+2018.08         DK       D           -4.1        -0.0423432 RF
+2018.08         Y        QB          -6.1634168  0.2170909  OLS
+2018.08         Y        WT          -3.9347997  0.1643651  XG
+2018.08         Y        RB          -4.6571777  0.2333618  BLE
+2018.08         Y        D           -4.26       -0.0218559 RF
 2018.07         FD       QB          -5.6652431  0.2807587  OLS
 2018.07         FD       WT          -3.8318927  0.2666939  OLS
 2018.07         FD       RB          -4.2585211  0.2225146  RF
@@ -40,6 +52,6 @@ Date            Fantasy  ModeledFor  -mae        r2         Details
 NBA
 
 Date            Fantasy -mae        r2          Details
-2018.07         FD
-2018.07         Y
-2018.07         DK
+2018.08         FD      -7.4580852  0.5103862   XG
+2018.08         Y       -7.3836227  0.5014941   BLE
+2018.08         DK      -7.2961039  0.5422274   DNN_ADA

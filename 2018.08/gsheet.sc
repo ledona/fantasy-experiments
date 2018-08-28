@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TYPES_mlb="OFF P"
-TYPES_nfl="QB WT R K D"
+TYPES_nfl="QB WT RB K D"
 TYPES_nba="."
 
 FANTASIES="fd dk y"
