@@ -14,7 +14,7 @@ SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE
            --scoring mae r2
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
            --search_bayes_scorer mae
-           --seasons 2015 2016 2017 2018
+           --seasons 20142015 20152016 20162017 20172018
            --folds 3"
 SHARED_EXTRA_STATS="team_win home_C player_home_H"
 
