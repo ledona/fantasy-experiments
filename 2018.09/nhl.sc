@@ -21,21 +21,21 @@ SHARED_EXTRA_STATS="team_win home_C player_home_H"
 # skaters
 TYPE_S="--player_pos LW RW C D
         --player_stats goal* assist* pen* toi_ev toi_pp toi_sh *away fo* hit pm shot*
-        --team_stats win ot so goal goal_pp pp pen* shot *away fo*
-        --cur_opp_team_stats win ot so goal goal_ag fo* goal_pk_ag pk pen*
-                             hit shot_ag shot_b save *away"
+        --team_stats ot so goal goal_pp pp pen* shot *away fo*
+        --cur_opp_team_stats ot so goal goal_ag fo* goal_pk_ag pk pen*
+                             hit shot_ag shot_b save *away
+        --cases_range 500 50000"
 EXTRAS_S=""
 
 # goalies
 TYPE_G="--player_pos G
-        --player_stats toi_g win loss goal_ag save
-        --team_stats win ot so goal *_ag goal_pp fo* pp pk pen* shot_b *away fo* pen*
-                     hit *away
-             --cur_opp_team_stats win ot so goal fo* *pp goal_sh shot pen* hit away*"
+        --player_stats toi_g loss goal_ag save
+        --team_stats ot so goal *_ag goal_pp fo* pp pk pen* shot_b *away fo* pen* hit
+        --cur_opp_team_stats ot so goal fo* *pp goal_sh shot pen* hit *away
+        --cases_range 500 50000"
 EXTRAS_G="player_win"
 
-SHARED_CALC="--n_games_range 1 7
-             --n_cases_range 500 32000"
+SHARED_CALC="--n_games_range 1 7"
 
 CALC_OLS='sklearn --est ols
           --n_features_range 1 65
@@ -97,13 +97,18 @@ if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" -a "
     exit 1
 fi
 
-EXTRA_STATS=EXTRAS_${1}
+EXTRAS="EXTRAS_${1}"
+EXTRA_STATS="${!EXTRAS}"
 if [ "$2" != "OLS" ] && [ "$1" == "S" ]; then
-    # include player position for skaters
-    EXTRA_STATS="$EXTRA_STATS player_pos_C"
+    echo "not OLS + S; include player position for skaters"
+    EXTRA_STATS="${EXTRA_STATS} player_pos_C"
+fi
+
+if [ ! -z "${EXTRA_STATS}" ]; then
+    EXTRA_STATS="--extra_stats ${EXTRA_STATS}"
 fi
 
 CMD="python -O scripts/meval.sc $SHARED_ARGS -o nhl_${1}_${2} nhl.db ${!CALC} ${!TYPE}
-$SHARED_CALC --extra_stats $EXTRA_STATS --model_player_stat ${3}_score#"
+$SHARED_CALC $EXTRA_STATS --model_player_stat ${3}_score#"
 
 echo $CMD
