@@ -23,22 +23,22 @@ TYPE_S="--player_pos LW RW C D
         --player_stats goal* assist* pen* toi_ev toi_pp toi_sh *away fo* hit pm shot*
         --team_stats ot so goal goal_pp pp pen* shot *away fo*
         --cur_opp_team_stats ot so goal goal_ag fo* goal_pk_ag pk pen*
-                             hit shot_ag shot_b save *away
-        --cases_range 500 50000"
+                             hit shot_ag shot_b save *away"
+OLS_FEATURES_S=51
+MAX_CASES_S=55750
 EXTRAS_S=""
+
 
 # goalies
 TYPE_G="--player_pos G
         --player_stats toi_g loss goal_ag save
         --team_stats ot so goal *_ag goal_pp fo* pp pk pen* shot_b *away fo* pen* hit
-        --cur_opp_team_stats ot so goal fo* *pp goal_sh shot pen* hit *away
-        --cases_range 500 50000"
+        --cur_opp_team_stats ot so goal fo* *pp goal_sh shot pen* hit *away"
+OLS_FEATURES_G=37
+MAX_CASES_G=3340
 EXTRAS_G="player_win"
 
-SHARED_CALC="--n_games_range 1 7"
-
 CALC_OLS='sklearn --est ols
-          --n_features_range 1 65
           --hist_agg_list mean median'
 
 CALC_BLE='sklearn
@@ -97,11 +97,23 @@ if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" -a "
     exit 1
 fi
 
+MAX_CASES=MAX_CASES_${1}
+SHARED_CALC="--n_games_range 1 7 --n_cases_range 500 ${!MAX_CASES}"
+
+OLS_MAX_FEATURES=OLS_FEATURES_${1}
 EXTRAS="EXTRAS_${1}"
+
 EXTRA_STATS="${!EXTRAS}"
 if [ "$2" != "OLS" ] && [ "$1" == "S" ]; then
     echo "not OLS + S; include player position for skaters"
     EXTRA_STATS="${EXTRA_STATS} player_pos_C"
+fi
+
+if [ "$2" == "OLS" ]; then
+    OLS_FEATURES=OLS_FEATURES_${1}
+    FEATURES_ARG="--n_features_range 1 ${!OLS_FEATURES}"
+else
+    FEATURES_ARG=""
 fi
 
 if [ ! -z "${EXTRA_STATS}" ]; then
@@ -109,6 +121,6 @@ if [ ! -z "${EXTRA_STATS}" ]; then
 fi
 
 CMD="python -O scripts/meval.sc $SHARED_ARGS -o nhl_${1}_${2} nhl.db ${!CALC} ${!TYPE}
-$SHARED_CALC $EXTRA_STATS --model_player_stat ${3}_score#"
+$SHARED_CALC $EXTRA_STATS --model_player_stat ${3}_score# $FEATURES_ARG"
 
 echo $CMD
