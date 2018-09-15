@@ -105,7 +105,6 @@ EXTRAS="EXTRAS_${1}"
 
 EXTRA_STATS="${!EXTRAS}"
 if [ "$2" != "OLS" ] && [ "$1" == "S" ]; then
-    echo "not OLS + S; include player position for skaters"
     EXTRA_STATS="${EXTRA_STATS} player_pos_C"
 fi
 
