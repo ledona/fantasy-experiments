@@ -14,33 +14,33 @@ TYPE_QB="--player_pos QB
        --team_stats pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_* yds pts turnovers pens pen_yds"
 MAX_CASES_QB=1750
-OLS_FEATURES_QB=33
+OLS_FEATURES_QB=35
 
 TYPE_WT="--player_pos WR TE
        --player_stats fumbles_lost receiving_* tds
        --team_stats passing_yds pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_* pens pen_yds"
 MAX_CASES_WT=9000
-OLS_FEATURES_WT=25
+OLS_FEATURES_WT=27
 
 TYPE_RB="--player_pos RB
        --player_stats fumbles_lost receiving_* rushing_* tds
        --team_stats passing_yds pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_* pens pen_yds"
 MAX_CASES_RB=3500
-OLS_FEATURES_RB=29
+OLS_FEATURES_RB=31
 
 TYPE_K="--player_pos K
       --player_stats kicking_*
       --team_stats pts turnovers yds
       --cur_opp_team_stats def_* op_* pens pen_yds"
 MAX_CASES_K=1750
-OLS_FEATURES_K=25
+OLS_FEATURES_K=27
 
 TYPE_D="--team_stats def_* op_* pts yds turnovers pens pen_yds
       --cur_opp_team_stats passing_yds pts rushing_yds turnovers pens pen_yds"
 MAX_CASES_D=1750
-OLS_FEATURES_D=22
+OLS_FEATURES_D=24
 
 CALC_OLS='sklearn --est ols
         --hist_agg_list mean median'
