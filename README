@@ -1,3 +1,5 @@
+Performance metrics reported by meval
+
 MLB
 
 Date            Fantasy  ModeledFor  -mae        r2          Details
@@ -22,6 +24,19 @@ Date            Fantasy  ModeledFor  -mae        r2          Details
 NFL
 
 Date            Fantasy  ModeledFor  -mae        r2         Details
+NFLAPI and new stats
+2018.08         FD       QB          -5.543984  0.1338868   rforest
+2018.08         FD       WT          -3.8932245 0.1221956   ols
+2018.08         FD       RB          -4.1157195 0.1515873   XG
+2018.08         FD       D           -4.02294   -0.0166444  rforest
+2018.08         DK       QB          -6.3057456 0.2108318   OLS
+2018.08         DK       WT          -4.7406457 0.2035259   BLE
+2018.08         DK       RB          -4.5782583 0.1905408   XG
+2018.08         DK       D           -4.169     -0.0271163  RF
+2018.08         Y        QB          -6.3021456 0.1725773   BLE
+2018.08         Y        WT          -4.0101249 0.1978657   BLE
+2018.08         Y        RB          -4.5787821 0.1826088   rforest
+2018.08         Y        D           -4.106172  -0.0900062  DNN_ADA
 2018.08         FD       QB          -5.6316971  0.2077359  OLS
 2018.08         FD       WT          -3.5788654  0.2367806  OLS
 2018.08         FD       RB          -4.4933253  0.2584791  RF
