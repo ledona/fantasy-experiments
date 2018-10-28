@@ -7,40 +7,31 @@ SHARED_MEVAL_ARGS='--progress --cache_dir ./casedata_cache  --scoring mae r2
            --search_bayes_scorer mae
            --folds 2 --seasons 2017 2016 2015 2014 2013 2012 2011 2010 2009'
 
-SHARED_EXTRAS="*home* team_win"
-
 TYPE_QB="--player_pos QB
        --player_stats fumbles_lost passing_* rushing_* tds
        --team_stats pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_* yds pts turnovers pens pen_yds"
 MAX_CASES_QB=1750
-OLS_FEATURES_QB=35
+OLS_FEATURES_QB=39
 
 TYPE_WT="--player_pos WR TE
        --player_stats fumbles_lost receiving_* tds
        --team_stats passing_yds pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_* pens pen_yds"
 MAX_CASES_WT=9000
-OLS_FEATURES_WT=27
+OLS_FEATURES_WT=32
 
 TYPE_RB="--player_pos RB
        --player_stats fumbles_lost receiving_* rushing_* tds
        --team_stats passing_yds pts rushing_yds turnovers
        --cur_opp_team_stats def_* op_* pens pen_yds"
 MAX_CASES_RB=3500
-OLS_FEATURES_RB=31
-
-TYPE_K="--player_pos K
-      --player_stats kicking_*
-      --team_stats pts turnovers yds
-      --cur_opp_team_stats def_* op_* pens pen_yds"
-MAX_CASES_K=1750
-OLS_FEATURES_K=27
+OLS_FEATURES_RB=36
 
 TYPE_D="--team_stats def_* op_* pts yds turnovers pens pen_yds
       --cur_opp_team_stats passing_yds pts rushing_yds turnovers pens pen_yds"
 MAX_CASES_D=1750
-OLS_FEATURES_D=24
+OLS_FEATURES_D=30
 
 CALC_OLS='sklearn --est ols
         --hist_agg_list mean median'
@@ -89,7 +80,7 @@ CALC_XG="xgboost
 usage()
 {
     echo "Create the cmd line meval to run.
-usage: nfl.sc (QB|WT|R|K|D) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd|y)"
+usage: nfl.sc (QB|WT|R|D) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd|y)"
 }
 
 TYPE=TYPE_${1}
@@ -115,7 +106,7 @@ fi
 
 
 MAX_CASES=MAX_CASES_${1}
-SHARED_CALC_ARGS="--n_games_range 1 7 --n_cases_range 100 ${!MAX_CASES}"
+SHARED_CALC_ARGS="--n_games_range 1 7 --n_cases_range 100 ${!MAX_CASES} --extra_stats *home* team_win"
 
 
 CMD="python -O scripts/meval.sc $SHARED_MEVAL_ARGS -o nfl_${1}_${2} nfl.db
