@@ -92,9 +92,11 @@ if [ -z "${!TYPE}" ] || [ -z "${!CALC}" ] || [ "$3" != "dk" -a "$3" != "fd" -a "
 fi
 
 if [ "$1" == "D" ]; then
-    MODEL_ARG="--model_team_stat ${3}_score_def#"
+    # team defense
+    MODEL_ARG="--model_team_stat ${3}_score_def# --extra_stats team_win team_home_H home_C"
 else
-    MODEL_ARG="--model_player_stat ${3}_score_off#"
+    # offensive players
+    MODEL_ARG="--model_player_stat ${3}_score_off# --extra_stats team_win player_home_H team_home_H home_C"
 fi
 
 if [ "$2" == "OLS" ]; then
@@ -106,7 +108,7 @@ fi
 
 
 MAX_CASES=MAX_CASES_${1}
-SHARED_CALC_ARGS="--n_games_range 1 7 --n_cases_range 100 ${!MAX_CASES} --extra_stats *home* team_win"
+SHARED_CALC_ARGS="--n_games_range 1 7 --n_cases_range 100 ${!MAX_CASES}"
 
 
 CMD="python -O scripts/meval.sc $SHARED_MEVAL_ARGS -o nfl_${1}_${2} nfl.db
