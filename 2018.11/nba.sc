@@ -23,10 +23,10 @@ SHARED_CALC="--n_games_range 1 7
         --player_stats *
         --team_stats *
         --cur_opp_team_stats *
-        --n_cases_range 500 32000"
+        --n_cases_range 500 32500"
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 65
+        --n_features_range 1 69
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
