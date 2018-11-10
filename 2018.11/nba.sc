@@ -20,13 +20,14 @@ SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE
            --folds 3"
 
 SHARED_CALC="--n_games_range 1 7
-        --player_stats *
+        --player_stats asst blks d_reb fg_att fg_made fouls ft_att ft_made o_reb
+                       pm pts starter stls tfg_att tfg_made time turnovers
         --team_stats *
         --cur_opp_team_stats *
         --n_cases_range 500 32500"
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 69
+        --n_features_range 1 66
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
