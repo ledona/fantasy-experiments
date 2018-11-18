@@ -1,5 +1,16 @@
 Performance metrics reported by meval
 
+NHL
+
+Date            Fantasy  ModeledFor  -mae        r2          Details
+2018.08         Y        G           -6.9496262	 0.0007046   RF
+2018.08         Y        S           -2.6421341	 0.0672169   RF
+2018.08         FD       G           -11.0617097 -0.0359974  BLE
+2018.08         FD       S           -5.0169333	-0.0183726   RF
+2018.08         DK       G           -2.7476093	 -0.0066733  XG
+2018.08         DK       S           -1.3874682	0.0254707    XG
+
+
 MLB
 
 Date            Fantasy  ModeledFor  -mae        r2          Details
