@@ -113,10 +113,10 @@ if [ "$2" != "OLS" ]; then
     fi
 else
     if [ "$1" == "OFF" ]; then
-        FEATURES_ARG="--n_features_range 1 81"
+        FEATURES_ARG="--n_features_range 1 78"
     else
         # should be pitchers
-        FEATURES_ARG="--n_features_range 1 56"
+        FEATURES_ARG="--n_features_range 1 53"
     fi
 fi
 
