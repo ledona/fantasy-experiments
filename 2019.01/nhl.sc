@@ -14,7 +14,7 @@ SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE
            --scoring mae r2
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
            --search_bayes_scorer mae
-           --seasons 20142015 20152016 20162017 20172018
+           --seasons 20132014 20142015 20152016 20162017 20172018
            --folds 3"
 SHARED_EXTRA_STATS="home_C player_home_H player_pos_C"
 
@@ -25,7 +25,7 @@ TYPE_S="--player_pos LW RW C D
         --team_stats fo* *away goal* hit ot pen* pk pp shot win
         --cur_opp_team_stats fo* *away goal* hit ot pen* pk pp save shot* win"
 OLS_FEATURES_S=63
-MAX_CASES_S=55750
+MAX_CASES_S=71000
 EXTRAS_S=""
 
 
@@ -35,7 +35,7 @@ TYPE_G="--player_pos G
         --team_stats fo* *away *_ag goal_sh* hit ot pen* pk pp shot* win
         --cur_opp_team_stats fo* *away goal* hit ot pen* pk pp save shot* win"
 OLS_FEATURES_G=46
-MAX_CASES_G=3340
+MAX_CASES_G=4100
 EXTRAS_G="player_win"
 
 CALC_OLS='sklearn --est ols

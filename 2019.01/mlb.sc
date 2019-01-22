@@ -13,24 +13,24 @@ SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE  --scoring ma
            --folds 3"
 
 N_GAMES="--n_games_range 1 7"
-SHARED_EXTRAS="*home* venue*"
+SHARED_EXTRAS="*home*"
 
 # Input stats for offensive players tries to account for team offense production, player's
 # offense, opposing pitcher, opposing team and where the games are happening
 TYPE_OFF="$N_GAMES --player_pos LF CF RF 1B 2B 3B SS C
         --player_stats off_*
-        --team_stats off_runs off_hit off_bb win
-        --cur_opp_team_stats p_* errors
-        --n_cases_range 500 40000"
+        --team_stats off_1b off_2b off_3b off_bb off_hit off_hr off_k off_r* off_sac* win
+        --cur_opp_team_stats errors p_* win
+        --n_cases_range 500 49000"
 EXTRAS_OFF="off_hit_side opp_starter_*"
 SEASONS_OFF="--seasons 2018 2017 2016 2015"
 
 TYPE_P="$N_GAMES --player_pos P
       --player_stats p_bb p_cg p_er p_hbp p_hits p_hr p_ibb p_ip p_k p_loss
                      p_pc p_po p_qs p_runs p_strikes p_win p_wp
-      --team_stats p_win p_runs p_save p_hold errors win
-      --cur_opp_team_stats off_*
-      --n_cases_range 500 10000"
+      --team_stats errors off_runs p_cg p_er p_save p_hold win
+      --cur_opp_team_stats off_* win
+      --n_cases_range 500 31000"
 EXTRAS_P="starter_phand_C opp_*_hit_%_* player_win"
 SEASONS_P="--seasons 2018 2017 2016 2015 2014"
 
@@ -105,13 +105,23 @@ EXTRA_STATS_TYPE_NAME=EXTRAS_${1}
 EXTRA_STATS_CALC_NAME=EXTRAS_${2}
 EXTRA_STATS="$SHARED_EXTRAS ${!EXTRA_STATS_TYPE_NAME} ${!EXTRA_STATS_CALC_NAME}"
 
-if [ "$2" != "OLS" ] && [ "$1" == "OFF" ]; then
-   # add off hit side to every offensive thing except OLS which doesn't support categoricals
-   EXTRA_STATS="$EXTRA_STATS off_hit_side"
+if [ "$2" != "OLS" ]; then
+    FEATURES_ARG=""
+    if [ "$1" == "OFF" ]; then
+        # add off hit side to every offensive thing except OLS which doesn't support categoricals
+        EXTRA_STATS="$EXTRA_STATS off_hit_side venue*"
+    fi
+else
+    if [ "$1" == "OFF" ]; then
+        FEATURES_ARG="--n_features_range 1 81"
+    else
+        # should be pitchers
+        FEATURES_ARG="--n_features_range 1 56"
+    fi
 fi
 
 CMD="python -O scripts/meval.sc $SHARED_ARGS ${!SEASONS} -o mlb_${1}_${2}
 mlb_modeling_2008-2018.db ${!CALC} ${!TYPE} --model_player_stat ${3}_score#
---extra_stats $EXTRA_STATS"
+--extra_stats $EXTRA_STATS $FEATURES_ARG"
 
 echo $CMD
