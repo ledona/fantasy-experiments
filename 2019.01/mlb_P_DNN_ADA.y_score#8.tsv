@@ -1,0 +1,72 @@
+{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "win"], "extra_stats": ["home_C", "opp_l_hit_%_C", "opp_l_hit_%_H", "opp_r_hit_%_C", "opp_r_hit_%_H", "player_home_H", "player_win", "starter_phand_C", "team_home_H", "venue_C", "venue_H"], "model_player_stat": "y_score#8", "model_team_stat": null, "player_stats": ["p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_po", "p_qs", "p_runs", "p_strikes", "p_win", "p_wp"], "prev_opp_team_stats": [], "team_stats": ["errors", "off_runs", "p_cg", "p_er", "p_hold", "p_save", "win"]}, "impute": true, "models_path": "./MODELS_keras", "normalize": true, "player_pos": ["P"]}, "datetime_utc": "20190124 220852", "db_id": 3, "db_path": "mlb_modeling_2008-2018.db", "fantasy_version": "v2019.0.0-7-g805bcb9c", "filename_prefix": "mlb_P_DNN_ADA", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPConstantDist", "name": "hist_agg", "value": "none"}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 5, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["adagrad", "adadelta", "adam", "adamax", "nadam"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 31000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 100, "increment": 1, "low": 20, "name": "units"}}, "random_seed": 2058701709, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015, 2014]}
+score_mae	score_r2	activation	dropout	hist_agg	layers	learning_method	n_cases	n_features	n_games	steps	units
+Cannot create random sample of size 34408 because after dropping Nan from y only 23639 cases remained.		linear	0.6687180908	none	3	nadam	22939	305	6	200	49
+Cannot create random sample of size 29899 because after dropping Nan from y only 23639 cases remained.		tanh	0.6947805596	none	3	adamax	19933	305	6	400	30
+Cannot create random sample of size 30432 because after dropping Nan from y only 24034 cases remained.		relu	0.6015559073	none	4	nadam	20288	255	5	600	50
+-10.3764529	-0.921265	relu	0.6238588454	none	2	adadelta	5799	105	2	400	77
+Cannot create random sample of size 39327 because after dropping Nan from y only 25261 cases remained.		sigmoid	0.561556988	none	4	adamax	26218	105	2	900	38
+Cannot create random sample of size 43483 because after dropping Nan from y only 24848 cases remained.		relu	0.3520803764	none	3	adamax	28989	155	3	500	82
+Cannot create random sample of size 27975 because after dropping Nan from y only 23639 cases remained.		tanh	0.5652919287	none	3	adagrad	18650	305	6	400	77
+Cannot create random sample of size 28521 because after dropping Nan from y only 24438 cases remained.		linear	0.623301451	none	2	adamax	19014	205	4	700	93
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77
+-10.1615409	-0.241277	relu	0.6238588455	none	2	adadelta	5799	105	2	400	77

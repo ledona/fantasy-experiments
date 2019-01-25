@@ -1,0 +1,72 @@
+{"calc_name": "sklearn", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "win"], "extra_stats": ["home_C", "opp_l_hit_%_C", "opp_l_hit_%_H", "opp_r_hit_%_C", "opp_r_hit_%_H", "player_home_H", "player_win", "starter_phand_C", "team_home_H"], "model_player_stat": "y_score#8", "model_team_stat": null, "player_stats": ["p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_po", "p_qs", "p_runs", "p_strikes", "p_win", "p_wp"], "prev_opp_team_stats": [], "team_stats": ["errors", "off_runs", "p_cg", "p_er", "p_hold", "p_save", "win"]}, "impute": true, "player_pos": ["P"], "rf_n_jobs": 2}, "datetime_utc": "20190123 154102", "db_id": 3, "db_path": "mlb_modeling_2008-2018.db", "fantasy_version": "v2019.0.0-6-gcf62180c", "filename_prefix": "mlb_P_OLS", "folds": 3, "hyper_dists": {"est": {"cls": "HPConstantDist", "name": "est", "value": "ols"}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 31000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPNumericDist", "dist_type": "int", "high": 53, "increment": 1, "low": 1, "name": "n_features"}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}}, "random_seed": 1745583160, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015, 2014]}
+score_mae	score_r2	est	hist_agg	n_cases	n_features	n_games
+Cannot create random sample of size 30392 because after dropping Nan from y only 23639 cases remained.		ols	median	30392	39	6
+Cannot create random sample of size 23559 because after dropping Nan from y only 23263 cases remained.		ols	median	23559	23	7
+		ols	median	14595	19	5
+-9.4551918	0.1257147	ols	mean	9489	19	7
+Cannot create random sample of size 27093 because after dropping Nan from y only 24438 cases remained.		ols	median	18062	42	4
+Cannot create random sample of size 29228 because after dropping Nan from y only 24438 cases remained.		ols	median	29228	48	4
+-9.6233697	0.0798021	ols	median	15159	31	1
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
+-9.4551918	0.1257147	ols	mean	9489	19	7
