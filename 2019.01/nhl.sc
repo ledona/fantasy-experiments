@@ -21,7 +21,7 @@ SHARED_EXTRA_STATS="home_C player_home_H player_pos_C"
 # skaters
 TYPE_S="--player_pos LW RW C D
         --player_stats assist* fo* *away goal goal_pp goal_sh goal_t goal_w
-                       hit pen* pm shot* toi_ev toi_pp toi_sh win
+                       hit pen* pm shot* toi_ev toi_pp toi_sh
         --team_stats fo* *away goal* hit ot pen* pk pp shot win
         --cur_opp_team_stats fo* *away goal* hit ot pen* pk pp save shot* win"
 OLS_FEATURES_S=61
