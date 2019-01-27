@@ -24,7 +24,7 @@ TYPE_S="--player_pos LW RW C D
                        hit pen* pm shot* toi_ev toi_pp toi_sh
         --team_stats fo* *away goal* hit ot pen* pk pp shot win
         --cur_opp_team_stats fo* *away goal* hit ot pen* pk pp save shot* win"
-OLS_FEATURES_S=61
+OLS_FEATURES_S=60
 MAX_CASES_S=71000
 EXTRAS_S=""
 
