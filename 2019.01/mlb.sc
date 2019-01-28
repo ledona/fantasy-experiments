@@ -19,10 +19,11 @@ SHARED_EXTRAS="home_C player_home_H team_home_H"
 # offense, opposing pitcher, opposing team and where the games are happening
 TYPE_OFF="$N_GAMES --player_pos LF CF RF 1B 2B 3B SS C
         --player_stats off_*
+        --n_cases_range 500 49000
         --team_stats off_1b off_2b off_3b off_bb off_hit off_hr off_k off_r* off_sac* win
-        --cur_opp_team_stats errors p_* win
-        --n_cases_range 500 49000"
-EXTRAS_OFF="off_hit_side opp_starter_*"
+        --cur_opp_team_stats errors p_* win"
+
+EXTRAS_OFF="opp_starter_*"
 SEASONS_OFF="--seasons 2018 2017 2016 2015"
 
 TYPE_P="$N_GAMES --player_pos P
@@ -113,7 +114,7 @@ if [ "$2" != "OLS" ]; then
     fi
 else
     if [ "$1" == "OFF" ]; then
-        FEATURES_ARG="--n_features_range 1 78"
+        FEATURES_ARG="--n_features_range 1 77"
     else
         # should be pitchers
         FEATURES_ARG="--n_features_range 1 53"
