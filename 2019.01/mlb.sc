@@ -13,7 +13,7 @@ SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE  --scoring ma
            --folds 3"
 
 N_GAMES="--n_games_range 1 7"
-SHARED_EXTRAS="*home*"
+SHARED_EXTRAS="home_C player_home_H team_home_H"
 
 # Input stats for offensive players tries to account for team offense production, player's
 # offense, opposing pitcher, opposing team and where the games are happening
