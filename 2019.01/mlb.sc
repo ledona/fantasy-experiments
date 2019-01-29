@@ -45,17 +45,16 @@ CALC_BLE='sklearn
         --alpha_range .00001 1  --alpha_range_def 6 log
         --l1_ratio_range .05 .95
         --est_list br lasso elasticnet'
-EXTRAS_BLE="venue_C"
+EXTRAS_BLE=""
 
 CALC_RF='sklearn
-       --extra_stats venue_C
        --hist_agg_list mean median none
        --rf_trees_range 5 25 --rf_max_features_list sqrt log2
        --rf_min_samples_leaf_range 1 200
        --rf_crit_list mse mae --rf_max_depth_list 0 500
        --rf_n_jobs 3
        --est rforest'
-EXTRAS_RF="venue_C"
+EXTRAS_RF=""
 
 _SHARED_DNN='keras
            --hist_agg none
@@ -69,11 +68,11 @@ _SHARED_DNN='keras
 CALC_DNN_RS="$_SHARED_DNN
            --learning_method_list rmsprop sgd
            --lr_range .005 .01"
-EXTRAS_DNN_RS="venue_C venue_H"
+EXTRAS_DNN_RS="venue_H"
 
 CALC_DNN_ADA="$_SHARED_DNN
             --learning_method_list adagrad adadelta adam adamax nadam"
-EXTRAS_DNN_ADA="venue_C venue_H"
+EXTRAS_DNN_ADA="venue_H"
 
 CALC_XG="xgboost
        --hist_agg_list mean median none
@@ -84,7 +83,7 @@ CALC_XG="xgboost
        --gamma_range 0 10000 --gamma_range_def 10 log
        --colsample_bytree_range 0.5 1
        --rounds_range 75 150"
-EXTRAS_XG="venue_C"
+EXTRAS_XG=""
 
 
 usage()
@@ -109,8 +108,8 @@ EXTRA_STATS="$SHARED_EXTRAS ${!EXTRA_STATS_TYPE_NAME} ${!EXTRA_STATS_CALC_NAME}"
 if [ "$2" != "OLS" ]; then
     FEATURES_ARG=""
     if [ "$1" == "OFF" ]; then
-        # add off hit side to every offensive thing except OLS which doesn't support categoricals
-        EXTRA_STATS="$EXTRA_STATS off_hit_side venue*"
+        # add offense hit side and current venue to every offensive thing except OLS which doesn't support categoricals
+        EXTRA_STATS="$EXTRA_STATS off_hit_side venue_C"
     fi
 else
     if [ "$1" == "OFF" ]; then
