@@ -1,0 +1,29 @@
+{"calc_name": "xgboost", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["errors", "p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hold", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_qs", "p_runs", "p_save", "p_strikes", "p_win", "p_wp", "win"], "extra_stats": ["home_C", "off_hit_side", "opp_starter_p_bb", "opp_starter_p_cg", "opp_starter_p_er", "opp_starter_p_hbp", "opp_starter_p_hits", "opp_starter_p_hr", "opp_starter_p_ibb", "opp_starter_p_ip", "opp_starter_p_k", "opp_starter_p_loss", "opp_starter_p_pc", "opp_starter_p_qs", "opp_starter_p_runs", "opp_starter_p_strikes", "opp_starter_p_win", "opp_starter_p_wp", "opp_starter_phand_C", "opp_starter_phand_H", "player_home_H", "team_home_H", "venue_C"], "model_player_stat": "fd_score#7", "model_team_stat": null, "player_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_bo", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "off_sbo"], "prev_opp_team_stats": [], "team_stats": ["off_1b", "off_2b", "off_3b", "off_bb", "off_hit", "off_hr", "off_k", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "win"]}, "gpu": false, "impute": true, "models_path": "./MODELS_xgboost", "player_pos": ["1B", "2B", "3B", "C", "CF", "LF", "RF", "SS"]}, "datetime_utc": "20190129 151317", "db_id": 3, "db_path": "mlb_modeling_2008-2018.db", "fantasy_version": "v2019.0.1-20-g5dd183d7", "filename_prefix": "mlb_OFF_XG", "folds": 3, "hyper_dists": {"colsample_bytree": {"cls": "HPNumericDist", "dist_type": "float", "high": 1.0, "low": 0.5, "max_float_percision": 10, "name": "colsample_bytree"}, "gamma": {"cls": "HPNumericDist", "dist_func": "log", "dist_num": 10, "dist_type": "int", "high": 10000, "low": 0, "name": "gamma"}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "learning_rate": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.2, "low": 0.01, "max_float_percision": 10, "name": "learning_rate"}, "max_depth": {"cls": "HPNumericDist", "dist_type": "int", "high": 10, "increment": 1, "low": 3, "name": "max_depth"}, "min_child_weight": {"cls": "HPNumericDist", "dist_type": "int", "high": 10, "increment": 1, "low": 1, "name": "min_child_weight"}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 49000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "rounds": {"cls": "HPNumericDist", "dist_type": "int", "high": 150, "increment": 1, "low": 75, "name": "rounds"}, "subsample": {"cls": "HPNumericDist", "dist_type": "float", "high": 1.0, "low": 0.5, "max_float_percision": 10, "name": "subsample"}}, "random_seed": 996650327, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015]}
+score_mae	score_r2	colsample_bytree	gamma	hist_agg	learning_rate	max_depth	min_child_weight	n_cases	n_features	n_games	rounds	subsample
+-7.1431206	0.0291791	0.6756524948	3593	median	0.1282345418	4	9	21517	79	6	109	0.8394459278
+-7.3211253	-0.0224062	0.917877999	21	mean	0.0581602292	8	4	6099	79	4	144	0.8975506197
+-7.2082218	0.0306557	0.9577873576	3593	mean	0.0773984317	7	9	23867	79	5	124	0.8165508502
+-7.2086892	0.0257101	0.5118296253	166	none	0.0777955127	8	7	27243	379	5	148	0.9139546239
+-7.1594935	0.0273973	0.5527355938	3593	none	0.0484398685	8	9	22790	229	3	95	0.6610128891
+-7.2010259	0.013708	0.7415079506	1291	median	0.1554151277	7	4	8956	79	4	132	0.8244812889
+-7.1333961	0.0303542	0.5798469035	59	mean	0.0572019149	5	10	27820	79	2	85	0.7157635031
+-7.0962999	0.03658	0.5	166	median	0.126839435	3	10	29846	79	5	85	0.8182608027
+-7.1740199	0.0213419	0.5	10000	none	0.2	10	1	49000	79	1	75	0.5
+-8.3186959	-0.2765719	0.5	0	none	0.2	10	10	500	79	1	75	0.5
+-7.1712284	0.0332543	0.5	166	median	0.1177843065	3	10	28735	79	4	75	0.7792431919
+-6.8461358	-0.1697444	0.5	10000	median	0.01	3	10	500	79	7	75	0.5
+-7.38332	-0.0109453	0.5	10000	median	0.2	3	1	500	79	1	75	0.5
+-6.8944809	-0.14334	0.8126962755	166	mean	0.01	3	10	49000	79	7	75	0.5
+-6.8935811	-0.1432288	0.8606340371	463	mean	0.01	3	10	49000	79	7	75	0.5
+-7.1242769	0.0393512	0.5	0	median	0.1458693922	3	10	49000	79	5	75	1.0
+-6.9600993	-0.056631	0.5	10000	median	0.01	3	10	500	79	5	132	0.7073870858
+-7.5708175	-0.0618566	0.5	10000	median	0.01	3	10	500	79	7	132	0.6374695719
+-6.8162913	-0.0245401	0.5051547194	463	median	0.0100000001	7	10	11390	79	5	132	0.7208758803
+-7.1270553	0.0397053	0.8215926186	21	mean	0.0388515827	10	10	49000	79	6	147	0.7384193303
+-6.7971373	-0.0254105	0.881522234	0	median	0.01	8	10	21575	79	5	131	0.5378851215
+-6.7987318	-0.0043466	0.5	463	median	0.01	10	10	19169	79	4	150	1.0
+-6.6130096	-0.168948	0.5	10000	median	0.01	6	10	500	79	6	75	0.734483929
+-6.6135373	-0.1694906	0.5	10000	median	0.01	7	10	500	79	6	75	0.783489812
+-7.0785469	-0.162891	0.5	10000	median	0.01	7	10	1800	79	6	75	0.8244099395
+-7.4704219	-0.1780429	0.5	10000	median	0.01	6	10	500	79	6	75	0.7426252861
+		0.9156791608	59	none	0.0188451365	7	10	14053	379	5	132	0.5382687848

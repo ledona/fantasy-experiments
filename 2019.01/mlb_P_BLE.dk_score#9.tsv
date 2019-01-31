@@ -1,62 +1,72 @@
-{"calc_name": "sklearn", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "win"], "extra_stats": ["home_C", "opp_l_hit_%_C", "opp_l_hit_%_H", "opp_r_hit_%_C", "opp_r_hit_%_H", "player_home_H", "player_win", "starter_phand_C", "team_home_H", "venue_C"], "model_player_stat": "dk_score#9", "model_team_stat": null, "player_stats": ["p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_po", "p_qs", "p_runs", "p_strikes", "p_win", "p_wp"], "prev_opp_team_stats": [], "team_stats": ["errors", "off_runs", "p_cg", "p_er", "p_hold", "p_save", "win"]}, "impute": true, "player_pos": ["P"], "rf_n_jobs": 2}, "datetime_utc": "20190123 042233", "db_id": 3, "db_path": "mlb_modeling_2008-2018.db", "fantasy_version": "v2019.0.0-5-g7b223327", "filename_prefix": "mlb_P_BLE", "folds": 3, "hyper_dists": {"alpha": {"cls": "HPNumericDist", "dist_func": "log", "dist_num": 6, "dist_type": "float", "high": 1.0, "low": 1e-05, "max_float_percision": 10, "name": "alpha"}, "est": {"cls": "HPCategoricalDist", "name": "est", "values": ["br", "lasso", "elasticnet"]}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "l1_ratio": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.95, "low": 0.05, "max_float_percision": 10, "name": "l1_ratio"}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 31000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}}, "random_seed": 963370806, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015, 2014]}
+{"calc_name": "sklearn", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "win"], "extra_stats": ["home_C", "opp_l_hit_%_C", "opp_l_hit_%_H", "opp_r_hit_%_C", "opp_r_hit_%_H", "player_home_H", "player_win", "starter_phand_C", "team_home_H"], "model_player_stat": "dk_score#9", "model_team_stat": null, "player_stats": ["p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_po", "p_qs", "p_runs", "p_strikes", "p_win", "p_wp"], "prev_opp_team_stats": [], "team_stats": ["errors", "off_runs", "p_cg", "p_er", "p_hold", "p_save", "win"]}, "impute": true, "player_pos": ["P"], "rf_n_jobs": 2}, "datetime_utc": "20190129 174538", "db_id": 3, "db_path": "mlb_modeling_2008-2018.db", "fantasy_version": "v2019.0.1-20-g5dd183d7", "filename_prefix": "mlb_P_BLE", "folds": 3, "hyper_dists": {"alpha": {"cls": "HPNumericDist", "dist_func": "log", "dist_num": 6, "dist_type": "float", "high": 1.0, "low": 1e-05, "max_float_percision": 10, "name": "alpha"}, "est": {"cls": "HPCategoricalDist", "name": "est", "values": ["br", "lasso", "elasticnet"]}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "l1_ratio": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.95, "low": 0.05, "max_float_percision": 10, "name": "l1_ratio"}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 23600, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}}, "random_seed": 818004402, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015, 2014]}
 score_mae	score_r2	alpha	est	hist_agg	l1_ratio	n_cases	n_features	n_games
--8.6283007	0.0629895	0.01	br	none	0.5724496699	971	299	6
-Cannot create random sample of size 33982 because after dropping Nan from y only 23639 cases remained.		1e-05	elasticnet	median	0.8452789127	22655	54	6
-Cannot create random sample of size 33454 because after dropping Nan from y only 23639 cases remained.		0.1	lasso	mean	0.1696158733	22303	54	6
--8.6871246	0.0589566	0.01	br	mean	0.0547609995	712	54	3
--8.6800539	0.094418	0.0001	elasticnet	none	0.3729999255	11034	152	3
-Cannot create random sample of size 38932 because after dropping Nan from y only 24438 cases remained.		0.1	lasso	mean	0.2348431953	25955	54	4
-Cannot create random sample of size 27289 because after dropping Nan from y only 23639 cases remained.		0.001	lasso	mean	0.4982156008	18193	54	6
--8.6943796	0.088793	0.0001	elasticnet	median	0.338423609	2869	54	4
-Cannot create random sample of size 30117 because after dropping Nan from y only 23639 cases remained.		0.0001	elasticnet	none	0.4410893124	20078	299	6
--8.7597693	0.0677361	0.01	br	none	0.3679619946	842	250	5
--8.6379944	0.0892426	0.001	br	none	0.3320588282	1689	201	4
--9.188467	0.0424917	0.01	br	none	0.3320627048	1052	250	5
--9.0416179	0.0753141	0.001	br	none	0.3315499271	1504	201	4
--8.546862	0.0689543	0.001	br	none	0.3348488456	1478	250	5
--8.7050533	0.0789912	0.001	br	none	0.3315865101	1457	201	4
--8.5466156	0.0834385	0.01	br	none	0.3412069644	1439	201	4
--8.6137402	0.0843495	0.001	br	none	0.3319160357	1424	201	4
--8.5717104	0.0810446	0.001	br	none	0.3320597656	1411	201	4
--8.4305581	0.0983854	0.001	br	none	0.3318936279	1399	201	4
-		0.001	br	none	0.332950898	1282	201	4
-		0.001	br	none	0.3464262081	1447	201	4
--8.5384726	0.0616344	0.01	br	none	0.3701345886	1313	250	5
--8.7399374	0.0952413	0.01	br	none	0.3334660785	1237	250	5
--8.5181382	0.0781717	0.01	br	none	0.333053336	1232	250	5
--8.6794265	0.0787234	0.01	br	none	0.3331825421	1227	250	5
--8.7078282	0.0850417	0.01	br	none	0.3326458299	1222	250	5
--8.5043047	0.0719964	0.01	br	none	0.332454416	1217	250	5
--8.6122875	0.0794963	0.01	br	none	0.3323016572	1212	250	5
--9.0056119	0.0930323	0.01	br	none	0.3318567086	1208	250	5
--8.4935873	0.117615	0.01	br	none	0.331818738	1203	250	5
--8.5670769	0.0910789	0.01	br	none	0.331604601	1199	250	5
--8.6392106	0.0696361	0.01	br	none	0.331382131	1194	250	5
--8.7315913	0.0860822	0.01	br	none	0.3303552272	1190	250	5
--8.831189	0.0894051	0.01	br	none	0.3308818834	1185	250	5
--8.4798156	0.0648658	0.01	br	none	0.3305313533	1181	250	5
--8.9305158	0.0549668	0.01	br	none	0.3304134	1176	250	5
--8.9795217	0.0667641	0.01	br	none	0.6088701471	1161	299	6
--8.8875688	0.0872784	0.01	br	none	0.3458630205	1167	250	5
--8.7781757	0.0725714	0.01	br	none	0.4229465921	1181	250	5
--8.6689865	0.0664834	0.01	br	none	0.3626381054	1182	250	5
--8.6689865	0.0664834	0.01	br	none	0.3404476059	1182	250	5
--8.8139796	0.0676032	0.01	br	none	0.4197110993	1168	348	7
--8.7341612	0.0674362	0.01	br	none	0.3502644977	1181	250	5
--8.6090292	0.0830387	0.01	br	none	0.5218658666	1182	348	7
--8.8648599	0.0823407	0.01	br	none	0.6715601785	1183	103	2
--8.6177089	0.0615785	0.01	br	none	0.4590586523	1176	250	5
--8.5315614	0.0584388	0.01	br	none	0.4259470379	1182	250	5
--8.7152951	0.0821374	0.01	br	none	0.4751898613	1156	250	5
--8.5382726	0.0681562	0.01	br	none	0.4021891405	1181	299	6
--8.6879574	0.06842	0.01	br	none	0.248039466	1182	152	3
--8.9297202	0.0640761	0.01	br	none	0.3070556032	1182	299	6
--8.7184547	0.0758959	0.01	br	none	0.4483873081	1181	250	5
--8.6827768	0.0741792	0.01	br	none	0.3980875061	1371	250	5
--8.7662271	0.072822	0.01	br	none	0.4077238137	1186	250	5
--8.7533263	0.0909599	0.01	br	none	0.3776155771	1191	250	5
--8.8284497	0.0713854	0.01	br	none	0.3469664765	1173	250	5
--8.642099	0.0687638	0.01	br	none	0.3671262205	1175	250	5
--8.4891523	0.0915875	0.01	br	none	0.4091555826	1449	250	5
--8.7191016	0.0716492	0.01	br	none	0.3999722134	1162	250	5
--8.7232509	0.0629931	0.01	br	none	0.3827605207	1864	250	5
+Cannot create random sample of size 34803 because after dropping Nan from y only 23639 cases remained.		0.001	br	none	0.1055194687	23202	298	6
+-8.6334241	0.0962795	0.1	elasticnet	mean	0.8921667389	13238	53	3
+-8.5588479	0.108234	0.01	br	mean	0.5178053323	6402	53	5
+-8.593425	0.1014528	0.1	lasso	none	0.5275825705	7770	200	4
+Cannot create random sample of size 33421 because after dropping Nan from y only 24438 cases remained.		1.0	elasticnet	mean	0.496438866	22281	53	4
+-8.7293796	0.0898667	1.0	br	none	0.7701549744	4448	249	5
+		1.0	br	median	0.0829243781	8914	53	5
+-8.8695031	0.0821315	0.001	elasticnet	none	0.1518477776	5635	200	4
+-8.637685	0.0892198	0.1	br	none	0.5306534706	6200	200	4
+-8.6602687	0.0857354	0.1	br	none	0.5802671197	6198	200	4
+-8.6107383	0.0878294	0.001	br	none	0.5086893926	6197	200	4
+-8.6306117	0.0955756	0.01	br	none	0.5073827602	6196	151	3
+-8.752017	0.0870869	0.1	br	none	0.5583648637	6196	200	4
+-8.6980015	0.0988503	0.1	br	none	0.5582299746	6195	200	4
+-8.6980015	0.0988503	0.1	br	none	0.5581801338	6195	200	4
+-8.6980015	0.0988503	0.1	br	none	0.5581575456	6195	200	4
+-8.5614562	0.0985807	0.1	br	none	0.5794768006	6195	249	5
+-8.7040067	0.0938173	0.1	br	none	0.5718817599	6084	200	4
+-8.7150613	0.0894932	0.1	br	none	0.5608641409	6185	200	4
+-8.6612142	0.0943678	0.1	br	none	0.5528273957	6256	200	4
+-8.6337037	0.0959292	0.1	br	none	0.552835928	6255	200	4
+-8.6064262	0.0965565	0.1	br	none	0.5625299335	6194	200	4
+-8.742807	0.0856116	0.1	br	none	0.5535762372	6093	200	4
+-8.7026417	0.0903918	0.1	br	none	0.5416760764	6191	200	4
+-8.6708953	0.099791	0.1	br	none	0.55864469	6188	200	4
+-8.716934	0.0858969	0.01	br	none	0.6029576052	6188	102	2
+-8.6358501	0.0981215	0.01	br	none	0.5399556041	6188	200	4
+-8.6340379	0.0976921	0.1	br	none	0.5550192536	6220	200	4
+-8.6790505	0.0950198	0.1	br	none	0.5595626461	6190	200	4
+-8.6551953	0.0959117	0.001	br	none	0.5552579327	5533	200	4
+-8.655129	0.0953826	0.1	br	none	0.5552734588	6188	200	4
+-8.6070062	0.0944009	0.1	br	none	0.5552806175	6355	200	4
+-8.6192489	0.0992563	0.1	br	none	0.5591461105	6171	200	4
+-8.6898492	0.092268	0.1	br	none	0.5473984233	6168	200	4
+-8.7376876	0.0908483	0.1	br	none	0.4903158515	6171	151	3
+-8.7177674	0.0791603	0.01	br	none	0.5784035253	6170	151	3
+-8.6140091	0.0951896	0.01	br	none	0.5813478519	6171	200	4
+-8.7411522	0.0892921	0.01	br	none	0.669533615	6108	151	3
+-8.5860947	0.0969015	0.1	br	none	0.5613477974	6169	200	4
+-8.7473608	0.0955297	0.1	br	none	0.5515701634	6164	200	4
+-8.7484026	0.0771208	0.01	br	none	0.5723984351	6169	102	2
+-8.6476056	0.0948751	0.1	br	none	0.5521483315	6164	200	4
+-8.706744	0.0962779	0.1	br	none	0.5582078034	6256	200	4
+-8.666883	0.0939583	0.1	br	none	0.5610466876	6171	200	4
+-8.7548236	0.0914688	0.1	br	none	0.5583181868	6198	200	4
+-8.5696109	0.1045211	0.1	br	none	0.5583100985	6405	200	4
+-8.6351442	0.0974654	0.01	br	none	0.4088736415	6177	249	5
+-8.6629255	0.0945416	0.1	br	none	0.5573241772	6177	200	4
+-8.6629255	0.0945416	0.1	br	none	0.5857155888	6177	200	4
+-8.6046706	0.1000683	0.01	br	none	0.5648757968	6177	151	3
+-8.6755709	0.1015965	0.1	br	none	0.4508693156	6177	249	5
+-8.6617215	0.0962374	0.01	br	none	0.6273473675	6170	200	4
+-8.6484394	0.0907535	0.1	br	none	0.6157758835	6147	200	4
+-8.7693886	0.1006789	0.1	br	none	0.5516905047	6169	200	4
+-8.6682946	0.0979557	0.01	br	none	0.5984283315	6147	200	4
+-8.6803523	0.0876323	0.1	br	none	0.559194963	6176	200	4
+-8.5406535	0.0928658	0.1	br	none	0.5527887226	6168	200	4
+-8.643357	0.1006706	0.01	br	none	0.4247456725	6176	200	4
+-8.643357	0.1006706	0.1	br	none	0.5796742083	6176	200	4
+-8.643357	0.1006706	0.1	br	none	0.7888185088	6176	200	4
+-8.6730848	0.0900759	0.01	br	none	0.6600665796	6176	151	3
+-8.6866748	0.1010342	0.1	br	none	0.5629500068	6176	200	4
+-8.6866748	0.1010342	0.1	br	none	0.5609354822	6176	200	4
+-8.6983732	0.0880864	0.1	br	none	0.5568128491	6167	200	4
+-8.6842453	0.102276	0.1	br	none	0.5571706687	6166	200	4
+-8.757382	0.0815003	0.01	br	none	0.3714263592	6142	151	3
+-8.738147	0.0921234	0.1	br	none	0.5595870619	6175	200	4
+-8.738147	0.0921234	0.001	br	none	0.4327119109	6175	200	4
+-8.7831371	0.0797463	0.1	br	none	0.3951891673	6165	102	2
+-8.6575003	0.0851251	0.01	br	none	0.4483170637	6144	151	3
