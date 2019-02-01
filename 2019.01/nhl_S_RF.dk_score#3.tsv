@@ -1,8 +1,72 @@
-{"calc_name": "sklearn", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "save", "shot", "shot_ag", "shot_b", "takeaway", "win"], "extra_stats": ["player_pos_C"], "model_player_stat": "dk_score#3", "model_team_stat": null, "player_stats": ["assist", "assist_pp", "assist_sh", "fo", "fo_win_pct", "giveaway", "goal", "goal_pp", "goal_sh", "goal_t", "goal_w", "hit", "loss", "pen", "pen_mins", "pm", "shot", "shot_b", "takeaway", "toi_ev", "toi_pp", "toi_sh", "win"], "prev_opp_team_stats": [], "team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "shot", "takeaway", "win"]}, "impute": true, "player_pos": ["C", "D", "LW", "RW"], "rf_n_jobs": 3}, "datetime_utc": "20190123 173414", "db_id": 4, "db_path": "nhl_modeling_20072008-20172018.db", "fantasy_version": "v2019.0.0-6-gcf62180c", "filename_prefix": "nhl_S_RF", "folds": 3, "hyper_dists": {"est": {"cls": "HPConstantDist", "name": "est", "value": "rforest"}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 71000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "rf_crit": {"cls": "HPCategoricalDist", "name": "rf_crit", "values": ["mse", "mae"]}, "rf_max_depth": {"cls": "HPNumericDist", "dist_type": "int", "name": "rf_max_depth", "values": [0, 500]}, "rf_max_features": {"cls": "HPCategoricalDist", "name": "rf_max_features", "values": ["sqrt", "log2"]}, "rf_min_samples_leaf": {"cls": "HPNumericDist", "dist_type": "int", "high": 200, "increment": 1, "low": 1, "name": "rf_min_samples_leaf"}, "rf_trees": {"cls": "HPNumericDist", "dist_type": "int", "high": 25, "increment": 1, "low": 5, "name": "rf_trees"}}, "random_seed": 484678562, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [20132014, 20142015, 20152016, 20162017, 20172018]}
+{"calc_name": "sklearn", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "save", "shot", "shot_ag", "shot_b", "takeaway", "win"], "extra_stats": ["player_pos_C"], "model_player_stat": "dk_score#3", "model_team_stat": null, "player_stats": ["assist", "assist_pp", "assist_sh", "fo", "fo_win_pct", "giveaway", "goal", "goal_pp", "goal_sh", "goal_t", "goal_w", "hit", "pen", "pen_mins", "pm", "shot", "shot_b", "takeaway", "toi_ev", "toi_pp", "toi_sh"], "prev_opp_team_stats": [], "team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "shot", "takeaway", "win"]}, "impute": true, "player_pos": ["C", "D", "LW", "RW"], "rf_n_jobs": 3}, "datetime_utc": "20190201 044913", "db_id": 4, "db_path": "nhl_modeling_20072008-20172018.db", "fantasy_version": "v2019.0.1-25-g3acd2348", "filename_prefix": "nhl_S_RF", "folds": 3, "hyper_dists": {"est": {"cls": "HPConstantDist", "name": "est", "value": "rforest"}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 71000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "rf_crit": {"cls": "HPCategoricalDist", "name": "rf_crit", "values": ["mse", "mae"]}, "rf_max_depth": {"cls": "HPNumericDist", "dist_type": "int", "name": "rf_max_depth", "values": [0, 500]}, "rf_max_features": {"cls": "HPCategoricalDist", "name": "rf_max_features", "values": ["sqrt", "log2"]}, "rf_min_samples_leaf": {"cls": "HPNumericDist", "dist_type": "int", "high": 200, "increment": 1, "low": 1, "name": "rf_min_samples_leaf"}, "rf_trees": {"cls": "HPNumericDist", "dist_type": "int", "high": 25, "increment": 1, "low": 5, "name": "rf_trees"}}, "random_seed": 710981657, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [20132014, 20142015, 20152016, 20162017, 20172018]}
 score_mae	score_r2	est	hist_agg	n_cases	n_features	n_games	rf_crit	rf_max_depth	rf_max_features	rf_min_samples_leaf	rf_trees
-('Failed to impute column p.mean.4.loss. Only nans in the column and no imputation data provided', 'p.mean.4.loss', ValueError('shape mismatch: value array of shape (0,217086) could not be broadcast to indexing result of shape (1,217086)',))		rforest	mean	22907	63	4	mae	0	log2	71	6
-('Failed to impute column p.none.2.loss:1. Only nans in the column and no imputation data provided', 'p.none.2.loss:1', ValueError('shape mismatch: value array of shape (0,219828) could not be broadcast to indexing result of shape (1,219828)',))		rforest	none	42432	125	2	mae	500	sqrt	157	14
-('Failed to impute column p.mean.2.loss. Only nans in the column and no imputation data provided', 'p.mean.2.loss', ValueError('shape mismatch: value array of shape (0,219828) could not be broadcast to indexing result of shape (1,219828)',))		rforest	mean	67719	63	2	mae	0	sqrt	25	11
-('Failed to impute column p.mean.3.loss. Only nans in the column and no imputation data provided', 'p.mean.3.loss', ValueError('shape mismatch: value array of shape (0,218439) could not be broadcast to indexing result of shape (1,218439)',))		rforest	mean	63464	63	3	mse	500	log2	158	5
-('Failed to impute column p.mean.6.loss. Only nans in the column and no imputation data provided', 'p.mean.6.loss', ValueError('shape mismatch: value array of shape (0,214454) could not be broadcast to indexing result of shape (1,214454)',))		rforest	mean	68934	63	6	mse	500	sqrt	99	11
-('Failed to impute column p.none.2.loss:1. Only nans in the column and no imputation data provided', 'p.none.2.loss:1', ValueError('shape mismatch: value array of shape (0,219828) could not be broadcast to indexing result of shape (1,219828)',))		rforest	none	41313	125	2	mse	500	log2	131	18
+-1.5038967	0.0998983	rforest	none	15237	301	5	mse	0	log2	133	11
+-1.4439762	0.0204762	rforest	none	26102	361	6	mae	0	log2	159	6
+-1.5012408	0.1147544	rforest	none	20193	181	3	mse	0	sqrt	162	20
+-1.5167062	0.1305204	rforest	median	4486	61	5	mse	0	sqrt	63	14
+-1.5000373	0.1079478	rforest	none	24250	241	4	mse	500	log2	63	18
+-1.4784242	0.1266274	rforest	mean	26472	61	6	mse	500	log2	22	14
+-1.4968764	0.0565677	rforest	median	589	61	6	mse	500	sqrt	32	14
+-1.4237935	0.0512625	rforest	mean	71000	61	6	mae	500	log2	200	14
+-1.52736	0.0334201	rforest	mean	500	61	1	mae	500	sqrt	1	25
+-1.5260244	0.0923859	rforest	none	71000	421	7	mae	500	log2	1	25
+-1.4748592	-0.0323814	rforest	median	888	61	4	mae	0	sqrt	200	20
+-1.428425	0.0512941	rforest	mean	71000	61	7	mae	500	log2	200	6
+-1.6389067	-0.0792019	rforest	mean	71000	61	1	mae	500	log2	1	5
+-1.4285864	0.0503779	rforest	none	42974	421	7	mae	500	sqrt	200	25
+-1.4322643	0.0283795	rforest	none	56881	241	4	mae	500	log2	200	25
+-1.4923463	0.1234846	rforest	none	71000	421	7	mse	500	sqrt	200	25
+-1.4215826	0.0581058	rforest	median	71000	61	6	mae	500	log2	200	25
+-1.5277107	0.0792866	rforest	none	71000	61	1	mse	500	log2	1	24
+-1.5354053	-0.0065508	rforest	median	500	61	7	mae	500	log2	52	25
+-1.4151668	0.0628539	rforest	median	71000	61	7	mae	500	sqrt	144	25
+-1.4804572	0.132962	rforest	median	71000	61	7	mse	500	sqrt	87	25
+-1.4255687	0.0516979	rforest	none	71000	301	5	mae	0	sqrt	163	25
+-1.4160642	0.0634722	rforest	median	60799	61	7	mae	0	log2	166	25
+-1.4440589	0.0107721	rforest	median	71000	61	1	mae	500	log2	200	25
+-1.4243472	0.0404695	rforest	mean	7347	61	7	mae	500	log2	200	25
+-1.7725124	-0.0003434	rforest	mean	500	61	1	mse	500	log2	200	25
+-1.63356	-0.0679274	rforest	mean	500	61	1	mae	0	sqrt	143	25
+-1.4093867	0.0056934	rforest	mean	500	61	7	mae	500	sqrt	66	25
+-1.526991	0.0981796	rforest	mean	71000	61	7	mae	0	sqrt	1	25
+-1.4386468	0.0363122	rforest	none	63992	421	7	mae	500	log2	186	10
+-1.434253	0.0217406	rforest	none	71000	61	1	mae	0	sqrt	200	25
+-1.3709867	-0.0631099	rforest	mean	500	61	7	mae	500	log2	123	5
+-1.4234471	0.066088	rforest	mean	44948	61	7	mae	500	sqrt	144	25
+-1.6374321	-0.0752513	rforest	median	71000	61	1	mae	500	log2	1	5
+-1.475	-0.0035983	rforest	mean	500	61	7	mae	0	sqrt	104	5
+-1.4739867	-0.0062226	rforest	mean	500	61	7	mae	500	log2	81	25
+-1.5397333	-0.0697724	rforest	mean	500	61	7	mae	500	log2	192	5
+-1.4086774	0.0663429	rforest	mean	71000	61	7	mae	500	sqrt	169	25
+-1.408627	0.0649005	rforest	mean	71000	61	7	mae	500	sqrt	172	25
+-1.4762889	0.1345742	rforest	mean	71000	61	7	mse	0	log2	119	22
+-1.4107254	0.0624478	rforest	mean	71000	61	7	mae	0	log2	170	25
+-1.4092012	0.0654446	rforest	mean	71000	61	7	mae	0	sqrt	173	25
+-1.4092012	0.0654446	rforest	mean	71000	61	7	mae	500	sqrt	173	25
+-1.4085309	0.0656111	rforest	mean	71000	61	7	mae	500	sqrt	174	25
+-1.4286636	0.0570626	rforest	mean	51612	61	7	mae	500	log2	127	5
+-1.6251147	0.0452082	rforest	mean	500	61	7	mse	500	sqrt	1	25
+-1.5417333	-0.0226967	rforest	mean	500	61	7	mae	500	sqrt	130	5
+-1.4122331	0.074611	rforest	mean	71000	61	7	mae	0	sqrt	81	25
+-1.5732	-0.0500919	rforest	mean	500	61	3	mae	0	log2	115	5
+-1.4323843	0.0435914	rforest	none	71000	421	7	mae	0	log2	103	13
+-1.5802667	-0.0294724	rforest	mean	500	61	7	mae	500	log2	103	5
+-1.4181553	0.0598326	rforest	median	71000	61	7	mae	500	sqrt	200	5
+-1.4141411	0.0594035	rforest	mean	71000	61	7	mae	0	log2	200	25
+-1.437427	0.0306287	rforest	none	71000	421	7	mae	0	log2	200	25
+-1.4220148	0.0633159	rforest	mean	71000	61	7	mae	500	log2	156	25
+-1.4205883	0.0428089	rforest	none	71000	241	4	mae	500	sqrt	200	5
+-1.4130121	0.0657972	rforest	mean	71000	61	7	mae	0	sqrt	162	25
+-1.6521067	-0.1259665	rforest	none	500	421	7	mae	0	sqrt	200	25
+-1.4234813	0.0513206	rforest	median	40052	61	5	mae	0	log2	200	20
+-1.4150232	0.0616502	rforest	mean	39056	61	5	mae	500	sqrt	137	24
+-1.5020129	0.1144909	rforest	none	71000	121	2	mse	0	sqrt	200	15
+-1.4189903	0.0520366	rforest	median	71000	61	4	mae	0	sqrt	200	5
+-1.4211205	0.0588005	rforest	mean	41279	61	7	mae	500	sqrt	200	20
+-1.406516	0.064137	rforest	median	48830	61	5	mae	0	sqrt	115	18
+-1.4177962	0.059714	rforest	median	49045	61	5	mae	0	sqrt	114	25
+-1.4138229	0.0555005	rforest	mean	47864	61	5	mae	0	sqrt	200	25
+-1.4227712	0.0567054	rforest	none	48527	301	5	mae	0	sqrt	113	25
+-1.4169746	0.0631043	rforest	median	38700	61	6	mae	0	sqrt	145	25
+-1.5339691	0.0928247	rforest	median	19889	61	4	mae	0	sqrt	1	25
+-1.4182559	0.0572002	rforest	none	71000	241	4	mae	0	sqrt	126	25
