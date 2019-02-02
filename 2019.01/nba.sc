@@ -27,7 +27,7 @@ SHARED_CALC="--n_games_range 1 7
         --n_cases_range 500 32500"
 
 CALC_OLS='sklearn --est ols
-        --n_features_range 1 66
+        --n_features_range 1 68
         --hist_agg_list mean median'
 
 CALC_BLE='sklearn
@@ -86,7 +86,7 @@ fi
 
 EXTRA_STATS="--extra_stats home_C player_home_H"
 
-CMD="python -O scripts/meval.sc $SHARED_ARGS -o nba_${1} nba.db ${!CALC}
+CMD="python -O scripts/meval.sc $SHARED_ARGS -o nba_${1} nba_hist_20082009-20172018.db ${!CALC}
 $SHARED_CALC $EXTRA_STATS --model_player_stat ${2}_score#"
 
 echo $CMD
