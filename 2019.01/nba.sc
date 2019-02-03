@@ -3,14 +3,14 @@
 # disable expansion so SHARED_ARGS wildcards are left untouched
 set -f
 
-REMOTE_CACHE=""
+REMOTE_HOST=babylon5
 
 # for this experiment will be used djshadow as the remote data repository
-# if [[ $HOSTNAME == djshadow* ]]; then
-#     REMOTE_CACHE=""
-# else
-#     REMOTE_CACHE="--cache_remote djshadow:working/fantasy/casedata_cache"
-# fi
+if [[ $HOSTNAME == ${REMOTE_HOST}* ]]; then
+    REMOTE_CACHE=""
+else
+    REMOTE_CACHE="--cache_remote ${REMOTE_HOST}:working/fantasy/casedata_cache"
+fi
 
 SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE
            --scoring mae r2
