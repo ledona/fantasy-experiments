@@ -3,7 +3,7 @@
 # disable expansion so SHARED_ARGS wildcards are left untouched
 set -f
 
-REMOTE_HOST=babylon5
+REMOTE_HOST=djshadow
 
 # for this experiment will be used djshadow as the remote data repository
 if [[ $HOSTNAME == ${REMOTE_HOST}* ]]; then
