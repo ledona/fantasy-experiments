@@ -1,6 +1,72 @@
-{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "save", "shot", "shot_ag", "shot_b", "takeaway", "win"], "extra_stats": ["player_pos_C"], "model_player_stat": "dk_score#3", "model_team_stat": null, "player_stats": ["assist", "assist_pp", "assist_sh", "fo", "fo_win_pct", "giveaway", "goal", "goal_pp", "goal_sh", "goal_t", "goal_w", "hit", "loss", "pen", "pen_mins", "pm", "shot", "shot_b", "takeaway", "toi_ev", "toi_pp", "toi_sh", "win"], "prev_opp_team_stats": [], "team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "shot", "takeaway", "win"]}, "impute": true, "models_path": "./MODELS_keras", "normalize": true, "player_pos": ["C", "D", "LW", "RW"]}, "datetime_utc": "20190123 213531", "db_id": 4, "db_path": "nhl_modeling_20072008-20172018.db", "fantasy_version": "v2019.0.0-6-gcf62180c", "filename_prefix": "nhl_S_DNN_ADA", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPConstantDist", "name": "hist_agg", "value": "none"}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 5, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["adagrad", "adadelta", "adam", "adamax", "nadam"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 71000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 100, "increment": 1, "low": 20, "name": "units"}}, "random_seed": 1148082871, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [20132014, 20142015, 20152016, 20162017, 20172018]}
+{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "save", "shot", "shot_ag", "shot_b", "takeaway", "win"], "extra_stats": ["player_pos_C"], "model_player_stat": "dk_score#3", "model_team_stat": null, "player_stats": ["assist", "assist_pp", "assist_sh", "fo", "fo_win_pct", "giveaway", "goal", "goal_pp", "goal_sh", "goal_t", "goal_w", "hit", "pen", "pen_mins", "pm", "shot", "shot_b", "takeaway", "toi_ev", "toi_pp", "toi_sh"], "prev_opp_team_stats": [], "team_stats": ["fo", "fo_win_pct", "giveaway", "goal", "goal_ag", "goal_pk_ag", "goal_pp", "goal_sh", "goal_sh_ag", "hit", "ot", "pen", "pen_min", "pk", "pp", "shot", "takeaway", "win"]}, "impute": true, "models_path": "./MODELS_keras", "normalize": true, "player_pos": ["C", "D", "LW", "RW"]}, "datetime_utc": "20190203 162050", "db_id": 4, "db_path": "nhl_modeling_20072008-20172018.db", "fantasy_version": "v2019.0.1-44-g0494d4f1", "filename_prefix": "nhl_S_DNN_ADA", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPConstantDist", "name": "hist_agg", "value": "none"}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 5, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["adagrad", "adadelta", "adam", "adamax", "nadam"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 71000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 100, "increment": 1, "low": 20, "name": "units"}}, "random_seed": 1382819945, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [20132014, 20142015, 20152016, 20162017, 20172018]}
 score_mae	score_r2	activation	dropout	hist_agg	layers	learning_method	n_cases	n_features	n_games	steps	units
-('Failed to impute column p.none.3.loss:1. Only nans in the column and no imputation data provided', 'p.none.3.loss:1', ValueError('shape mismatch: value array of shape (0,218439) could not be broadcast to indexing result of shape (1,218439)',))		linear	0.5382550097	none	3	adamax	40002	187	3	300	52
-('Failed to impute column p.none.4.loss:1. Only nans in the column and no imputation data provided', 'p.none.4.loss:1', ValueError('shape mismatch: value array of shape (0,217086) could not be broadcast to indexing result of shape (1,217086)',))		tanh	0.5270221788	none	4	nadam	30147	249	4	200	41
-('Failed to impute column p.none.2.loss:1. Only nans in the column and no imputation data provided', 'p.none.2.loss:1', ValueError('shape mismatch: value array of shape (0,219828) could not be broadcast to indexing result of shape (1,219828)',))		tanh	0.3748286823	none	4	adadelta	1929	125	2	500	51
-		tanh	0.521322164	none	4	adadelta	42847	311	5	400	76
+-1.482105	0.1311907	linear	0.51917796	none	2	adamax	38488	241	4	500	99
+-1.4945079	-0.0630555	relu	0.3844695797	none	2	nadam	12883	421	7	400	88
+-1.4931096	0.1142946	tanh	0.6435426937	none	1	adagrad	13953	301	5	500	54
+-1.4693056	0.0506733	relu	0.356387769	none	5	adagrad	42845	121	2	500	54
+-1.4596309	0.072805	tanh	0.5504963251	none	2	adam	31497	241	4	600	79
+-1.4836861	0.088317	sigmoid	0.4725102359	none	3	adadelta	39847	301	5	400	53
+-1.4666314	0.1385824	linear	0.3588069817	none	4	adagrad	66297	361	6	200	97
+-1.6199777	0.0002493	linear	0.7	none	5	adagrad	71000	61	1	1000	20
+-1.4669897	0.0977528	relu	0.3	none	5	adagrad	71000	61	1	100	73
+-6.9593585	-2120.6897488	relu	0.3	none	1	adam	500	61	1	1000	20
+-4.642357	-333.1723215	linear	0.3	none	1	adadelta	500	421	7	1000	100
+-1.4740994	0.1053847	sigmoid	0.3234006894	none	2	adamax	67060	301	5	500	54
+-1.55894	0.085509	relu	0.3892082274	none	4	adadelta	58203	61	1	200	33
+-1.5347269	0.0631627	tanh	0.3929475288	none	1	adagrad	11470	421	7	100	100
+-1.4865547	0.1108524	tanh	0.3	none	5	adam	71000	61	1	100	20
+-1.5005948	0.0781515	tanh	0.6686694092	none	4	adadelta	8793	301	5	900	21
+-1.9616147	-0.3972289	tanh	0.7	none	1	adam	500	421	7	1000	100
+-1.5445943	-0.0031463	tanh	0.3	none	2	adamax	10864	421	7	300	24
+-1.4770533	0.089038	tanh	0.4393043532	none	3	nadam	60432	241	4	200	61
+-1.6059252	-0.0750657	tanh	0.4757782584	none	3	nadam	2509	301	5	100	33
+-1.473753	0.1368513	tanh	0.6195775956	none	1	adagrad	71000	241	4	600	77
+-1.4889716	0.0954266	tanh	0.47675765	none	2	adam	46886	181	3	400	69
+-1.4662302	0.1127012	sigmoid	0.5484466517	none	2	adam	64190	181	3	500	85
+-1.5037339	0.0939803	tanh	0.6857166066	none	5	adadelta	31782	181	3	900	20
+-1.6224329	1.51e-05	linear	0.7	none	5	adagrad	71000	61	1	500	20
+-1.4735761	0.0133482	tanh	0.6459762364	none	2	adam	11441	361	6	400	87
+-1.490384	0.1159906	tanh	0.7	none	1	adagrad	71000	61	1	1000	20
+-1.4864941	0.126914	linear	0.5388458918	none	4	adadelta	49914	241	4	800	56
+-1.5205223	0.0831782	relu	0.302061042	none	5	adam	71000	121	2	1000	96
+-1.5011791	0.06138	tanh	0.3	none	3	adam	71000	61	1	1000	100
+-1.5314904	0.0613451	relu	0.4158103507	none	3	adadelta	38671	301	5	500	48
+-1.4612102	0.141683	linear	0.3	none	4	adagrad	71000	421	7	100	100
+-1.4612102	0.141683	linear	0.3	none	4	adagrad	71000	421	7	100	100
+-1.4594576	0.0230771	tanh	0.6461425655	none	2	adam	11537	301	5	1000	95
+-1.607831	-0.180509	relu	0.3	none	5	adagrad	500	301	5	700	100
+-1.5021654	0.0347217	relu	0.4222814136	none	5	adagrad	71000	61	1	300	26
+-1.4701484	0.1381348	tanh	0.7	none	1	adagrad	60730	421	7	100	100
+-1.465959	0.0798741	tanh	0.6139687917	none	2	adam	24644	121	2	1000	97
+-1.4748262	0.023053	tanh	0.4502061146	none	2	adam	24299	421	7	1000	56
+		relu	0.7	none	1	adamax	71000	421	7	100	100
+-1.5016356	0.1179939	linear	0.3174398952	none	2	nadam	23317	361	6	400	93
+-1.4642176	0.0561675	tanh	0.5204067741	none	2	adam	32532	241	4	700	78
+-1.4626607	0.0562717	tanh	0.5204068187	none	2	adam	32532	241	4	700	78
+-1.4593121	0.0511933	tanh	0.520406845	none	2	adam	32532	241	4	700	78
+-1.4515198	0.0671946	tanh	0.5890111362	none	2	adam	27413	241	4	800	77
+-1.4540634	0.0700609	tanh	0.5256849915	none	2	adam	32138	241	4	700	78
+-1.461232	0.0640068	tanh	0.5218562245	none	3	adam	39686	241	4	600	70
+-1.4589711	0.0596172	tanh	0.5218563414	none	3	adam	39686	241	4	600	70
+-1.4593057	0.0699983	tanh	0.5218564468	none	3	adam	39686	241	4	600	70
+-1.4600509	0.0835899	tanh	0.5454009022	none	2	adam	35882	241	4	600	69
+-1.4707665	0.0787968	tanh	0.5224931732	none	3	adam	39583	241	4	600	70
+-1.4685014	0.0660197	tanh	0.4748020975	none	2	adam	39473	241	4	600	69
+-1.4680117	0.0737643	tanh	0.5212701302	none	3	adam	39580	241	4	600	70
+-1.461201	0.0719736	tanh	0.5212701893	none	3	adam	39580	241	4	600	70
+-1.4662178	0.0696445	tanh	0.5212702418	none	3	adam	39580	241	4	600	70
+-1.463621	0.0698383	tanh	0.5212702888	none	3	adam	39580	241	4	600	70
+-1.472527	0.0697682	tanh	0.5062296036	none	3	adam	40159	241	4	600	68
+-1.4752892	0.0587151	tanh	0.5209284436	none	3	adam	39593	241	4	600	70
+-1.4777585	0.0548127	tanh	0.5209284774	none	3	adam	39593	241	4	600	70
+-1.4583199	0.0606257	tanh	0.5123267114	none	3	adam	35873	241	4	600	73
+-1.4801584	0.0611922	tanh	0.5207454677	none	3	adam	39514	241	4	600	70
+-1.4804298	0.0640877	tanh	0.5207454916	none	3	adam	39514	241	4	600	70
+-1.4839096	0.0694547	tanh	0.5207455128	none	3	adam	39514	241	4	600	70
+-1.4781532	0.0664784	tanh	0.5207455321	none	3	adam	39514	241	4	600	70
+-1.4834472	0.0604919	tanh	0.5207455489	none	3	adam	39514	241	4	600	70
+-1.4820181	0.0639921	tanh	0.520745564	none	3	adam	39514	241	4	600	70
+-1.4795076	0.0619802	tanh	0.520745577	none	3	adam	39514	241	4	600	70
+-1.4905739	0.0597708	tanh	0.5207455883	none	3	adam	39514	241	4	600	70
+-1.4889606	0.0650466	tanh	0.5207455982	none	3	adam	39514	241	4	600	70
+-1.4848546	0.0660527	tanh	0.5207456067	none	3	adam	39514	241	4	600	70
