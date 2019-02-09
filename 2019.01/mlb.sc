@@ -8,6 +8,7 @@ else
 fi
 
 SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE  --scoring mae r2
+           --slack
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
            --search_bayes_scorer mae
            --folds 3"
