@@ -1,11 +1,72 @@
-{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "win"], "extra_stats": ["home_C", "opp_l_hit_%_C", "opp_l_hit_%_H", "opp_r_hit_%_C", "opp_r_hit_%_H", "player_home_H", "player_win", "starter_phand_C", "team_home_H", "venue_C", "venue_H"], "model_player_stat": "fd_score#7", "model_team_stat": null, "player_stats": ["p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_po", "p_qs", "p_runs", "p_strikes", "p_win", "p_wp"], "prev_opp_team_stats": [], "team_stats": ["errors", "off_runs", "p_cg", "p_er", "p_hold", "p_save", "win"]}, "impute": true, "models_path": "./MODELS_keras", "normalize": true, "player_pos": ["P"]}, "datetime_utc": "20190123 213312", "db_id": 3, "db_path": "mlb_modeling_2008-2018.db", "fantasy_version": "v2019.0.0-6-gcf62180c", "filename_prefix": "mlb_P_DNN_ADA", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPConstantDist", "name": "hist_agg", "value": "none"}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 5, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["adagrad", "adadelta", "adam", "adamax", "nadam"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 31000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 100, "increment": 1, "low": 20, "name": "units"}}, "random_seed": 1280302394, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015, 2014]}
+{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "win"], "extra_stats": ["home_C", "opp_l_hit_%_C", "opp_l_hit_%_H", "opp_r_hit_%_C", "opp_r_hit_%_H", "player_home_H", "player_win", "starter_phand_C", "team_home_H", "venue_H"], "model_player_stat": "fd_score#7", "model_team_stat": null, "player_stats": ["p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_po", "p_qs", "p_runs", "p_strikes", "p_win", "p_wp"], "prev_opp_team_stats": [], "team_stats": ["errors", "off_runs", "p_cg", "p_er", "p_hold", "p_save", "win"]}, "impute": true, "models_path": "./MODELS_keras", "normalize": true, "player_pos": ["P"]}, "datetime_utc": "20190209 175807", "db_id": 3, "db_path": "mlb_modeling_2008-2018.db", "fantasy_version": "v2019.0.1-89-gf6669f81", "filename_prefix": "mlb_P_DNN_ADA", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPConstantDist", "name": "hist_agg", "value": "none"}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 5, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["adagrad", "adadelta", "adam", "adamax", "nadam"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 15000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 100, "increment": 1, "low": 20, "name": "units"}}, "random_seed": 884140936, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": true, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015, 2014]}
 score_mae	score_r2	activation	dropout	hist_agg	layers	learning_method	n_cases	n_features	n_games	steps	units
-Cannot create random sample of size 38962 because after dropping Nan from y only 23639 cases remained.		tanh	0.3564316403	none	4	adamax	25975	305	6	900	23
--14.0456349	-0.0361047	tanh	0.408527102	none	2	adadelta	4728	155	3	1000	89
-Cannot create random sample of size 34138 because after dropping Nan from y only 23639 cases remained.		tanh	0.4268724771	none	1	adagrad	22759	305	6	600	74
-Cannot create random sample of size 34624 because after dropping Nan from y only 24848 cases remained.		tanh	0.6976264337	none	5	adagrad	23083	155	3	100	66
-Cannot create random sample of size 34798 because after dropping Nan from y only 23639 cases remained.		relu	0.330669897	none	4	adamax	23199	305	6	600	68
--13.3384023	-0.0503713	relu	0.5142610659	none	2	adadelta	16097	155	3	400	94
--13.0476949	0.1204631	linear	0.3848527938	none	3	adagrad	4491	105	2	800	85
-Cannot create random sample of size 33891 because after dropping Nan from y only 24034 cases remained.		sigmoid	0.6312470853	none	2	adagrad	22594	255	5	600	84
-		tanh	0.4613940839	none	2	adadelta	10413	155	3	700	91
+-13.2138264	0.1194332	linear	0.6433161383	none	5	adadelta	8937	104	2	700	91
+-13.5549527	0.0907583	linear	0.3523382509	none	3	nadam	2847	104	2	700	26
+-13.4803912	-0.0017879	sigmoid	0.5618371665	none	4	adam	2714	304	6	300	25
+-13.476407	0.0463115	sigmoid	0.3259934066	none	5	adagrad	9177	254	5	400	85
+-13.9655074	-0.0162455	tanh	0.3320148954	none	2	adam	9042	154	3	700	80
+-13.509523	0.084743	linear	0.6623548122	none	5	nadam	9918	54	1	800	85
+-14.1560173	-0.0322441	tanh	0.5926533115	none	2	adamax	5586	254	5	500	91
+-14.8817139	-0.0987744	relu	0.7	none	5	adadelta	15000	354	7	100	100
+-13.1328998	0.0919963	sigmoid	0.3	none	5	adagrad	15000	154	3	1000	100
+-14.478021	-0.1004167	linear	0.7	none	1	adadelta	500	54	1	1000	20
+-15.0870399	-0.232525	relu	0.5358692292	none	1	nadam	1362	104	2	1000	36
+-16.2261853	-0.4916674	tanh	0.3	none	5	adadelta	500	354	7	1000	20
+-13.3119655	0.0775883	sigmoid	0.4740350917	none	4	adadelta	15000	54	1	1000	78
+-14.0401621	0.0135775	linear	0.7	none	5	adadelta	500	54	1	1000	100
+-13.1609193	0.1253404	linear	0.7	none	5	adadelta	15000	104	2	200	100
+-13.0036393	0.1323449	linear	0.3463473364	none	5	nadam	11514	154	3	500	73
+-13.0785348	0.1394717	linear	0.3	none	5	nadam	10359	154	3	600	30
+-13.1271771	0.1321563	sigmoid	0.6792560428	none	1	adamax	15000	154	3	700	20
+-13.1441706	0.1247288	linear	0.3697763694	none	5	nadam	12157	154	3	500	100
+-13.172266	0.0806947	sigmoid	0.3	none	5	adagrad	14951	204	4	1000	87
+-13.1280329	0.1264246	linear	0.3	none	5	adadelta	9112	204	4	400	20
+-13.4882327	0.0490885	sigmoid	0.3	none	5	adagrad	12212	354	7	1000	100
+-13.1328998	0.0919963	sigmoid	0.3	none	5	adagrad	15000	154	3	1000	100
+-13.1493323	0.108071	sigmoid	0.3	none	5	adagrad	15000	54	1	1000	32
+-13.1065999	0.0976198	linear	0.3347890786	none	5	nadam	10896	154	3	500	50
+-12.9836257	0.1391921	linear	0.3	none	5	nadam	11531	154	3	400	42
+-12.9992867	0.1311814	linear	0.3	none	5	adadelta	14329	104	2	200	23
+-13.0783692	0.1166622	sigmoid	0.3	none	5	adagrad	15000	54	1	100	87
+-12.9262362	0.1466456	linear	0.3	none	5	adagrad	14091	204	4	100	25
+-12.946031	0.1483503	linear	0.3	none	5	adagrad	14942	354	7	100	26
+-13.1133628	0.1151304	sigmoid	0.3	none	5	adagrad	15000	54	1	100	86
+-13.0909928	0.1172739	sigmoid	0.3	none	5	adagrad	15000	54	1	100	100
+-13.1064764	0.1096917	sigmoid	0.3	none	5	adamax	15000	54	1	100	100
+-13.7018393	0.0124131	sigmoid	0.3	none	5	nadam	15000	254	5	100	100
+-13.0909928	0.1172739	sigmoid	0.3	none	5	adagrad	15000	54	1	100	100
+-13.9371545	-0.0041456	sigmoid	0.3	none	5	adagrad	500	54	1	100	100
+-12.9593249	0.1388327	linear	0.3	none	5	nadam	14901	254	5	100	49
+-12.8732234	0.1509553	linear	0.3	none	5	adagrad	15000	304	6	100	98
+-12.9489592	0.1481969	linear	0.3	none	5	nadam	15000	304	6	300	100
+-12.9269509	0.1393834	linear	0.3	none	5	nadam	15000	304	6	400	100
+-12.9972372	0.129601	linear	0.3	none	5	nadam	15000	304	6	100	100
+-12.8650153	0.1514378	linear	0.3	none	5	adagrad	15000	304	6	200	100
+-12.8749526	0.1467393	linear	0.3	none	5	adagrad	15000	254	5	500	100
+-13.1216568	0.1111053	linear	0.3	none	5	nadam	15000	254	5	900	100
+-12.9434627	0.1466206	linear	0.3	none	5	adagrad	15000	304	6	400	100
+-13.3321592	0.0995682	linear	0.3	none	5	nadam	15000	54	1	300	92
+-13.1235671	0.1260768	linear	0.3	none	5	nadam	12115	354	7	100	90
+-12.9032852	0.1481558	linear	0.3	none	5	adamax	15000	254	5	100	84
+-12.9206554	0.1480923	linear	0.3	none	5	adamax	15000	254	5	100	99
+-12.9204465	0.1483618	linear	0.3	none	5	adamax	15000	254	5	200	54
+-12.8904857	0.1520663	linear	0.3	none	5	adagrad	15000	254	5	100	85
+-12.9234153	0.1477515	linear	0.3	none	5	adamax	15000	254	5	100	100
+-12.9120019	0.1466105	linear	0.3	none	5	adamax	15000	254	5	100	79
+-12.9630932	0.1490153	linear	0.3	none	5	adamax	15000	254	5	200	24
+-12.9325728	0.1467654	linear	0.3	none	5	adamax	15000	254	5	200	91
+-12.9229001	0.1491762	linear	0.3	none	5	adamax	15000	254	5	200	93
+-12.9000583	0.1506994	linear	0.3	none	5	adagrad	15000	254	5	200	100
+-12.9233903	0.1483732	linear	0.3	none	5	adamax	15000	254	5	200	78
+-12.9105768	0.146649	linear	0.3	none	5	adamax	15000	254	5	200	80
+-12.9048922	0.1485208	linear	0.3	none	5	adamax	15000	254	5	200	72
+-12.9287242	0.1453844	linear	0.3	none	5	adamax	15000	254	5	200	79
+-12.9282382	0.1441442	linear	0.3	none	5	adamax	15000	254	5	200	99
+-12.9000583	0.1506994	linear	0.3	none	5	adagrad	15000	254	5	200	100
+-12.8932671	0.1515382	linear	0.3	none	5	adagrad	15000	254	5	100	100
+-12.9234153	0.1477515	linear	0.3	none	5	adamax	15000	254	5	100	100
+-12.910732	0.1478295	linear	0.3	none	5	adamax	15000	254	5	100	97
+-12.9447586	0.1492215	linear	0.3	none	5	adamax	15000	254	5	200	32
+-12.9282382	0.1441442	linear	0.3	none	5	adamax	15000	254	5	200	99
+-12.9229407	0.1452594	linear	0.3	none	5	adamax	15000	254	5	200	100
+-12.9325728	0.1467654	linear	0.3	none	5	adamax	15000	254	5	200	91
