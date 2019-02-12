@@ -1,28 +1,29 @@
 Performance metrics reported by meval
+Also at: https://docs.google.com/spreadsheets/d/1IE8DpEqAmoAaFdVDj7rUgt8uUm12l8PNk3xOCQmkKgw/edit?usp=sharing
 
 NHL
 
-Date            Fantasy  ModeledFor  -mae        r2          Details
+Date            Service  Modeled-for -mae        r2          Details
 2019.01         Y        G           -7.0100396  0.0088403   BR
-2019.01         Y        S           -2.8467331	 0.1425787   OLS
-2019.01         FD       G           -11.231898	 0.009784    BR
-2019.01         FD       S           -5.4784704	 0.1369088   OLS
+2019.01         Y        S           -2.8467331  0.1425787   OLS
+2019.01         FD       G           -11.231898  0.009784    BR
+2019.01         FD       S           -5.4784704  0.1369088   OLS
 2019.01         DK       G           -2.8813473  0.0089475   OLS
-2019.01         DK       S           -1.4582534	 0.1349098   OLS
-2018.08         Y        G           -6.9496262	 0.0007046   RF
-2018.08         Y        S           -2.6421341	 0.0672169   RF
+2019.01         DK       S           -1.4582534  0.1349098   OLS
+2018.08         Y        G           -6.9496262  0.0007046   RF
+2018.08         Y        S           -2.6421341  0.0672169   RF
 2018.08         FD       G           -11.0617097 -0.0359974  BLE
-2018.08         FD       S           -5.0169333	 -0.0183726  RF
-2018.08         DK       G           -2.7476093	 -0.0066733  XG
-2018.08         DK       S           -1.3874682	 0.0254707   XG
+2018.08         FD       S           -5.0169333  -0.0183726  RF
+2018.08         DK       G           -2.7476093  -0.0066733  XG
+2018.08         DK       S           -1.3874682  0.0254707   XG
 
 
 MLB
 
-Date            Fantasy  ModeledFor  -mae        r2          Details
+Date            Service  Modeled-for -mae        r2          Details
 2019.01         FD       P           -12.6298289 0.1781064   XG
 2019.01         FD       OFF
-2019.01         DK       P           -8.4285916	 0.1280212   OLS
+2019.01         DK       P           -8.4285916  0.1280212   OLS
 2019.01         DK       OFF
 2019.01         Y        P           -9.4203039  0.1239722   BLE
 2019.01         Y        OFF
@@ -46,7 +47,7 @@ Date            Fantasy  ModeledFor  -mae        r2          Details
 
 NFL
 
-Date            Fantasy  ModeledFor  -mae        r2         Details
+Date            Service  Modeled-for  -mae        r2         Details
 2019.xx         FD       QB
 2019.xx         FD       WT
 2019.xx         FD       RB
@@ -60,18 +61,18 @@ Date            Fantasy  ModeledFor  -mae        r2         Details
 2019.xx         Y        RB
 2019.xx         Y        D
 NFLAPI and new stats
-2018.10         FD       QB          -5.7036681	0.2701455	ols
-2018.10         FD       WT          -4.0623674	0.2479738   ble
-2018.10         FD       RB          -4.4354954	0.2606807	rforest
-2018.10         FD       D           -4.4361443	-0.0202812	rforest
-2018.10         DK       QB          -6.0454021	0.2378683   ble
-2018.10         DK       WT          -4.7550529	0.1895991	rforest
-2018.10         DK       RB          -4.827033	0.3523963	ols
-2018.10         DK       D           -4.2775858	-0.018703   XG
-2018.10         Y        QB          -6.2432994	0.2386901	ols
-2018.10         Y        WT          -3.7762247	0.329951    ble
-2018.10         Y        RB          -4.5796967	0.2487249   xg
-2018.10         Y        D           -4.1157455	-0.0001515  rf
+2018.10         FD       QB          -5.7036681  0.2701455  ols
+2018.10         FD       WT          -4.0623674  0.2479738  ble
+2018.10         FD       RB          -4.4354954  0.2606807  rforest
+2018.10         FD       D           -4.4361443  -0.0202812 rforest
+2018.10         DK       QB          -6.0454021  0.2378683  ble
+2018.10         DK       WT          -4.7550529  0.1895991  rforest
+2018.10         DK       RB          -4.827033   0.3523963  ols
+2018.10         DK       D           -4.2775858  -0.018703  XG
+2018.10         Y        QB          -6.2432994  0.2386901  ols
+2018.10         Y        WT          -3.7762247  0.329951   ble
+2018.10         Y        RB          -4.5796967  0.2487249  xg
+2018.10         Y        D           -4.1157455 -0.0001515  rf
 2018.08         FD       QB          -5.6316971  0.2077359  OLS
 2018.08         FD       WT          -3.5788654  0.2367806  OLS
 2018.08         FD       RB          -4.4933253  0.2584791  RF
@@ -101,13 +102,13 @@ NFLAPI and new stats
 
 NBA
 
-Date            Fantasy -mae        r2          Details
-2019.01         FD      -7.3765169	0.5222922   OLS
-2019.01         Y       -7.3965166	0.5245876   OLS
-2019.01         DK      -7.2909611	0.5450599   BLE
-2018.11         FD      -7.3639461	0.5229187   XG
-2018.11         Y       -7.349535	0.5263825   BLE
-2018.11         DK      -7.2949402	0.5344385   DNN_ADA
+Date            Service -mae        r2          Details
+2019.01         FD      -7.3765169  0.5222922   OLS
+2019.01         Y       -7.3965166  0.5245876   OLS
+2019.01         DK      -7.2909611  0.5450599   BLE
+2018.11         FD      -7.3639461  0.5229187   XG
+2018.11         Y       -7.349535   0.5263825   BLE
+2018.11         DK      -7.2949402  0.5344385   DNN_ADA
 2018.08         FD      -7.4580852  0.5103862   XG
 2018.08         Y       -7.3836227  0.5014941   BLE
 2018.08         DK      -7.2961039  0.5422274   DNN_ADA
