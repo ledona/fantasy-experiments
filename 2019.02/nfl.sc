@@ -4,7 +4,7 @@
 
 SHARED_MEVAL_ARGS='--progress --cache_dir ./casedata_cache  --scoring mae r2
            --search_method bayes --search_iters 70 --search_bayes_init_pts 7
-           --search_bayes_scorer mae
+           --search_bayes_scorer mae --slack
            --folds 2 --seasons 2018 2017 2016 2015 2014 2013 2012 2011 2010 2009'
 
 TYPE_QB="--player_pos QB
