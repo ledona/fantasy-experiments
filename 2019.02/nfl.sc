@@ -80,7 +80,7 @@ CALC_XG="xgboost
 usage()
 {
     echo "Create the cmd line meval to run.
-usage: nfl.sc (QB|WT|R|D) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd|y)"
+usage: nfl.sc (QB|WT|RB|D) (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd|y)"
 }
 
 TYPE=TYPE_${1}
