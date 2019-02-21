@@ -48,19 +48,18 @@ Date            Service  Modeled-for -mae        r2          Details
 NFL
 
 Date            Service  Modeled-for  -mae        r2         Details
-2019.xx         FD       QB
-2019.xx         FD       WT
-2019.xx         FD       RB
-2019.xx         FD       D
-2019.xx         DK       QB
-2019.xx         DK       WT
-2019.xx         DK       RB
-2019.xx         DK       D
-2019.xx         Y        QB
-2019.xx         Y        WT
-2019.xx         Y        RB
-2019.xx         Y        D
-NFLAPI and new stats
+2019.02         FD       QB           -5.7705908  0.2248438  BLE
+2019.02         FD       WT           -4.3278408  0.2323697  BLE
+2019.02         FD       RB           -4.4271854  0.3205204  DNN_ADA
+2019.02         FD       D            -4.0826139  0.0726768  BLE
+2019.02         DK       QB           -6.1953807  0.2807594  BLE
+2019.02         DK       WT           -4.9260516  0.2599153  BLE
+2019.02         DK       RB           -4.9447337  0.3371133  BLE
+2019.02         DK       D            -4.5106829  0.0415064  OLS
+2019.02         Y        QB           -6.3903874  0.2327849  OLS
+2019.02         Y        WT           -4.1351078  0.2249722  OLS
+2019.02         Y        RB           -4.6624382  0.3270924  OLS
+2019.02         Y        D            -4.1661596  0.0635592  BLE
 2018.10         FD       QB          -5.7036681  0.2701455  ols
 2018.10         FD       WT          -4.0623674  0.2479738  ble
 2018.10         FD       RB          -4.4354954  0.2606807  rforest
