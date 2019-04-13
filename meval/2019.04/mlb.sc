@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # for this experiment will be used djshadow as the remote data repository
-if [[ $HOSTNAME == djshadow* ]]; then
-    REMOTE_CACHE=""
-else
-    REMOTE_CACHE="--cache_remote djshadow:working/fantasy/casedata_cache"
-fi
+# if [[ $HOSTNAME == djshadow* ]]; then
+#     REMOTE_CACHE=""
+# else
+#     REMOTE_CACHE="--cache_remote djshadow:working/fantasy/casedata_cache"
+# fi
 
 SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE  --scoring mae r2
            --slack
@@ -121,7 +121,7 @@ else
 fi
 
 CMD="python -O scripts/meval.sc $SHARED_ARGS ${!SEASONS} -o mlb_${1}_${2}
-mlb_hist_2008-2018.scored.db ${!CALC} ${!TYPE} --model_player_stat ${3}_score#
+mlb_hist_2008-2018.db ${!CALC} ${!TYPE} --model_player_stat ${3}_score#
 --extra_stats $EXTRA_STATS $FEATURES_ARG"
 
 echo $CMD
