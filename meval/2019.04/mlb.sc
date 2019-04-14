@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # for this experiment will be used djshadow as the remote data repository
-# if [[ $HOSTNAME == djshadow* ]]; then
-#     REMOTE_CACHE=""
-# else
-#     REMOTE_CACHE="--cache_remote djshadow:working/fantasy/casedata_cache"
-# fi
+if [[ $HOSTNAME == babylon5* ]]; then
+    REMOTE_CACHE=""
+else
+    REMOTE_CACHE="--cache_remote babylon5:working/fantasy/casedata_cache"
+fi
 
 SHARED_ARGS="--progress --cache_dir ./casedata_cache $REMOTE_CACHE  --scoring mae r2
            --slack
