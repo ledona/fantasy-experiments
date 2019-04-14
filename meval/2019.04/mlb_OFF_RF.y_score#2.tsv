@@ -1,0 +1,72 @@
+{"calc_name": "sklearn", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["errors", "p_bb", "p_cg", "p_er", "p_hbp", "p_hits", "p_hold", "p_hr", "p_ibb", "p_ip", "p_k", "p_loss", "p_pc", "p_qs", "p_runs", "p_save", "p_strikes", "p_win", "p_wp", "win"], "extra_stats": ["home_C", "off_hit_side", "opp_starter_p_bb", "opp_starter_p_cg", "opp_starter_p_er", "opp_starter_p_hbp", "opp_starter_p_hits", "opp_starter_p_hr", "opp_starter_p_ibb", "opp_starter_p_ip", "opp_starter_p_k", "opp_starter_p_loss", "opp_starter_p_pc", "opp_starter_p_qs", "opp_starter_p_runs", "opp_starter_p_strikes", "opp_starter_p_win", "opp_starter_p_wp", "opp_starter_phand_C", "opp_starter_phand_H", "player_home_H", "team_home_H", "venue_C"], "model_player_stat": "y_score#2", "model_team_stat": null, "player_stats": ["off_1b", "off_2b", "off_3b", "off_ab", "off_bb", "off_bo", "off_hbp", "off_hit", "off_hr", "off_k", "off_pa", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "off_sb", "off_sb_c", "off_sbo"], "prev_opp_team_stats": [], "team_stats": ["off_1b", "off_2b", "off_3b", "off_bb", "off_hit", "off_hr", "off_k", "off_rbi", "off_rbi_w2", "off_rlob", "off_runs", "off_sac", "off_sac_f", "off_sac_h", "win"]}, "impute": true, "player_pos": ["1B", "2B", "3B", "C", "CF", "LF", "RF", "SS"], "rf_n_jobs": 3}, "datetime_utc": "20190414 124433", "db_id": 3, "db_path": "mlb_hist_2008-2018.db", "fantasy_version": "v2019.4.2-2-g52677fdd", "filename_prefix": "mlb_OFF_RF", "folds": 3, "hyper_dists": {"est": {"cls": "HPConstantDist", "name": "est", "value": "rforest"}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 49000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "rf_crit": {"cls": "HPCategoricalDist", "name": "rf_crit", "values": ["mse", "mae"]}, "rf_max_depth": {"cls": "HPNumericDist", "dist_type": "int", "name": "rf_max_depth", "values": [0, 500]}, "rf_max_features": {"cls": "HPCategoricalDist", "name": "rf_max_features", "values": ["sqrt", "log2"]}, "rf_min_samples_leaf": {"cls": "HPNumericDist", "dist_type": "int", "high": 200, "increment": 1, "low": 1, "name": "rf_min_samples_leaf"}, "rf_trees": {"cls": "HPNumericDist", "dist_type": "int", "high": 25, "increment": 1, "low": 5, "name": "rf_trees"}}, "random_seed": 643519145, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2018, 2017, 2016, 2015]}
+score_mae	score_r2	est	hist_agg	n_cases	n_features	n_games	rf_crit	rf_max_depth	rf_max_features	rf_min_samples_leaf	rf_trees
+-4.8703079	-0.0662648	rforest	none	13544	154	2	mae	0	log2	81	6
+-5.121145	0.0369605	rforest	median	26547	79	2	mse	500	log2	150	15
+-5.1577353	0.0526641	rforest	median	19794	79	6	mse	500	sqrt	127	16
+-5.2620403	0.0123759	rforest	mean	1657	79	3	mse	500	log2	58	18
+-5.1318867	0.0362694	rforest	median	20208	79	3	mse	500	log2	110	11
+-5.1108381	0.0457997	rforest	mean	37034	79	5	mse	0	sqrt	41	10
+-4.8577029	-0.0604135	rforest	median	30868	79	3	mae	0	sqrt	194	5
+-4.822527	-0.0492336	rforest	median	49000	79	7	mae	0	sqrt	200	6
+-5.2108155	0.0172991	rforest	mean	49000	79	7	mae	500	log2	1	25
+-5.0942982	0.0490749	rforest	median	49000	79	7	mse	0	sqrt	200	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-5.2287932	0.0053054	rforest	mean	49000	79	7	mae	0	log2	1	19
+-4.8307736	-0.0522181	rforest	mean	49000	79	7	mae	0	log2	150	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.8103733	-0.0502587	rforest	median	49000	79	7	mae	500	sqrt	200	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.7963808	-0.0530781	rforest	mean	49000	79	6	mae	0	sqrt	200	5
+-4.8469571	-0.0696778	rforest	mean	49000	79	1	mae	0	sqrt	200	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.8147052	-0.0554575	rforest	mean	49000	79	5	mae	0	sqrt	200	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.8158688	-0.0559547	rforest	mean	49000	79	7	mae	0	log2	200	5
+-4.7963808	-0.0530781	rforest	mean	49000	79	6	mae	0	sqrt	200	5
+-5.3843076	-0.1250558	rforest	mean	49000	79	1	mae	0	sqrt	1	5
+-5.2067678	0.0129561	rforest	none	2134	79	1	mse	0	sqrt	160	20
+-4.8066861	-0.0516444	rforest	mean	38002	79	6	mae	0	sqrt	196	5
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+-4.7963808	-0.0530781	rforest	mean	49000	79	6	mae	0	sqrt	200	5
+-4.8361589	-0.0537457	rforest	mean	49000	79	6	mae	0	sqrt	197	5
+-4.9864907	-0.1002922	rforest	mean	500	79	1	mae	500	sqrt	127	25
+-4.8016392	-0.0588655	rforest	mean	34971	79	6	mae	0	sqrt	200	5
+-4.9275493	-0.0961753	rforest	mean	500	79	7	mae	500	log2	109	25
+-4.9960533	-0.1199097	rforest	mean	500	79	7	mae	500	log2	181	5
+-4.7939736	-0.043776	rforest	mean	49000	79	7	mae	0	sqrt	119	5
+-4.8119161	-0.0455803	rforest	none	49000	529	7	mae	500	log2	101	25
+-4.8034554	-0.0466546	rforest	mean	39206	79	7	mae	500	sqrt	111	5
+		rforest	none	47121	529	7	mae	500	sqrt	129	19
+		rforest	mean	40939	79	5	mae	0	sqrt	174	7
+		rforest	mean	49000	79	6	mae	0	sqrt	165	7
+		rforest	mean	47683	79	6	mae	0	sqrt	185	5
+Extra stat value must be <float> or <str>, instead 'off_hit_side' returned <class 'NoneType'> - None		rforest	none	41732	379	5	mae	0	log2	90	19
+-5.0942982	0.0490749	rforest	median	49000	79	7	mse	0	sqrt	200	5
+-4.7924858	-0.0445489	rforest	mean	49000	79	6	mae	0	sqrt	170	7
+-4.834107	-0.0506351	rforest	mean	38002	79	5	mae	0	sqrt	115	5
+-4.822527	-0.0492336	rforest	median	49000	79	7	mae	0	sqrt	200	6
+-4.822527	-0.0492336	rforest	median	49000	79	7	mae	0	sqrt	200	6
+-5.0942982	0.0490749	rforest	median	49000	79	7	mse	0	sqrt	200	5
+-4.8324367	-0.0565468	rforest	mean	49000	79	7	mae	0	log2	199	5
+-4.822527	-0.0492336	rforest	median	49000	79	7	mae	0	sqrt	200	6
+-4.7877332	-0.0550105	rforest	mean	49000	79	6	mae	0	sqrt	183	5
+Extra stat value must be <float> or <str>, instead 'off_hit_side' returned <class 'NoneType'> - None		rforest	median	30868	79	5	mae	0	sqrt	134	5
+-4.8103733	-0.0502587	rforest	median	49000	79	7	mae	500	sqrt	200	5
+-4.7879646	-0.0462734	rforest	mean	49000	79	7	mae	0	sqrt	184	6
+-4.7879646	-0.0462734	rforest	mean	49000	79	7	mae	0	sqrt	184	6
+-4.8058384	-0.0521086	rforest	mean	49000	79	7	mae	0	sqrt	200	5
+Extra stat value must be <float> or <str>, instead 'off_hit_side' returned <class 'NoneType'> - None		rforest	none	49000	454	6	mae	0	sqrt	200	23
+-4.832641	-0.0474282	rforest	mean	49000	79	7	mae	0	log2	188	8
+-4.8268459	-0.0466865	rforest	mean	49000	79	7	mae	0	log2	149	9
+-4.8058258	-0.0443433	rforest	mean	49000	79	7	mae	500	sqrt	161	11
+-4.809425	-0.0441682	rforest	mean	49000	79	7	mae	0	sqrt	199	8
+-4.8125182	-0.0470537	rforest	mean	49000	79	7	mae	0	sqrt	173	7
+-4.8110892	-0.0482742	rforest	mean	49000	79	7	mae	0	sqrt	181	6
+-4.8114676	-0.0479354	rforest	mean	49000	79	7	mae	0	sqrt	174	7
+-4.8117419	-0.0439625	rforest	mean	49000	79	7	mae	0	sqrt	152	7
+-4.8094426	-0.0467452	rforest	mean	49000	79	7	mae	0	sqrt	168	8
+-4.8159314	-0.0495801	rforest	mean	49000	79	7	mae	0	sqrt	176	7
+-4.8159314	-0.0495801	rforest	mean	49000	79	7	mae	0	sqrt	176	7
