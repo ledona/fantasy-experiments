@@ -31,4 +31,4 @@ cmd="lineup_hp_optimizer.sc --slack --search_bayes_fail_fast $DB $SERVICE $DATES
   --mut_full_swapdrop_range .1 .9 --mut_filling_swapadd_range .1 .9
   --mut_max_pct_range .1 .9
   --outfile $OUT.$SERVICE.$STYLE.opt --style $STYLE
-  --bayes_score_weight_elapsed_time .5"
+  --bayes_score_weight_elapsed_time .1"
