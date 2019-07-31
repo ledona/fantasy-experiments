@@ -1,0 +1,1515 @@
+{
+	"bt_bankroll_start": [
+		5.0,
+		4.3,
+		3.5999999999999996,
+		2.8999999999999995,
+		2.1999999999999993
+	],
+	"bt_epoch": [
+		[
+			"20190413",
+			25
+		],
+		[
+			"20190414",
+			26
+		],
+		[
+			"20190415",
+			27
+		],
+		[
+			"20190416",
+			28
+		],
+		[
+			"20190417",
+			29
+		]
+	],
+	"bt_total_wagered": [
+		2.5,
+		2.5,
+		2.5,
+		2.5,
+		0
+	],
+	"bt_wins": [
+		1,
+		1,
+		1,
+		1,
+		0
+	],
+	"bt_total_winnings": [
+		1.8,
+		1.8,
+		1.8,
+		1.8,
+		0
+	],
+	"bt_bets": [
+		[
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "TAM @ TOR",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						216
+					],
+					"slate_id": 1148,
+					"name": "TAM @ TOR"
+				},
+				"actual_outcome": {
+					"total_score": 75.35,
+					"player_ids": [
+						331,
+						385,
+						329,
+						386,
+						381
+					],
+					"player_fpts": [
+						12.5,
+						9.2,
+						9.2,
+						12.2,
+						13.0
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 18.2,
+					"player_ids": [
+						383,
+						338,
+						386,
+						343,
+						390
+					],
+					"player_fpts": [
+						10.296600685112397,
+						9.736370358683807,
+						9.529580925622732,
+						12.30164778823491,
+						8.281763839888576
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.284164096959288
+				},
+				"predicted_score": 67.59591172833353,
+				"final_player_fpts": [
+					0.0,
+					3.0,
+					12.2,
+					3.0,
+					0.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						214,
+						208,
+						209,
+						210,
+						204,
+						205
+					],
+					"slate_id": 1145,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 276.7,
+					"player_ids": [
+						276,
+						424,
+						159,
+						272,
+						336,
+						339,
+						57,
+						306,
+						295
+					],
+					"player_fpts": [
+						34.4,
+						19.2,
+						30.7,
+						37.1,
+						21.7,
+						58.0,
+						34.7,
+						22.2,
+						18.7
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 157.5,
+					"player_ids": [
+						192,
+						291,
+						180,
+						425,
+						418,
+						55,
+						118,
+						764,
+						306
+					],
+					"player_fpts": [
+						12.523619619631065,
+						10.306166999167477,
+						10.550896267532396,
+						13.688991639713365,
+						11.586655855360757,
+						10.462736607479938,
+						10.725034144525967,
+						33.45319747924805,
+						10.114807842032334
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.6696570930504475
+				},
+				"predicted_score": 123.41210645469134,
+				"final_player_fpts": [
+					3.0,
+					19.2,
+					15.0,
+					12.2,
+					9.0,
+					18.7,
+					9.2,
+					49.0,
+					22.2
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 1.8,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						214,
+						208,
+						209,
+						210,
+						204,
+						205
+					],
+					"slate_id": 1145,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 276.7,
+					"player_ids": [
+						276,
+						424,
+						159,
+						336,
+						272,
+						339,
+						57,
+						306,
+						295
+					],
+					"player_fpts": [
+						34.4,
+						19.2,
+						30.7,
+						21.7,
+						37.1,
+						58.0,
+						34.7,
+						22.2,
+						18.7
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 157.5,
+					"player_ids": [
+						192,
+						291,
+						180,
+						425,
+						418,
+						55,
+						118,
+						764,
+						306
+					],
+					"player_fpts": [
+						12.523619619631065,
+						10.306166999167477,
+						10.550896267532396,
+						13.688991639713365,
+						11.586655855360757,
+						10.462736607479938,
+						10.725034144525967,
+						33.45319747924805,
+						10.114807842032334
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.6696570930504475
+				},
+				"predicted_score": 123.41210645469134,
+				"final_player_fpts": [
+					3.0,
+					19.2,
+					15.0,
+					12.2,
+					9.0,
+					18.7,
+					9.2,
+					49.0,
+					22.2
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 0,
+				"slate_name": "PHI @ MIA",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						211
+					],
+					"slate_id": 1149,
+					"name": "PHI @ MIA"
+				},
+				"actual_outcome": {
+					"total_score": 145.95,
+					"player_ids": [
+						140,
+						252,
+						138,
+						153,
+						151
+					],
+					"player_fpts": [
+						30.7,
+						12.2,
+						21.7,
+						25.1,
+						13.0
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 61.1,
+					"player_ids": [
+						140,
+						252,
+						133,
+						457,
+						269
+					],
+					"player_fpts": [
+						9.768024712682882,
+						10.022856321174817,
+						8.997810210673475,
+						9.441987442927113,
+						9.711880093769574
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.4925135521834634
+				},
+				"predicted_score": 62.849427458744124,
+				"final_player_fpts": [
+					30.7,
+					12.2,
+					6.2,
+					0.0,
+					12.0
+				],
+				"final_team_fpts": []
+			}
+		],
+		[
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "OAK @ TEX",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						229
+					],
+					"slate_id": 1154,
+					"name": "OAK @ TEX"
+				},
+				"actual_outcome": {
+					"total_score": 195.75,
+					"player_ids": [
+						363,
+						12,
+						26,
+						3,
+						370
+					],
+					"player_fpts": [
+						30.9,
+						18.7,
+						15.7,
+						22.2,
+						46.4
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 72.3,
+					"player_ids": [
+						12,
+						26,
+						3,
+						690,
+						23
+					],
+					"player_fpts": [
+						10.745654088482441,
+						11.973858985969503,
+						11.186350498945272,
+						9.815326852337025,
+						11.761502038466748
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.4345278341221547
+				},
+				"predicted_score": 73.33730246940387,
+				"final_player_fpts": [
+					18.7,
+					15.7,
+					22.2,
+					6.2,
+					9.5
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						222,
+						224,
+						225,
+						226,
+						220,
+						230,
+						231
+					],
+					"slate_id": 1151,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 306.19999999999993,
+					"player_ids": [
+						140,
+						186,
+						207,
+						192,
+						264,
+						310,
+						639,
+						722,
+						519
+					],
+					"player_fpts": [
+						27.7,
+						34.4,
+						28.7,
+						27.9,
+						30.7,
+						32.2,
+						35.2,
+						52.0,
+						37.4
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 153.6,
+					"player_ids": [
+						140,
+						218,
+						192,
+						398,
+						406,
+						60,
+						412,
+						432,
+						77
+					],
+					"player_fpts": [
+						10.034123741176327,
+						12.238988801662787,
+						12.659804496717776,
+						10.504677539911889,
+						11.300757362929172,
+						10.63476244405262,
+						9.847168183013892,
+						42.87765121459961,
+						11.320017025402052
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.5901563760710032
+				},
+				"predicted_score": 131.41795080946613,
+				"final_player_fpts": [
+					27.7,
+					0.0,
+					27.9,
+					9.2,
+					21.4,
+					18.4,
+					0.0,
+					40.0,
+					9.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 1.8,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						222,
+						224,
+						225,
+						226,
+						220,
+						230,
+						231
+					],
+					"slate_id": 1151,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 306.19999999999993,
+					"player_ids": [
+						140,
+						186,
+						207,
+						192,
+						264,
+						310,
+						639,
+						722,
+						519
+					],
+					"player_fpts": [
+						27.7,
+						34.4,
+						28.7,
+						27.9,
+						30.7,
+						32.2,
+						35.2,
+						52.0,
+						37.4
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 153.6,
+					"player_ids": [
+						140,
+						218,
+						192,
+						398,
+						406,
+						60,
+						412,
+						432,
+						77
+					],
+					"player_fpts": [
+						10.034123741176327,
+						12.238988801662787,
+						12.659804496717776,
+						10.504677539911889,
+						11.300757362929172,
+						10.63476244405262,
+						9.847168183013892,
+						42.87765121459961,
+						11.320017025402052
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.5901563760710032
+				},
+				"predicted_score": 131.41795080946613,
+				"final_player_fpts": [
+					27.7,
+					0.0,
+					27.9,
+					9.2,
+					21.4,
+					18.4,
+					0.0,
+					40.0,
+					9.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 0,
+				"slate_name": "NYM @ ATL",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						219
+					],
+					"slate_id": 1153,
+					"name": "NYM @ ATL"
+				},
+				"actual_outcome": {
+					"total_score": 164.35,
+					"player_ids": [
+						625,
+						271,
+						272,
+						270,
+						276
+					],
+					"player_fpts": [
+						21.7,
+						24.4,
+						31.2,
+						18.5,
+						24.9
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 58.7,
+					"player_ids": [
+						431,
+						272,
+						260,
+						418,
+						407
+					],
+					"player_fpts": [
+						9.170725484917261,
+						11.061583071851212,
+						9.935427929606822,
+						11.615712855203435,
+						10.99973312222253
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.42019363267059184
+				},
+				"predicted_score": 69.92968685493031,
+				"final_player_fpts": [
+					6.5,
+					31.2,
+					9.0,
+					6.0,
+					6.0
+				],
+				"final_team_fpts": []
+			}
+		],
+		[
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "CIN @ LOS",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						234
+					],
+					"slate_id": 1158,
+					"name": "CIN @ LOS"
+				},
+				"actual_outcome": {
+					"total_score": 131.79999999999998,
+					"player_ids": [
+						107,
+						121,
+						58,
+						633,
+						711
+					],
+					"player_fpts": [
+						31.4,
+						12.5,
+						25.2,
+						9.5,
+						9.2
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 53.400000000000006,
+					"player_ids": [
+						633,
+						58,
+						64,
+						121,
+						54
+					],
+					"player_fpts": [
+						7.635120442302813,
+						8.917104416501093,
+						9.682782965161897,
+						8.094681115124432,
+						8.280253336766897
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.476658038025529
+				},
+				"predicted_score": 56.75127744926957,
+				"final_player_fpts": [
+					9.5,
+					25.2,
+					6.2,
+					12.5,
+					0.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						240,
+						233,
+						234,
+						235,
+						236,
+						237,
+						238,
+						239,
+						241
+					],
+					"slate_id": 1155,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 325.11,
+					"player_ids": [
+						411,
+						857,
+						372,
+						374,
+						179,
+						185,
+						167,
+						152,
+						365
+					],
+					"player_fpts": [
+						16.0,
+						39.01,
+						21.9,
+						34.4,
+						34.4,
+						39.9,
+						73.1,
+						31.7,
+						34.7
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 108.3,
+					"player_ids": [
+						251,
+						192,
+						53,
+						387,
+						105,
+						386,
+						453,
+						690,
+						134
+					],
+					"player_fpts": [
+						13.309002341814864,
+						12.051503623442937,
+						36.294864654541016,
+						10.00243215121769,
+						12.355191504428586,
+						11.17928855910981,
+						9.098363314463919,
+						9.33009731254992,
+						10.882367954212395
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.3919035548149315
+				},
+				"predicted_score": 124.50311141578115,
+				"final_player_fpts": [
+					15.4,
+					0.0,
+					30.0,
+					31.7,
+					0.0,
+					18.7,
+					3.0,
+					6.0,
+					3.5
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 0,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						240,
+						233,
+						234,
+						235,
+						236,
+						237,
+						238,
+						239,
+						241
+					],
+					"slate_id": 1155,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 325.10999999999996,
+					"player_ids": [
+						411,
+						372,
+						365,
+						374,
+						179,
+						857,
+						167,
+						152,
+						185
+					],
+					"player_fpts": [
+						16.0,
+						21.9,
+						34.7,
+						34.4,
+						34.4,
+						39.01,
+						73.1,
+						31.7,
+						39.9
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 108.3,
+					"player_ids": [
+						251,
+						192,
+						53,
+						387,
+						105,
+						386,
+						453,
+						690,
+						134
+					],
+					"player_fpts": [
+						13.309002341814864,
+						12.051503623442937,
+						36.294864654541016,
+						10.00243215121769,
+						12.355191504428586,
+						11.17928855910981,
+						9.098363314463919,
+						9.33009731254992,
+						10.882367954212395
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.3919035548149315
+				},
+				"predicted_score": 124.50311141578115,
+				"final_player_fpts": [
+					15.4,
+					0.0,
+					30.0,
+					31.7,
+					0.0,
+					18.7,
+					3.0,
+					6.0,
+					3.5
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 1.8,
+				"slate_name": "BAL @ BOS",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						232
+					],
+					"slate_id": 1157,
+					"name": "BAL @ BOS"
+				},
+				"actual_outcome": {
+					"total_score": 160.8,
+					"player_ids": [
+						220,
+						229,
+						238,
+						233,
+						322
+					],
+					"player_fpts": [
+						18.7,
+						24.9,
+						35.2,
+						25.2,
+						9.0
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 91.0,
+					"player_ids": [
+						220,
+						234,
+						229,
+						238,
+						323
+					],
+					"player_fpts": [
+						9.988868544329666,
+						11.268155676328835,
+						10.426556463465847,
+						11.563171993403195,
+						11.132498904531912
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.6657887035411179
+				},
+				"predicted_score": 71.57650141362707,
+				"final_player_fpts": [
+					18.7,
+					12.2,
+					24.9,
+					35.2,
+					0.0
+				],
+				"final_team_fpts": []
+			}
+		],
+		[
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "COL @ SDP",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						252
+					],
+					"slate_id": 1160,
+					"name": "COL @ SDP"
+				},
+				"actual_outcome": {
+					"total_score": 201.1,
+					"player_ids": [
+						304,
+						453,
+						131,
+						146,
+						136
+					],
+					"player_fpts": [
+						27.7,
+						37.1,
+						30.2,
+						28.4,
+						25.5
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 108.19999999999999,
+					"player_ids": [
+						291,
+						453,
+						131,
+						146,
+						134
+					],
+					"player_fpts": [
+						8.352460752380978,
+						8.932052638705203,
+						9.297016692448961,
+						10.474175146122509,
+						10.09972092065109
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.6329891479217246
+				},
+				"predicted_score": 62.679461756756794,
+				"final_player_fpts": [
+					3.0,
+					37.1,
+					30.2,
+					28.4,
+					9.5
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 0.25,
+				"bet_return": 0,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						250,
+						253,
+						243,
+						245,
+						246,
+						247,
+						248,
+						249,
+						251,
+						242,
+						252,
+						254,
+						255,
+						244,
+						256
+					],
+					"slate_id": 1159,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 378.0,
+					"player_ids": [
+						108,
+						79,
+						131,
+						259,
+						279,
+						555,
+						560,
+						453,
+						504
+					],
+					"player_fpts": [
+						34.4,
+						37.4,
+						30.2,
+						47.9,
+						51.1,
+						70.0,
+						35.2,
+						37.1,
+						34.7
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 132.9,
+					"player_ids": [
+						603,
+						140,
+						288,
+						192,
+						370,
+						386,
+						104,
+						331,
+						402
+					],
+					"player_fpts": [
+						35.338626861572266,
+						10.940887917570008,
+						11.440375422298281,
+						12.17395512343656,
+						11.80435926435156,
+						10.662294682014718,
+						12.178306265795005,
+						11.885674347544185,
+						10.459234190398108
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.41363211951447254
+				},
+				"predicted_score": 126.88371407498069,
+				"final_player_fpts": [
+					52.0,
+					3.0,
+					25.2,
+					15.5,
+					6.0,
+					19.2,
+					3.0,
+					9.0,
+					0.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 0,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						250,
+						253,
+						243,
+						245,
+						246,
+						247,
+						248,
+						249,
+						251,
+						242,
+						252,
+						254,
+						255,
+						244,
+						256
+					],
+					"slate_id": 1159,
+					"name": "Main"
+				},
+				"actual_outcome": {
+					"total_score": 378.0,
+					"player_ids": [
+						108,
+						79,
+						131,
+						259,
+						279,
+						555,
+						560,
+						453,
+						504
+					],
+					"player_fpts": [
+						34.4,
+						37.4,
+						30.2,
+						47.9,
+						51.1,
+						70.0,
+						35.2,
+						37.1,
+						34.7
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 132.9,
+					"player_ids": [
+						603,
+						140,
+						192,
+						288,
+						386,
+						104,
+						331,
+						402,
+						370
+					],
+					"player_fpts": [
+						35.338626861572266,
+						10.940887917570008,
+						12.17395512343656,
+						11.440375422298281,
+						10.662294682014718,
+						12.178306265795005,
+						11.885674347544185,
+						10.459234190398108,
+						11.80435926435156
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.41363211951447254
+				},
+				"predicted_score": 126.88371407498067,
+				"final_player_fpts": [
+					52.0,
+					3.0,
+					15.5,
+					25.2,
+					19.2,
+					3.0,
+					9.0,
+					0.0,
+					6.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": 1.8,
+				"slate_name": "COL @ SDP",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						252
+					],
+					"slate_id": 1160,
+					"name": "COL @ SDP"
+				},
+				"actual_outcome": {
+					"total_score": 201.1,
+					"player_ids": [
+						131,
+						136,
+						304,
+						453,
+						146
+					],
+					"player_fpts": [
+						30.2,
+						25.5,
+						27.7,
+						37.1,
+						28.4
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"wagered_outcome": {
+					"total_score": 108.20000000000002,
+					"player_ids": [
+						291,
+						131,
+						453,
+						146,
+						134
+					],
+					"player_fpts": [
+						8.352460752380978,
+						9.297016692448961,
+						8.932052638705203,
+						10.474175146122509,
+						10.09972092065109
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": 0.6329891479217247
+				},
+				"predicted_score": 62.679461756756794,
+				"final_player_fpts": [
+					3.0,
+					30.2,
+					37.1,
+					28.4,
+					9.5
+				],
+				"final_team_fpts": []
+			}
+		],
+		[
+			{
+				"wager": 0.25,
+				"bet_return": null,
+				"slate_name": "CIN @ LOS",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						260
+					],
+					"slate_id": 1164,
+					"name": "CIN @ LOS"
+				},
+				"actual_outcome": null,
+				"wagered_outcome": {
+					"total_score": 53.3,
+					"player_ids": [
+						129,
+						58,
+						122,
+						121,
+						55
+					],
+					"player_fpts": [
+						9.2664769796869,
+						9.81560883631426,
+						7.2055990738987985,
+						10.327396513812442,
+						9.717626160152328
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"predicted_score": 61.567908495834295,
+				"final_player_fpts": [
+					25.7,
+					15.4,
+					3.0,
+					9.2,
+					0.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 0.25,
+				"bet_return": null,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						265,
+						267,
+						261,
+						263,
+						264,
+						257,
+						268,
+						269,
+						259,
+						270
+					],
+					"slate_id": 1161,
+					"name": "Main"
+				},
+				"actual_outcome": null,
+				"wagered_outcome": {
+					"total_score": 95.60000000000001,
+					"player_ids": [
+						609,
+						602,
+						370,
+						343,
+						402,
+						209,
+						272,
+						240,
+						242
+					],
+					"player_fpts": [
+						32.43559646606445,
+						12.052350127778862,
+						13.381722552661131,
+						11.961162934911455,
+						10.001043101761127,
+						12.69280031088335,
+						12.165699572623335,
+						12.038861760188567,
+						11.859001391244822
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"predicted_score": 128.5882382181171,
+				"final_player_fpts": [
+					37.0,
+					28.4,
+					3.0,
+					0.0,
+					6.0,
+					9.2,
+					3.0,
+					3.0,
+					6.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": null,
+				"slate_name": "Main",
+				"slate_info": {
+					"style": "CLASSIC",
+					"games": [
+						265,
+						267,
+						261,
+						263,
+						264,
+						257,
+						268,
+						269,
+						259,
+						270
+					],
+					"slate_id": 1161,
+					"name": "Main"
+				},
+				"actual_outcome": null,
+				"wagered_outcome": {
+					"total_score": 95.60000000000001,
+					"player_ids": [
+						609,
+						602,
+						370,
+						343,
+						209,
+						242,
+						272,
+						240,
+						402
+					],
+					"player_fpts": [
+						32.43559646606445,
+						12.052350127778862,
+						13.381722552661131,
+						11.961162934911455,
+						12.69280031088335,
+						11.859001391244822,
+						12.165699572623335,
+						12.038861760188567,
+						10.001043101761127
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"predicted_score": 128.5882382181171,
+				"final_player_fpts": [
+					37.0,
+					28.4,
+					3.0,
+					0.0,
+					9.2,
+					6.0,
+					3.0,
+					3.0,
+					6.0
+				],
+				"final_team_fpts": []
+			},
+			{
+				"wager": 1,
+				"bet_return": null,
+				"slate_name": "HOU @ OAK",
+				"slate_info": {
+					"style": "SHOWDOWN",
+					"games": [
+						265
+					],
+					"slate_id": 1165,
+					"name": "HOU @ OAK"
+				},
+				"actual_outcome": null,
+				"wagered_outcome": {
+					"total_score": 24.0,
+					"player_ids": [
+						330,
+						511,
+						341,
+						325,
+						3
+					],
+					"player_fpts": [
+						11.804747222984627,
+						7.946039687981995,
+						10.145752508890917,
+						9.42995053454112,
+						10.504019197837614
+					],
+					"team_ids": [],
+					"team_fpts": [],
+					"placement_percentile": null
+				},
+				"predicted_score": 66.88726597413971,
+				"final_player_fpts": [
+					0.0,
+					9.0,
+					3.0,
+					6.0,
+					6.0
+				],
+				"final_team_fpts": []
+			}
+		]
+	],
+	"bt_notes": [
+		[],
+		[],
+		[],
+		[],
+		[
+			"Not enough in bankroll to continue. Wagers for this epoch would total 2.5, which exceeds the epoch's starting bankroll. Use --allow_negative_bankroll next time if you want to continue past a negative bankroll."
+		]
+	],
+	"dbfile": "mlb-2019.db",
+	"sport": "mlb",
+	"service": "fanduel",
+	"strategies_filepath": null,
+	"strategies": [
+		"SD_gpp_25",
+		"C_gpp_25",
+		"C_5050_1",
+		"SD_5050_1"
+	]
+}
