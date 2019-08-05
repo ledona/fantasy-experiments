@@ -250,8 +250,8 @@
 						187,
 						290,
 						277,
-						426,
 						202,
+						426,
 						299,
 						702,
 						75
@@ -261,8 +261,8 @@
 						42.9,
 						41.6,
 						34.4,
-						39.2,
 						24.8,
+						39.2,
 						46.4,
 						32.8,
 						46.4
@@ -283,8 +283,8 @@
 						6200.0,
 						7700.0,
 						3400.0,
-						5400.0,
 						3700.0,
+						5400.0,
 						6900.0,
 						3100.0,
 						8200.0
@@ -300,11 +300,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Filip",
+						"Anders",
+						"Artemi",
+						"Michael",
+						"Adam",
+						"Alex",
+						"Cam",
+						"Zachary",
+						"Carey"
+					],
+					"player_last_names": [
+						"Forsberg",
+						"Lee",
+						"Panarin",
+						"Grabner",
+						"Pelech",
+						"Pietrangelo",
+						"Atkinson",
+						"Sanford",
+						"Price"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"NSH",
+						"NYI",
+						"CBJ",
+						"ARI",
+						"NYI",
+						"STL",
+						"CBJ",
+						"STL",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -314,8 +377,8 @@
 						558,
 						564,
 						424,
-						598,
 						86,
+						598,
 						60,
 						575,
 						479,
@@ -325,8 +388,8 @@
 						14.094925611967613,
 						13.608947441059069,
 						12.392174060508497,
-						15.037380621253302,
 						17.401234599453936,
+						15.037380621253302,
 						12.834365038526306,
 						14.153787713330065,
 						15.8787164713893,
@@ -347,8 +410,8 @@
 						6300.0,
 						4800.0,
 						5200.0,
-						6600.0,
 						7600.0,
+						6600.0,
 						4900.0,
 						5300.0,
 						7600.0,
@@ -365,11 +428,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kyle",
+						"Oscar",
+						"Kyle",
+						"Jacob",
+						"Vincent",
+						"Tomas",
+						"Keith",
+						"Claude",
+						"Gabriel"
+					],
+					"player_last_names": [
+						"Palmieri",
+						"Klefbom",
+						"Connor",
+						"Markstrom",
+						"Trocheck",
+						"Tatar",
+						"Yandle",
+						"Giroux",
+						"Landeskog"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NJD",
+						"EDM",
+						"WPG",
+						"VAN",
+						"FLA",
+						"MTL",
+						"FLA",
+						"PHI",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.43277790096891755
 				},
 				"predicted_score": 131.21609568427095,
@@ -377,8 +503,8 @@
 					24.8,
 					12.8,
 					17.3,
-					3.2,
 					4.0,
+					3.2,
 					0.0,
 					14.4,
 					3.2,
@@ -417,8 +543,8 @@
 						187,
 						290,
 						277,
-						426,
 						202,
+						426,
 						299,
 						702,
 						75
@@ -428,8 +554,8 @@
 						42.9,
 						41.6,
 						34.4,
-						39.2,
 						24.8,
+						39.2,
 						46.4,
 						32.8,
 						46.4
@@ -450,8 +576,8 @@
 						6200.0,
 						7700.0,
 						3400.0,
-						5400.0,
 						3700.0,
+						5400.0,
 						6900.0,
 						3100.0,
 						8200.0
@@ -467,11 +593,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Filip",
+						"Anders",
+						"Artemi",
+						"Michael",
+						"Adam",
+						"Alex",
+						"Cam",
+						"Zachary",
+						"Carey"
+					],
+					"player_last_names": [
+						"Forsberg",
+						"Lee",
+						"Panarin",
+						"Grabner",
+						"Pelech",
+						"Pietrangelo",
+						"Atkinson",
+						"Sanford",
+						"Price"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"NSH",
+						"NYI",
+						"CBJ",
+						"ARI",
+						"NYI",
+						"STL",
+						"CBJ",
+						"STL",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -481,8 +670,8 @@
 						558,
 						564,
 						424,
-						598,
 						86,
+						598,
 						60,
 						575,
 						479,
@@ -492,8 +681,8 @@
 						14.094925611967613,
 						13.608947441059069,
 						12.392174060508497,
-						15.037380621253302,
 						17.401234599453936,
+						15.037380621253302,
 						12.834365038526306,
 						14.153787713330065,
 						15.8787164713893,
@@ -514,8 +703,8 @@
 						6300.0,
 						4800.0,
 						5200.0,
-						6600.0,
 						7600.0,
+						6600.0,
 						4900.0,
 						5300.0,
 						7600.0,
@@ -532,11 +721,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kyle",
+						"Oscar",
+						"Kyle",
+						"Jacob",
+						"Vincent",
+						"Tomas",
+						"Keith",
+						"Claude",
+						"Gabriel"
+					],
+					"player_last_names": [
+						"Palmieri",
+						"Klefbom",
+						"Connor",
+						"Markstrom",
+						"Trocheck",
+						"Tatar",
+						"Yandle",
+						"Giroux",
+						"Landeskog"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NJD",
+						"EDM",
+						"WPG",
+						"VAN",
+						"FLA",
+						"MTL",
+						"FLA",
+						"PHI",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.43277790096891755
 				},
 				"predicted_score": 131.21609568427095,
@@ -544,8 +796,8 @@
 					24.8,
 					12.8,
 					17.3,
-					3.2,
 					4.0,
+					3.2,
 					0.0,
 					14.4,
 					3.2,
@@ -573,29 +825,29 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 254.10000000000002,
+					"total_score": 254.1,
 					"total_cost": 45000.0,
 					"player_ids": [
 						378,
 						314,
+						728,
 						27,
 						33,
 						180,
 						372,
 						9,
-						376,
-						728
+						376
 					],
 					"player_fpts": [
 						22.4,
 						16.8,
+						36.8,
 						27.2,
 						38.4,
 						38.4,
 						23.7,
 						25.6,
-						24.8,
-						36.8
+						24.8
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -611,13 +863,13 @@
 					"player_costs": [
 						4300.0,
 						4400.0,
+						4400.0,
 						3100.0,
 						4900.0,
 						7500.0,
 						4700.0,
 						6900.0,
-						4800.0,
-						4400.0
+						4800.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -630,11 +882,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Anthony",
+						"Alex",
+						"Pontus",
+						"Timo",
+						"Thomas",
+						"Brent",
+						"Ryan",
+						"Ryan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Mantha",
+						"Tuch",
+						"Aberg",
+						"Meier",
+						"Greiss",
+						"Seabrook",
+						"Getzlaf",
+						"Dzingel"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"DET",
+						"VGK",
+						"ANA",
+						"SJS",
+						"NYI",
+						"CHI",
+						"ANA",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -695,11 +1010,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Timo",
+						"Oscar",
+						"Petr",
+						"Kevin",
+						"Shea",
+						"Ryan",
+						"Patrick",
+						"Alex",
+						"Connor"
+					],
+					"player_last_names": [
+						"Meier",
+						"Klefbom",
+						"Mrazek",
+						"Labanc",
+						"Theodore",
+						"Nugent-Hopkins",
+						"Kane",
+						"Tuch",
+						"McDavid"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"SJS",
+						"EDM",
+						"CAR",
+						"SJS",
+						"VGK",
+						"EDM",
+						"CHI",
+						"VGK",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6049584799976971
 				},
 				"predicted_score": 130.6619573023026,
@@ -734,29 +1112,29 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 254.10000000000002,
+					"total_score": 254.1,
 					"total_cost": 45000.0,
 					"player_ids": [
 						378,
 						314,
+						728,
 						27,
 						33,
 						180,
 						372,
 						9,
-						376,
-						728
+						376
 					],
 					"player_fpts": [
 						22.4,
 						16.8,
+						36.8,
 						27.2,
 						38.4,
 						38.4,
 						23.7,
 						25.6,
-						24.8,
-						36.8
+						24.8
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -772,13 +1150,13 @@
 					"player_costs": [
 						4300.0,
 						4400.0,
+						4400.0,
 						3100.0,
 						4900.0,
 						7500.0,
 						4700.0,
 						6900.0,
-						4800.0,
-						4400.0
+						4800.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -791,11 +1169,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Anthony",
+						"Alex",
+						"Pontus",
+						"Timo",
+						"Thomas",
+						"Brent",
+						"Ryan",
+						"Ryan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Mantha",
+						"Tuch",
+						"Aberg",
+						"Meier",
+						"Greiss",
+						"Seabrook",
+						"Getzlaf",
+						"Dzingel"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"DET",
+						"VGK",
+						"ANA",
+						"SJS",
+						"NYI",
+						"CHI",
+						"ANA",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -856,11 +1297,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Timo",
+						"Oscar",
+						"Petr",
+						"Kevin",
+						"Shea",
+						"Ryan",
+						"Patrick",
+						"Alex",
+						"Connor"
+					],
+					"player_last_names": [
+						"Meier",
+						"Klefbom",
+						"Mrazek",
+						"Labanc",
+						"Theodore",
+						"Nugent-Hopkins",
+						"Kane",
+						"Tuch",
+						"McDavid"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"SJS",
+						"EDM",
+						"CAR",
+						"SJS",
+						"VGK",
+						"EDM",
+						"CHI",
+						"VGK",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6049584799976971
 				},
 				"predicted_score": 130.6619573023026,
@@ -951,11 +1455,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Jordan",
+						"Jacob",
+						"Jason",
+						"Jake",
+						"Elias",
+						"Michael",
+						"Mark",
+						"Ben"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Greenway",
+						"Markstrom",
+						"Zucker",
+						"Virtanen",
+						"Lindholm",
+						"Frolik",
+						"Giordano",
+						"Hutton"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"MIN",
+						"VAN",
+						"MIN",
+						"VAN",
+						"CGY",
+						"CGY",
+						"CGY",
+						"VAN"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -964,8 +1531,8 @@
 					"player_ids": [
 						96,
 						99,
-						214,
 						86,
+						214,
 						55,
 						247,
 						113,
@@ -975,8 +1542,8 @@
 					"player_fpts": [
 						12.61194360769595,
 						12.17472127221934,
-						11.507844186475605,
 						17.26939342406826,
+						11.507844186475605,
 						12.31473358959597,
 						11.09765934427466,
 						13.92606122231399,
@@ -997,8 +1564,8 @@
 					"player_costs": [
 						5300.0,
 						6400.0,
-						5700.0,
 						7600.0,
+						5700.0,
 						6800.0,
 						4600.0,
 						7800.0,
@@ -1016,19 +1583,82 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Brock",
+						"Jacob",
+						"Jason",
+						"Mitchell",
+						"Matt",
+						"Johnny",
+						"Mark",
+						"Nazem"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Boeser",
+						"Markstrom",
+						"Zucker",
+						"Marner",
+						"Dumba",
+						"Gaudreau",
+						"Giordano",
+						"Kadri"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"VAN",
+						"VAN",
+						"MIN",
+						"TOR",
+						"MIN",
+						"CGY",
+						"CGY",
+						"TOR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6722110670014023
 				},
 				"predicted_score": 115.01867461927495,
 				"final_player_fpts": [
 					33.6,
 					11.2,
-					12.8,
 					33.6,
+					12.8,
 					11.2,
 					11.2,
 					9.6,
@@ -1109,11 +1739,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Jordan",
+						"Jacob",
+						"Jason",
+						"Jake",
+						"Elias",
+						"Michael",
+						"Mark",
+						"Ben"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Greenway",
+						"Markstrom",
+						"Zucker",
+						"Virtanen",
+						"Lindholm",
+						"Frolik",
+						"Giordano",
+						"Hutton"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"MIN",
+						"VAN",
+						"MIN",
+						"VAN",
+						"CGY",
+						"CGY",
+						"CGY",
+						"VAN"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -1122,8 +1815,8 @@
 					"player_ids": [
 						96,
 						99,
-						214,
 						86,
+						214,
 						55,
 						247,
 						113,
@@ -1133,8 +1826,8 @@
 					"player_fpts": [
 						12.61194360769595,
 						12.17472127221934,
-						11.507844186475605,
 						17.26939342406826,
+						11.507844186475605,
 						12.31473358959597,
 						11.09765934427466,
 						13.92606122231399,
@@ -1155,8 +1848,8 @@
 					"player_costs": [
 						5300.0,
 						6400.0,
-						5700.0,
 						7600.0,
+						5700.0,
 						6800.0,
 						4600.0,
 						7800.0,
@@ -1174,19 +1867,82 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Brock",
+						"Jacob",
+						"Jason",
+						"Mitchell",
+						"Matt",
+						"Johnny",
+						"Mark",
+						"Nazem"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Boeser",
+						"Markstrom",
+						"Zucker",
+						"Marner",
+						"Dumba",
+						"Gaudreau",
+						"Giordano",
+						"Kadri"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"VAN",
+						"VAN",
+						"MIN",
+						"TOR",
+						"MIN",
+						"CGY",
+						"CGY",
+						"TOR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6722110670014023
 				},
 				"predicted_score": 115.01867461927495,
 				"final_player_fpts": [
 					33.6,
 					11.2,
-					12.8,
 					33.6,
+					12.8,
 					11.2,
 					11.2,
 					9.6,
@@ -1228,8 +1984,8 @@
 						289,
 						118,
 						139,
-						350,
 						574,
+						350,
 						587,
 						593,
 						359
@@ -1239,8 +1995,8 @@
 						45.2,
 						37.6,
 						34.1,
-						32.0,
 						47.2,
+						32.0,
 						42.1,
 						32.0,
 						30.4
@@ -1261,8 +2017,8 @@
 						6200.0,
 						8000.0,
 						7600.0,
-						3400.0,
 						6500.0,
+						3400.0,
 						7900.0,
 						3500.0,
 						5800.0
@@ -1278,11 +2034,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Ryan",
+						"Dylan",
+						"Jaroslav",
+						"Brad",
+						"Brayden",
+						"Ryan",
+						"Nikita",
+						"Braydon",
+						"Chris"
+					],
+					"player_last_names": [
+						"McDonagh",
+						"Larkin",
+						"Halak",
+						"Marchand",
+						"Point",
+						"Hartman",
+						"Kucherov",
+						"Coburn",
+						"Kreider"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"TBL",
+						"DET",
+						"BOS",
+						"BOS",
+						"TBL",
+						"NSH",
+						"TBL",
+						"TBL",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -1343,11 +2162,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Kyle",
+						"Timo",
+						"Oscar",
+						"Shea",
+						"Mika",
+						"Mike",
+						"Alex",
+						"Connor"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Palmieri",
+						"Meier",
+						"Klefbom",
+						"Theodore",
+						"Zibanejad",
+						"Condon",
+						"Tuch",
+						"McDavid"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"NJD",
+						"SJS",
+						"EDM",
+						"VGK",
+						"NYR",
+						"OTT",
+						"VGK",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.46691170770995
 				},
 				"predicted_score": 135.49310846035038,
@@ -1395,8 +2277,8 @@
 						289,
 						118,
 						139,
-						350,
 						574,
+						350,
 						587,
 						593,
 						359
@@ -1406,8 +2288,8 @@
 						45.2,
 						37.6,
 						34.1,
-						32.0,
 						47.2,
+						32.0,
 						42.1,
 						32.0,
 						30.4
@@ -1428,8 +2310,8 @@
 						6200.0,
 						8000.0,
 						7600.0,
-						3400.0,
 						6500.0,
+						3400.0,
 						7900.0,
 						3500.0,
 						5800.0
@@ -1445,11 +2327,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Ryan",
+						"Dylan",
+						"Jaroslav",
+						"Brad",
+						"Brayden",
+						"Ryan",
+						"Nikita",
+						"Braydon",
+						"Chris"
+					],
+					"player_last_names": [
+						"McDonagh",
+						"Larkin",
+						"Halak",
+						"Marchand",
+						"Point",
+						"Hartman",
+						"Kucherov",
+						"Coburn",
+						"Kreider"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"TBL",
+						"DET",
+						"BOS",
+						"BOS",
+						"TBL",
+						"NSH",
+						"TBL",
+						"TBL",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -1510,11 +2455,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Kyle",
+						"Timo",
+						"Oscar",
+						"Shea",
+						"Mika",
+						"Mike",
+						"Alex",
+						"Connor"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Palmieri",
+						"Meier",
+						"Klefbom",
+						"Theodore",
+						"Zibanejad",
+						"Condon",
+						"Tuch",
+						"McDavid"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"NJD",
+						"SJS",
+						"EDM",
+						"VGK",
+						"NYR",
+						"OTT",
+						"VGK",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.46691170770995
 				},
 				"predicted_score": 135.49310846035038,
@@ -1590,11 +2598,56 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Bo",
+						"Nikolay",
+						"Brock",
+						"Henri",
+						"Erik"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Horvat",
+						"Goldobin",
+						"Boeser",
+						"Jokiharju",
+						"Gustafsson"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"VAN",
+						"VAN",
+						"VAN",
+						"CHI",
+						"CHI"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"predicted_score": 66.73840873092642,
@@ -1665,11 +2718,56 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Bo",
+						"Nikolay",
+						"Brock",
+						"Henri",
+						"Erik"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Horvat",
+						"Goldobin",
+						"Boeser",
+						"Jokiharju",
+						"Gustafsson"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"VAN",
+						"VAN",
+						"VAN",
+						"CHI",
+						"CHI"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"predicted_score": 66.73840873092642,
@@ -1711,29 +2809,29 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 350.70000000000005,
+					"total_score": 350.7,
 					"total_cost": 50800.0,
 					"player_ids": [
 						64,
 						448,
 						744,
-						421,
 						649,
 						48,
 						427,
 						101,
-						728
+						728,
+						421
 					],
 					"player_fpts": [
 						32.0,
 						35.2,
 						52.0,
-						48.2,
 						34.0,
 						35.2,
 						35.2,
 						48.8,
-						30.1
+						30.1,
+						48.2
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -1750,12 +2848,12 @@
 						3200.0,
 						5700.0,
 						7300.0,
-						7300.0,
 						3300.0,
 						6500.0,
 						7500.0,
 						5500.0,
-						4500.0
+						4500.0,
+						7300.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -1768,11 +2866,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jesperi",
+						"Dustin",
+						"Mikko",
+						"Drake",
+						"Brendan",
+						"Blake",
+						"Mark",
+						"Alex",
+						"Patrik"
+					],
+					"player_last_names": [
+						"Kotkaniemi",
+						"Byfuglien",
+						"Koskinen",
+						"Caggiula",
+						"Gallagher",
+						"Wheeler",
+						"Giordano",
+						"Tuch",
+						"Laine"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"MTL",
+						"WPG",
+						"EDM",
+						"EDM",
+						"MTL",
+						"WPG",
+						"CGY",
+						"VGK",
+						"WPG"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -1833,11 +2994,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Kyle",
+						"Oscar",
+						"Vincent",
+						"Shea",
+						"Mika",
+						"Anton",
+						"Gabriel",
+						"Alex"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Palmieri",
+						"Klefbom",
+						"Trocheck",
+						"Theodore",
+						"Zibanejad",
+						"Khudobin",
+						"Landeskog",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"NJD",
+						"EDM",
+						"FLA",
+						"VGK",
+						"NYR",
+						"DAL",
+						"COL",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.46378202241505895
 				},
 				"predicted_score": 138.25110197181698,
@@ -1880,29 +3104,29 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 350.70000000000005,
+					"total_score": 350.7,
 					"total_cost": 50800.0,
 					"player_ids": [
 						64,
 						448,
 						744,
-						421,
 						649,
 						48,
 						427,
 						101,
-						728
+						728,
+						421
 					],
 					"player_fpts": [
 						32.0,
 						35.2,
 						52.0,
-						48.2,
 						34.0,
 						35.2,
 						35.2,
 						48.8,
-						30.1
+						30.1,
+						48.2
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -1919,12 +3143,12 @@
 						3200.0,
 						5700.0,
 						7300.0,
-						7300.0,
 						3300.0,
 						6500.0,
 						7500.0,
 						5500.0,
-						4500.0
+						4500.0,
+						7300.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -1937,11 +3161,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jesperi",
+						"Dustin",
+						"Mikko",
+						"Drake",
+						"Brendan",
+						"Blake",
+						"Mark",
+						"Alex",
+						"Patrik"
+					],
+					"player_last_names": [
+						"Kotkaniemi",
+						"Byfuglien",
+						"Koskinen",
+						"Caggiula",
+						"Gallagher",
+						"Wheeler",
+						"Giordano",
+						"Tuch",
+						"Laine"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"MTL",
+						"WPG",
+						"EDM",
+						"EDM",
+						"MTL",
+						"WPG",
+						"CGY",
+						"VGK",
+						"WPG"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2002,11 +3289,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Kyle",
+						"Oscar",
+						"Vincent",
+						"Shea",
+						"Mika",
+						"Anton",
+						"Gabriel",
+						"Alex"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Palmieri",
+						"Klefbom",
+						"Trocheck",
+						"Theodore",
+						"Zibanejad",
+						"Khudobin",
+						"Landeskog",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"NJD",
+						"EDM",
+						"FLA",
+						"VGK",
+						"NYR",
+						"DAL",
+						"COL",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.46378202241505895
 				},
 				"predicted_score": 138.25110197181698,
@@ -2043,8 +3393,8 @@
 					"total_score": 315.40000000000003,
 					"total_cost": 53500.0,
 					"player_ids": [
-						256,
 						96,
+						256,
 						111,
 						99,
 						87,
@@ -2054,8 +3404,8 @@
 						236
 					],
 					"player_fpts": [
-						33.6,
 						54.4,
+						33.6,
 						19.2,
 						52.8,
 						23.7,
@@ -2076,8 +3426,8 @@
 						1
 					],
 					"player_costs": [
-						3800.0,
 						5300.0,
+						3800.0,
 						3600.0,
 						6400.0,
 						3600.0,
@@ -2097,11 +3447,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Alex",
+						"Nikolay",
+						"Brock",
+						"Derrick",
+						"Nathan",
+						"Gabriel",
+						"Antti",
+						"Mikko"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Goligoski",
+						"Goldobin",
+						"Boeser",
+						"Pouliot",
+						"MacKinnon",
+						"Landeskog",
+						"Raanta",
+						"Rantanen"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"ARI",
+						"VAN",
+						"VAN",
+						"VAN",
+						"COL",
+						"COL",
+						"ARI",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2162,11 +3575,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Tyson",
+						"Petr",
+						"Nikolay",
+						"Dougie",
+						"Nathan",
+						"Gabriel",
+						"Justin",
+						"Mikko"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Barrie",
+						"Mrazek",
+						"Goldobin",
+						"Hamilton",
+						"MacKinnon",
+						"Landeskog",
+						"Williams",
+						"Rantanen"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"COL",
+						"CAR",
+						"VAN",
+						"CAR",
+						"COL",
+						"COL",
+						"CAR",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4537938198607746
 				},
 				"predicted_score": 121.65758516647503,
@@ -2201,8 +3677,8 @@
 					"total_score": 315.40000000000003,
 					"total_cost": 53500.0,
 					"player_ids": [
-						256,
 						96,
+						256,
 						111,
 						99,
 						87,
@@ -2212,8 +3688,8 @@
 						236
 					],
 					"player_fpts": [
-						33.6,
 						54.4,
+						33.6,
 						19.2,
 						52.8,
 						23.7,
@@ -2234,8 +3710,8 @@
 						1
 					],
 					"player_costs": [
-						3800.0,
 						5300.0,
+						3800.0,
 						3600.0,
 						6400.0,
 						3600.0,
@@ -2255,11 +3731,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Alex",
+						"Nikolay",
+						"Brock",
+						"Derrick",
+						"Nathan",
+						"Gabriel",
+						"Antti",
+						"Mikko"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Goligoski",
+						"Goldobin",
+						"Boeser",
+						"Pouliot",
+						"MacKinnon",
+						"Landeskog",
+						"Raanta",
+						"Rantanen"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"ARI",
+						"VAN",
+						"VAN",
+						"VAN",
+						"COL",
+						"COL",
+						"ARI",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2320,11 +3859,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Tyson",
+						"Petr",
+						"Nikolay",
+						"Dougie",
+						"Nathan",
+						"Gabriel",
+						"Justin",
+						"Mikko"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Barrie",
+						"Mrazek",
+						"Goldobin",
+						"Hamilton",
+						"MacKinnon",
+						"Landeskog",
+						"Williams",
+						"Rantanen"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"COL",
+						"CAR",
+						"VAN",
+						"CAR",
+						"COL",
+						"COL",
+						"CAR",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4537938198607746
 				},
 				"predicted_score": 121.65758516647503,
@@ -2371,9 +3973,9 @@
 					"total_cost": 49900.0,
 					"player_ids": [
 						544,
+						97,
 						33,
 						180,
-						97,
 						47,
 						213,
 						55,
@@ -2382,9 +3984,9 @@
 					],
 					"player_fpts": [
 						30.4,
+						32.5,
 						33.6,
 						48.0,
-						32.5,
 						30.9,
 						34.4,
 						27.2,
@@ -2404,9 +4006,9 @@
 					],
 					"player_costs": [
 						3000.0,
+						7200.0,
 						5200.0,
 						7500.0,
-						7200.0,
 						5300.0,
 						3500.0,
 						6700.0,
@@ -2424,11 +4026,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kyle",
+						"Sean",
+						"Timo",
+						"Thomas",
+						"Morgan",
+						"Nick",
+						"Mitchell",
+						"Joshua",
+						"Dustin"
+					],
+					"player_last_names": [
+						"Brodziak",
+						"Monahan",
+						"Meier",
+						"Greiss",
+						"Rielly",
+						"Seeler",
+						"Marner",
+						"Bailey",
+						"Brown"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"EDM",
+						"CGY",
+						"SJS",
+						"NYI",
+						"TOR",
+						"MIN",
+						"TOR",
+						"NYI",
+						"LAK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2489,11 +4154,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jack",
+						"Oscar",
+						"David",
+						"Jonathan",
+						"Micheal",
+						"Shea",
+						"Ryan",
+						"Alex",
+						"Dustin"
+					],
+					"player_last_names": [
+						"Campbell",
+						"Klefbom",
+						"Pastrnak",
+						"Marchessault",
+						"Ferland",
+						"Theodore",
+						"Nugent-Hopkins",
+						"Tuch",
+						"Brown"
+					],
+					"player_pos": [
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"LAK",
+						"EDM",
+						"BOS",
+						"VGK",
+						"CAR",
+						"VGK",
+						"EDM",
+						"VGK",
+						"LAK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5391746295675063
 				},
 				"predicted_score": 134.09812211973448,
@@ -2538,9 +4266,9 @@
 					"total_cost": 49900.0,
 					"player_ids": [
 						544,
+						97,
 						33,
 						180,
-						97,
 						47,
 						213,
 						55,
@@ -2549,9 +4277,9 @@
 					],
 					"player_fpts": [
 						30.4,
+						32.5,
 						33.6,
 						48.0,
-						32.5,
 						30.9,
 						34.4,
 						27.2,
@@ -2571,9 +4299,9 @@
 					],
 					"player_costs": [
 						3000.0,
+						7200.0,
 						5200.0,
 						7500.0,
-						7200.0,
 						5300.0,
 						3500.0,
 						6700.0,
@@ -2591,11 +4319,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kyle",
+						"Sean",
+						"Timo",
+						"Thomas",
+						"Morgan",
+						"Nick",
+						"Mitchell",
+						"Joshua",
+						"Dustin"
+					],
+					"player_last_names": [
+						"Brodziak",
+						"Monahan",
+						"Meier",
+						"Greiss",
+						"Rielly",
+						"Seeler",
+						"Marner",
+						"Bailey",
+						"Brown"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"EDM",
+						"CGY",
+						"SJS",
+						"NYI",
+						"TOR",
+						"MIN",
+						"TOR",
+						"NYI",
+						"LAK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2656,11 +4447,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jack",
+						"Oscar",
+						"David",
+						"Jonathan",
+						"Micheal",
+						"Shea",
+						"Ryan",
+						"Alex",
+						"Dustin"
+					],
+					"player_last_names": [
+						"Campbell",
+						"Klefbom",
+						"Pastrnak",
+						"Marchessault",
+						"Ferland",
+						"Theodore",
+						"Nugent-Hopkins",
+						"Tuch",
+						"Brown"
+					],
+					"player_pos": [
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"LAK",
+						"EDM",
+						"BOS",
+						"VGK",
+						"CAR",
+						"VGK",
+						"EDM",
+						"VGK",
+						"LAK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5391746295675063
 				},
 				"predicted_score": 134.09812211973448,
@@ -2752,11 +4606,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Ryan",
+						"Jimmy",
+						"Mathieu",
+						"Conor",
+						"Henrik",
+						"Brayden",
+						"Pierre-Luc",
+						"Cam",
+						"Mark"
+					],
+					"player_last_names": [
+						"McDonagh",
+						"Vesey",
+						"Joseph",
+						"Sheary",
+						"Lundqvist",
+						"Point",
+						"Dubois",
+						"Fowler",
+						"Stone"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"TBL",
+						"NYR",
+						"TBL",
+						"BUF",
+						"NYR",
+						"TBL",
+						"CBJ",
+						"ANA",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2817,11 +4734,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Jack",
+						"Kevin",
+						"Jeff",
+						"Artemi",
+						"Mika",
+						"Seth",
+						"Jason",
+						"Carter"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Eichel",
+						"Hayes",
+						"Skinner",
+						"Panarin",
+						"Zibanejad",
+						"Jones",
+						"Pominville",
+						"Hutton"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"BUF",
+						"NYR",
+						"BUF",
+						"CBJ",
+						"NYR",
+						"CBJ",
+						"BUF",
+						"BUF"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5838751120780965
 				},
 				"predicted_score": 128.4904765394663,
@@ -2911,11 +4891,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Ryan",
+						"Jimmy",
+						"Mathieu",
+						"Conor",
+						"Henrik",
+						"Brayden",
+						"Pierre-Luc",
+						"Cam",
+						"Mark"
+					],
+					"player_last_names": [
+						"McDonagh",
+						"Vesey",
+						"Joseph",
+						"Sheary",
+						"Lundqvist",
+						"Point",
+						"Dubois",
+						"Fowler",
+						"Stone"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"TBL",
+						"NYR",
+						"TBL",
+						"BUF",
+						"NYR",
+						"TBL",
+						"CBJ",
+						"ANA",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2976,11 +5019,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Jack",
+						"Kevin",
+						"Jeff",
+						"Artemi",
+						"Mika",
+						"Seth",
+						"Jason",
+						"Carter"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Eichel",
+						"Hayes",
+						"Skinner",
+						"Panarin",
+						"Zibanejad",
+						"Jones",
+						"Pominville",
+						"Hutton"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"BUF",
+						"NYR",
+						"BUF",
+						"CBJ",
+						"NYR",
+						"CBJ",
+						"BUF",
+						"BUF"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5838751120780965
 				},
 				"predicted_score": 128.4904765394663,
@@ -3020,8 +5126,8 @@
 					"total_score": 277.2,
 					"total_cost": 47700.0,
 					"player_ids": [
-						557,
 						530,
+						557,
 						149,
 						535,
 						496,
@@ -3031,8 +5137,8 @@
 						71
 					],
 					"player_fpts": [
-						43.4,
 						36.0,
+						43.4,
 						24.8,
 						36.0,
 						31.7,
@@ -3053,8 +5159,8 @@
 						1
 					],
 					"player_costs": [
-						3400.0,
 						7500.0,
+						3400.0,
 						3200.0,
 						3900.0,
 						5600.0,
@@ -3074,18 +5180,80 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Keith",
+						"Brian",
+						"Devante",
+						"Will",
+						"Shayne",
+						"Brad",
+						"Claude",
+						"Oskar",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Kinkaid",
+						"Boyle",
+						"Smith-Pelly",
+						"Butcher",
+						"Gostisbehere",
+						"Marchand",
+						"Giroux",
+						"Lindblom",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NJD",
+						"NJD",
+						"WSH",
+						"NJD",
+						"PHI",
+						"BOS",
+						"PHI",
+						"PHI",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 125.3658363556383,
+					"total_score": 125.36583635563832,
 					"total_cost": 55000.0,
 					"player_ids": [
-						551,
 						564,
 						66,
 						48,
@@ -3093,10 +5261,10 @@
 						542,
 						126,
 						645,
+						551,
 						71
 					],
 					"player_fpts": [
-						14.060107035590331,
 						15.057660019494248,
 						11.042890973336107,
 						13.063218971644591,
@@ -3104,6 +5272,7 @@
 						14.513646005100846,
 						14.068613900147886,
 						17.567974767744218,
+						14.060107035590331,
 						11.865307885000373
 					],
 					"player_fpts_multiplier": [
@@ -3118,7 +5287,6 @@
 						1
 					],
 					"player_costs": [
-						6400.0,
 						5000.0,
 						3700.0,
 						6600.0,
@@ -3126,6 +5294,7 @@
 						7600.0,
 						6300.0,
 						7200.0,
+						6400.0,
 						5500.0
 					],
 					"player_costs_multiplier": [
@@ -3139,16 +5308,78 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Oscar",
+						"Joel",
+						"Brendan",
+						"Ryan",
+						"Taylor",
+						"John",
+						"Calvin",
+						"Leon",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Klefbom",
+						"Armia",
+						"Gallagher",
+						"Nugent-Hopkins",
+						"Hall",
+						"Carlson",
+						"Pickard",
+						"Draisaitl",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"EDM",
+						"MTL",
+						"MTL",
+						"EDM",
+						"NJD",
+						"WSH",
+						"PHI",
+						"EDM",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
-					"placement_percentile": 0.5320678904831436
+					"teams": [],
+					"placement_percentile": 0.5320678904831437
 				},
-				"predicted_score": 125.3658363556383,
+				"predicted_score": 125.36583635563832,
 				"final_player_fpts": [
-					21.6,
 					16.0,
 					12.8,
 					6.4,
@@ -3156,6 +5387,7 @@
 					16.0,
 					28.8,
 					31.2,
+					21.6,
 					29.6
 				],
 				"final_team_fpts": []
@@ -3181,8 +5413,8 @@
 					"total_score": 277.2,
 					"total_cost": 47700.0,
 					"player_ids": [
-						557,
 						530,
+						557,
 						149,
 						535,
 						496,
@@ -3192,8 +5424,8 @@
 						71
 					],
 					"player_fpts": [
-						43.4,
 						36.0,
+						43.4,
 						24.8,
 						36.0,
 						31.7,
@@ -3214,8 +5446,8 @@
 						1
 					],
 					"player_costs": [
-						3400.0,
 						7500.0,
+						3400.0,
 						3200.0,
 						3900.0,
 						5600.0,
@@ -3235,18 +5467,80 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Keith",
+						"Brian",
+						"Devante",
+						"Will",
+						"Shayne",
+						"Brad",
+						"Claude",
+						"Oskar",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Kinkaid",
+						"Boyle",
+						"Smith-Pelly",
+						"Butcher",
+						"Gostisbehere",
+						"Marchand",
+						"Giroux",
+						"Lindblom",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NJD",
+						"NJD",
+						"WSH",
+						"NJD",
+						"PHI",
+						"BOS",
+						"PHI",
+						"PHI",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 125.3658363556383,
+					"total_score": 125.36583635563832,
 					"total_cost": 55000.0,
 					"player_ids": [
-						551,
 						564,
 						66,
 						48,
@@ -3254,10 +5548,10 @@
 						542,
 						126,
 						645,
+						551,
 						71
 					],
 					"player_fpts": [
-						14.060107035590331,
 						15.057660019494248,
 						11.042890973336107,
 						13.063218971644591,
@@ -3265,6 +5559,7 @@
 						14.513646005100846,
 						14.068613900147886,
 						17.567974767744218,
+						14.060107035590331,
 						11.865307885000373
 					],
 					"player_fpts_multiplier": [
@@ -3279,7 +5574,6 @@
 						1
 					],
 					"player_costs": [
-						6400.0,
 						5000.0,
 						3700.0,
 						6600.0,
@@ -3287,6 +5581,7 @@
 						7600.0,
 						6300.0,
 						7200.0,
+						6400.0,
 						5500.0
 					],
 					"player_costs_multiplier": [
@@ -3300,16 +5595,78 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Oscar",
+						"Joel",
+						"Brendan",
+						"Ryan",
+						"Taylor",
+						"John",
+						"Calvin",
+						"Leon",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Klefbom",
+						"Armia",
+						"Gallagher",
+						"Nugent-Hopkins",
+						"Hall",
+						"Carlson",
+						"Pickard",
+						"Draisaitl",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"EDM",
+						"MTL",
+						"MTL",
+						"EDM",
+						"NJD",
+						"WSH",
+						"PHI",
+						"EDM",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
-					"placement_percentile": 0.5320678904831436
+					"teams": [],
+					"placement_percentile": 0.5320678904831437
 				},
-				"predicted_score": 125.3658363556383,
+				"predicted_score": 125.36583635563832,
 				"final_player_fpts": [
-					21.6,
 					16.0,
 					12.8,
 					6.4,
@@ -3317,6 +5674,7 @@
 					16.0,
 					28.8,
 					31.2,
+					21.6,
 					29.6
 				],
 				"final_team_fpts": []
@@ -3402,11 +5760,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Jack",
+						"Neal",
+						"Ryan",
+						"Tomas",
+						"Nikita",
+						"Steven",
+						"Mark"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Campbell",
+						"Pionk",
+						"O'Reilly",
+						"Tatar",
+						"Kucherov",
+						"Stamkos",
+						"Stone"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"LAK",
+						"NYR",
+						"STL",
+						"MTL",
+						"TBL",
+						"TBL",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -3467,11 +5888,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Oscar",
+						"Curtis",
+						"Jonathan",
+						"Shea",
+						"Brendan",
+						"Taylor",
+						"Alex",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Klefbom",
+						"McElhinney",
+						"Marchessault",
+						"Theodore",
+						"Gallagher",
+						"Hall",
+						"Tuch",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"EDM",
+						"CAR",
+						"VGK",
+						"VGK",
+						"MTL",
+						"NJD",
+						"VGK",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4316880071777072
 				},
 				"predicted_score": 131.2892736229561,
@@ -3567,11 +6051,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Jack",
+						"Neal",
+						"Ryan",
+						"Tomas",
+						"Nikita",
+						"Steven",
+						"Mark"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Campbell",
+						"Pionk",
+						"O'Reilly",
+						"Tatar",
+						"Kucherov",
+						"Stamkos",
+						"Stone"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"LAK",
+						"NYR",
+						"STL",
+						"MTL",
+						"TBL",
+						"TBL",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -3632,11 +6179,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Elias",
+						"Oscar",
+						"Curtis",
+						"Jonathan",
+						"Shea",
+						"Brendan",
+						"Taylor",
+						"Alex",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Pettersson",
+						"Klefbom",
+						"McElhinney",
+						"Marchessault",
+						"Theodore",
+						"Gallagher",
+						"Hall",
+						"Tuch",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"VAN",
+						"EDM",
+						"CAR",
+						"VGK",
+						"VGK",
+						"MTL",
+						"NJD",
+						"VGK",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4316880071777072
 				},
 				"predicted_score": 131.2892736229561,
@@ -3677,23 +6287,23 @@
 						141,
 						8,
 						355,
+						357,
 						80,
 						350,
 						126,
 						101,
-						120,
-						357
+						120
 					],
 					"player_fpts": [
 						20.5,
 						16.8,
 						44.5,
+						32.0,
 						18.9,
 						16.8,
 						25.6,
 						16.0,
-						40.8,
-						32.0
+						40.8
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -3710,12 +6320,12 @@
 						9000.0,
 						5400.0,
 						3300.0,
+						3600.0,
 						6200.0,
 						3400.0,
 						6100.0,
 						5800.0,
-						8300.0,
-						3600.0
+						8300.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -3728,37 +6338,100 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Alex",
+						"Jakob",
+						"Colton",
+						"Nick",
+						"Matthew",
+						"Ryan",
+						"John",
+						"Mark",
+						"Braden"
+					],
+					"player_last_names": [
+						"Ovechkin",
+						"Silfverberg",
+						"Sissons",
+						"Bonino",
+						"Tkachuk",
+						"Hartman",
+						"Carlson",
+						"Giordano",
+						"Holtby"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"WSH",
+						"ANA",
+						"NSH",
+						"NSH",
+						"CGY",
+						"NSH",
+						"WSH",
+						"CGY",
+						"WSH"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 122.955364547883,
 					"total_cost": 55000.0,
 					"player_ids": [
+						229,
 						27,
 						97,
 						85,
 						342,
-						414,
 						94,
 						126,
-						101,
-						229
+						414,
+						101
 					],
 					"player_fpts": [
+						14.521855353861207,
 						8.049009844142159,
 						16.538185953647975,
 						16.80272921408376,
 						11.180604113458976,
-						10.869900504503292,
 						14.964545682944372,
 						13.800876908403268,
-						16.22765697283797,
-						14.521855353861207
+						10.869900504503292,
+						16.22765697283797
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -3772,15 +6445,15 @@
 						1
 					],
 					"player_costs": [
+						6900.0,
 						3600.0,
 						8200.0,
 						7400.0,
 						5100.0,
-						5600.0,
 						6300.0,
 						6100.0,
-						5800.0,
-						6900.0
+						5600.0,
+						5800.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -3793,24 +6466,87 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Gabriel",
+						"Pontus",
+						"Sean",
+						"Mike",
+						"Craig",
+						"Elias",
+						"John",
+						"Patric",
+						"Mark"
+					],
+					"player_last_names": [
+						"Landeskog",
+						"Aberg",
+						"Monahan",
+						"Smith",
+						"Smith",
+						"Lindholm",
+						"Carlson",
+						"Hornqvist",
+						"Giordano"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"COL",
+						"ANA",
+						"CGY",
+						"CGY",
+						"NSH",
+						"CGY",
+						"WSH",
+						"PIT",
+						"CGY"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6237747738522335
 				},
 				"predicted_score": 122.955364547883,
 				"final_player_fpts": [
+					3.2,
 					11.2,
 					6.4,
 					4.8,
 					1.6,
-					6.4,
 					11.2,
 					25.6,
-					16.0,
-					3.2
+					6.4,
+					16.0
 				],
 				"final_team_fpts": []
 			},
@@ -3836,23 +6572,23 @@
 						141,
 						8,
 						355,
+						357,
 						80,
 						350,
 						126,
 						101,
-						120,
-						357
+						120
 					],
 					"player_fpts": [
 						20.5,
 						16.8,
 						44.5,
+						32.0,
 						18.9,
 						16.8,
 						25.6,
 						16.0,
-						40.8,
-						32.0
+						40.8
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -3869,12 +6605,12 @@
 						9000.0,
 						5400.0,
 						3300.0,
+						3600.0,
 						6200.0,
 						3400.0,
 						6100.0,
 						5800.0,
-						8300.0,
-						3600.0
+						8300.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -3887,37 +6623,100 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Alex",
+						"Jakob",
+						"Colton",
+						"Nick",
+						"Matthew",
+						"Ryan",
+						"John",
+						"Mark",
+						"Braden"
+					],
+					"player_last_names": [
+						"Ovechkin",
+						"Silfverberg",
+						"Sissons",
+						"Bonino",
+						"Tkachuk",
+						"Hartman",
+						"Carlson",
+						"Giordano",
+						"Holtby"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"WSH",
+						"ANA",
+						"NSH",
+						"NSH",
+						"CGY",
+						"NSH",
+						"WSH",
+						"CGY",
+						"WSH"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 122.955364547883,
 					"total_cost": 55000.0,
 					"player_ids": [
+						229,
 						27,
 						97,
 						85,
 						342,
-						414,
 						94,
 						126,
-						101,
-						229
+						414,
+						101
 					],
 					"player_fpts": [
+						14.521855353861207,
 						8.049009844142159,
 						16.538185953647975,
 						16.80272921408376,
 						11.180604113458976,
-						10.869900504503292,
 						14.964545682944372,
 						13.800876908403268,
-						16.22765697283797,
-						14.521855353861207
+						10.869900504503292,
+						16.22765697283797
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -3931,15 +6730,15 @@
 						1
 					],
 					"player_costs": [
+						6900.0,
 						3600.0,
 						8200.0,
 						7400.0,
 						5100.0,
-						5600.0,
 						6300.0,
 						6100.0,
-						5800.0,
-						6900.0
+						5600.0,
+						5800.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -3952,24 +6751,87 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Gabriel",
+						"Pontus",
+						"Sean",
+						"Mike",
+						"Craig",
+						"Elias",
+						"John",
+						"Patric",
+						"Mark"
+					],
+					"player_last_names": [
+						"Landeskog",
+						"Aberg",
+						"Monahan",
+						"Smith",
+						"Smith",
+						"Lindholm",
+						"Carlson",
+						"Hornqvist",
+						"Giordano"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"COL",
+						"ANA",
+						"CGY",
+						"CGY",
+						"NSH",
+						"CGY",
+						"WSH",
+						"PIT",
+						"CGY"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6237747738522335
 				},
 				"predicted_score": 122.955364547883,
 				"final_player_fpts": [
+					3.2,
 					11.2,
 					6.4,
 					4.8,
 					1.6,
-					6.4,
 					11.2,
 					25.6,
-					16.0,
-					3.2
+					6.4,
+					16.0
 				],
 				"final_team_fpts": []
 			}
@@ -4054,11 +6916,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Mikko",
+						"Jeff",
+						"Brian",
+						"Oliver",
+						"Bo",
+						"Nicolas",
+						"Jake",
+						"Loui"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Koivu",
+						"Skinner",
+						"Elliott",
+						"Ekman-Larsson",
+						"Horvat",
+						"Deslauriers",
+						"DeBrusk",
+						"Eriksson"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"MIN",
+						"BUF",
+						"PHI",
+						"ARI",
+						"VAN",
+						"MTL",
+						"BOS",
+						"VAN"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -4119,11 +7044,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"David",
+						"Vincent",
+						"Shea",
+						"Keith",
+						"Calvin",
+						"Alex",
+						"Jason",
+						"Leon"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Pastrnak",
+						"Trocheck",
+						"Theodore",
+						"Yandle",
+						"Pickard",
+						"Tuch",
+						"Pominville",
+						"Draisaitl"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"BOS",
+						"FLA",
+						"VGK",
+						"FLA",
+						"PHI",
+						"VGK",
+						"BUF",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5079091434664859
 				},
 				"predicted_score": 134.9997107876746,
@@ -4219,11 +7207,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Mikko",
+						"Jeff",
+						"Brian",
+						"Oliver",
+						"Bo",
+						"Nicolas",
+						"Jake",
+						"Loui"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Koivu",
+						"Skinner",
+						"Elliott",
+						"Ekman-Larsson",
+						"Horvat",
+						"Deslauriers",
+						"DeBrusk",
+						"Eriksson"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"MIN",
+						"BUF",
+						"PHI",
+						"ARI",
+						"VAN",
+						"MTL",
+						"BOS",
+						"VAN"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -4284,11 +7335,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"David",
+						"Vincent",
+						"Shea",
+						"Keith",
+						"Calvin",
+						"Alex",
+						"Jason",
+						"Leon"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Pastrnak",
+						"Trocheck",
+						"Theodore",
+						"Yandle",
+						"Pickard",
+						"Tuch",
+						"Pominville",
+						"Draisaitl"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"BOS",
+						"FLA",
+						"VGK",
+						"FLA",
+						"PHI",
+						"VGK",
+						"BUF",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5079091434664859
 				},
 				"predicted_score": 134.9997107876746,
@@ -4383,11 +7497,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Mikael",
+						"Jaden",
+						"Morgan",
+						"Jason",
+						"Jonas",
+						"Chad",
+						"Blake",
+						"Alexander",
+						"Mark"
+					],
+					"player_last_names": [
+						"Granlund",
+						"Schwartz",
+						"Rielly",
+						"Zucker",
+						"Brodin",
+						"Johnson",
+						"Wheeler",
+						"Steen",
+						"Scheifele"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"MIN",
+						"STL",
+						"TOR",
+						"MIN",
+						"MIN",
+						"STL",
+						"WPG",
+						"STL",
+						"WPG"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -4396,8 +7573,8 @@
 					"player_ids": [
 						333,
 						448,
-						33,
 						641,
+						33,
 						451,
 						297,
 						55,
@@ -4407,8 +7584,8 @@
 					"player_fpts": [
 						12.726551101682265,
 						14.766146310060146,
-						12.913722810195466,
 						17.434900213898597,
+						12.913722810195466,
 						15.23428354953239,
 						12.455339956869851,
 						14.84263940650396,
@@ -4429,8 +7606,8 @@
 					"player_costs": [
 						5200.0,
 						5800.0,
-						5600.0,
 						7700.0,
+						5600.0,
 						6600.0,
 						4600.0,
 						7200.0,
@@ -4448,19 +7625,82 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kevin",
+						"Dustin",
+						"Aaron",
+						"Timo",
+						"Ryan",
+						"Andreas",
+						"Mitchell",
+						"Seth",
+						"Gabriel"
+					],
+					"player_last_names": [
+						"Hayes",
+						"Byfuglien",
+						"Dell",
+						"Meier",
+						"O'Reilly",
+						"Athanasiou",
+						"Marner",
+						"Jones",
+						"Landeskog"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NYR",
+						"WPG",
+						"SJS",
+						"SJS",
+						"STL",
+						"DET",
+						"TOR",
+						"CBJ",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.48802880620648414
 				},
 				"predicted_score": 127.10222228841673,
 				"final_player_fpts": [
 					19.2,
 					12.8,
-					12.8,
 					5.6,
+					12.8,
 					15.2,
 					23.2,
 					4.8,
@@ -4545,11 +7785,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Mikael",
+						"Jaden",
+						"Morgan",
+						"Jason",
+						"Jonas",
+						"Chad",
+						"Blake",
+						"Alexander",
+						"Mark"
+					],
+					"player_last_names": [
+						"Granlund",
+						"Schwartz",
+						"Rielly",
+						"Zucker",
+						"Brodin",
+						"Johnson",
+						"Wheeler",
+						"Steen",
+						"Scheifele"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"MIN",
+						"STL",
+						"TOR",
+						"MIN",
+						"MIN",
+						"STL",
+						"WPG",
+						"STL",
+						"WPG"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -4558,8 +7861,8 @@
 					"player_ids": [
 						333,
 						448,
-						33,
 						641,
+						33,
 						451,
 						297,
 						55,
@@ -4569,8 +7872,8 @@
 					"player_fpts": [
 						12.726551101682265,
 						14.766146310060146,
-						12.913722810195466,
 						17.434900213898597,
+						12.913722810195466,
 						15.23428354953239,
 						12.455339956869851,
 						14.84263940650396,
@@ -4591,8 +7894,8 @@
 					"player_costs": [
 						5200.0,
 						5800.0,
-						5600.0,
 						7700.0,
+						5600.0,
 						6600.0,
 						4600.0,
 						7200.0,
@@ -4610,19 +7913,82 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kevin",
+						"Dustin",
+						"Aaron",
+						"Timo",
+						"Ryan",
+						"Andreas",
+						"Mitchell",
+						"Seth",
+						"Gabriel"
+					],
+					"player_last_names": [
+						"Hayes",
+						"Byfuglien",
+						"Dell",
+						"Meier",
+						"O'Reilly",
+						"Athanasiou",
+						"Marner",
+						"Jones",
+						"Landeskog"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NYR",
+						"WPG",
+						"SJS",
+						"SJS",
+						"STL",
+						"DET",
+						"TOR",
+						"CBJ",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.48802880620648414
 				},
 				"predicted_score": 127.10222228841673,
 				"final_player_fpts": [
 					19.2,
 					12.8,
-					12.8,
 					5.6,
+					12.8,
 					15.2,
 					23.2,
 					4.8,
@@ -4714,11 +8080,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Anthony",
+						"Sean",
+						"David",
+						"Mathieu",
+						"Patrice",
+						"Bobby",
+						"Rasmus",
+						"Seth",
+						"Casey"
+					],
+					"player_last_names": [
+						"Mantha",
+						"Couturier",
+						"Pastrnak",
+						"Joseph",
+						"Bergeron",
+						"Ryan",
+						"Ristolainen",
+						"Jones",
+						"DeSmith"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"DET",
+						"PHI",
+						"BOS",
+						"TBL",
+						"BOS",
+						"OTT",
+						"BUF",
+						"CBJ",
+						"PIT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -4779,11 +8208,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Elias",
+						"Jeff",
+						"Brian",
+						"Sean",
+						"Mark",
+						"Jason",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Pettersson",
+						"Skinner",
+						"Elliott",
+						"Monahan",
+						"Giordano",
+						"Pominville",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"VAN",
+						"BUF",
+						"PHI",
+						"CGY",
+						"CGY",
+						"BUF",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4461667928440462
 				},
 				"predicted_score": 133.56895277372212,
@@ -4881,11 +8373,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Anthony",
+						"Sean",
+						"David",
+						"Mathieu",
+						"Patrice",
+						"Bobby",
+						"Rasmus",
+						"Seth",
+						"Casey"
+					],
+					"player_last_names": [
+						"Mantha",
+						"Couturier",
+						"Pastrnak",
+						"Joseph",
+						"Bergeron",
+						"Ryan",
+						"Ristolainen",
+						"Jones",
+						"DeSmith"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"DET",
+						"PHI",
+						"BOS",
+						"TBL",
+						"BOS",
+						"OTT",
+						"BUF",
+						"CBJ",
+						"PIT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -4946,11 +8501,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Elias",
+						"Jeff",
+						"Brian",
+						"Sean",
+						"Mark",
+						"Jason",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Pettersson",
+						"Skinner",
+						"Elliott",
+						"Monahan",
+						"Giordano",
+						"Pominville",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"VAN",
+						"BUF",
+						"PHI",
+						"CGY",
+						"CGY",
+						"BUF",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4461667928440462
 				},
 				"predicted_score": 133.56895277372212,
@@ -5046,11 +8664,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Tyson",
+						"Jeremy",
+						"David",
+						"Mark",
+						"Darcy",
+						"Joe",
+						"Jonathan",
+						"Joonas",
+						"Richard"
+					],
+					"player_last_names": [
+						"Barrie",
+						"Lauzon",
+						"Pastrnak",
+						"Scheifele",
+						"Kuemper",
+						"Pavelski",
+						"Huberdeau",
+						"Donskoi",
+						"Panik"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"COL",
+						"BOS",
+						"BOS",
+						"WPG",
+						"ARI",
+						"SJS",
+						"FLA",
+						"SJS",
+						"ARI"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -5111,11 +8792,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Dustin",
+						"James",
+						"Mike",
+						"Kyle",
+						"Ryan",
+						"Evgenii",
+						"Blake",
+						"Keith",
+						"Alex"
+					],
+					"player_last_names": [
+						"Byfuglien",
+						"Reimer",
+						"Hoffman",
+						"Connor",
+						"O'Reilly",
+						"Dadonov",
+						"Wheeler",
+						"Yandle",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"WPG",
+						"FLA",
+						"FLA",
+						"WPG",
+						"STL",
+						"FLA",
+						"WPG",
+						"FLA",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5831920282405663
 				},
 				"predicted_score": 131.76057494039114,
@@ -5209,11 +8953,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Tyson",
+						"Jeremy",
+						"David",
+						"Mark",
+						"Darcy",
+						"Joe",
+						"Jonathan",
+						"Joonas",
+						"Richard"
+					],
+					"player_last_names": [
+						"Barrie",
+						"Lauzon",
+						"Pastrnak",
+						"Scheifele",
+						"Kuemper",
+						"Pavelski",
+						"Huberdeau",
+						"Donskoi",
+						"Panik"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"COL",
+						"BOS",
+						"BOS",
+						"WPG",
+						"ARI",
+						"SJS",
+						"FLA",
+						"SJS",
+						"ARI"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -5274,11 +9081,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Dustin",
+						"James",
+						"Mike",
+						"Kyle",
+						"Ryan",
+						"Evgenii",
+						"Blake",
+						"Keith",
+						"Alex"
+					],
+					"player_last_names": [
+						"Byfuglien",
+						"Reimer",
+						"Hoffman",
+						"Connor",
+						"O'Reilly",
+						"Dadonov",
+						"Wheeler",
+						"Yandle",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"WPG",
+						"FLA",
+						"FLA",
+						"WPG",
+						"STL",
+						"FLA",
+						"WPG",
+						"FLA",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.5831920282405663
 				},
 				"predicted_score": 131.76057494039114,
@@ -5371,20 +9241,83 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Hampus",
+						"Teuvo",
+						"Craig",
+						"John",
+						"Cam",
+						"Alexander",
+						"Sebastian",
+						"Andrei",
+						"Ryan"
+					],
+					"player_last_names": [
+						"Lindholm",
+						"Teravainen",
+						"Smith",
+						"Gibson",
+						"Atkinson",
+						"Radulov",
+						"Aho",
+						"Svechnikov",
+						"Murray"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"ANA",
+						"CAR",
+						"NSH",
+						"ANA",
+						"CBJ",
+						"DAL",
+						"CAR",
+						"CAR",
+						"CBJ"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 125.30702506016392,
 					"total_cost": 54900.0,
 					"player_ids": [
-						722,
-						96,
 						333,
+						96,
+						722,
 						751,
 						286,
 						370,
@@ -5393,9 +9326,9 @@
 						198
 					],
 					"player_fpts": [
-						13.41761530611113,
-						14.178214911986947,
 						13.287033162116558,
+						14.178214911986947,
+						13.41761530611113,
 						17.018001433848507,
 						13.684469974661383,
 						13.953381665563189,
@@ -5415,9 +9348,9 @@
 						1
 					],
 					"player_costs": [
-						5400.0,
-						6300.0,
 						5200.0,
+						6300.0,
+						5400.0,
 						7600.0,
 						6000.0,
 						8500.0,
@@ -5436,18 +9369,81 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kevin",
+						"Elias",
+						"Seth",
+						"Scott",
+						"Alexander",
+						"Patrick",
+						"Jordan",
+						"Roman",
+						"Justin"
+					],
+					"player_last_names": [
+						"Hayes",
+						"Pettersson",
+						"Jones",
+						"Darling",
+						"Radulov",
+						"Kane",
+						"Staal",
+						"Josi",
+						"Williams"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"NYR",
+						"VAN",
+						"CBJ",
+						"CAR",
+						"DAL",
+						"CHI",
+						"CAR",
+						"NSH",
+						"CAR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6844012510795997
 				},
 				"predicted_score": 125.30702506016392,
 				"final_player_fpts": [
-					12.8,
-					6.4,
 					1.6,
+					6.4,
+					12.8,
 					30.4,
 					26.4,
 					17.6,
@@ -5531,20 +9527,83 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Hampus",
+						"Teuvo",
+						"Craig",
+						"John",
+						"Cam",
+						"Alexander",
+						"Sebastian",
+						"Andrei",
+						"Ryan"
+					],
+					"player_last_names": [
+						"Lindholm",
+						"Teravainen",
+						"Smith",
+						"Gibson",
+						"Atkinson",
+						"Radulov",
+						"Aho",
+						"Svechnikov",
+						"Murray"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"ANA",
+						"CAR",
+						"NSH",
+						"ANA",
+						"CBJ",
+						"DAL",
+						"CAR",
+						"CAR",
+						"CBJ"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 125.30702506016392,
 					"total_cost": 54900.0,
 					"player_ids": [
-						722,
-						96,
 						333,
+						96,
+						722,
 						751,
 						286,
 						370,
@@ -5553,9 +9612,9 @@
 						198
 					],
 					"player_fpts": [
-						13.41761530611113,
-						14.178214911986947,
 						13.287033162116558,
+						14.178214911986947,
+						13.41761530611113,
 						17.018001433848507,
 						13.684469974661383,
 						13.953381665563189,
@@ -5575,9 +9634,9 @@
 						1
 					],
 					"player_costs": [
-						5400.0,
-						6300.0,
 						5200.0,
+						6300.0,
+						5400.0,
 						7600.0,
 						6000.0,
 						8500.0,
@@ -5596,18 +9655,81 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Kevin",
+						"Elias",
+						"Seth",
+						"Scott",
+						"Alexander",
+						"Patrick",
+						"Jordan",
+						"Roman",
+						"Justin"
+					],
+					"player_last_names": [
+						"Hayes",
+						"Pettersson",
+						"Jones",
+						"Darling",
+						"Radulov",
+						"Kane",
+						"Staal",
+						"Josi",
+						"Williams"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"NYR",
+						"VAN",
+						"CBJ",
+						"CAR",
+						"DAL",
+						"CHI",
+						"CAR",
+						"NSH",
+						"CAR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.6844012510795997
 				},
 				"predicted_score": 125.30702506016392,
 				"final_player_fpts": [
-					12.8,
-					6.4,
 					1.6,
+					6.4,
+					12.8,
 					30.4,
 					26.4,
 					17.6,
@@ -5641,28 +9763,28 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 326.9,
+					"total_score": 326.90000000000003,
 					"total_cost": 51900.0,
 					"player_ids": [
 						26,
+						627,
 						352,
-						115,
 						342,
 						74,
 						542,
 						740,
-						627,
+						115,
 						588
 					],
 					"player_fpts": [
 						31.2,
+						30.4,
 						38.4,
-						41.6,
 						32.8,
 						36.5,
 						52.8,
 						31.2,
-						30.4,
+						41.6,
 						32.0
 					],
 					"player_fpts_multiplier": [
@@ -5678,13 +9800,13 @@
 					],
 					"player_costs": [
 						3700.0,
+						3300.0,
 						7600.0,
-						4200.0,
 						5100.0,
 						8300.0,
 						7500.0,
 						4500.0,
-						3300.0,
+						4200.0,
 						7700.0
 					],
 					"player_costs_multiplier": [
@@ -5698,11 +9820,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Marcus",
+						"Tom",
+						"Filip",
+						"Craig",
+						"John",
+						"Taylor",
+						"Mike",
+						"Dmitry",
+						"Roberto"
+					],
+					"player_last_names": [
+						"Sorensen",
+						"Kuhnhackl",
+						"Forsberg",
+						"Smith",
+						"Tavares",
+						"Hall",
+						"Green",
+						"Orlov",
+						"Luongo"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"SJS",
+						"NYI",
+						"NSH",
+						"NSH",
+						"TOR",
+						"NJD",
+						"DET",
+						"WSH",
+						"FLA"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -5712,22 +9897,22 @@
 						314,
 						154,
 						96,
-						551,
 						55,
 						689,
 						159,
 						344,
+						551,
 						71
 					],
 					"player_fpts": [
 						11.998071635429476,
 						15.20861042247565,
 						14.841526757918079,
-						14.645499397864997,
 						14.28648342641427,
 						17.618084526933654,
 						13.802844674254073,
 						14.440377135869243,
+						14.645499397864997,
 						13.630916604576376
 					],
 					"player_fpts_multiplier": [
@@ -5745,11 +9930,11 @@
 						4000.0,
 						6600.0,
 						6100.0,
-						6400.0,
 						7300.0,
 						7500.0,
 						4600.0,
 						6300.0,
+						6400.0,
 						5600.0
 					],
 					"player_costs_multiplier": [
@@ -5763,11 +9948,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Anthony",
+						"Jeff",
+						"Elias",
+						"Mitchell",
+						"Darcy",
+						"Rasmus",
+						"Roman",
+						"Leon",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Mantha",
+						"Skinner",
+						"Pettersson",
+						"Marner",
+						"Kuemper",
+						"Ristolainen",
+						"Josi",
+						"Draisaitl",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"DET",
+						"BUF",
+						"VAN",
+						"TOR",
+						"ARI",
+						"BUF",
+						"NSH",
+						"EDM",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.46955325277287824
 				},
 				"predicted_score": 130.47241458173582,
@@ -5775,11 +10023,11 @@
 					15.2,
 					16.8,
 					8.0,
-					36.0,
 					20.8,
 					-10.4,
 					6.4,
 					11.2,
+					36.0,
 					12.8
 				],
 				"final_team_fpts": []
@@ -5806,28 +10054,28 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 326.9,
+					"total_score": 326.90000000000003,
 					"total_cost": 51900.0,
 					"player_ids": [
 						26,
+						627,
 						352,
-						115,
 						342,
 						74,
 						542,
 						740,
-						627,
+						115,
 						588
 					],
 					"player_fpts": [
 						31.2,
+						30.4,
 						38.4,
-						41.6,
 						32.8,
 						36.5,
 						52.8,
 						31.2,
-						30.4,
+						41.6,
 						32.0
 					],
 					"player_fpts_multiplier": [
@@ -5843,13 +10091,13 @@
 					],
 					"player_costs": [
 						3700.0,
+						3300.0,
 						7600.0,
-						4200.0,
 						5100.0,
 						8300.0,
 						7500.0,
 						4500.0,
-						3300.0,
+						4200.0,
 						7700.0
 					],
 					"player_costs_multiplier": [
@@ -5863,11 +10111,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Marcus",
+						"Tom",
+						"Filip",
+						"Craig",
+						"John",
+						"Taylor",
+						"Mike",
+						"Dmitry",
+						"Roberto"
+					],
+					"player_last_names": [
+						"Sorensen",
+						"Kuhnhackl",
+						"Forsberg",
+						"Smith",
+						"Tavares",
+						"Hall",
+						"Green",
+						"Orlov",
+						"Luongo"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						]
+					],
+					"player_teams": [
+						"SJS",
+						"NYI",
+						"NSH",
+						"NSH",
+						"TOR",
+						"NJD",
+						"DET",
+						"WSH",
+						"FLA"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -5877,22 +10188,22 @@
 						314,
 						154,
 						96,
-						551,
 						55,
 						689,
 						159,
 						344,
+						551,
 						71
 					],
 					"player_fpts": [
 						11.998071635429476,
 						15.20861042247565,
 						14.841526757918079,
-						14.645499397864997,
 						14.28648342641427,
 						17.618084526933654,
 						13.802844674254073,
 						14.440377135869243,
+						14.645499397864997,
 						13.630916604576376
 					],
 					"player_fpts_multiplier": [
@@ -5910,11 +10221,11 @@
 						4000.0,
 						6600.0,
 						6100.0,
-						6400.0,
 						7300.0,
 						7500.0,
 						4600.0,
 						6300.0,
+						6400.0,
 						5600.0
 					],
 					"player_costs_multiplier": [
@@ -5928,11 +10239,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Anthony",
+						"Jeff",
+						"Elias",
+						"Mitchell",
+						"Darcy",
+						"Rasmus",
+						"Roman",
+						"Leon",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Mantha",
+						"Skinner",
+						"Pettersson",
+						"Marner",
+						"Kuemper",
+						"Ristolainen",
+						"Josi",
+						"Draisaitl",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"DET",
+						"BUF",
+						"VAN",
+						"TOR",
+						"ARI",
+						"BUF",
+						"NSH",
+						"EDM",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.46955325277287824
 				},
 				"predicted_score": 130.47241458173582,
@@ -5940,11 +10314,11 @@
 					15.2,
 					16.8,
 					8.0,
-					36.0,
 					20.8,
 					-10.4,
 					6.4,
 					11.2,
+					36.0,
 					12.8
 				],
 				"final_team_fpts": []
@@ -5971,10 +10345,10 @@
 					"total_score": 267.2,
 					"total_cost": 54400.0,
 					"player_ids": [
+						646,
 						130,
 						233,
 						490,
-						646,
 						145,
 						228,
 						728,
@@ -5982,10 +10356,10 @@
 						236
 					],
 					"player_fpts": [
+						32.4,
 						26.9,
 						24.0,
 						43.2,
-						32.4,
 						29.3,
 						23.2,
 						26.9,
@@ -6004,10 +10378,10 @@
 						1
 					],
 					"player_costs": [
+						4400.0,
 						8500.0,
 						3900.0,
 						8400.0,
-						4400.0,
 						4500.0,
 						8600.0,
 						4900.0,
@@ -6025,15 +10399,78 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Cody",
+						"David",
+						"Samuel",
+						"Marc-Andre",
+						"Jake",
+						"Nathan",
+						"Alex",
+						"Nick",
+						"Mikko"
+					],
+					"player_last_names": [
+						"Eakin",
+						"Pastrnak",
+						"Girard",
+						"Fleury",
+						"DeBrusk",
+						"MacKinnon",
+						"Tuch",
+						"Holden",
+						"Rantanen"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"VGK",
+						"BOS",
+						"COL",
+						"VGK",
+						"BOS",
+						"COL",
+						"VGK",
+						"VGK",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 125.52772844695,
+					"total_score": 125.52772844695001,
 					"total_cost": 54700.0,
 					"player_ids": [
 						448,
@@ -6042,8 +10479,8 @@
 						451,
 						669,
 						752,
-						228,
 						792,
+						228,
 						728
 					],
 					"player_fpts": [
@@ -6053,8 +10490,8 @@
 						14.297075902461309,
 						17.07123044333129,
 						14.475442244003979,
-						16.766960655230868,
 						9.513972840490752,
+						16.766960655230868,
 						11.764278268197378
 					],
 					"player_fpts_multiplier": [
@@ -6075,8 +10512,8 @@
 						6700.0,
 						7600.0,
 						5700.0,
-						8600.0,
 						3000.0,
+						8600.0,
 						4900.0
 					],
 					"player_costs_multiplier": [
@@ -6090,14 +10527,77 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Dustin",
+						"Pontus",
+						"David",
+						"Ryan",
+						"Ryan",
+						"Torey",
+						"Ondrej",
+						"Nathan",
+						"Alex"
+					],
+					"player_last_names": [
+						"Byfuglien",
+						"Aberg",
+						"Pastrnak",
+						"O'Reilly",
+						"Miller",
+						"Krug",
+						"Kase",
+						"MacKinnon",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"WPG",
+						"ANA",
+						"BOS",
+						"STL",
+						"ANA",
+						"BOS",
+						"ANA",
+						"COL",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
-					"placement_percentile": 0.5526934151415551
+					"teams": [],
+					"placement_percentile": 0.5526934151415552
 				},
-				"predicted_score": 125.52772844695,
+				"predicted_score": 125.52772844695001,
 				"final_player_fpts": [
 					3.2,
 					1.6,
@@ -6105,8 +10605,8 @@
 					6.4,
 					0.8,
 					12.8,
-					23.2,
 					11.2,
+					23.2,
 					26.9
 				],
 				"final_team_fpts": []
@@ -6131,10 +10631,10 @@
 					"total_score": 267.2,
 					"total_cost": 54400.0,
 					"player_ids": [
+						646,
 						130,
 						233,
 						490,
-						646,
 						145,
 						228,
 						728,
@@ -6142,10 +10642,10 @@
 						236
 					],
 					"player_fpts": [
+						32.4,
 						26.9,
 						24.0,
 						43.2,
-						32.4,
 						29.3,
 						23.2,
 						26.9,
@@ -6164,10 +10664,10 @@
 						1
 					],
 					"player_costs": [
+						4400.0,
 						8500.0,
 						3900.0,
 						8400.0,
-						4400.0,
 						4500.0,
 						8600.0,
 						4900.0,
@@ -6185,15 +10685,78 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Cody",
+						"David",
+						"Samuel",
+						"Marc-Andre",
+						"Jake",
+						"Nathan",
+						"Alex",
+						"Nick",
+						"Mikko"
+					],
+					"player_last_names": [
+						"Eakin",
+						"Pastrnak",
+						"Girard",
+						"Fleury",
+						"DeBrusk",
+						"MacKinnon",
+						"Tuch",
+						"Holden",
+						"Rantanen"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"VGK",
+						"BOS",
+						"COL",
+						"VGK",
+						"BOS",
+						"COL",
+						"VGK",
+						"VGK",
+						"COL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 125.52772844695,
+					"total_score": 125.52772844695001,
 					"total_cost": 54700.0,
 					"player_ids": [
 						448,
@@ -6202,8 +10765,8 @@
 						451,
 						669,
 						752,
-						228,
 						792,
+						228,
 						728
 					],
 					"player_fpts": [
@@ -6213,8 +10776,8 @@
 						14.297075902461309,
 						17.07123044333129,
 						14.475442244003979,
-						16.766960655230868,
 						9.513972840490752,
+						16.766960655230868,
 						11.764278268197378
 					],
 					"player_fpts_multiplier": [
@@ -6235,8 +10798,8 @@
 						6700.0,
 						7600.0,
 						5700.0,
-						8600.0,
 						3000.0,
+						8600.0,
 						4900.0
 					],
 					"player_costs_multiplier": [
@@ -6250,14 +10813,77 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Dustin",
+						"Pontus",
+						"David",
+						"Ryan",
+						"Ryan",
+						"Torey",
+						"Ondrej",
+						"Nathan",
+						"Alex"
+					],
+					"player_last_names": [
+						"Byfuglien",
+						"Aberg",
+						"Pastrnak",
+						"O'Reilly",
+						"Miller",
+						"Krug",
+						"Kase",
+						"MacKinnon",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"WPG",
+						"ANA",
+						"BOS",
+						"STL",
+						"ANA",
+						"BOS",
+						"ANA",
+						"COL",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
-					"placement_percentile": 0.5526934151415551
+					"teams": [],
+					"placement_percentile": 0.5526934151415552
 				},
-				"predicted_score": 125.52772844695,
+				"predicted_score": 125.52772844695001,
 				"final_player_fpts": [
 					3.2,
 					1.6,
@@ -6265,8 +10891,8 @@
 					6.4,
 					0.8,
 					12.8,
-					23.2,
 					11.2,
+					23.2,
 					26.9
 				],
 				"final_team_fpts": []
@@ -6299,8 +10925,8 @@
 					"total_cost": 52100.0,
 					"player_ids": [
 						182,
-						247,
 						55,
+						247,
 						414,
 						574,
 						548,
@@ -6310,8 +10936,8 @@
 					],
 					"player_fpts": [
 						52.5,
-						26.4,
 						34.4,
+						26.4,
 						40.5,
 						43.9,
 						36.0,
@@ -6332,8 +10958,8 @@
 					],
 					"player_costs": [
 						3800.0,
-						4800.0,
 						7400.0,
+						4800.0,
 						5300.0,
 						6600.0,
 						3500.0,
@@ -6352,11 +10978,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Anthony",
+						"Mitchell",
+						"Matt",
+						"Patric",
+						"Brayden",
+						"Blake",
+						"Darcy",
+						"Brent",
+						"Chris"
+					],
+					"player_last_names": [
+						"Beauvillier",
+						"Marner",
+						"Dumba",
+						"Hornqvist",
+						"Point",
+						"Coleman",
+						"Kuemper",
+						"Burns",
+						"Kreider"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NYI",
+						"TOR",
+						"MIN",
+						"PIT",
+						"TBL",
+						"NJD",
+						"ARI",
+						"SJS",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -6417,11 +11106,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Anthony",
+						"Sean",
+						"Mike",
+						"Mitchell",
+						"Elias",
+						"Roman",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Mantha",
+						"Monahan",
+						"Smith",
+						"Marner",
+						"Lindholm",
+						"Josi",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"DET",
+						"CGY",
+						"CGY",
+						"TOR",
+						"CGY",
+						"NSH",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.45863311015271974
 				},
 				"predicted_score": 131.72630873251342,
@@ -6464,8 +11216,8 @@
 					"total_cost": 52100.0,
 					"player_ids": [
 						182,
-						247,
 						55,
+						247,
 						414,
 						574,
 						548,
@@ -6475,8 +11227,8 @@
 					],
 					"player_fpts": [
 						52.5,
-						26.4,
 						34.4,
+						26.4,
 						40.5,
 						43.9,
 						36.0,
@@ -6497,8 +11249,8 @@
 					],
 					"player_costs": [
 						3800.0,
-						4800.0,
 						7400.0,
+						4800.0,
 						5300.0,
 						6600.0,
 						3500.0,
@@ -6517,11 +11269,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Anthony",
+						"Mitchell",
+						"Matt",
+						"Patric",
+						"Brayden",
+						"Blake",
+						"Darcy",
+						"Brent",
+						"Chris"
+					],
+					"player_last_names": [
+						"Beauvillier",
+						"Marner",
+						"Dumba",
+						"Hornqvist",
+						"Point",
+						"Coleman",
+						"Kuemper",
+						"Burns",
+						"Kreider"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NYI",
+						"TOR",
+						"MIN",
+						"PIT",
+						"TBL",
+						"NJD",
+						"ARI",
+						"SJS",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -6582,11 +11397,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Anthony",
+						"Sean",
+						"Mike",
+						"Mitchell",
+						"Elias",
+						"Roman",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Mantha",
+						"Monahan",
+						"Smith",
+						"Marner",
+						"Lindholm",
+						"Josi",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"DET",
+						"CGY",
+						"CGY",
+						"TOR",
+						"CGY",
+						"NSH",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.45863311015271974
 				},
 				"predicted_score": 131.72630873251342,
@@ -6681,11 +11559,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Devante",
+						"Ryan",
+						"Vladimir",
+						"Garret",
+						"Tom",
+						"John",
+						"Nicklas",
+						"Brandon"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Smith-Pelly",
+						"O'Reilly",
+						"Tarasenko",
+						"Sparks",
+						"Wilson",
+						"Carlson",
+						"Backstrom",
+						"Montour"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"WSH",
+						"STL",
+						"STL",
+						"TOR",
+						"WSH",
+						"WSH",
+						"WSH",
+						"ANA"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -6697,9 +11638,9 @@
 						796,
 						752,
 						286,
+						792,
 						228,
 						159,
-						792,
 						728
 					],
 					"player_fpts": [
@@ -6708,9 +11649,9 @@
 						16.834499358333748,
 						14.15813443908737,
 						15.459497145649335,
+						13.920622742078534,
 						16.1054889827208,
 						13.402976287645032,
-						13.920622742078534,
 						12.144616837680623
 					],
 					"player_fpts_multiplier": [
@@ -6730,9 +11671,9 @@
 						7200.0,
 						5700.0,
 						6000.0,
+						3000.0,
 						8600.0,
 						4600.0,
-						3000.0,
 						4900.0
 					],
 					"player_costs_multiplier": [
@@ -6746,11 +11687,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Patrice",
+						"Calvin",
+						"Torey",
+						"Alexander",
+						"Ondrej",
+						"Nathan",
+						"Rasmus",
+						"Alex"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Bergeron",
+						"Petersen",
+						"Krug",
+						"Radulov",
+						"Kase",
+						"MacKinnon",
+						"Ristolainen",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"BOS",
+						"LAK",
+						"BOS",
+						"DAL",
+						"ANA",
+						"COL",
+						"BUF",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.7033256981618853
 				},
 				"predicted_score": 132.11973239971016,
@@ -6760,9 +11764,9 @@
 					35.2,
 					1.6,
 					4.8,
+					6.4,
 					4.8,
 					1.6,
-					6.4,
 					4.8
 				],
 				"final_team_fpts": []
@@ -6843,11 +11847,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Devante",
+						"Ryan",
+						"Vladimir",
+						"Garret",
+						"Tom",
+						"John",
+						"Nicklas",
+						"Brandon"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Smith-Pelly",
+						"O'Reilly",
+						"Tarasenko",
+						"Sparks",
+						"Wilson",
+						"Carlson",
+						"Backstrom",
+						"Montour"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"WSH",
+						"STL",
+						"STL",
+						"TOR",
+						"WSH",
+						"WSH",
+						"WSH",
+						"ANA"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -6859,9 +11926,9 @@
 						796,
 						752,
 						286,
+						792,
 						228,
 						159,
-						792,
 						728
 					],
 					"player_fpts": [
@@ -6870,9 +11937,9 @@
 						16.834499358333748,
 						14.15813443908737,
 						15.459497145649335,
+						13.920622742078534,
 						16.1054889827208,
 						13.402976287645032,
-						13.920622742078534,
 						12.144616837680623
 					],
 					"player_fpts_multiplier": [
@@ -6892,9 +11959,9 @@
 						7200.0,
 						5700.0,
 						6000.0,
+						3000.0,
 						8600.0,
 						4600.0,
-						3000.0,
 						4900.0
 					],
 					"player_costs_multiplier": [
@@ -6908,11 +11975,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jeff",
+						"Patrice",
+						"Calvin",
+						"Torey",
+						"Alexander",
+						"Ondrej",
+						"Nathan",
+						"Rasmus",
+						"Alex"
+					],
+					"player_last_names": [
+						"Skinner",
+						"Bergeron",
+						"Petersen",
+						"Krug",
+						"Radulov",
+						"Kase",
+						"MacKinnon",
+						"Ristolainen",
+						"Tuch"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"BOS",
+						"LAK",
+						"BOS",
+						"DAL",
+						"ANA",
+						"COL",
+						"BUF",
+						"VGK"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.7033256981618853
 				},
 				"predicted_score": 132.11973239971016,
@@ -6922,9 +12052,9 @@
 					35.2,
 					1.6,
 					4.8,
+					6.4,
 					4.8,
 					1.6,
-					6.4,
 					4.8
 				],
 				"final_team_fpts": []
@@ -7012,11 +12142,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Calle",
+						"Aaron",
+						"Travis",
+						"Jake",
+						"Cam",
+						"Erik",
+						"James",
+						"Mark",
+						"Chris"
+					],
+					"player_last_names": [
+						"Jarnkrok",
+						"Dell",
+						"Konecny",
+						"McCabe",
+						"Atkinson",
+						"Karlsson",
+						"van Riemsdyk",
+						"Stone",
+						"Kreider"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NSH",
+						"SJS",
+						"PHI",
+						"BUF",
+						"CBJ",
+						"SJS",
+						"PHI",
+						"OTT",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -7077,11 +12270,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Elias",
+						"Jeff",
+						"Bo",
+						"Craig",
+						"Roman",
+						"Mark",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Pettersson",
+						"Skinner",
+						"Horvat",
+						"Anderson",
+						"Josi",
+						"Stone",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"VAN",
+						"BUF",
+						"VAN",
+						"OTT",
+						"NSH",
+						"OTT",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4709387725129279
 				},
 				"predicted_score": 136.34148403021774,
@@ -7179,11 +12435,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Calle",
+						"Aaron",
+						"Travis",
+						"Jake",
+						"Cam",
+						"Erik",
+						"James",
+						"Mark",
+						"Chris"
+					],
+					"player_last_names": [
+						"Jarnkrok",
+						"Dell",
+						"Konecny",
+						"McCabe",
+						"Atkinson",
+						"Karlsson",
+						"van Riemsdyk",
+						"Stone",
+						"Kreider"
+					],
+					"player_pos": [
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"NSH",
+						"SJS",
+						"PHI",
+						"BUF",
+						"CBJ",
+						"SJS",
+						"PHI",
+						"OTT",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -7244,11 +12563,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"Elias",
+						"Jeff",
+						"Bo",
+						"Craig",
+						"Roman",
+						"Mark",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Pettersson",
+						"Skinner",
+						"Horvat",
+						"Anderson",
+						"Josi",
+						"Stone",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"VAN",
+						"BUF",
+						"VAN",
+						"OTT",
+						"NSH",
+						"OTT",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4709387725129279
 				},
 				"predicted_score": 136.34148403021774,
@@ -7342,11 +12724,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Corey",
+						"Jonathan",
+						"Reilly",
+						"Alexander",
+						"Nathan",
+						"Esa",
+						"Ondrej",
+						"Mikko",
+						"Brandon"
+					],
+					"player_last_names": [
+						"Crawford",
+						"Marchessault",
+						"Smith",
+						"Radulov",
+						"MacKinnon",
+						"Lindell",
+						"Kase",
+						"Rantanen",
+						"Montour"
+					],
+					"player_pos": [
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"CHI",
+						"VGK",
+						"VGK",
+						"DAL",
+						"COL",
+						"DAL",
+						"ANA",
+						"COL",
+						"ANA"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -7356,8 +12801,8 @@
 						192,
 						687,
 						247,
-						542,
 						286,
+						542,
 						228,
 						210,
 						792,
@@ -7367,8 +12812,8 @@
 						13.308564093194729,
 						17.267591426029878,
 						13.385556945560074,
-						13.11055565161266,
 						14.411321507332882,
+						13.11055565161266,
 						15.710423516070772,
 						12.195936397033739,
 						12.419557732347151,
@@ -7389,8 +12834,8 @@
 						4200.0,
 						7400.0,
 						5100.0,
-						7800.0,
 						6100.0,
+						7800.0,
 						8500.0,
 						5700.0,
 						3000.0,
@@ -7407,11 +12852,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jaccob",
+						"Alex",
+						"Matt",
+						"Alexander",
+						"Taylor",
+						"Nathan",
+						"Joshua",
+						"Ondrej",
+						"Leon"
+					],
+					"player_last_names": [
+						"Slavin",
+						"Stalock",
+						"Dumba",
+						"Radulov",
+						"Hall",
+						"MacKinnon",
+						"Bailey",
+						"Kase",
+						"Draisaitl"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"CAR",
+						"MIN",
+						"MIN",
+						"DAL",
+						"NJD",
+						"COL",
+						"NYI",
+						"ANA",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4750768357717941
 				},
 				"predicted_score": 127.2422043089385,
@@ -7419,8 +12927,8 @@
 					8.0,
 					12.0,
 					19.2,
-					6.4,
 					38.4,
+					6.4,
 					39.7,
 					4.8,
 					23.2,
@@ -7503,11 +13011,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Corey",
+						"Jonathan",
+						"Reilly",
+						"Alexander",
+						"Nathan",
+						"Esa",
+						"Ondrej",
+						"Mikko",
+						"Brandon"
+					],
+					"player_last_names": [
+						"Crawford",
+						"Marchessault",
+						"Smith",
+						"Radulov",
+						"MacKinnon",
+						"Lindell",
+						"Kase",
+						"Rantanen",
+						"Montour"
+					],
+					"player_pos": [
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"CHI",
+						"VGK",
+						"VGK",
+						"DAL",
+						"COL",
+						"DAL",
+						"ANA",
+						"COL",
+						"ANA"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -7517,8 +13088,8 @@
 						192,
 						687,
 						247,
-						542,
 						286,
+						542,
 						228,
 						210,
 						792,
@@ -7528,8 +13099,8 @@
 						13.308564093194729,
 						17.267591426029878,
 						13.385556945560074,
-						13.11055565161266,
 						14.411321507332882,
+						13.11055565161266,
 						15.710423516070772,
 						12.195936397033739,
 						12.419557732347151,
@@ -7550,8 +13121,8 @@
 						4200.0,
 						7400.0,
 						5100.0,
-						7800.0,
 						6100.0,
+						7800.0,
 						8500.0,
 						5700.0,
 						3000.0,
@@ -7568,11 +13139,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Jaccob",
+						"Alex",
+						"Matt",
+						"Alexander",
+						"Taylor",
+						"Nathan",
+						"Joshua",
+						"Ondrej",
+						"Leon"
+					],
+					"player_last_names": [
+						"Slavin",
+						"Stalock",
+						"Dumba",
+						"Radulov",
+						"Hall",
+						"MacKinnon",
+						"Bailey",
+						"Kase",
+						"Draisaitl"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"CAR",
+						"MIN",
+						"MIN",
+						"DAL",
+						"NJD",
+						"COL",
+						"NYI",
+						"ANA",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4750768357717941
 				},
 				"predicted_score": 127.2422043089385,
@@ -7580,8 +13214,8 @@
 					8.0,
 					12.0,
 					19.2,
-					6.4,
 					38.4,
+					6.4,
 					39.7,
 					4.8,
 					23.2,
@@ -7670,11 +13304,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Juho",
+						"Sean",
+						"Kyle",
+						"Jeff",
+						"Calvin",
+						"Matthew",
+						"Patrik",
+						"Zach",
+						"Matt"
+					],
+					"player_last_names": [
+						"Lammikko",
+						"Monahan",
+						"Connor",
+						"Petry",
+						"Petersen",
+						"Tkachuk",
+						"Laine",
+						"Bogosian",
+						"Duchene"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"FLA",
+						"CGY",
+						"WPG",
+						"MTL",
+						"LAK",
+						"CGY",
+						"WPG",
+						"BUF",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -7735,11 +13432,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"James",
+						"Colton",
+						"Alexander",
+						"Aleksander",
+						"Roman",
+						"Mark",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Reimer",
+						"Sissons",
+						"Radulov",
+						"Barkov",
+						"Josi",
+						"Stone",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"FLA",
+						"NSH",
+						"DAL",
+						"FLA",
+						"NSH",
+						"OTT",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4436233680168169
 				},
 				"predicted_score": 134.08959921676308,
@@ -7835,11 +13595,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Juho",
+						"Sean",
+						"Kyle",
+						"Jeff",
+						"Calvin",
+						"Matthew",
+						"Patrik",
+						"Zach",
+						"Matt"
+					],
+					"player_last_names": [
+						"Lammikko",
+						"Monahan",
+						"Connor",
+						"Petry",
+						"Petersen",
+						"Tkachuk",
+						"Laine",
+						"Bogosian",
+						"Duchene"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"G"
+						],
+						[
+							"LW"
+						],
+						[
+							"RW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"FLA",
+						"CGY",
+						"WPG",
+						"MTL",
+						"LAK",
+						"CGY",
+						"WPG",
+						"BUF",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -7900,11 +13723,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Kevin",
+						"James",
+						"Colton",
+						"Alexander",
+						"Aleksander",
+						"Roman",
+						"Mark",
+						"Jonathan"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Hayes",
+						"Reimer",
+						"Sissons",
+						"Radulov",
+						"Barkov",
+						"Josi",
+						"Stone",
+						"Drouin"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"LW"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"NYR",
+						"FLA",
+						"NSH",
+						"DAL",
+						"FLA",
+						"NSH",
+						"OTT",
+						"MTL"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.4436233680168169
 				},
 				"predicted_score": 134.08959921676308,
@@ -7980,11 +13866,56 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Timo",
+						"Drake",
+						"Evander",
+						"Erik",
+						"Brent",
+						"Leon"
+					],
+					"player_last_names": [
+						"Meier",
+						"Caggiula",
+						"Kane",
+						"Karlsson",
+						"Burns",
+						"Draisaitl"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"SJS",
+						"EDM",
+						"SJS",
+						"SJS",
+						"SJS",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"predicted_score": 75.19191377395623,
@@ -8055,11 +13986,56 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Timo",
+						"Drake",
+						"Evander",
+						"Erik",
+						"Brent",
+						"Leon"
+					],
+					"player_last_names": [
+						"Meier",
+						"Caggiula",
+						"Kane",
+						"Karlsson",
+						"Burns",
+						"Draisaitl"
+					],
+					"player_pos": [
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"SJS",
+						"EDM",
+						"SJS",
+						"SJS",
+						"SJS",
+						"EDM"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"predicted_score": 75.19191377395623,
@@ -8105,10 +14081,10 @@
 					"total_score": 459.9,
 					"total_cost": 54300.0,
 					"player_ids": [
+						359,
 						493,
 						610,
 						553,
-						359,
 						587,
 						606,
 						421,
@@ -8116,10 +14092,10 @@
 						615
 					],
 					"player_fpts": [
+						32.8,
 						27.2,
 						139.2,
 						30.9,
-						32.8,
 						33.3,
 						39.2,
 						34.1,
@@ -8138,10 +14114,10 @@
 						1
 					],
 					"player_costs": [
+						6500.0,
 						5600.0,
 						4000.0,
 						3100.0,
-						6500.0,
 						8200.0,
 						7900.0,
 						7700.0,
@@ -8159,11 +14135,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Chris",
+						"Max",
+						"Michael",
+						"Pavel",
+						"Nikita",
+						"Steven",
+						"Patrik",
+						"Alexander",
+						"Anthony"
+					],
+					"player_last_names": [
+						"Kreider",
+						"Pacioretty",
+						"Matheson",
+						"Zacha",
+						"Kucherov",
+						"Stamkos",
+						"Laine",
+						"Georgiev",
+						"DeAngelo"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"NYR",
+						"VGK",
+						"FLA",
+						"NJD",
+						"TBL",
+						"TBL",
+						"WPG",
+						"NYR",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -8224,11 +14263,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Alex",
+						"James",
+						"Bo",
+						"Matt",
+						"Alexander",
+						"Ondrej",
+						"Mark",
+						"Matt"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Ovechkin",
+						"Reimer",
+						"Horvat",
+						"Dumba",
+						"Radulov",
+						"Kase",
+						"Stone",
+						"Duchene"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"WSH",
+						"FLA",
+						"VAN",
+						"MIN",
+						"DAL",
+						"ANA",
+						"OTT",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.34412460121322697
 				},
 				"predicted_score": 134.5234684832686,
@@ -8275,10 +14377,10 @@
 					"total_score": 459.9,
 					"total_cost": 54300.0,
 					"player_ids": [
+						359,
 						493,
 						610,
 						553,
-						359,
 						587,
 						606,
 						421,
@@ -8286,10 +14388,10 @@
 						615
 					],
 					"player_fpts": [
+						32.8,
 						27.2,
 						139.2,
 						30.9,
-						32.8,
 						33.3,
 						39.2,
 						34.1,
@@ -8308,10 +14410,10 @@
 						1
 					],
 					"player_costs": [
+						6500.0,
 						5600.0,
 						4000.0,
 						3100.0,
-						6500.0,
 						8200.0,
 						7900.0,
 						7700.0,
@@ -8329,11 +14431,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Chris",
+						"Max",
+						"Michael",
+						"Pavel",
+						"Nikita",
+						"Steven",
+						"Patrik",
+						"Alexander",
+						"Anthony"
+					],
+					"player_last_names": [
+						"Kreider",
+						"Pacioretty",
+						"Matheson",
+						"Zacha",
+						"Kucherov",
+						"Stamkos",
+						"Laine",
+						"Georgiev",
+						"DeAngelo"
+					],
+					"player_pos": [
+						[
+							"LW"
+						],
+						[
+							"LW"
+						],
+						[
+							"D"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						],
+						[
+							"RW"
+						],
+						[
+							"G"
+						],
+						[
+							"D"
+						]
+					],
+					"player_teams": [
+						"NYR",
+						"VGK",
+						"FLA",
+						"NJD",
+						"TBL",
+						"TBL",
+						"WPG",
+						"NYR",
+						"NYR"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -8394,11 +14559,74 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"Thomas",
+						"Alex",
+						"James",
+						"Bo",
+						"Matt",
+						"Alexander",
+						"Ondrej",
+						"Mark",
+						"Matt"
+					],
+					"player_last_names": [
+						"Chabot",
+						"Ovechkin",
+						"Reimer",
+						"Horvat",
+						"Dumba",
+						"Radulov",
+						"Kase",
+						"Stone",
+						"Duchene"
+					],
+					"player_pos": [
+						[
+							"D"
+						],
+						[
+							"LW"
+						],
+						[
+							"G"
+						],
+						[
+							"C"
+						],
+						[
+							"D"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"RW"
+						],
+						[
+							"C"
+						]
+					],
+					"player_teams": [
+						"OTT",
+						"WSH",
+						"FLA",
+						"VAN",
+						"MIN",
+						"DAL",
+						"ANA",
+						"OTT",
+						"OTT"
+					],
 					"team_ids": [],
 					"team_fpts": [],
 					"team_fpts_multiplier": [],
 					"team_costs": [],
 					"team_costs_multiplier": [],
+					"teams": [],
 					"placement_percentile": 0.34412460121322697
 				},
 				"predicted_score": 134.5234684832686,
@@ -8423,8 +14651,8 @@
 		[],
 		[],
 		[
-			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [178], 'slate_id': 511, 'name': 'Main'}, contest GPP\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 180, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n",
-			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [178], 'slate_id': 511, 'name': 'Main'}, contest 50/50\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 180, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n"
+			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [178], 'slate_id': 511, 'name': 'Main'}, contest GPP\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 223, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n",
+			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [178], 'slate_id': 511, 'name': 'Main'}, contest 50/50\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 223, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n"
 		],
 		[],
 		[],
@@ -8446,8 +14674,8 @@
 		[],
 		[],
 		[
-			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [317], 'slate_id': 531, 'name': 'Main'}, contest GPP\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 180, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n",
-			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [317], 'slate_id': 531, 'name': 'Main'}, contest 50/50\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 180, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n"
+			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [317], 'slate_id': 531, 'name': 'Main'}, contest GPP\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 223, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n",
+			"**** Error executing bet for slate {'style': <ContestStyle.CLASSIC: 1>, 'games': [317], 'slate_id': 531, 'name': 'Main'}, contest 50/50\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 209, in _find_top_lineup\n    **solve_kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/base.py\", line 289, in solve\n    return self.do(items, halloffame_n, viability_testers, **kwargs)\n  File \"/home/delano/working/fantasy-research/fantasy_py/lineup/knapsack/mixed_integer_knapsack.py\", line 171, in do\n    raise FailedToSolveError(knapsack_problem.status, \"Could not find a solution\")\nfantasy_py.lineup.knapsack.mixed_integer_knapsack.FailedToSolveError: ('infeasible', 'Could not find a solution')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/backtest.py\", line 223, in run_backtest\n    if bet.execute():\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/bet.py\", line 28, in execute\n    self.actual_outcome, self.bet_return = self.contest.execute_bet(self)\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 280, in execute_bet\n    top_lineup = self._find_top_lineup()\n  File \"/home/delano/working/fantasy-research/fantasy_py/analysis/backtest/daily_fantasy/contest_dfs.py\", line 217, in _find_top_lineup\n    raise NoTopLineupError(\"Failed to find a top lineup solution!\", ex)\nfantasy_py.analysis.backtest.daily_fantasy.contest_dfs.NoTopLineupError: ('Failed to find a top lineup solution!', FailedToSolveError('infeasible', 'Could not find a solution'))\n"
 		],
 		[]
 	],

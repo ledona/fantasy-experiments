@@ -127,27 +127,27 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 249.71999999999997,
+					"total_score": 249.72,
 					"total_cost": 58700.0,
 					"player_ids": [
 						141,
-						85,
 						372,
-						193,
 						350,
+						85,
+						193,
 						331,
-						297,
-						134
+						134,
+						297
 					],
 					"player_fpts": [
 						25.8,
-						32.5,
 						31.3,
-						27.0,
 						27.380000000000003,
+						32.5,
+						27.0,
 						24.6,
-						29.54,
-						29.6
+						29.6,
+						29.54
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -161,13 +161,13 @@
 					],
 					"player_costs": [
 						4900.0,
-						7800.0,
 						9100.0,
-						5700.0,
 						8300.0,
+						7800.0,
+						5700.0,
 						4500.0,
-						8600.0,
-						5900.0
+						5900.0,
+						8600.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -178,6 +178,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Robby",
+						"Todd",
+						"Odell",
+						"James",
+						"Eric",
+						"Tre'Quan",
+						"Isaiah",
+						"Tom"
+					],
+					"player_last_names": [
+						"Anderson",
+						"Gurley II",
+						"Beckham Jr.",
+						"Conner",
+						"Ebron",
+						"Smith",
+						"Crowell",
+						"Brady"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"NYJ",
+						"LA",
+						"NYG",
+						"PIT",
+						"IND",
+						"NO",
+						"NYJ",
+						"NE"
 					],
 					"team_ids": [
 						16
@@ -194,27 +250,30 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"CIN"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 129.7285041227261,
 					"total_cost": 60000.0,
 					"player_ids": [
-						279,
 						332,
+						279,
 						533,
-						1,
 						512,
+						1,
 						370,
 						260,
 						209
 					],
 					"player_fpts": [
-						16.721488223171534,
 						15.787350562228244,
+						16.721488223171534,
 						13.585613914029679,
-						11.361886978149414,
 						16.573308145701393,
+						11.361886978149414,
 						12.032999036789395,
 						12.801669120788574,
 						21.257098372525732
@@ -230,11 +289,11 @@
 						1
 					],
 					"player_costs": [
-						8300.0,
 						8900.0,
+						8300.0,
 						6800.0,
-						6100.0,
 						5400.0,
+						6100.0,
 						5900.0,
 						6200.0,
 						8600.0
@@ -248,6 +307,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Michael",
+						"Adam",
+						"Alshon",
+						"Keke",
+						"Chris",
+						"Jared",
+						"Matt",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Thomas",
+						"Thielen",
+						"Jeffery",
+						"Coutee",
+						"Thompson",
+						"Cook",
+						"Breida",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"NO",
+						"MIN",
+						"PHI",
+						"HOU",
+						"WAS",
+						"OAK",
+						"SF",
+						"KC"
 					],
 					"team_ids": [
 						22
@@ -264,15 +379,18 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"SF"
+					],
 					"placement_percentile": 0.6111715904058479
 				},
 				"predicted_score": 120.12141435338395,
 				"final_player_fpts": [
-					21.1,
 					9.4,
+					21.1,
 					4.9,
-					9.2,
 					14.3,
+					9.2,
 					4.0,
 					12.600000000000001,
 					17.82
@@ -309,27 +427,27 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 249.71999999999997,
+					"total_score": 249.72,
 					"total_cost": 58700.0,
 					"player_ids": [
 						141,
-						85,
 						372,
-						193,
 						350,
+						85,
+						193,
 						331,
-						297,
-						134
+						134,
+						297
 					],
 					"player_fpts": [
 						25.8,
-						32.5,
 						31.3,
-						27.0,
 						27.380000000000003,
+						32.5,
+						27.0,
 						24.6,
-						29.54,
-						29.6
+						29.6,
+						29.54
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -343,13 +461,13 @@
 					],
 					"player_costs": [
 						4900.0,
-						7800.0,
 						9100.0,
-						5700.0,
 						8300.0,
+						7800.0,
+						5700.0,
 						4500.0,
-						8600.0,
-						5900.0
+						5900.0,
+						8600.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -360,6 +478,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Robby",
+						"Todd",
+						"Odell",
+						"James",
+						"Eric",
+						"Tre'Quan",
+						"Isaiah",
+						"Tom"
+					],
+					"player_last_names": [
+						"Anderson",
+						"Gurley II",
+						"Beckham Jr.",
+						"Conner",
+						"Ebron",
+						"Smith",
+						"Crowell",
+						"Brady"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"NYJ",
+						"LA",
+						"NYG",
+						"PIT",
+						"IND",
+						"NO",
+						"NYJ",
+						"NE"
 					],
 					"team_ids": [
 						16
@@ -376,27 +550,30 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"CIN"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 129.7285041227261,
 					"total_cost": 60000.0,
 					"player_ids": [
-						279,
 						332,
+						279,
 						533,
-						1,
 						512,
+						1,
 						370,
 						260,
 						209
 					],
 					"player_fpts": [
-						16.721488223171534,
 						15.787350562228244,
+						16.721488223171534,
 						13.585613914029679,
-						11.361886978149414,
 						16.573308145701393,
+						11.361886978149414,
 						12.032999036789395,
 						12.801669120788574,
 						21.257098372525732
@@ -412,11 +589,11 @@
 						1
 					],
 					"player_costs": [
-						8300.0,
 						8900.0,
+						8300.0,
 						6800.0,
-						6100.0,
 						5400.0,
+						6100.0,
 						5900.0,
 						6200.0,
 						8600.0
@@ -430,6 +607,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Michael",
+						"Adam",
+						"Alshon",
+						"Keke",
+						"Chris",
+						"Jared",
+						"Matt",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Thomas",
+						"Thielen",
+						"Jeffery",
+						"Coutee",
+						"Thompson",
+						"Cook",
+						"Breida",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"NO",
+						"MIN",
+						"PHI",
+						"HOU",
+						"WAS",
+						"OAK",
+						"SF",
+						"KC"
 					],
 					"team_ids": [
 						22
@@ -446,15 +679,18 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"SF"
+					],
 					"placement_percentile": 0.6111715904058479
 				},
 				"predicted_score": 120.12141435338395,
 				"final_player_fpts": [
-					21.1,
 					9.4,
+					21.1,
 					4.9,
-					9.2,
 					14.3,
+					9.2,
 					4.0,
 					12.600000000000001,
 					17.82
@@ -496,24 +732,24 @@
 					"total_score": 261.8,
 					"total_cost": 60000.0,
 					"player_ids": [
+						507,
 						214,
 						54,
 						568,
 						372,
 						254,
 						224,
-						349,
-						507
+						349
 					],
 					"player_fpts": [
+						32.7,
 						35.7,
 						26.6,
 						12.9,
 						35.5,
 						30.0,
 						34.0,
-						33.400000000000006,
-						32.7
+						33.400000000000006
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -526,14 +762,14 @@
 						1
 					],
 					"player_costs": [
+						7400.0,
 						7800.0,
 						5400.0,
 						4000.0,
 						9500.0,
 						4900.0,
 						8800.0,
-						8200.0,
-						7400.0
+						8200.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -544,6 +780,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Jameis",
+						"Tyreek",
+						"Cole",
+						"Nick",
+						"Todd",
+						"Albert",
+						"Melvin",
+						"Saquon"
+					],
+					"player_last_names": [
+						"Winston",
+						"Hill",
+						"Beasley",
+						"O'Leary",
+						"Gurley II",
+						"Wilson",
+						"Gordon",
+						"Barkley"
+					],
+					"player_pos": [
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"TB",
+						"KC",
+						"DAL",
+						"MIA",
+						"LA",
+						"MIA",
+						"LAC",
+						"NYG"
 					],
 					"team_ids": [
 						3
@@ -560,30 +852,33 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"BAL"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 126.87398444510728,
 					"total_cost": 59900.0,
 					"player_ids": [
+						187,
 						397,
 						279,
-						373,
-						63,
 						94,
+						373,
 						512,
-						490,
-						187
+						63,
+						490
 					],
 					"player_fpts": [
+						12.173054158427295,
 						13.313062167702835,
 						16.741483750327433,
-						14.200570106506348,
-						16.81142807006836,
 						13.23676400935895,
+						14.200570106506348,
 						13.13934266562923,
-						19.51083289916521,
-						12.173054158427295
+						16.81142807006836,
+						19.51083289916521
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -596,13 +891,13 @@
 						1
 					],
 					"player_costs": [
+						6300.0,
 						7500.0,
 						8600.0,
-						6500.0,
-						8100.0,
 						6900.0,
+						6500.0,
 						5700.0,
-						6300.0,
+						8100.0,
 						6300.0
 					],
 					"player_costs_multiplier": [
@@ -614,6 +909,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Tyler",
+						"Zach",
+						"Adam",
+						"Jarvis",
+						"Marshawn",
+						"Keke",
+						"Ezekiel",
+						"C.J."
+					],
+					"player_last_names": [
+						"Boyd",
+						"Ertz",
+						"Thielen",
+						"Landry",
+						"Lynch",
+						"Coutee",
+						"Elliott",
+						"Beathard"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"CIN",
+						"PHI",
+						"MIN",
+						"CLE",
+						"OAK",
+						"HOU",
+						"DAL",
+						"SF"
 					],
 					"team_ids": [
 						3
@@ -630,18 +981,21 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"BAL"
+					],
 					"placement_percentile": 0.5701432815580247
 				},
 				"predicted_score": 119.12653782718566,
 				"final_player_fpts": [
+					21.7,
 					13.8,
 					23.8,
-					7.4,
-					18.200000000000003,
 					2.1,
+					7.4,
 					4.800000000000001,
-					18.900000000000002,
-					21.7
+					18.200000000000003,
+					18.900000000000002
 				],
 				"final_team_fpts": [
 					21.0
@@ -678,24 +1032,24 @@
 					"total_score": 261.8,
 					"total_cost": 60000.0,
 					"player_ids": [
+						507,
 						214,
 						54,
 						568,
 						372,
 						254,
 						224,
-						349,
-						507
+						349
 					],
 					"player_fpts": [
+						32.7,
 						35.7,
 						26.6,
 						12.9,
 						35.5,
 						30.0,
 						34.0,
-						33.400000000000006,
-						32.7
+						33.400000000000006
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -708,14 +1062,14 @@
 						1
 					],
 					"player_costs": [
+						7400.0,
 						7800.0,
 						5400.0,
 						4000.0,
 						9500.0,
 						4900.0,
 						8800.0,
-						8200.0,
-						7400.0
+						8200.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -726,6 +1080,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Jameis",
+						"Tyreek",
+						"Cole",
+						"Nick",
+						"Todd",
+						"Albert",
+						"Melvin",
+						"Saquon"
+					],
+					"player_last_names": [
+						"Winston",
+						"Hill",
+						"Beasley",
+						"O'Leary",
+						"Gurley II",
+						"Wilson",
+						"Gordon",
+						"Barkley"
+					],
+					"player_pos": [
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"TB",
+						"KC",
+						"DAL",
+						"MIA",
+						"LA",
+						"MIA",
+						"LAC",
+						"NYG"
 					],
 					"team_ids": [
 						3
@@ -742,30 +1152,33 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"BAL"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 126.87398444510728,
 					"total_cost": 59900.0,
 					"player_ids": [
+						187,
 						397,
 						279,
-						373,
-						63,
 						94,
+						373,
 						512,
-						490,
-						187
+						63,
+						490
 					],
 					"player_fpts": [
+						12.173054158427295,
 						13.313062167702835,
 						16.741483750327433,
-						14.200570106506348,
-						16.81142807006836,
 						13.23676400935895,
+						14.200570106506348,
 						13.13934266562923,
-						19.51083289916521,
-						12.173054158427295
+						16.81142807006836,
+						19.51083289916521
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -778,13 +1191,13 @@
 						1
 					],
 					"player_costs": [
+						6300.0,
 						7500.0,
 						8600.0,
-						6500.0,
-						8100.0,
 						6900.0,
+						6500.0,
 						5700.0,
-						6300.0,
+						8100.0,
 						6300.0
 					],
 					"player_costs_multiplier": [
@@ -796,6 +1209,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Tyler",
+						"Zach",
+						"Adam",
+						"Jarvis",
+						"Marshawn",
+						"Keke",
+						"Ezekiel",
+						"C.J."
+					],
+					"player_last_names": [
+						"Boyd",
+						"Ertz",
+						"Thielen",
+						"Landry",
+						"Lynch",
+						"Coutee",
+						"Elliott",
+						"Beathard"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"CIN",
+						"PHI",
+						"MIN",
+						"CLE",
+						"OAK",
+						"HOU",
+						"DAL",
+						"SF"
 					],
 					"team_ids": [
 						3
@@ -812,18 +1281,21 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"BAL"
+					],
 					"placement_percentile": 0.5701432815580247
 				},
 				"predicted_score": 119.12653782718566,
 				"final_player_fpts": [
+					21.7,
 					13.8,
 					23.8,
-					7.4,
-					18.200000000000003,
 					2.1,
+					7.4,
 					4.800000000000001,
-					18.900000000000002,
-					21.7
+					18.200000000000003,
+					18.900000000000002
 				],
 				"final_team_fpts": [
 					21.0
@@ -861,23 +1333,23 @@
 					"total_score": 246.04000000000002,
 					"total_cost": 59700.0,
 					"player_ids": [
-						218,
 						163,
 						350,
 						124,
 						230,
-						307,
 						168,
+						307,
+						218,
 						465
 					],
 					"player_fpts": [
-						34.6,
 						33.42,
 						24.200000000000003,
 						24.32,
 						19.8,
-						25.700000000000003,
 						23.1,
+						25.700000000000003,
+						34.6,
 						30.9
 					],
 					"player_fpts_multiplier": [
@@ -891,13 +1363,13 @@
 						1
 					],
 					"player_costs": [
-						7800.0,
 						7500.0,
 						8500.0,
 						6700.0,
 						5900.0,
-						7300.0,
 						6000.0,
+						7300.0,
+						7800.0,
 						5900.0
 					],
 					"player_costs_multiplier": [
@@ -909,6 +1381,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Mitchell",
+						"Odell",
+						"Emmanuel",
+						"Tyrell",
+						"Trey",
+						"James",
+						"Kareem",
+						"Marlon"
+					],
+					"player_last_names": [
+						"Trubisky",
+						"Beckham Jr.",
+						"Sanders",
+						"Williams",
+						"Burton",
+						"White",
+						"Hunt",
+						"Mack"
+					],
+					"player_pos": [
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"CHI",
+						"NYG",
+						"DEN",
+						"LAC",
+						"CHI",
+						"NE",
+						"KC",
+						"IND"
 					],
 					"team_ids": [
 						9
@@ -925,29 +1453,32 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"DEN"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 124.38276261937732,
 					"total_cost": 59500.0,
 					"player_ids": [
+						187,
 						397,
 						215,
 						279,
 						287,
 						490,
 						328,
-						187,
 						560
 					],
 					"player_fpts": [
+						13.195830059738753,
 						13.854082888467108,
 						13.912079412496187,
 						17.166045688113506,
 						10.892175674438477,
 						18.47902014776692,
 						16.954425811767578,
-						13.195830059738753,
 						10.996738373806213
 					],
 					"player_fpts_multiplier": [
@@ -961,13 +1492,13 @@
 						1
 					],
 					"player_costs": [
+						6800.0,
 						7500.0,
 						7600.0,
 						8700.0,
 						5100.0,
 						6400.0,
 						8200.0,
-						6800.0,
 						5100.0
 					],
 					"player_costs_multiplier": [
@@ -979,6 +1510,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Tyler",
+						"Zach",
+						"Travis",
+						"Adam",
+						"Alfred",
+						"C.J.",
+						"Alvin",
+						"Damion"
+					],
+					"player_last_names": [
+						"Boyd",
+						"Ertz",
+						"Kelce",
+						"Thielen",
+						"Blue",
+						"Beathard",
+						"Kamara",
+						"Ratley"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"CIN",
+						"PHI",
+						"KC",
+						"MIN",
+						"HOU",
+						"SF",
+						"NO",
+						"CLE"
 					],
 					"team_ids": [
 						15
@@ -995,17 +1582,20 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"IND"
+					],
 					"placement_percentile": 0.5947515115637694
 				},
 				"predicted_score": 115.45039805659474,
 				"final_player_fpts": [
+					4.2,
 					18.3,
 					12.0,
 					21.5,
 					2.8000000000000003,
 					8.1,
 					14.5,
-					4.2,
 					3.8000000000000003
 				],
 				"final_team_fpts": [
@@ -1042,23 +1632,23 @@
 					"total_score": 246.04000000000002,
 					"total_cost": 59700.0,
 					"player_ids": [
-						218,
 						163,
 						350,
 						124,
 						230,
-						307,
 						168,
+						307,
+						218,
 						465
 					],
 					"player_fpts": [
-						34.6,
 						33.42,
 						24.200000000000003,
 						24.32,
 						19.8,
-						25.700000000000003,
 						23.1,
+						25.700000000000003,
+						34.6,
 						30.9
 					],
 					"player_fpts_multiplier": [
@@ -1072,13 +1662,13 @@
 						1
 					],
 					"player_costs": [
-						7800.0,
 						7500.0,
 						8500.0,
 						6700.0,
 						5900.0,
-						7300.0,
 						6000.0,
+						7300.0,
+						7800.0,
 						5900.0
 					],
 					"player_costs_multiplier": [
@@ -1090,6 +1680,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Mitchell",
+						"Odell",
+						"Emmanuel",
+						"Tyrell",
+						"Trey",
+						"James",
+						"Kareem",
+						"Marlon"
+					],
+					"player_last_names": [
+						"Trubisky",
+						"Beckham Jr.",
+						"Sanders",
+						"Williams",
+						"Burton",
+						"White",
+						"Hunt",
+						"Mack"
+					],
+					"player_pos": [
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"CHI",
+						"NYG",
+						"DEN",
+						"LAC",
+						"CHI",
+						"NE",
+						"KC",
+						"IND"
 					],
 					"team_ids": [
 						9
@@ -1106,29 +1752,32 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"DEN"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 124.38276261937732,
 					"total_cost": 59500.0,
 					"player_ids": [
+						187,
 						397,
 						215,
 						279,
 						287,
 						490,
 						328,
-						187,
 						560
 					],
 					"player_fpts": [
+						13.195830059738753,
 						13.854082888467108,
 						13.912079412496187,
 						17.166045688113506,
 						10.892175674438477,
 						18.47902014776692,
 						16.954425811767578,
-						13.195830059738753,
 						10.996738373806213
 					],
 					"player_fpts_multiplier": [
@@ -1142,13 +1791,13 @@
 						1
 					],
 					"player_costs": [
+						6800.0,
 						7500.0,
 						7600.0,
 						8700.0,
 						5100.0,
 						6400.0,
 						8200.0,
-						6800.0,
 						5100.0
 					],
 					"player_costs_multiplier": [
@@ -1160,6 +1809,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Tyler",
+						"Zach",
+						"Travis",
+						"Adam",
+						"Alfred",
+						"C.J.",
+						"Alvin",
+						"Damion"
+					],
+					"player_last_names": [
+						"Boyd",
+						"Ertz",
+						"Kelce",
+						"Thielen",
+						"Blue",
+						"Beathard",
+						"Kamara",
+						"Ratley"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"CIN",
+						"PHI",
+						"KC",
+						"MIN",
+						"HOU",
+						"SF",
+						"NO",
+						"CLE"
 					],
 					"team_ids": [
 						15
@@ -1176,17 +1881,20 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"IND"
+					],
 					"placement_percentile": 0.5947515115637694
 				},
 				"predicted_score": 115.45039805659474,
 				"final_player_fpts": [
+					4.2,
 					18.3,
 					12.0,
 					21.5,
 					2.8000000000000003,
 					8.1,
 					14.5,
-					4.2,
 					3.8000000000000003
 				],
 				"final_team_fpts": [
@@ -1225,23 +1933,23 @@
 					"total_score": 239.56000000000003,
 					"total_cost": 58900.0,
 					"player_ids": [
-						314,
 						217,
 						185,
 						85,
 						285,
-						293,
 						146,
+						293,
+						314,
 						465
 					],
 					"player_fpts": [
-						26.900000000000002,
 						26.700000000000003,
 						27.3,
 						35.7,
 						16.9,
-						30.96,
 						27.200000000000003,
+						30.96,
+						26.900000000000002,
 						27.9
 					],
 					"player_fpts_multiplier": [
@@ -1255,13 +1963,13 @@
 						1
 					],
 					"player_costs": [
-						7800.0,
 						6400.0,
 						7800.0,
 						8000.0,
 						4000.0,
-						7600.0,
 						6000.0,
+						7600.0,
+						7800.0,
 						6700.0
 					],
 					"player_costs_multiplier": [
@@ -1273,6 +1981,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Sammy",
+						"Joe",
+						"James",
+						"Jordan",
+						"Marvin",
+						"Deshaun",
+						"Mike",
+						"Marlon"
+					],
+					"player_last_names": [
+						"Watkins",
+						"Mixon",
+						"Conner",
+						"Thomas",
+						"Jones Jr.",
+						"Watson",
+						"Evans",
+						"Mack"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"KC",
+						"CIN",
+						"PIT",
+						"HOU",
+						"DET",
+						"HOU",
+						"TB",
+						"IND"
 					],
 					"team_ids": [
 						23
@@ -1289,30 +2053,33 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NE"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 124.67248212054923,
+					"total_score": 124.67248212054925,
 					"total_cost": 60000.0,
 					"player_ids": [
 						279,
+						94,
 						287,
 						193,
-						94,
-						107,
-						349,
 						316,
-						124
+						107,
+						124,
+						349
 					],
 					"player_fpts": [
 						16.94079695295466,
+						12.727871747189631,
 						10.126447677612305,
 						11.285207350520288,
-						12.727871747189631,
-						12.453930854797363,
-						17.103757858276367,
 						20.66444157360664,
-						13.938335989806188
+						12.453930854797363,
+						13.938335989806188,
+						17.103757858276367
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -1326,13 +2093,13 @@
 					],
 					"player_costs": [
 						8800.0,
+						6700.0,
 						5100.0,
 						6400.0,
-						6700.0,
-						6300.0,
-						8900.0,
 						6000.0,
-						7200.0
+						6300.0,
+						7200.0,
+						8900.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -1343,6 +2110,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Adam",
+						"Jarvis",
+						"Alfred",
+						"Eric",
+						"Ryan",
+						"Chris",
+						"Emmanuel",
+						"Saquon"
+					],
+					"player_last_names": [
+						"Thielen",
+						"Landry",
+						"Blue",
+						"Ebron",
+						"Fitzpatrick",
+						"Carson",
+						"Sanders",
+						"Barkley"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"MIN",
+						"CLE",
+						"HOU",
+						"IND",
+						"TB",
+						"SEA",
+						"DEN",
+						"NYG"
 					],
 					"team_ids": [
 						23
@@ -1359,18 +2182,21 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NE"
+					],
 					"placement_percentile": 0.6122620987523657
 				},
-				"predicted_score": 115.24079000476344,
+				"predicted_score": 115.24079000476345,
 				"final_player_fpts": [
 					19.3,
+					7.9,
 					4.2,
 					11.2,
-					7.9,
-					19.4,
-					15.600000000000001,
 					19.56,
-					7.1000000000000005
+					19.4,
+					7.1000000000000005,
+					15.600000000000001
 				],
 				"final_team_fpts": [
 					20.0
@@ -1406,23 +2232,23 @@
 					"total_score": 239.56000000000003,
 					"total_cost": 58900.0,
 					"player_ids": [
-						314,
 						217,
 						185,
 						85,
 						285,
-						293,
 						146,
+						293,
+						314,
 						465
 					],
 					"player_fpts": [
-						26.900000000000002,
 						26.700000000000003,
 						27.3,
 						35.7,
 						16.9,
-						30.96,
 						27.200000000000003,
+						30.96,
+						26.900000000000002,
 						27.9
 					],
 					"player_fpts_multiplier": [
@@ -1436,13 +2262,13 @@
 						1
 					],
 					"player_costs": [
-						7800.0,
 						6400.0,
 						7800.0,
 						8000.0,
 						4000.0,
-						7600.0,
 						6000.0,
+						7600.0,
+						7800.0,
 						6700.0
 					],
 					"player_costs_multiplier": [
@@ -1454,6 +2280,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Sammy",
+						"Joe",
+						"James",
+						"Jordan",
+						"Marvin",
+						"Deshaun",
+						"Mike",
+						"Marlon"
+					],
+					"player_last_names": [
+						"Watkins",
+						"Mixon",
+						"Conner",
+						"Thomas",
+						"Jones Jr.",
+						"Watson",
+						"Evans",
+						"Mack"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"KC",
+						"CIN",
+						"PIT",
+						"HOU",
+						"DET",
+						"HOU",
+						"TB",
+						"IND"
 					],
 					"team_ids": [
 						23
@@ -1470,30 +2352,33 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NE"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 124.67248212054923,
+					"total_score": 124.67248212054925,
 					"total_cost": 60000.0,
 					"player_ids": [
 						279,
+						94,
 						287,
 						193,
-						94,
-						107,
-						349,
 						316,
-						124
+						107,
+						124,
+						349
 					],
 					"player_fpts": [
 						16.94079695295466,
+						12.727871747189631,
 						10.126447677612305,
 						11.285207350520288,
-						12.727871747189631,
-						12.453930854797363,
-						17.103757858276367,
 						20.66444157360664,
-						13.938335989806188
+						12.453930854797363,
+						13.938335989806188,
+						17.103757858276367
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -1507,13 +2392,13 @@
 					],
 					"player_costs": [
 						8800.0,
+						6700.0,
 						5100.0,
 						6400.0,
-						6700.0,
-						6300.0,
-						8900.0,
 						6000.0,
-						7200.0
+						6300.0,
+						7200.0,
+						8900.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -1524,6 +2409,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Adam",
+						"Jarvis",
+						"Alfred",
+						"Eric",
+						"Ryan",
+						"Chris",
+						"Emmanuel",
+						"Saquon"
+					],
+					"player_last_names": [
+						"Thielen",
+						"Landry",
+						"Blue",
+						"Ebron",
+						"Fitzpatrick",
+						"Carson",
+						"Sanders",
+						"Barkley"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"MIN",
+						"CLE",
+						"HOU",
+						"IND",
+						"TB",
+						"SEA",
+						"DEN",
+						"NYG"
 					],
 					"team_ids": [
 						23
@@ -1540,18 +2481,21 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NE"
+					],
 					"placement_percentile": 0.6122620987523657
 				},
-				"predicted_score": 115.24079000476344,
+				"predicted_score": 115.24079000476345,
 				"final_player_fpts": [
 					19.3,
+					7.9,
 					4.2,
 					11.2,
-					7.9,
-					19.4,
-					15.600000000000001,
 					19.56,
-					7.1000000000000005
+					19.4,
+					7.1000000000000005,
+					15.600000000000001
 				],
 				"final_team_fpts": [
 					20.0
@@ -1588,24 +2532,24 @@
 					"total_score": 249.84,
 					"total_cost": 59900.0,
 					"player_ids": [
-						218,
 						332,
 						536,
-						117,
 						323,
-						385,
 						318,
-						328
+						117,
+						385,
+						328,
+						218
 					],
 					"player_fpts": [
-						32.6,
 						33.1,
 						18.8,
-						19.3,
 						31.44,
-						30.1,
 						24.9,
-						31.6
+						19.3,
+						30.1,
+						31.6,
+						32.6
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -1618,14 +2562,14 @@
 						1
 					],
 					"player_costs": [
-						8500.0,
 						8600.0,
 						4600.0,
-						4600.0,
 						8400.0,
-						6600.0,
 						5200.0,
-						8000.0
+						4600.0,
+						6600.0,
+						8000.0,
+						8500.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -1636,6 +2580,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Michael",
+						"Curtis",
+						"Drew",
+						"Adam",
+						"Jeff",
+						"Tevin",
+						"Alvin",
+						"Kareem"
+					],
+					"player_last_names": [
+						"Thomas",
+						"Samuel",
+						"Brees",
+						"Humphries",
+						"Heuerman",
+						"Coleman",
+						"Kamara",
+						"Hunt"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"NO",
+						"CAR",
+						"NO",
+						"TB",
+						"DEN",
+						"ATL",
+						"NO",
+						"KC"
 					],
 					"team_ids": [
 						14
@@ -1652,29 +2652,32 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"CHI"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 117.32590751559268,
+					"total_score": 117.32590751559266,
 					"total_cost": 60000.0,
 					"player_ids": [
-						218,
 						279,
+						94,
 						277,
 						95,
-						94,
 						316,
 						124,
+						218,
 						145
 					],
 					"player_fpts": [
-						15.513887405395508,
 						15.558440795048167,
+						11.934555436133063,
 						13.125284194946289,
 						9.288509096104207,
-						11.934555436133063,
 						19.510829479909244,
 						12.301778566148005,
+						15.513887405395508,
 						12.759039878845215
 					],
 					"player_fpts_multiplier": [
@@ -1688,13 +2691,13 @@
 						1
 					],
 					"player_costs": [
-						8500.0,
 						8900.0,
+						6600.0,
 						6700.0,
 						5200.0,
-						6600.0,
 						7100.0,
 						7100.0,
+						8500.0,
 						6400.0
 					],
 					"player_costs_multiplier": [
@@ -1706,6 +2709,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Adam",
+						"Jarvis",
+						"Latavius",
+						"David",
+						"Ryan",
+						"Emmanuel",
+						"Kareem",
+						"Kerryon"
+					],
+					"player_last_names": [
+						"Thielen",
+						"Landry",
+						"Murray",
+						"Njoku",
+						"Fitzpatrick",
+						"Sanders",
+						"Hunt",
+						"Johnson"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"MIN",
+						"CLE",
+						"MIN",
+						"CLE",
+						"TB",
+						"DEN",
+						"KC",
+						"DET"
 					],
 					"team_ids": [
 						23
@@ -1722,17 +2781,20 @@
 					"team_costs_multiplier": [
 						1
 					],
-					"placement_percentile": 0.5524755020417428
+					"teams": [
+						"NE"
+					],
+					"placement_percentile": 0.5524755020417427
 				},
-				"predicted_score": 109.9923248525297,
+				"predicted_score": 109.99232485252969,
 				"final_player_fpts": [
-					32.6,
 					10.7,
+					8.0,
 					11.2,
 					7.300000000000001,
-					8.0,
 					26.02,
 					7.7,
+					32.6,
 					5.9
 				],
 				"final_team_fpts": [
@@ -1768,24 +2830,24 @@
 					"total_score": 249.84,
 					"total_cost": 59900.0,
 					"player_ids": [
-						218,
 						332,
 						536,
-						117,
 						323,
-						385,
 						318,
-						328
+						117,
+						385,
+						328,
+						218
 					],
 					"player_fpts": [
-						32.6,
 						33.1,
 						18.8,
-						19.3,
 						31.44,
-						30.1,
 						24.9,
-						31.6
+						19.3,
+						30.1,
+						31.6,
+						32.6
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -1798,14 +2860,14 @@
 						1
 					],
 					"player_costs": [
-						8500.0,
 						8600.0,
 						4600.0,
-						4600.0,
 						8400.0,
-						6600.0,
 						5200.0,
-						8000.0
+						4600.0,
+						6600.0,
+						8000.0,
+						8500.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -1816,6 +2878,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Michael",
+						"Curtis",
+						"Drew",
+						"Adam",
+						"Jeff",
+						"Tevin",
+						"Alvin",
+						"Kareem"
+					],
+					"player_last_names": [
+						"Thomas",
+						"Samuel",
+						"Brees",
+						"Humphries",
+						"Heuerman",
+						"Coleman",
+						"Kamara",
+						"Hunt"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"NO",
+						"CAR",
+						"NO",
+						"TB",
+						"DEN",
+						"ATL",
+						"NO",
+						"KC"
 					],
 					"team_ids": [
 						14
@@ -1832,29 +2950,32 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"CHI"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 117.32590751559268,
+					"total_score": 117.32590751559266,
 					"total_cost": 60000.0,
 					"player_ids": [
-						218,
 						279,
+						94,
 						277,
 						95,
-						94,
 						316,
 						124,
+						218,
 						145
 					],
 					"player_fpts": [
-						15.513887405395508,
 						15.558440795048167,
+						11.934555436133063,
 						13.125284194946289,
 						9.288509096104207,
-						11.934555436133063,
 						19.510829479909244,
 						12.301778566148005,
+						15.513887405395508,
 						12.759039878845215
 					],
 					"player_fpts_multiplier": [
@@ -1868,13 +2989,13 @@
 						1
 					],
 					"player_costs": [
-						8500.0,
 						8900.0,
+						6600.0,
 						6700.0,
 						5200.0,
-						6600.0,
 						7100.0,
 						7100.0,
+						8500.0,
 						6400.0
 					],
 					"player_costs_multiplier": [
@@ -1886,6 +3007,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Adam",
+						"Jarvis",
+						"Latavius",
+						"David",
+						"Ryan",
+						"Emmanuel",
+						"Kareem",
+						"Kerryon"
+					],
+					"player_last_names": [
+						"Thielen",
+						"Landry",
+						"Murray",
+						"Njoku",
+						"Fitzpatrick",
+						"Sanders",
+						"Hunt",
+						"Johnson"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"MIN",
+						"CLE",
+						"MIN",
+						"CLE",
+						"TB",
+						"DEN",
+						"KC",
+						"DET"
 					],
 					"team_ids": [
 						23
@@ -1902,17 +3079,20 @@
 					"team_costs_multiplier": [
 						1
 					],
-					"placement_percentile": 0.5524755020417428
+					"teams": [
+						"NE"
+					],
+					"placement_percentile": 0.5524755020417427
 				},
-				"predicted_score": 109.9923248525297,
+				"predicted_score": 109.99232485252969,
 				"final_player_fpts": [
-					32.6,
 					10.7,
+					8.0,
 					11.2,
 					7.300000000000001,
-					8.0,
 					26.02,
 					7.7,
+					32.6,
 					5.9
 				],
 				"final_team_fpts": [
@@ -1953,21 +3133,21 @@
 					"player_ids": [
 						13,
 						397,
-						87,
 						214,
+						87,
 						163,
-						69,
 						164,
+						69,
 						241
 					],
 					"player_fpts": [
 						33.8,
 						33.5,
-						34.400000000000006,
 						29.200000000000003,
+						34.400000000000006,
 						36.0,
-						34.3,
 						28.3,
+						34.3,
 						22.0
 					],
 					"player_fpts_multiplier": [
@@ -1983,11 +3163,11 @@
 					"player_costs": [
 						6900.0,
 						7500.0,
-						6700.0,
 						7600.0,
+						6700.0,
 						7700.0,
-						8000.0,
 						6300.0,
+						8000.0,
 						5800.0
 					],
 					"player_costs_multiplier": [
@@ -1999,6 +3179,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"David",
+						"Zach",
+						"Tyreek",
+						"Nick",
+						"Mitchell",
+						"Allen",
+						"Christian",
+						"Corey"
+					],
+					"player_last_names": [
+						"Johnson",
+						"Ertz",
+						"Hill",
+						"Chubb",
+						"Trubisky",
+						"Robinson",
+						"McCaffrey",
+						"Davis"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"ARI",
+						"PHI",
+						"KC",
+						"CLE",
+						"CHI",
+						"CHI",
+						"CAR",
+						"TEN"
 					],
 					"team_ids": [
 						2
@@ -2015,28 +3251,31 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"WAS"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 124.11194673203335,
 					"total_cost": 60000.0,
 					"player_ids": [
+						94,
 						85,
 						383,
 						193,
-						94,
-						169,
 						8,
+						169,
 						613,
 						145
 					],
 					"player_fpts": [
+						11.479815078314815,
 						16.709848403930664,
 						15.940219445342162,
 						10.954134790075976,
-						11.479815078314815,
-						15.313499255015866,
 						14.300813674926758,
+						15.313499255015866,
 						18.83258927652822,
 						12.170000076293945
 					],
@@ -2051,12 +3290,12 @@
 						1
 					],
 					"player_costs": [
+						6400.0,
 						8200.0,
 						8700.0,
 						5400.0,
-						6400.0,
-						8600.0,
 						6800.0,
+						8600.0,
 						6000.0,
 						5900.0
 					],
@@ -2069,6 +3308,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Jarvis",
+						"James",
+						"Julio",
+						"Eric",
+						"Adrian",
+						"Davante",
+						"Nick",
+						"Kerryon"
+					],
+					"player_last_names": [
+						"Landry",
+						"Conner",
+						"Jones",
+						"Ebron",
+						"Peterson",
+						"Adams",
+						"Mullens",
+						"Johnson"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"CLE",
+						"PIT",
+						"ATL",
+						"IND",
+						"WAS",
+						"GB",
+						"SF",
+						"DET"
 					],
 					"team_ids": [
 						15
@@ -2085,16 +3380,19 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"IND"
+					],
 					"placement_percentile": 0.5438139850236975
 				},
 				"predicted_score": 115.70092000042841,
 				"final_player_fpts": [
+					3.2,
 					13.8,
 					20.200000000000003,
 					26.6,
-					3.2,
-					19.7,
 					7.9,
+					19.7,
 					12.1,
 					21.9
 				],
@@ -2134,21 +3432,21 @@
 					"player_ids": [
 						13,
 						397,
-						87,
 						214,
+						87,
 						163,
-						69,
 						164,
+						69,
 						241
 					],
 					"player_fpts": [
 						33.8,
 						33.5,
-						34.400000000000006,
 						29.200000000000003,
+						34.400000000000006,
 						36.0,
-						34.3,
 						28.3,
+						34.3,
 						22.0
 					],
 					"player_fpts_multiplier": [
@@ -2164,11 +3462,11 @@
 					"player_costs": [
 						6900.0,
 						7500.0,
-						6700.0,
 						7600.0,
+						6700.0,
 						7700.0,
-						8000.0,
 						6300.0,
+						8000.0,
 						5800.0
 					],
 					"player_costs_multiplier": [
@@ -2180,6 +3478,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"David",
+						"Zach",
+						"Tyreek",
+						"Nick",
+						"Mitchell",
+						"Allen",
+						"Christian",
+						"Corey"
+					],
+					"player_last_names": [
+						"Johnson",
+						"Ertz",
+						"Hill",
+						"Chubb",
+						"Trubisky",
+						"Robinson",
+						"McCaffrey",
+						"Davis"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"ARI",
+						"PHI",
+						"KC",
+						"CLE",
+						"CHI",
+						"CHI",
+						"CAR",
+						"TEN"
 					],
 					"team_ids": [
 						2
@@ -2196,28 +3550,31 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"WAS"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 124.11194673203335,
 					"total_cost": 60000.0,
 					"player_ids": [
+						94,
 						85,
 						383,
 						193,
-						94,
-						169,
 						8,
+						169,
 						613,
 						145
 					],
 					"player_fpts": [
+						11.479815078314815,
 						16.709848403930664,
 						15.940219445342162,
 						10.954134790075976,
-						11.479815078314815,
-						15.313499255015866,
 						14.300813674926758,
+						15.313499255015866,
 						18.83258927652822,
 						12.170000076293945
 					],
@@ -2232,12 +3589,12 @@
 						1
 					],
 					"player_costs": [
+						6400.0,
 						8200.0,
 						8700.0,
 						5400.0,
-						6400.0,
-						8600.0,
 						6800.0,
+						8600.0,
 						6000.0,
 						5900.0
 					],
@@ -2250,6 +3607,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Jarvis",
+						"James",
+						"Julio",
+						"Eric",
+						"Adrian",
+						"Davante",
+						"Nick",
+						"Kerryon"
+					],
+					"player_last_names": [
+						"Landry",
+						"Conner",
+						"Jones",
+						"Ebron",
+						"Peterson",
+						"Adams",
+						"Mullens",
+						"Johnson"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"CLE",
+						"PIT",
+						"ATL",
+						"IND",
+						"WAS",
+						"GB",
+						"SF",
+						"DET"
 					],
 					"team_ids": [
 						15
@@ -2266,16 +3679,19 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"IND"
+					],
 					"placement_percentile": 0.5438139850236975
 				},
 				"predicted_score": 115.70092000042841,
 				"final_player_fpts": [
+					3.2,
 					13.8,
 					20.200000000000003,
 					26.6,
-					3.2,
-					19.7,
 					7.9,
+					19.7,
 					12.1,
 					21.9
 				],
@@ -2314,23 +3730,23 @@
 					"total_score": 262.52,
 					"total_cost": 59700.0,
 					"player_ids": [
-						441,
 						214,
+						441,
 						195,
 						63,
 						331,
-						349,
 						70,
+						349,
 						209
 					],
 					"player_fpts": [
-						18.4,
 						38.5,
+						18.4,
 						32.0,
 						29.6,
 						26.700000000000003,
-						34.2,
 						25.200000000000003,
+						34.2,
 						38.92
 					],
 					"player_fpts_multiplier": [
@@ -2344,13 +3760,13 @@
 						1
 					],
 					"player_costs": [
-						4800.0,
 						7900.0,
+						4800.0,
 						6800.0,
 						8400.0,
 						4900.0,
-						8800.0,
 						5300.0,
+						8800.0,
 						9500.0
 					],
 					"player_costs_multiplier": [
@@ -2362,6 +3778,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Tyreek",
+						"Gerald",
+						"T.Y.",
+						"Ezekiel",
+						"Tre'Quan",
+						"D.J.",
+						"Saquon",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Hill",
+						"Everett",
+						"Hilton",
+						"Elliott",
+						"Smith",
+						"Moore",
+						"Barkley",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"KC",
+						"LA",
+						"IND",
+						"DAL",
+						"NO",
+						"CAR",
+						"NYG",
+						"KC"
 					],
 					"team_ids": [
 						30
@@ -2378,30 +3850,33 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"LA"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 124.60523975561777,
+					"total_score": 124.60523975561779,
 					"total_cost": 59800.0,
 					"player_ids": [
 						237,
+						350,
 						85,
 						193,
-						350,
-						465,
+						273,
 						197,
 						47,
-						273
+						465
 					],
 					"player_fpts": [
 						13.003055572509766,
+						16.533550106388617,
 						16.998878479003906,
 						11.672643369161047,
-						16.533550106388617,
-						14.368292808532715,
+						13.311348873231097,
 						20.557249202405337,
 						9.719136540682216,
-						13.311348873231097
+						14.368292808532715
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -2415,13 +3890,13 @@
 					],
 					"player_costs": [
 						5900.0,
+						8500.0,
 						8200.0,
 						6000.0,
-						8500.0,
-						7000.0,
+						7300.0,
 						7800.0,
 						5300.0,
-						7300.0
+						7000.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -2432,6 +3907,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Dion",
+						"Odell",
+						"James",
+						"Eric",
+						"Stefon",
+						"Andrew",
+						"Willie",
+						"Marlon"
+					],
+					"player_last_names": [
+						"Lewis",
+						"Beckham Jr.",
+						"Conner",
+						"Ebron",
+						"Diggs",
+						"Luck",
+						"Snead",
+						"Mack"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"TEN",
+						"NYG",
+						"PIT",
+						"IND",
+						"MIN",
+						"IND",
+						"BAL",
+						"IND"
 					],
 					"team_ids": [
 						8
@@ -2448,18 +3979,21 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"PIT"
+					],
 					"placement_percentile": 0.5584123103477506
 				},
-				"predicted_score": 116.1641549519147,
+				"predicted_score": 116.16415495191471,
 				"final_player_fpts": [
 					3.7,
+					16.5,
 					7.9,
 					0.0,
-					16.5,
-					13.4,
+					25.1,
 					23.880000000000003,
 					7.6000000000000005,
-					25.1
+					13.4
 				],
 				"final_team_fpts": [
 					9.0
@@ -2494,23 +4028,23 @@
 					"total_score": 262.52,
 					"total_cost": 59700.0,
 					"player_ids": [
-						441,
 						214,
+						441,
 						195,
 						63,
 						331,
-						349,
 						70,
+						349,
 						209
 					],
 					"player_fpts": [
-						18.4,
 						38.5,
+						18.4,
 						32.0,
 						29.6,
 						26.700000000000003,
-						34.2,
 						25.200000000000003,
+						34.2,
 						38.92
 					],
 					"player_fpts_multiplier": [
@@ -2524,13 +4058,13 @@
 						1
 					],
 					"player_costs": [
-						4800.0,
 						7900.0,
+						4800.0,
 						6800.0,
 						8400.0,
 						4900.0,
-						8800.0,
 						5300.0,
+						8800.0,
 						9500.0
 					],
 					"player_costs_multiplier": [
@@ -2542,6 +4076,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Tyreek",
+						"Gerald",
+						"T.Y.",
+						"Ezekiel",
+						"Tre'Quan",
+						"D.J.",
+						"Saquon",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Hill",
+						"Everett",
+						"Hilton",
+						"Elliott",
+						"Smith",
+						"Moore",
+						"Barkley",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"KC",
+						"LA",
+						"IND",
+						"DAL",
+						"NO",
+						"CAR",
+						"NYG",
+						"KC"
 					],
 					"team_ids": [
 						30
@@ -2558,6 +4148,9 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"LA"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -2565,20 +4158,20 @@
 					"total_cost": 59800.0,
 					"player_ids": [
 						237,
-						273,
+						350,
 						85,
 						193,
-						350,
+						273,
 						197,
 						47,
 						465
 					],
 					"player_fpts": [
 						13.003055572509766,
-						13.311348873231097,
+						16.533550106388617,
 						16.998878479003906,
 						11.672643369161047,
-						16.533550106388617,
+						13.311348873231097,
 						20.557249202405337,
 						9.719136540682216,
 						14.368292808532715
@@ -2595,10 +4188,10 @@
 					],
 					"player_costs": [
 						5900.0,
-						7300.0,
+						8500.0,
 						8200.0,
 						6000.0,
-						8500.0,
+						7300.0,
 						7800.0,
 						5300.0,
 						7000.0
@@ -2612,6 +4205,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Dion",
+						"Odell",
+						"James",
+						"Eric",
+						"Stefon",
+						"Andrew",
+						"Willie",
+						"Marlon"
+					],
+					"player_last_names": [
+						"Lewis",
+						"Beckham Jr.",
+						"Conner",
+						"Ebron",
+						"Diggs",
+						"Luck",
+						"Snead",
+						"Mack"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"TEN",
+						"NYG",
+						"PIT",
+						"IND",
+						"MIN",
+						"IND",
+						"BAL",
+						"IND"
 					],
 					"team_ids": [
 						8
@@ -2628,15 +4277,18 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"PIT"
+					],
 					"placement_percentile": 0.5584123103477506
 				},
 				"predicted_score": 116.16415495191471,
 				"final_player_fpts": [
 					3.7,
-					25.1,
+					16.5,
 					7.9,
 					0.0,
-					16.5,
+					25.1,
 					23.880000000000003,
 					7.6000000000000005,
 					13.4
@@ -2675,25 +4327,25 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 245.30000000000004,
+					"total_score": 245.29999999999998,
 					"total_cost": 59200.0,
 					"player_ids": [
 						247,
-						69,
 						84,
 						193,
 						349,
 						371,
+						69,
 						293,
 						241
 					],
 					"player_fpts": [
 						24.1,
-						41.2,
 						31.400000000000002,
 						19.0,
 						29.700000000000003,
 						34.0,
+						41.2,
 						29.4,
 						21.5
 					],
@@ -2709,11 +4361,11 @@
 					],
 					"player_costs": [
 						5500.0,
-						8400.0,
 						7200.0,
 						5500.0,
 						9000.0,
 						6500.0,
+						8400.0,
 						7900.0,
 						6000.0
 					],
@@ -2726,6 +4378,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Kenyan",
+						"JuJu",
+						"Eric",
+						"Saquon",
+						"Amari",
+						"Christian",
+						"Deshaun",
+						"Corey"
+					],
+					"player_last_names": [
+						"Drake",
+						"Smith-Schuster",
+						"Ebron",
+						"Barkley",
+						"Cooper",
+						"McCaffrey",
+						"Watson",
+						"Davis"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"MIA",
+						"PIT",
+						"IND",
+						"NYG",
+						"DAL",
+						"CAR",
+						"HOU",
+						"TEN"
 					],
 					"team_ids": [
 						25
@@ -2742,27 +4450,30 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NO"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 116.83533401504843,
 					"total_cost": 59600.0,
 					"player_ids": [
-						13,
 						246,
+						13,
 						501,
-						63,
 						383,
+						63,
 						95,
 						613,
 						273
 					],
 					"player_fpts": [
-						14.481049537658691,
 						11.339302259573522,
+						14.481049537658691,
 						13.268306732177734,
-						15.063150405883789,
 						15.441104471475509,
+						15.063150405883789,
 						8.853439346703764,
 						16.747555961064137,
 						14.107097798959629
@@ -2778,11 +4489,11 @@
 						1
 					],
 					"player_costs": [
-						7900.0,
 						5300.0,
+						7900.0,
 						7300.0,
-						8700.0,
 						8800.0,
+						8700.0,
 						5100.0,
 						6000.0,
 						7300.0
@@ -2796,6 +4507,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Danny",
+						"David",
+						"Aaron",
+						"Julio",
+						"Ezekiel",
+						"David",
+						"Nick",
+						"Stefon"
+					],
+					"player_last_names": [
+						"Amendola",
+						"Johnson",
+						"Jones",
+						"Jones",
+						"Elliott",
+						"Njoku",
+						"Mullens",
+						"Diggs"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"MIA",
+						"ARI",
+						"GB",
+						"ATL",
+						"DAL",
+						"CLE",
+						"SF",
+						"MIN"
 					],
 					"team_ids": [
 						25
@@ -2812,15 +4579,18 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NO"
+					],
 					"placement_percentile": 0.5603478766218961
 				},
 				"predicted_score": 109.30100651349677,
 				"final_player_fpts": [
-					8.9,
 					1.8,
+					8.9,
 					16.8,
-					22.8,
 					18.3,
+					22.8,
 					14.8,
 					10.74,
 					18.9
@@ -2857,26 +4627,26 @@
 					"name": "Main"
 				},
 				"actual_outcome": {
-					"total_score": 245.3,
+					"total_score": 245.29999999999998,
 					"total_cost": 59200.0,
 					"player_ids": [
 						247,
-						293,
 						84,
 						193,
 						349,
 						371,
 						69,
+						293,
 						241
 					],
 					"player_fpts": [
 						24.1,
-						29.4,
 						31.400000000000002,
 						19.0,
 						29.700000000000003,
 						34.0,
 						41.2,
+						29.4,
 						21.5
 					],
 					"player_fpts_multiplier": [
@@ -2891,12 +4661,12 @@
 					],
 					"player_costs": [
 						5500.0,
-						7900.0,
 						7200.0,
 						5500.0,
 						9000.0,
 						6500.0,
 						8400.0,
+						7900.0,
 						6000.0
 					],
 					"player_costs_multiplier": [
@@ -2908,6 +4678,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Kenyan",
+						"JuJu",
+						"Eric",
+						"Saquon",
+						"Amari",
+						"Christian",
+						"Deshaun",
+						"Corey"
+					],
+					"player_last_names": [
+						"Drake",
+						"Smith-Schuster",
+						"Ebron",
+						"Barkley",
+						"Cooper",
+						"McCaffrey",
+						"Watson",
+						"Davis"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"MIA",
+						"PIT",
+						"IND",
+						"NYG",
+						"DAL",
+						"CAR",
+						"HOU",
+						"TEN"
 					],
 					"team_ids": [
 						25
@@ -2924,27 +4750,30 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NO"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 116.83533401504843,
 					"total_cost": 59600.0,
 					"player_ids": [
-						13,
 						246,
+						13,
 						501,
-						63,
 						383,
+						63,
 						95,
 						613,
 						273
 					],
 					"player_fpts": [
-						14.481049537658691,
 						11.339302259573522,
+						14.481049537658691,
 						13.268306732177734,
-						15.063150405883789,
 						15.441104471475509,
+						15.063150405883789,
 						8.853439346703764,
 						16.747555961064137,
 						14.107097798959629
@@ -2960,11 +4789,11 @@
 						1
 					],
 					"player_costs": [
-						7900.0,
 						5300.0,
+						7900.0,
 						7300.0,
-						8700.0,
 						8800.0,
+						8700.0,
 						5100.0,
 						6000.0,
 						7300.0
@@ -2978,6 +4807,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Danny",
+						"David",
+						"Aaron",
+						"Julio",
+						"Ezekiel",
+						"David",
+						"Nick",
+						"Stefon"
+					],
+					"player_last_names": [
+						"Amendola",
+						"Johnson",
+						"Jones",
+						"Jones",
+						"Elliott",
+						"Njoku",
+						"Mullens",
+						"Diggs"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"MIA",
+						"ARI",
+						"GB",
+						"ATL",
+						"DAL",
+						"CLE",
+						"SF",
+						"MIN"
 					],
 					"team_ids": [
 						25
@@ -2994,15 +4879,18 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NO"
+					],
 					"placement_percentile": 0.5603478766218961
 				},
 				"predicted_score": 109.30100651349677,
 				"final_player_fpts": [
-					8.9,
 					1.8,
+					8.9,
 					16.8,
-					22.8,
 					18.3,
+					22.8,
 					14.8,
 					10.74,
 					18.9
@@ -3045,22 +4933,22 @@
 					"total_score": 248.28000000000003,
 					"total_cost": 59500.0,
 					"player_ids": [
-						215,
 						22,
 						120,
+						215,
 						162,
-						31,
 						372,
+						31,
 						220,
 						261
 					],
 					"player_fpts": [
-						32.8,
 						22.7,
 						28.4,
+						32.8,
 						28.64,
-						30.740000000000002,
 						30.0,
+						30.740000000000002,
 						29.8,
 						27.200000000000003
 					],
@@ -3075,12 +4963,12 @@
 						1
 					],
 					"player_costs": [
-						7800.0,
 						4600.0,
 						7000.0,
+						7800.0,
 						6100.0,
-						6800.0,
 						9800.0,
+						6800.0,
 						7700.0,
 						5300.0
 					],
@@ -3093,6 +4981,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Zay",
+						"Phillip",
+						"Travis",
+						"Tarik",
+						"Todd",
+						"Josh",
+						"Keenan",
+						"Dante"
+					],
+					"player_last_names": [
+						"Jones",
+						"Lindsay",
+						"Kelce",
+						"Cohen",
+						"Gurley II",
+						"Allen",
+						"Allen",
+						"Pettis"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"DEN",
+						"KC",
+						"CHI",
+						"LA",
+						"BUF",
+						"LAC",
+						"SF"
 					],
 					"team_ids": [
 						24
@@ -3108,6 +5052,9 @@
 					],
 					"team_costs_multiplier": [
 						1
+					],
+					"teams": [
+						"HOU"
 					],
 					"placement_percentile": null
 				},
@@ -3164,6 +5111,62 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"David",
+						"Nick",
+						"Julio",
+						"Ezekiel",
+						"Randall",
+						"Ryan",
+						"Willie",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Johnson",
+						"Chubb",
+						"Jones",
+						"Elliott",
+						"Cobb",
+						"Griffin",
+						"Snead",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"ARI",
+						"CLE",
+						"ATL",
+						"DAL",
+						"GB",
+						"HOU",
+						"BAL",
+						"KC"
+					],
 					"team_ids": [
 						25
 					],
@@ -3178,6 +5181,9 @@
 					],
 					"team_costs_multiplier": [
 						1
+					],
+					"teams": [
+						"NO"
 					],
 					"placement_percentile": 0.5637827075129939
 				},
@@ -3228,22 +5234,22 @@
 					"total_score": 248.28000000000003,
 					"total_cost": 59500.0,
 					"player_ids": [
-						215,
 						22,
 						120,
+						215,
 						162,
-						31,
 						372,
+						31,
 						220,
 						261
 					],
 					"player_fpts": [
-						32.8,
 						22.7,
 						28.4,
+						32.8,
 						28.64,
-						30.740000000000002,
 						30.0,
+						30.740000000000002,
 						29.8,
 						27.200000000000003
 					],
@@ -3258,12 +5264,12 @@
 						1
 					],
 					"player_costs": [
-						7800.0,
 						4600.0,
 						7000.0,
+						7800.0,
 						6100.0,
-						6800.0,
 						9800.0,
+						6800.0,
 						7700.0,
 						5300.0
 					],
@@ -3276,6 +5282,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Zay",
+						"Phillip",
+						"Travis",
+						"Tarik",
+						"Todd",
+						"Josh",
+						"Keenan",
+						"Dante"
+					],
+					"player_last_names": [
+						"Jones",
+						"Lindsay",
+						"Kelce",
+						"Cohen",
+						"Gurley II",
+						"Allen",
+						"Allen",
+						"Pettis"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						]
+					],
+					"player_teams": [
+						"BUF",
+						"DEN",
+						"KC",
+						"CHI",
+						"LA",
+						"BUF",
+						"LAC",
+						"SF"
 					],
 					"team_ids": [
 						24
@@ -3291,6 +5353,9 @@
 					],
 					"team_costs_multiplier": [
 						1
+					],
+					"teams": [
+						"HOU"
 					],
 					"placement_percentile": null
 				},
@@ -3347,6 +5412,62 @@
 						1,
 						1
 					],
+					"player_first_names": [
+						"David",
+						"Nick",
+						"Julio",
+						"Ezekiel",
+						"Randall",
+						"Ryan",
+						"Willie",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Johnson",
+						"Chubb",
+						"Jones",
+						"Elliott",
+						"Cobb",
+						"Griffin",
+						"Snead",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"RB"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"ARI",
+						"CLE",
+						"ATL",
+						"DAL",
+						"GB",
+						"HOU",
+						"BAL",
+						"KC"
+					],
 					"team_ids": [
 						25
 					],
@@ -3361,6 +5482,9 @@
 					],
 					"team_costs_multiplier": [
 						1
+					],
+					"teams": [
+						"NO"
 					],
 					"placement_percentile": 0.5637827075129939
 				},
@@ -3413,21 +5537,21 @@
 					"total_score": 274.2,
 					"total_cost": 59900.0,
 					"player_ids": [
+						84,
 						53,
 						383,
-						84,
-						349,
 						252,
+						349,
 						265,
 						371,
 						240
 					],
 					"player_fpts": [
+						29.0,
 						26.4,
 						26.6,
-						29.0,
-						27.700000000000003,
 						23.5,
+						27.700000000000003,
 						30.5,
 						44.7,
 						47.8
@@ -3443,11 +5567,11 @@
 						1
 					],
 					"player_costs": [
+						7500.0,
 						7400.0,
 						8400.0,
-						7500.0,
-						8900.0,
 						5200.0,
+						8900.0,
 						6600.0,
 						6900.0,
 						5500.0
@@ -3461,6 +5585,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"JuJu",
+						"Dak",
+						"Julio",
+						"Kenny",
+						"Saquon",
+						"George",
+						"Amari",
+						"Derrick"
+					],
+					"player_last_names": [
+						"Smith-Schuster",
+						"Prescott",
+						"Jones",
+						"Stills",
+						"Barkley",
+						"Kittle",
+						"Cooper",
+						"Henry"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"PIT",
+						"DAL",
+						"ATL",
+						"MIA",
+						"NYG",
+						"SF",
+						"DAL",
+						"TEN"
 					],
 					"team_ids": [
 						27
@@ -3477,24 +5657,27 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NYG"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 121.21964578995573,
 					"total_cost": 59900.0,
 					"player_ids": [
-						215,
-						87,
 						246,
+						87,
+						215,
 						63,
 						220,
 						69,
 						209
 					],
 					"player_fpts": [
-						15.570387299856883,
-						15.925687789916992,
 						9.575220859502874,
+						15.925687789916992,
+						15.570387299856883,
 						16.639585494995117,
 						15.647932878830392,
 						16.987628936767578,
@@ -3510,9 +5693,9 @@
 						1
 					],
 					"player_costs": [
-						8000.0,
-						7700.0,
 						4900.0,
+						7700.0,
+						8000.0,
 						8800.0,
 						7900.0,
 						9100.0,
@@ -3526,6 +5709,56 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Danny",
+						"Nick",
+						"Travis",
+						"Ezekiel",
+						"Keenan",
+						"Christian",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Amendola",
+						"Chubb",
+						"Kelce",
+						"Elliott",
+						"Allen",
+						"McCaffrey",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"MIA",
+						"CLE",
+						"KC",
+						"DAL",
+						"LAC",
+						"CAR",
+						"KC"
 					],
 					"team_ids": [
 						4
@@ -3542,13 +5775,16 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"BUF"
+					],
 					"placement_percentile": 0.5200997373748476
 				},
 				"predicted_score": 112.72917733308364,
 				"final_player_fpts": [
-					17.2,
-					16.3,
 					1.5,
+					16.3,
+					17.2,
 					25.200000000000003,
 					16.3,
 					25.1,
@@ -3590,21 +5826,21 @@
 					"total_score": 274.2,
 					"total_cost": 59900.0,
 					"player_ids": [
+						84,
 						53,
 						383,
-						84,
-						349,
 						252,
+						349,
 						265,
 						371,
 						240
 					],
 					"player_fpts": [
+						29.0,
 						26.4,
 						26.6,
-						29.0,
-						27.700000000000003,
 						23.5,
+						27.700000000000003,
 						30.5,
 						44.7,
 						47.8
@@ -3620,11 +5856,11 @@
 						1
 					],
 					"player_costs": [
+						7500.0,
 						7400.0,
 						8400.0,
-						7500.0,
-						8900.0,
 						5200.0,
+						8900.0,
 						6600.0,
 						6900.0,
 						5500.0
@@ -3638,6 +5874,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"JuJu",
+						"Dak",
+						"Julio",
+						"Kenny",
+						"Saquon",
+						"George",
+						"Amari",
+						"Derrick"
+					],
+					"player_last_names": [
+						"Smith-Schuster",
+						"Prescott",
+						"Jones",
+						"Stills",
+						"Barkley",
+						"Kittle",
+						"Cooper",
+						"Henry"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"PIT",
+						"DAL",
+						"ATL",
+						"MIA",
+						"NYG",
+						"SF",
+						"DAL",
+						"TEN"
 					],
 					"team_ids": [
 						27
@@ -3654,24 +5946,27 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"NYG"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
 					"total_score": 121.21964578995573,
 					"total_cost": 59900.0,
 					"player_ids": [
-						215,
-						87,
 						246,
+						87,
+						215,
 						63,
 						220,
 						69,
 						209
 					],
 					"player_fpts": [
-						15.570387299856883,
-						15.925687789916992,
 						9.575220859502874,
+						15.925687789916992,
+						15.570387299856883,
 						16.639585494995117,
 						15.647932878830392,
 						16.987628936767578,
@@ -3687,9 +5982,9 @@
 						1
 					],
 					"player_costs": [
-						8000.0,
-						7700.0,
 						4900.0,
+						7700.0,
+						8000.0,
 						8800.0,
 						7900.0,
 						9100.0,
@@ -3703,6 +5998,56 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Danny",
+						"Nick",
+						"Travis",
+						"Ezekiel",
+						"Keenan",
+						"Christian",
+						"Patrick"
+					],
+					"player_last_names": [
+						"Amendola",
+						"Chubb",
+						"Kelce",
+						"Elliott",
+						"Allen",
+						"McCaffrey",
+						"Mahomes"
+					],
+					"player_pos": [
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"QB"
+						]
+					],
+					"player_teams": [
+						"MIA",
+						"CLE",
+						"KC",
+						"DAL",
+						"LAC",
+						"CAR",
+						"KC"
 					],
 					"team_ids": [
 						4
@@ -3719,13 +6064,16 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"BUF"
+					],
 					"placement_percentile": 0.5200997373748476
 				},
 				"predicted_score": 112.72917733308364,
 				"final_player_fpts": [
-					17.2,
-					16.3,
 					1.5,
+					16.3,
+					17.2,
 					25.200000000000003,
 					16.3,
 					25.1,
@@ -3769,24 +6117,24 @@
 					"total_score": 234.78000000000003,
 					"total_cost": 59600.0,
 					"player_ids": [
-						281,
 						386,
+						281,
 						372,
 						106,
 						295,
 						231,
-						271,
-						240
+						240,
+						271
 					],
 					"player_fpts": [
-						13.100000000000001,
 						25.040000000000003,
+						13.100000000000001,
 						29.4,
 						21.7,
 						34.0,
 						33.0,
-						28.8,
-						29.740000000000002
+						29.740000000000002,
+						28.8
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -3799,14 +6147,14 @@
 						1
 					],
 					"player_costs": [
-						4300.0,
 						8400.0,
+						4300.0,
 						9800.0,
 						6200.0,
 						8600.0,
 						6000.0,
-						6200.0,
-						6100.0
+						6100.0,
+						6200.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -3817,6 +6165,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Matt",
+						"Garrett",
+						"Todd",
+						"Doug",
+						"DeAndre",
+						"Mike",
+						"Derrick",
+						"Dalvin"
+					],
+					"player_last_names": [
+						"Ryan",
+						"Celek",
+						"Gurley II",
+						"Baldwin",
+						"Hopkins",
+						"Williams",
+						"Henry",
+						"Cook"
+					],
+					"player_pos": [
+						[
+							"QB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"ATL",
+						"SF",
+						"LA",
+						"SEA",
+						"HOU",
+						"LAC",
+						"TEN",
+						"MIN"
 					],
 					"team_ids": [
 						32
@@ -3833,30 +6237,33 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"ATL"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
-					"total_score": 125.9564319686102,
+					"total_score": 125.95643196861022,
 					"total_cost": 59900.0,
 					"player_ids": [
 						215,
-						195,
-						69,
-						84,
-						371,
 						613,
+						84,
+						195,
 						260,
-						558
+						371,
+						558,
+						69
 					],
 					"player_fpts": [
 						15.228462210271442,
-						15.220010640819034,
-						17.187639236450195,
-						14.809129316569564,
-						14.574747793424898,
 						17.233499012990123,
+						14.809129316569564,
+						15.220010640819034,
 						13.597139358520508,
-						9.403072357177734
+						14.574747793424898,
+						9.403072357177734,
+						17.187639236450195
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -3870,13 +6277,13 @@
 					],
 					"player_costs": [
 						7900.0,
-						7900.0,
-						9100.0,
+						6600.0,
 						7800.0,
-						6600.0,
-						6600.0,
+						7900.0,
 						5800.0,
-						4500.0
+						6600.0,
+						4500.0,
+						9100.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -3887,6 +6294,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Travis",
+						"Nick",
+						"JuJu",
+						"T.Y.",
+						"Matt",
+						"Amari",
+						"Justin",
+						"Christian"
+					],
+					"player_last_names": [
+						"Kelce",
+						"Mullens",
+						"Smith-Schuster",
+						"Hilton",
+						"Breida",
+						"Cooper",
+						"Jackson",
+						"McCaffrey"
+					],
+					"player_pos": [
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"KC",
+						"SF",
+						"PIT",
+						"IND",
+						"SF",
+						"DAL",
+						"LAC",
+						"CAR"
 					],
 					"team_ids": [
 						14
@@ -3903,18 +6366,21 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"CHI"
+					],
 					"placement_percentile": 0.6311612471681135
 				},
-				"predicted_score": 117.25369992622349,
+				"predicted_score": 117.2536999262235,
 				"final_player_fpts": [
 					9.600000000000001,
-					11.0,
-					22.0,
-					6.0,
-					6.3,
 					14.8,
+					6.0,
+					11.0,
 					12.100000000000001,
-					16.0
+					6.3,
+					16.0,
+					22.0
 				],
 				"final_team_fpts": [
 					8.0
@@ -3952,24 +6418,24 @@
 					"total_score": 234.78000000000003,
 					"total_cost": 59600.0,
 					"player_ids": [
-						281,
 						386,
+						281,
 						372,
 						106,
 						295,
 						231,
-						271,
-						240
+						240,
+						271
 					],
 					"player_fpts": [
-						13.100000000000001,
 						25.040000000000003,
+						13.100000000000001,
 						29.4,
 						21.7,
 						34.0,
 						33.0,
-						28.8,
-						29.740000000000002
+						29.740000000000002,
+						28.8
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -3982,14 +6448,14 @@
 						1
 					],
 					"player_costs": [
-						4300.0,
 						8400.0,
+						4300.0,
 						9800.0,
 						6200.0,
 						8600.0,
 						6000.0,
-						6200.0,
-						6100.0
+						6100.0,
+						6200.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -4000,6 +6466,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Matt",
+						"Garrett",
+						"Todd",
+						"Doug",
+						"DeAndre",
+						"Mike",
+						"Derrick",
+						"Dalvin"
+					],
+					"player_last_names": [
+						"Ryan",
+						"Celek",
+						"Gurley II",
+						"Baldwin",
+						"Hopkins",
+						"Williams",
+						"Henry",
+						"Cook"
+					],
+					"player_pos": [
+						[
+							"QB"
+						],
+						[
+							"TE"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"ATL",
+						"SF",
+						"LA",
+						"SEA",
+						"HOU",
+						"LAC",
+						"TEN",
+						"MIN"
 					],
 					"team_ids": [
 						32
@@ -4016,6 +6538,9 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"ATL"
+					],
 					"placement_percentile": null
 				},
 				"wagered_outcome": {
@@ -4023,23 +6548,23 @@
 					"total_cost": 59900.0,
 					"player_ids": [
 						215,
-						195,
-						84,
-						371,
 						613,
-						69,
+						84,
+						195,
 						260,
-						558
+						371,
+						558,
+						69
 					],
 					"player_fpts": [
 						15.228462210271442,
-						15.220010640819034,
-						14.809129316569564,
-						14.574747793424898,
 						17.233499012990123,
-						17.187639236450195,
+						14.809129316569564,
+						15.220010640819034,
 						13.597139358520508,
-						9.403072357177734
+						14.574747793424898,
+						9.403072357177734,
+						17.187639236450195
 					],
 					"player_fpts_multiplier": [
 						1,
@@ -4053,13 +6578,13 @@
 					],
 					"player_costs": [
 						7900.0,
-						7900.0,
+						6600.0,
 						7800.0,
-						6600.0,
-						6600.0,
-						9100.0,
+						7900.0,
 						5800.0,
-						4500.0
+						6600.0,
+						4500.0,
+						9100.0
 					],
 					"player_costs_multiplier": [
 						1,
@@ -4070,6 +6595,62 @@
 						1,
 						1,
 						1
+					],
+					"player_first_names": [
+						"Travis",
+						"Nick",
+						"JuJu",
+						"T.Y.",
+						"Matt",
+						"Amari",
+						"Justin",
+						"Christian"
+					],
+					"player_last_names": [
+						"Kelce",
+						"Mullens",
+						"Smith-Schuster",
+						"Hilton",
+						"Breida",
+						"Cooper",
+						"Jackson",
+						"McCaffrey"
+					],
+					"player_pos": [
+						[
+							"TE"
+						],
+						[
+							"QB"
+						],
+						[
+							"WR"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"WR"
+						],
+						[
+							"RB"
+						],
+						[
+							"RB"
+						]
+					],
+					"player_teams": [
+						"KC",
+						"SF",
+						"PIT",
+						"IND",
+						"SF",
+						"DAL",
+						"LAC",
+						"CAR"
 					],
 					"team_ids": [
 						14
@@ -4086,18 +6667,21 @@
 					"team_costs_multiplier": [
 						1
 					],
+					"teams": [
+						"CHI"
+					],
 					"placement_percentile": 0.6311612471681135
 				},
 				"predicted_score": 117.2536999262235,
 				"final_player_fpts": [
 					9.600000000000001,
-					11.0,
-					6.0,
-					6.3,
 					14.8,
-					22.0,
+					6.0,
+					11.0,
 					12.100000000000001,
-					16.0
+					6.3,
+					16.0,
+					22.0
 				],
 				"final_team_fpts": [
 					8.0
