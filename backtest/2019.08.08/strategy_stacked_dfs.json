@@ -1,0 +1,62 @@
+{
+    "C_gpp_25_nfl": {
+        "description": "Bet .25 on GPP on classic daily fantasy for NFL. Stack QB and 1-2 WR/TE, and no opposing offense vs team.D",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        'sports': ['nfl'],
+
+        "contest_style": "CLASSIC",
+        "wager_abs": 0.25,
+        "addl_viability_tests": [
+            ["positional_stacking",
+             {"position": "QB",
+              "team_positions": ["WR", "TE"],
+              "min_stack": 1, "max_stack": 2}],
+            ["positional_stacking",
+             {"position": "team.D",
+              "opp_team": true,
+              "team_positions": ["QB", "WR", "TE", "RB"]
+              "max_stack": 0}]
+        ]
+    },
+    "C_gpp_25_mlb": {
+        "description": "Bet .25 on GPP on classic daily fantasy for MLB. No opposing team positions vs P",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        'sports': ['mlb'],
+
+        "contest_style": "CLASSIC",
+        "wager_abs": 0.25,
+        "addl_viability_tests": [
+            ["positional_stacking",
+             {"position": "P",
+              "opp_team": true,
+              "team_positions": "__ALL_POSITIONS__",
+              "max_stack": 0}]
+        ]
+    },
+    "C_gpp_25_nhl": {
+        "description": "Bet .25 on GPP on classic daily fantasy for NHL. No opposing team positions vs G",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        'sports': ['nhl'],
+
+        "contest_style": "CLASSIC",
+        "wager_abs": 0.25,
+        "addl_viability_tests": [
+            ["positional_stacking",
+             {"position": "G",
+              "opp_team": true,
+              "team_positions": "__ALL_POSITIONS__",
+              "max_stack": 0}]
+        ]
+    }
+}
+
+
+# TODO: need nhl line stacking
+NHL_CLASSIC_STACKS = [
+    PositionalStackingViabilityTester(position='G',
+                                      opp_team_positions=ALL_POSITIONS,
+                                      max_stack=0)
+]
