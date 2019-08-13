@@ -13,7 +13,7 @@
                   "team_positions": ["WR", "TE"],
                   "min_stack": 1, "max_stack": 2}],
                 ["positional_stacking",
-                 {"position": "team.D",
+                 {"position": "__TEAM__",
                   "opp_team": true,
                   "team_positions": ["QB", "WR", "TE", "RB"],
                   "max_stack": 0}]
