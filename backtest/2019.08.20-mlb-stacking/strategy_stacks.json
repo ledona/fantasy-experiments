@@ -1,0 +1,59 @@
+{
+    "mlb.mult-opp+stacks.2x1": {
+        "description": "Testing mlb stacks and opponent avoidance with 2 single stacks",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        "sport_filter": ["mlb"],
+        "cls_init_args": {
+            "contest_style": "CLASSIC",
+            "wager_abs": 0.25,
+            "pct_lineup_diff": 0.8,
+            "n_lineups": 4,
+            "addl_viability_tests": [
+                ["stack_same_team_and_pos",
+                 {"positions": ["1B", "2B", "3B", "C", "SS", "LF", "CF", "RF", "C"],
+                  "stack_size": 1,
+                  "number_of_stacks": 2}],
+                ["no_opp_team", {"position": "P"}]
+            ]
+        }
+    },
+    "mlb.mult-opp+stacks.2x3": {
+        "description": "Testing mlb stacks and opponent avoidance, with 2 x 3 stacks",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        "sport_filter": ["mlb"],
+        "cls_init_args": {
+            "contest_style": "CLASSIC",
+            "wager_abs": 0.25,
+            "pct_lineup_diff": 0.8,
+            "n_lineups": 4,
+            "addl_viability_tests": [
+                ["stack_same_team_and_pos",
+                 {"positions": ["1B", "2B", "3B", "C", "SS", "LF", "CF", "RF", "C"],
+                  "stack_size": 3,
+                  "number_of_stacks": 2}],
+                ["no_opp_team", {"position": "P"}]
+            ]
+        }
+    },
+    "mlb.mult-opp+stacks.2x2": {
+        "description": "Testing mlb stacks and opponent avoidance, with 2 x 2 stacks",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        "sport_filter": ["mlb"],
+        "cls_init_args": {
+            "contest_style": "CLASSIC",
+            "wager_abs": 0.25,
+            "pct_lineup_diff": 0.8,
+            "n_lineups": 4,
+            "addl_viability_tests": [
+                ["stack_same_team_and_pos",
+                 {"positions": ["1B", "2B", "3B", "C", "SS", "LF", "CF", "RF", "C"],
+                  "stack_size": 2,
+                  "number_of_stacks": 2}],
+                ["no_opp_team", {"position": "P"}]
+            ]
+        }
+    }
+}
