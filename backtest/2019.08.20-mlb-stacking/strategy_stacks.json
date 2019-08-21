@@ -124,10 +124,6 @@
             "pct_lineup_diff": 0.5,
             "n_lineups": 3,
             "addl_viability_tests": [
-                ["mlb_bo_stack",
-                 {"stack_size": 2,
-                  "bo_distance": 3,
-                  "number_of_stacks": 3}],
                 ["no_opp_team", {"position": "P"}]
             ]
         }
