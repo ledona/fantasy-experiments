@@ -70,7 +70,7 @@
                 ["mlb_bo_stack",
                  {"stack_size": 1,
                   "bo_distance": 3,
-                  "number_of_stacks": 1}],
+                  "number_of_stacks": 2}],
                 ["no_opp_team", {"position": "P"}]
             ]
         }
@@ -95,7 +95,7 @@
         }
     },
     "mult-opp-bo.2x3": {
-        "description": "Testing mlb batting order stacks, 2 single stacks",
+        "description": "Testing mlb batting order stacks, 3 double stacks",
         "type": "simple_dfs",
         "contest": "GPP",
         "sport_filter": ["mlb"],
@@ -106,9 +106,9 @@
             "n_lineups": 3,
             "addl_viability_tests": [
                 ["mlb_bo_stack",
-                 {"stack_size": 2,
+                 {"stack_size": 3,
                   "bo_distance": 3,
-                  "number_of_stacks": 3}],
+                  "number_of_stacks": 2}],
                 ["no_opp_team", {"position": "P"}]
             ]
         }
@@ -124,6 +124,40 @@
             "pct_lineup_diff": 0.5,
             "n_lineups": 3,
             "addl_viability_tests": [
+                ["no_opp_team", {"position": "P"}]
+            ]
+        }
+    },
+    "avoid-opp.10": {
+        "description": "Testing mlb batting order stacks, 2 single stacks",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        "sport_filter": ["mlb"],
+        "cls_init_args": {
+            "contest_style": "CLASSIC",
+            "wager_abs": 0.25,
+            "pct_lineup_diff": 0.5,
+            "n_lineups": 10,
+            "addl_viability_tests": [
+                ["no_opp_team", {"position": "P"}]
+            ]
+        }
+    },
+    "mult-opp-bo.10.2x3": {
+        "description": "Testing mlb batting order stacks, 3 double stacks",
+        "type": "simple_dfs",
+        "contest": "GPP",
+        "sport_filter": ["mlb"],
+        "cls_init_args": {
+            "contest_style": "CLASSIC",
+            "wager_abs": 0.25,
+            "pct_lineup_diff": 0.5,
+            "n_lineups": 3,
+            "addl_viability_tests": [
+                ["mlb_bo_stack",
+                 {"stack_size": 3,
+                  "bo_distance": 3,
+                  "number_of_stacks": 2}],
                 ["no_opp_team", {"position": "P"}]
             ]
         }

@@ -1,0 +1,14 @@
+{
+    "sd-double": {
+        "description": "mlb double up",
+        "type": "simple_dfs",
+        "contest": "double up",
+        "sport_filter": ["mlb"],
+        "service_filter": ["draftkings", "fanduel"],
+        "cls_init_args": {
+            "max_showdowns": null,
+            "contest_style": "SHOWDOWN",
+            "wager_abs": 1
+        }
+    }
+}
