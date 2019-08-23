@@ -152,7 +152,7 @@
             "contest_style": "CLASSIC",
             "wager_abs": 0.25,
             "pct_lineup_diff": 0.5,
-            "n_lineups": 3,
+            "n_lineups": 10,
             "addl_viability_tests": [
                 ["mlb_bo_stack",
                  {"stack_size": 3,
