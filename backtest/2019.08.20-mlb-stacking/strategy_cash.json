@@ -1,6 +1,6 @@
 {
     "sd-double": {
-        "description": "mlb double up",
+        "description": "mlb double up showdown, bet on all available, no pitcher restrictions",
         "type": "simple_dfs",
         "contest": "double up",
         "sport_filter": ["mlb"],
@@ -9,6 +9,51 @@
             "max_showdowns": null,
             "contest_style": "SHOWDOWN",
             "wager_abs": 1
+        }
+    },
+    "sd-double.dk.0p": {
+        "description": "mlb double up showdown, bet on all available, no pitchers",
+        "type": "simple_dfs",
+        "contest": "double up",
+        "sport_filter": ["mlb"],
+        "service_filter": ["draftkings"],
+        "cls_init_args": {
+            "max_showdowns": null,
+            "contest_style": "SHOWDOWN",
+            "wager_abs": 1,
+            "addl_viability_tests": [
+                ["positional", {"position": "P", "max_count": 0}]
+            ]
+        }
+    },
+    "sd-double.dk.1p": {
+        "description": "mlb double up showdown, bet on all available, 1 pitcher",
+        "type": "simple_dfs",
+        "contest": "double up",
+        "sport_filter": ["mlb"],
+        "service_filter": ["draftkings"],
+        "cls_init_args": {
+            "max_showdowns": null,
+            "contest_style": "SHOWDOWN",
+            "wager_abs": 1,
+            "addl_viability_tests": [
+                ["positional", {"position": "P", "max_count": 1}]
+            ]
+        }
+    },
+    "sd-double.dk.2p": {
+        "description": "mlb double up showdown, bet on all available, require 2 pitchers",
+        "type": "simple_dfs",
+        "contest": "double up",
+        "sport_filter": ["mlb"],
+        "service_filter": ["draftkings"],
+        "cls_init_args": {
+            "max_showdowns": null,
+            "contest_style": "SHOWDOWN",
+            "wager_abs": 1,
+            "addl_viability_tests": [
+                ["positional", {"position": "P", "min_count": 2}]
+            ]
         }
     }
 }
