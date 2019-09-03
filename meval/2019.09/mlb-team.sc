@@ -8,15 +8,22 @@ usage()
 {
     script_name=
     echo "MLB team score prediction meval.
-usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA)"
+usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) [--test]
+
+--test - (optional) Do a short test (fewer seasons, iterations, etc)
+"
 }
 
-CALC=CALC_${1}
+TEST_ARG=$2
 
-if [ -z "${!CALC}" ]; then
+if [ "$TEST_ARG" != "--test" -a "$TEST_ARG" != "" ]; then
     usage
     exit 1
 fi
+
+CALC_ARGS=$(get_calc_args "$1" "$TEST_ARG")
+
+CMD=$(get_meval_base_cmd "$TEST_ARG")
 
 
 TEAM_STATS="win off_1b off_2b off_3b off_ab off_bb off_hbp
@@ -35,15 +42,14 @@ EXTRA_STATS="home_C l_hit_%_C l_hit_%_H
              r_hit_%_C r_hit_%_H starter_phand_C
              team_home_H venue_H venue_C"
 
-STATS="--team_stats $TEAM_STATS
-       --cur_opp_team_stats $CUR_OPP_TEAM_STATS
-       --extra_stats $EXTRA_STATS"
-
-
-CMD="python -O scripts/meval.sc
-$MEVAL_ARGS $STATS
+CMD="$CMD
 -o mlb_team-score_${1}
-mlb_hist_2008-2018.scored.db ${!CALC}
---model_team_stat off_runs"
+mlb_hist_2008-2018.scored.db
+${CALC_ARGS}
+--team_stats $TEAM_STATS
+--cur_opp_team_stats $CUR_OPP_TEAM_STATS
+--extra_stats $EXTRA_STATS
+--model_team_stat off_runs
+"
 
 echo $CMD

@@ -1,14 +1,29 @@
 # shared environment variables for mlb analyses
-# sets $MEVAL_ARGS, and CALC_... variables
+# sets get_meval_base_cmd, and CALC_... variables
 # some basic args
-MEVAL_ARGS="--progress --cache_dir ./cache_dir --slack
-            --scoring mae r2
+
+_SHARED_MEVAL_ARGS="--progress --cache_dir ./cache_dir
+                    --search_bayes_scorer mae
+                    --scoring mae r2"
+
+# full meval args
+MEVAL_ARGS="${_SHARED_MEVAL_ARGS} --slack
             --seasons 2018 2017 2016 2015 2014
             --search_method bayes --search_iters 70
             --search_bayes_init_pts 7
-            --search_bayes_scorer mae
-            --folds 3 --n_games_range 1 7
-            --n_cases_range 500 49000"
+            --folds 3"
+
+COMMON_CALC_ARGS="--n_games_range 1 7
+                  --n_cases_range 500 49000"
+
+# limited data for testing
+TEST_MEVAL_ARGS="${_SHARED_MEVAL_ARGS}
+            --seasons 2018
+            --search_method bayes --search_iters 7
+            --search_bayes_init_pts 3
+            --folds 2"
+TEST_COMMON_CALC_ARGS="--n_games_range 1 3
+                       --n_cases_range 100 500"
 
 
 CALC_OLS='sklearn --est ols
@@ -54,3 +69,50 @@ CALC_XG="xgboost
        --gamma_range 0 10000 --gamma_range_def 10 log
        --colsample_bytree_range 0.5 1
        --rounds_range 75 150"
+
+
+# shared args that go at the end of the calc args
+CALC_POST_ARGS=""
+
+
+
+# echo the start of the meval python command
+# takes 1 arg, a string of either "--test" or an empty string
+get_meval_base_cmd()
+{
+    TEST_ARG=$1
+
+    if [ "$TEST_ARG" == '--test' ]; then
+        ARGS=$TEST_MEVAL_ARGS
+        RUNNER="meval.sc"
+    elif [ "$TEST_ARG" == "" ]; then
+        ARGS=$MEVAL_ARGS
+        RUNNER="python -O ${FANTASY_HOME}/scripts/meval.sc"
+    else
+        usage
+        exit 1
+    fi
+
+    echo "$RUNNER $ARGS"
+}
+
+# return the calc args
+# takes 2 parameters, first is the calc nae, second is either --test or an empty string
+# assumes that a usage function is already defined
+get_calc_args()
+{
+    CALC_ARGS_NAME=CALC_${1}
+    CALC_ARGS=${!CALC_ARGS_NAME}
+    TEST_ARG="$3"
+
+    if [ "$TEST_ARG" == "--test" ]; then
+        CALC_ARGS="${CALC_ARGS} ${TEST_COMMON_CALC_ARGS}"
+    elif [ "$TEST_ARG" == "" ]; then
+        CALC_ARGS="${CALC_ARGS} ${COMMON_CALC_ARGS}"
+    else
+        usage
+        exit 1
+    fi
+
+    echo $CALC_ARGS $CALC_POST_ARGS
+}
