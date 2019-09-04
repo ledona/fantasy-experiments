@@ -78,6 +78,7 @@ CALC_POST_ARGS=""
 
 # echo the start of the meval python command
 # takes 1 arg, a string of either "--test" or an empty string
+# if it returns 1 then the caller should exit (due to arg parse failure)
 get_meval_base_cmd()
 {
     TEST_ARG=$1
@@ -89,7 +90,6 @@ get_meval_base_cmd()
         ARGS=$MEVAL_ARGS
         RUNNER="python -O ${FANTASY_HOME}/scripts/meval.sc"
     else
-        usage
         exit 1
     fi
 
@@ -98,19 +98,23 @@ get_meval_base_cmd()
 
 # return the calc args
 # takes 2 parameters, first is the calc nae, second is either --test or an empty string
-# assumes that a usage function is already defined
+# if it returns 1 then the caller should exit (due to arg parse failure)
 get_calc_args()
 {
     CALC_ARGS_NAME=CALC_${1}
     CALC_ARGS=${!CALC_ARGS_NAME}
-    TEST_ARG="$3"
+
+    if [ -z "$CALC_ARGS" ]; then
+        exit 1
+    fi
+
+    TEST_ARG="$2"
 
     if [ "$TEST_ARG" == "--test" ]; then
         CALC_ARGS="${CALC_ARGS} ${TEST_COMMON_CALC_ARGS}"
     elif [ "$TEST_ARG" == "" ]; then
         CALC_ARGS="${CALC_ARGS} ${COMMON_CALC_ARGS}"
     else
-        usage
         exit 1
     fi
 

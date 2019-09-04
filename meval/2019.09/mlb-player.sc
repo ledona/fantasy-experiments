@@ -15,19 +15,14 @@ usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (P|H) (dk|fd|y) [--test]
 
 P_TYPE=$2
 SERVICE=$3
-TEST_ARG=$4
-CALC_ARGS=$(get_calc_args "$1" "$TEST_ARG")
+CALC_ARGS=$(get_calc_args "$1" "$4") && CMD=$(get_meval_base_cmd "$4")
 
-
-if [ "$SERVICE" != "dk" -a "$SERVICE" != "fd" -a "$SERVICE" != "y" ] ||
+if [ "$?" -eq 1 ] ||
+       [ "$SERVICE" != "dk" -a "$SERVICE" != "fd" -a "$SERVICE" != "y" ] ||
        [ "$P_TYPE" != "P" -a "$P_TYPE" != "H" ]; then
     usage
     exit 1
 fi
-
-
-CMD=$(get_meval_base_cmd "$TEST_ARG")
-
 
 if [ "$P_TYPE" == "P" ]; then
     # pitcher stuff

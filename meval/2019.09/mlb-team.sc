@@ -14,16 +14,16 @@ usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) [--test]
 "
 }
 
-TEST_ARG=$2
 
-if [ "$TEST_ARG" != "--test" -a "$TEST_ARG" != "" ]; then
+# parse the command line
+CALC_ARGS=$(get_calc_args "$1" "$2") && CMD=$(get_meval_base_cmd "$2")
+ERROR=$?
+
+if [ "$ERROR" -eq 1 ]; then
     usage
     exit 1
 fi
 
-CALC_ARGS=$(get_calc_args "$1" "$TEST_ARG")
-
-CMD=$(get_meval_base_cmd "$TEST_ARG")
 
 
 TEAM_STATS="win off_1b off_2b off_3b off_ab off_bb off_hbp
