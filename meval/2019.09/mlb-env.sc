@@ -45,7 +45,7 @@ CALC_RF='sklearn
        --est rforest'
 
 _SHARED_DNN='keras
-           --hist_agg none
+           --hist_agg_list mean median none
            --normalize
            --steps_range 100 1000 --steps_range_inc 100
            --layers_range 1 5

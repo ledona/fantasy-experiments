@@ -60,13 +60,14 @@ elif [ "$P_TYPE" == "H" ]; then
                 off_sac off_sb off_sb_c p_runs win"
 
 
-    EXTRA_STATS="home_C off_hit_side
-                   opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
-                   opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
-                   opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
-                   opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
-                   opp_starter_phand_C opp_starter_phand_H
-                   player_home_H player_pos_C team_home_H venue_C venue_H"
+    EXTRA_STATS="modeled_stat_trend modeled_stat_std
+                 home_C off_hit_side
+                 opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
+                 opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
+                 opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
+                 opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
+                 opp_starter_phand_C opp_starter_phand_H
+                 player_home_H player_pos_C team_home_H venue_C venue_H"
 
     CUR_OPP_TEAM_STATS="errors p_bb p_cg p_er p_hbp p_hits
                         p_hold p_hr p_ibb p_k p_loss p_pc p_qs
