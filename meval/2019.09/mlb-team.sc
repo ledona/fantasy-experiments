@@ -31,7 +31,7 @@ TEAM_STATS="win off_1b off_2b off_3b off_ab off_bb off_hbp
             off_sac_h off_sb off_sb_c"
 CUR_OPP_TEAM_STATS="errors p_bb p_cg p_er p_hbp p_hits p_hold p_hr p_ibb p_ip p_k
                     p_loss p_pc p_qs p_runs p_save p_strikes"
-EXTRA_STATS="modeled_stat_trend modeled_stat_std
+EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
              home_C l_hit_%_C l_hit_%_H
              opp_l_hit_%_C opp_l_hit_%_H opp_r_hit_%_C opp_r_hit_%_H
              opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp

@@ -60,7 +60,7 @@ elif [ "$P_TYPE" == "H" ]; then
                 off_sac off_sb off_sb_c p_runs win"
 
 
-    EXTRA_STATS="modeled_stat_trend modeled_stat_std
+    EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
                  home_C off_hit_side
                  opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
                  opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
