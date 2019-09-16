@@ -2,6 +2,11 @@
 # sets get_meval_base_cmd, and CALC_... variables
 # some basic args
 
+if [ "$MAX_OLS_FEATURES" == "" ]; then
+    echo Error! MAX_FEATURES must be set before calling mlb-env.sc
+    exit 1
+fi
+
 _SHARED_MEVAL_ARGS="--progress --cache_dir ./cache_dir
                     --search_bayes_scorer mae
                     --scoring mae r2"
@@ -26,9 +31,9 @@ TEST_COMMON_CALC_ARGS="--n_games_range 1 3
                        --n_cases_range 100 500"
 
 
-CALC_OLS='sklearn --est ols
+CALC_OLS="sklearn --est ols
         --hist_agg_list mean median
-        --n_features_range 1 77'
+        --n_features_range 1 ${MAX_OLS_FEATURES}"
 
 CALC_BLE='sklearn
         --hist_agg_list mean median none

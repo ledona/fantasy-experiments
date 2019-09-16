@@ -2,6 +2,9 @@
 
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
+
+# MAKE SURE THIS IS ACCURATE OR HIGHER
+MAX_OLS_FEATURES=70
 source ${script_dir}/mlb-env.sc
 
 usage()
@@ -16,7 +19,8 @@ usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) [--test]
 
 
 # parse the command line
-CALC_ARGS=$(get_calc_args "$1" "$2") && CMD=$(get_meval_base_cmd "$2")
+MODEL=$1
+CALC_ARGS=$(get_calc_args "$MODEL" "$2") && CMD=$(get_meval_base_cmd "$2")
 ERROR=$?
 
 if [ "$ERROR" -eq 1 ]; then
@@ -38,9 +42,15 @@ EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
              opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
              opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
              opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
-             opp_starter_phand_C opp_starter_phand_H
-             r_hit_%_C r_hit_%_H starter_phand_C
-             team_home_H venue_C"
+             r_hit_%_C r_hit_%_H
+             team_home_H"
+
+if [ "$MODEL" != "OLS" ]; then
+    # include categorical features, not supported for OLS due to lack of feature selection support
+    EXTRA_STATS="$EXTRA_STATS venue_H venue_C
+                 opp_starter_phand_C opp_starter_phand_H
+                 starter_phand_C"
+fi
 
 CMD="$CMD
 -o mlb_team-score_${1}

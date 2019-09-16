@@ -2,6 +2,7 @@
 
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
+MAX_OLS_FEATURES=80
 source ${script_dir}/mlb-env.sc
 
 usage()
@@ -10,12 +11,14 @@ usage()
 usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (P|H) (dk|fd|y) [--test]
 
 --test - (optional) Do a short test (fewer seasons, iterations, etc)
+P|H    - Pitcher or Hitter modeling
 "
 }
 
+MODEL=$1
 P_TYPE=$2
 SERVICE=$3
-CALC_ARGS=$(get_calc_args "$1" "$4") && CMD=$(get_meval_base_cmd "$4")
+CALC_ARGS=$(get_calc_args "$MODEL" "$4") && CMD=$(get_meval_base_cmd "$4")
 
 if [ "$?" -eq 1 ] ||
        [ "$SERVICE" != "dk" -a "$SERVICE" != "fd" -a "$SERVICE" != "y" ] ||
@@ -37,8 +40,7 @@ if [ "$P_TYPE" == "P" ]; then
 
     EXTRA_STATS="home_C opp_l_hit_%_C opp_l_hit_%_H opp_r_hit_%_C opp_r_hit_%_H
                    opp_starter_p_er opp_starter_p_loss opp_starter_p_qs opp_starter_p_runs
-                   opp_starter_p_win player_home_H player_win team_home_H
-                   venue_C venue_H"
+                   opp_starter_p_win player_home_H player_win team_home_H"
 
     CUR_OPP_TEAM_STATS="off_1b off_2b off_3b off_bb off_hit
                         off_hr off_k off_pa off_rbi off_rbi_w2
@@ -59,7 +61,6 @@ elif [ "$P_TYPE" == "H" ]; then
                 off_rbi off_rbi_w2 off_rlob off_runs
                 off_sac off_sb off_sb_c p_runs win"
 
-
     EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
                  home_C off_hit_side
                  opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
@@ -67,12 +68,18 @@ elif [ "$P_TYPE" == "H" ]; then
                  opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
                  opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
                  opp_starter_phand_C opp_starter_phand_H
-                 player_home_H player_pos_C team_home_H venue_C venue_H"
+                 player_home_H player_pos_C team_home_H"
 
     CUR_OPP_TEAM_STATS="errors p_bb p_cg p_er p_hbp p_hits
                         p_hold p_hr p_ibb p_k p_loss p_pc p_qs
                         p_runs p_save p_strikes p_win win"
 fi
+
+if [ "$MODEL" != "OLS" ]; then
+    # include categorical features, not supported for OLS due to lack of feature selection support
+    EXTRA_STATS="$EXTRA_STATS venue_H venue_C"
+fi
+
 
 CMD="$CMD
 -o mlb_${SERVICE}_${P_TYPE}
