@@ -2,8 +2,18 @@
 
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
+
 MAX_OLS_FEATURES=80
-source ${script_dir}/mlb-env.sc
+P_TYPE=$2
+if [ "$P_TYPE" != "" ]; then
+    if [ "$P_TYPE" == "P" ]; then
+        MAX_CASES=60000
+    elif [ "$P_TYPE" == "H" ]; then
+        MAX_CASES=160000
+    fi
+
+    source ${script_dir}/mlb-env.sc
+fi
 
 usage()
 {
@@ -16,9 +26,7 @@ P|H    - Pitcher or Hitter modeling
 }
 
 MODEL=$1
-P_TYPE=$2
 SERVICE=$3
-CALC_ARGS=$(get_calc_args "$MODEL" "$4") && CMD=$(get_meval_base_cmd "$4")
 
 if [ "$?" -eq 1 ] ||
        [ "$SERVICE" != "dk" -a "$SERVICE" != "fd" -a "$SERVICE" != "y" ] ||
@@ -26,6 +34,8 @@ if [ "$?" -eq 1 ] ||
     usage
     exit 1
 fi
+
+CALC_ARGS=$(get_calc_args "$MODEL" "$4") && CMD=$(get_meval_base_cmd "$4")
 
 if [ "$P_TYPE" == "P" ]; then
     # pitcher stuff

@@ -7,6 +7,11 @@ if [ "$MAX_OLS_FEATURES" == "" ]; then
     exit 1
 fi
 
+if [ "$MAX_CASES" == "" ]; then
+    echo Error! MAX_CASES must be set before calling mlb-env.sc
+    exit 1
+fi
+
 _SHARED_MEVAL_ARGS="--progress --cache_dir ./cache_dir
                     --search_bayes_scorer mae
                     --scoring mae r2"
@@ -19,7 +24,7 @@ MEVAL_ARGS="${_SHARED_MEVAL_ARGS} --slack
             --folds 3"
 
 COMMON_CALC_ARGS="--n_games_range 1 7
-                  --n_cases_range 500 49000"
+                  --n_cases_range 500 $MAX_CASES"
 
 # limited data for testing
 TEST_MEVAL_ARGS="${_SHARED_MEVAL_ARGS}

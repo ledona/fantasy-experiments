@@ -5,6 +5,7 @@ script_dir="$(dirname "$0")"
 
 # MAKE SURE THIS IS ACCURATE OR HIGHER
 MAX_OLS_FEATURES=70
+MAX_CASES=16000
 source ${script_dir}/mlb-env.sc
 
 usage()
@@ -47,7 +48,7 @@ EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
 
 if [ "$MODEL" != "OLS" ]; then
     # include categorical features, not supported for OLS due to lack of feature selection support
-    EXTRA_STATS="$EXTRA_STATS venue_H venue_C
+    EXTRA_STATS="$EXTRA_STATS venue_C
                  opp_starter_phand_C opp_starter_phand_H
                  starter_phand_C"
 fi
