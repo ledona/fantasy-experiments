@@ -57,6 +57,8 @@ if [ "$P_TYPE" == "P" ]; then
                         off_rlob off_runs off_sac off_sb off_sb_c
                         p_er p_hold p_loss p_qs p_runs p_save
                         p_win win"
+
+    DATA_FILTER_FLAG="--mlb_only_starting_pitchers"
 elif [ "$P_TYPE" == "H" ]; then
     # hitter stuff
     POSITIONS="LF CF RF 1B 2B 3B SS C"
@@ -71,27 +73,33 @@ elif [ "$P_TYPE" == "H" ]; then
                 off_rbi off_rbi_w2 off_rlob off_runs
                 off_sac off_sb off_sb_c p_runs win"
 
-    EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
-                 home_C off_hit_side
+    EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean home_C
                  opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
                  opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
                  opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
                  opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
-                 opp_starter_phand_C opp_starter_phand_H
-                 player_home_H player_pos_C team_home_H"
+                 player_home_H team_home_H"
 
     CUR_OPP_TEAM_STATS="errors p_bb p_cg p_er p_hbp p_hits
                         p_hold p_hr p_ibb p_k p_loss p_pc p_qs
                         p_runs p_save p_strikes p_win win"
+
+    DATA_FILTER_FLAG="--mlb_only_starting_hitters"
 fi
 
 if [ "$MODEL" != "OLS" ]; then
     # include categorical features, not supported for OLS due to lack of feature selection support
-    EXTRA_STATS="$EXTRA_STATS venue_H venue_C"
+    EXTRA_STATS="$EXTRA_STATS venue_C"
+
+    if [ "$P_TYPE" == "H" ]; then
+        # hitters get off hit side
+        EXTRA_STATS="$EXTRA_STATS off_hit_side player_pos_C
+                     opp_starter_phand_C opp_starter_phand_H"
+    fi
 fi
 
 
-CMD="$CMD
+CMD="$CMD $DATA_FILTER_FLAG
 -o mlb_${SERVICE}_${P_TYPE}
 mlb_hist_2008-2018.scored.db
 ${CALC_ARGS}
