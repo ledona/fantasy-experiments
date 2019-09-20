@@ -3,13 +3,16 @@
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
 
-MAX_OLS_FEATURES=80
 P_TYPE=$2
 if [ "$P_TYPE" != "" ]; then
     if [ "$P_TYPE" == "P" ]; then
-        MAX_CASES=60000
+        # total cases 20500
+        MAX_CASES=13500
+        MAX_OLS_FEATURES=61
     elif [ "$P_TYPE" == "H" ]; then
-        MAX_CASES=160000
+        # total cases 200000
+        MAX_CASES=133000
+        MAX_OLS_FEATURES=75
     fi
 
     source ${script_dir}/mlb-env.sc
