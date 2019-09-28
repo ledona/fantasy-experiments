@@ -12,7 +12,7 @@ if [ "$P_TYPE" != "" ]; then
     elif [ "$P_TYPE" == "H" ]; then
         # total cases 200000
         MAX_CASES=133000
-        MAX_OLS_FEATURES=75
+        MAX_OLS_FEATURES=73
     fi
 
     source ${script_dir}/mlb-env.sc
