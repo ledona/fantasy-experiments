@@ -103,7 +103,7 @@ fi
 
 
 CMD="$CMD $DATA_FILTER_FLAG
--o mlb_${SERVICE}_${P_TYPE}
+-o mlb_${SERVICE}_${P_TYPE}_${MODEL}
 mlb_hist_2008-2018.scored.db
 ${CALC_ARGS}
 --player_pos $POSITIONS
