@@ -6,7 +6,7 @@
 if [[ $HOSTNAME == babylon5* ]]; then
     REMOTE_CACHE=""
 else
-    REMOTE_CACHE="--cache_remote babylon5:working/fantasy/casedata_cache"
+    REMOTE_CACHE="--cache_remote babylon5:working/fantasy-research/cache_dir"
 fi
 
 if [ "$MAX_OLS_FEATURES" == "" ]; then
