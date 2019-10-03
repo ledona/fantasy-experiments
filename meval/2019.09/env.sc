@@ -24,9 +24,9 @@ if [ "$SEASONS" == "" ]; then
     exit 1
 fi
 
-_SHARED_MEVAL_ARGS="--progress --cache_dir ./cache_dir
-                    --search_bayes_scorer mae
-                    --scoring mae r2 ${REMOTE_CACHE}"
+_SHARED_MEVAL_ARGS="${REMOTE_CACHE} --cache_dir ./cache_dir
+                    --progress --search_bayes_scorer mae
+                    --scoring mae r2"
 
 # full meval args
 MEVAL_ARGS="${_SHARED_MEVAL_ARGS} --slack
