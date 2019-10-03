@@ -2,6 +2,13 @@
 # sets get_meval_base_cmd, and CALC_... variables
 # some basic args
 
+# for this experiment will be used djshadow as the remote data repository
+if [[ $HOSTNAME == babylon5* ]]; then
+    REMOTE_CACHE=""
+else
+    REMOTE_CACHE="--cache_remote babylon5:working/fantasy-research/cache_dir"
+fi
+
 if [ "$MAX_OLS_FEATURES" == "" ]; then
     echo Error! MAX_FEATURES must be set before calling env.sc
     exit 1
@@ -19,7 +26,7 @@ fi
 
 _SHARED_MEVAL_ARGS="--progress --cache_dir ./cache_dir
                     --search_bayes_scorer mae
-                    --scoring mae r2"
+                    --scoring mae r2 ${REMOTE_CACHE}"
 
 # full meval args
 MEVAL_ARGS="${_SHARED_MEVAL_ARGS} --slack
