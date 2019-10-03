@@ -2,11 +2,11 @@
 
 usage()
 {
-    echo "MLB Player meval
-usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (P|H) (dk|fd|y) [--test]
+    echo "NFL Player meval
+usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (QB|WT|WR|TE|RB|D) (dk|fd|y) [--test]
 
 --test - (optional) Do a short test (fewer seasons, iterations, etc)
-P|H    - Pitcher or Hitter modeling
+QB|WT|WR|TE|RB|D - Position
 "
 }
 
@@ -15,20 +15,36 @@ script_dir="$(dirname "$0")"
 MODEL=$1
 P_TYPE=$2
 SERVICE=$3
-DB="mlb_hist_2008-2018.scored.db"
 SEASONS="2018 2017 2016 2015 2014"
+DB="nfl_hist.db"
 
 if [ "$P_TYPE" != "" ]; then
     case $P_TYPE in
-        P)
+        QB|D)
             # total cases 20500
             MAX_CASES=13500
             MAX_OLS_FEATURES=61
             ;;
-        H)
-            # total cases 200000
-            MAX_CASES=133000
-            MAX_OLS_FEATURES=73
+        WT)
+            # both WR and TE
+            # total cases 20500
+            MAX_CASES=13500
+            MAX_OLS_FEATURES=61
+            ;;
+        WR)
+            # total cases 20500
+            MAX_CASES=13500
+            MAX_OLS_FEATURES=61
+            ;;
+        TE)
+            # total cases 20500
+            MAX_CASES=13500
+            MAX_OLS_FEATURES=61
+            ;;
+        RB)
+            # total cases 20500
+            MAX_CASES=13500
+            MAX_OLS_FEATURES=61
             ;;
         *)
             usage
@@ -51,9 +67,9 @@ if [ "$?" -eq 1 ]; then
 fi
 
 case $P_TYPE in
-    P)
-        # pitcher stuff
-        POSITIONS="P"
+    QB)
+        POSITIONS="QB"
+        exit 1
 
         PLAYER_STATS="p_bb p_cg p_er p_hbp p_hits
                   p_hr p_ibb p_ip p_k p_loss p_pc
@@ -74,9 +90,10 @@ case $P_TYPE in
 
         DATA_FILTER_FLAG="--mlb_only_starting_pitchers"
         ;;
-    H)
-        # hitter stuff
-        POSITIONS="LF CF RF 1B 2B 3B SS C"
+    WT|TE|WR)
+        # wide rceiver tight end
+        POSITIONS="WR TE"
+        exit 1
 
         PLAYER_STATS="off_1b off_2b off_3b off_bb off_bo
                   off_hbp off_hit off_hr off_k off_pa
@@ -101,6 +118,16 @@ case $P_TYPE in
 
         DATA_FILTER_FLAG="--mlb_only_starting_hitters"
         ;;
+    RB)
+        # wide rceiver tight end
+        POSITIONS="RB"
+        exit 1
+        ;;
+    D)
+        # wide rceiver tight end
+        POSITIONS="DEF"
+        exit 1
+        ;;
     *)
         echo Unhandled position $P_TYPE
         exit 1
@@ -111,16 +138,20 @@ if [ "$MODEL" != "OLS" ]; then
     # include categorical features, not supported for OLS due to lack of feature selection support
     EXTRA_STATS="$EXTRA_STATS venue_C"
 
-    if [ "$P_TYPE" == "H" ]; then
-        # hitters get off hit side
+    if [ "$P_TYPE" == "D" ]; then
+        # defensive extras
+        exit 1
         EXTRA_STATS="$EXTRA_STATS off_hit_side player_pos_C
                      opp_starter_phand_C opp_starter_phand_H"
+    else
+        # player extras
+        exit 1
     fi
 fi
 
 
 CMD="$CMD $DATA_FILTER_FLAG
--o mlb_${SERVICE}_${P_TYPE}_${MODEL}
+-o nfl_${SERVICE}_${P_TYPE}_${MODEL}
 ${DB}
 ${CALC_ARGS}
 --player_pos $POSITIONS

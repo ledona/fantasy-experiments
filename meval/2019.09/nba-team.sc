@@ -2,7 +2,7 @@
 
 usage()
 {
-    echo "MLB team score prediction meval.
+    echo "NBA team score prediction meval.
 usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) [--test]
 
 --test - (optional) Do a short test (fewer seasons, iterations, etc)
@@ -13,8 +13,8 @@ usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) [--test]
 script_dir="$(dirname "$0")"
 
 MODEL=$1
-DB="mlb_hist_2008-2018.scored.db"
-SEASONS="2018 2017 2016 2015 2014"
+DB="nba_hist_2008-2018.scored.db"
+SEASONS="20192018 20182017 20172016 20162015"
 
 # MAKE SURE THIS IS ACCURATE OR HIGHER
 MAX_OLS_FEATURES=70
@@ -55,7 +55,7 @@ if [ "$MODEL" != "OLS" ]; then
 fi
 
 CMD="$CMD
--o mlb_team-score_${1}
+-o nba_team-score_${1}
 ${DB}
 ${CALC_ARGS}
 --team_stats $TEAM_STATS

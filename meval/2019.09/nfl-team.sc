@@ -2,7 +2,7 @@
 
 usage()
 {
-    echo "MLB team score prediction meval.
+    echo "NFL team score prediction meval.
 usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) [--test]
 
 --test - (optional) Do a short test (fewer seasons, iterations, etc)
@@ -13,7 +13,7 @@ usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) [--test]
 script_dir="$(dirname "$0")"
 
 MODEL=$1
-DB="mlb_hist_2008-2018.scored.db"
+DB="nfl_hist_2008-2018.scored.db"
 SEASONS="2018 2017 2016 2015 2014"
 
 # MAKE SURE THIS IS ACCURATE OR HIGHER
@@ -30,7 +30,7 @@ if [ "$ERROR" -eq 1 ]; then
     exit 1
 fi
 
-
+exit 1
 TEAM_STATS="win off_1b off_2b off_3b off_ab off_bb off_hbp
             off_hit off_hr off_k off_pa off_rbi
             off_rbi_w2 off_rlob off_runs off_sac off_sac_f
@@ -55,7 +55,7 @@ if [ "$MODEL" != "OLS" ]; then
 fi
 
 CMD="$CMD
--o mlb_team-score_${1}
+-o nfl_team-score_${1}
 ${DB}
 ${CALC_ARGS}
 --team_stats $TEAM_STATS

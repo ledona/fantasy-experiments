@@ -1,14 +1,19 @@
-# shared environment variables for mlb analyses
+# shared environment variables for meval analyses
 # sets get_meval_base_cmd, and CALC_... variables
 # some basic args
 
 if [ "$MAX_OLS_FEATURES" == "" ]; then
-    echo Error! MAX_FEATURES must be set before calling mlb-env.sc
+    echo Error! MAX_FEATURES must be set before calling env.sc
     exit 1
 fi
 
 if [ "$MAX_CASES" == "" ]; then
-    echo Error! MAX_CASES must be set before calling mlb-env.sc
+    echo Error! MAX_CASES must be set before calling env.sc
+    exit 1
+fi
+
+if [ "$SEASONS" == "" ]; then
+    echo Error! SEASONS must be set before calling env.sc
     exit 1
 fi
 
@@ -18,7 +23,7 @@ _SHARED_MEVAL_ARGS="--progress --cache_dir ./cache_dir
 
 # full meval args
 MEVAL_ARGS="${_SHARED_MEVAL_ARGS} --slack
-            --seasons 2018 2017 2016 2015 2014
+            --seasons ${SEASONS}
             --search_method bayes --search_iters 70
             --search_bayes_init_pts 7
             --folds 3"
@@ -27,8 +32,9 @@ COMMON_CALC_ARGS="--n_games_range 1 7
                   --n_cases_range 500 $MAX_CASES"
 
 # limited data for testing
+_RECENT_SEASON=`echo $SEASONS | cut -d " " -f1`
 TEST_MEVAL_ARGS="${_SHARED_MEVAL_ARGS}
-            --seasons 2018
+            --seasons ${_RECENT_SEASON}
             --search_method bayes --search_iters 7
             --search_bayes_init_pts 3
             --folds 2"
@@ -81,6 +87,19 @@ CALC_XG="xgboost
        --rounds_range 75 150"
 
 
+# validate $MODEL
+if [ "$MODEL" == "" ]; then
+    echo Error! MODEL must be set before calling env.sc
+    exit 1
+else
+    CALC_ARGS_NAME=CALC_${MODEL}
+    if [ "${!CALC_ARGS_NAME}" == "" ]; then
+        echo "Error! '${MODEL}' is not a valid model name."
+        exit 1
+    fi
+fi
+
+
 # shared args that go at the end of the calc args
 CALC_POST_ARGS=""
 
@@ -115,6 +134,7 @@ get_calc_args()
     CALC_ARGS=${!CALC_ARGS_NAME}
 
     if [ -z "$CALC_ARGS" ]; then
+        # unknown model
         exit 1
     fi
 
