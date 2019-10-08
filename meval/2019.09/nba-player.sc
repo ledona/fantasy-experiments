@@ -10,6 +10,11 @@ QB|WT|RB|D - Position
 "
 }
 
+if [ "$#" -lt 2 ]; then
+    usage
+    exit 1
+fi
+
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
 SEASONS="20192018 20182017 20172016 20162015"
@@ -31,7 +36,6 @@ fi
 CALC_ARGS=$(get_calc_args "$MODEL" "$3") && CMD=$(get_meval_base_cmd "$3")
 
 exit 1
-POSITIONS="QB"
 
 PLAYER_STATS="p_bb p_cg p_er p_hbp p_hits
                   p_hr p_ibb p_ip p_k p_loss p_pc

@@ -10,6 +10,11 @@ P|H    - Pitcher or Hitter modeling
 "
 }
 
+if [ "$#" -lt 3 ]; then
+    usage
+    exit 1
+fi
+
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
 MODEL=$1
@@ -18,25 +23,24 @@ SERVICE=$3
 DB="mlb_hist_2008-2018.scored.db"
 SEASONS="2018 2017 2016 2015 2014"
 
-if [ "$P_TYPE" != "" ]; then
-    case $P_TYPE in
-        P)
-            # total cases 20500
-            MAX_CASES=13500
-            MAX_OLS_FEATURES=61
-            ;;
-        H)
-            # total cases 200000
-            MAX_CASES=133000
-            MAX_OLS_FEATURES=73
-            ;;
-        *)
-            usage
-            exit 1
-    esac
+case $P_TYPE in
+    P)
+        # total cases 20500
+        MAX_CASES=13500
+        MAX_OLS_FEATURES=61
+        ;;
+    H)
+        # total cases 200000
+        MAX_CASES=133000
+        MAX_OLS_FEATURES=73
+        ;;
+    *)
+        usage
+        echo "Position ${P_TYPE} not recognized"
+        exit 1
+esac
 
-    source ${script_dir}/env.sc
-fi
+source ${script_dir}/env.sc
 
 if [ "$?" -eq 1 ] ||
        [ "$SERVICE" != "dk" -a "$SERVICE" != "fd" -a "$SERVICE" != "y" ]; then

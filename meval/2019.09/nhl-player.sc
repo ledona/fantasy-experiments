@@ -10,6 +10,11 @@ G|S|CF|D - Position, S-All skaters, CF-Center and Forward, D - Defender
 "
 }
 
+if [ "$#" -lt 3 ]; then
+    usage
+    exit 1
+fi
+
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
 SEASONS="20192018 20182017 20172016 20162015"
@@ -18,36 +23,35 @@ MODEL=$1
 P_TYPE=$2
 SERVICE=$3
 
-if [ "$P_TYPE" != "" ]; then
-    case $P_TYPE in
-        G)
-            # total cases 20500
-            POSITIONS="G"
-            MAX_CASES=13500
-            MAX_OLS_FEATURES=61
-            ;;
-        S)
-            # total cases 20500
-            MAX_CASES=13500
-            MAX_OLS_FEATURES=61
-            ;;
-        CF)
-            # total cases 20500
-            MAX_CASES=13500
-            MAX_OLS_FEATURES=61
-            ;;
-        D)
-            # total cases 20500
-            MAX_CASES=13500
-            MAX_OLS_FEATURES=61
-            ;;
-        *)
-            usage
-            exit 1
-    esac
+case $P_TYPE in
+    G)
+        # total cases 20500
+        POSITIONS="G"
+        MAX_CASES=13500
+        MAX_OLS_FEATURES=61
+        ;;
+    S)
+        # total cases 20500
+        MAX_CASES=13500
+        MAX_OLS_FEATURES=61
+        ;;
+    CF)
+        # total cases 20500
+        MAX_CASES=13500
+        MAX_OLS_FEATURES=61
+        ;;
+    D)
+        # total cases 20500
+        MAX_CASES=13500
+        MAX_OLS_FEATURES=61
+        ;;
+    *)
+        usage
+        echo "Position ${P_TYPE} not recognized"
+        exit 1
+esac
 
-    source ${script_dir}/env.sc
-fi
+source ${script_dir}/env.sc
 
 if [ "$?" -eq 1 ] ||
        [ "$SERVICE" != "dk" -a "$SERVICE" != "fd" -a "$SERVICE" != "y" ]; then
