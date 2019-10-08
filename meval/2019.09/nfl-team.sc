@@ -35,8 +35,38 @@ TEAM_STATS="win off_1b off_2b off_3b off_ab off_bb off_hbp
             off_hit off_hr off_k off_pa off_rbi
             off_rbi_w2 off_rlob off_runs off_sac off_sac_f
             off_sac_h off_sb off_sb_c"
+    ('yds', "total yards of offense"),
+    ('passing_yds', "passing yards"),
+    ('rushing_yds', "rushing yards"),
+    ('pts', "points scored"),
+    ('turnovers', "turnovers recovered by other team"),
+    ('op_yds', "yards allowed"),
+    ('op_pts', "points allowed"),
+    ('def_sacks', "sacks"),
+    ('def_fumble_recov', "defensive fumble recoveries"),
+    ('def_int', "defensive interceptions"),
+    ('pens', 'number of penalties'),
+    ('pen_yds', 'yards penalized'),
+    ('win', 'team win=1, loss=0')
+
 CUR_OPP_TEAM_STATS="errors p_bb p_cg p_er p_hbp p_hits p_hold p_hr p_ibb p_ip p_k
                     p_loss p_pc p_qs p_runs p_save p_strikes"
+    ('yds', "total yards of offense"),
+    ('pts', "points scored"),
+    ('turnovers', "turnovers recovered by other team"),
+    ('op_yds', "yards allowed"),
+    ('op_passing_yds', "passing yards allowed"),
+    ('op_rushing_yds', "rushing yards allowed"),
+    ('op_pts', "points allowed"),    
+    ('op_turnovers', "turnovers recovered by other team"),
+    ('def_sacks', "sacks"),
+    ('def_fumble_recov', "defensive fumble recoveries"),
+    ('def_int', "defensive interceptions"),
+    ('pens', 'number of penalties'),
+    ('pen_yds', 'yards penalized'),
+    ('win', 'team win=1, loss=0')
+    
+
 EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
              home_C l_hit_%_C l_hit_%_H
              opp_l_hit_%_C opp_l_hit_%_H opp_r_hit_%_C opp_r_hit_%_H
@@ -46,6 +76,11 @@ EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean
              opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
              r_hit_%_C r_hit_%_H
              team_home_H"
+
+home_C - current home game status: 1 = home game, 0 = away game
+modeled_stat_std_mean - Season to date mean for modeled stat
+modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
+        team_home_H - past home game status for a team (or a players current team): 1 = home game, 0 = away game
 
 if [ "$MODEL" != "OLS" ]; then
     # include categorical features, not supported for OLS due to lack of feature selection support
