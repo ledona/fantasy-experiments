@@ -21,7 +21,7 @@ MODEL=$1
 P_TYPE=$2
 SERVICE=$3
 SEASONS="2018 2017 2016 2015 2014"
-DB="nfl_hist.db"
+DB="nfl_hist_2009-2018.scored.db"
 
 case $P_TYPE in
     QB|D)
@@ -50,6 +50,11 @@ case $P_TYPE in
         MAX_CASES=13500
         MAX_OLS_FEATURES=61
         ;;
+    K)
+        # total cases 20500
+        MAX_CASES=13500
+        MAX_OLS_FEATURES=61
+        ;;
     *)
         usage
         echo "Position ${P_TYPE} not recognized"
@@ -70,72 +75,67 @@ if [ "$?" -eq 1 ]; then
     exit 1
 fi
 
+# team stats used for all modeling
+SHARED_TEAM_STATS="
+        yds
+        pts
+        turnovers
+        op_yds
+        op_pts
+        op_turnovers
+        def_fumble_recov
+        def_int
+        pens
+        pen_yds
+        win
+        "
+
+# team stats used for all player modeling
+PLAYER_TEAM_STATS="${SHARED_TEAM_STATS}
+    passing_yds
+    rushing_yds
+"
+
+# opp team stats for all modeling AND team stats for a defense
+CUR_OPP_TEAM_STATS="${SHARED_TEAM_STATS}
+        op_passing_yds
+        op_rushing_yds
+        def_sacks
+"
+
+SHARED_EXTRA_STATS="
+        home_C
+        modeled_stat_std_mean
+        modeled_stat_trend
+"
+
+PLAYER_EXTRA_STATS="${SHARED_EXTRA_STATS}
+        player_home_H
+        player_pos_C
+        player_win
+        "
+
 case $P_TYPE in
     QB)
         POSITIONS="QB"
 
-        PLAYER_STATS=
-    ('tds', "total touchdowns"),
-    ('fumbles_lost', "fumbles recovered by the defense"),
+        PLAYER_STATS="
+            tds
+            fumbles_lost
+            passing_att
+            passing_cmp
+            passing_ints
+            passing_tds
+            passing_yds
+            passing_twoptm
+            rushing_att
+            rushing_tds
+            rushing_yds
+            rushing_twoptm
+            "
 
-    # passing (i.e. quarterback)
-    ('passing_att', "attempted passes"),
-    ('passing_cmp', "completed passes"),
-    ('passing_ints', "interceptions thrown"),
-    ('passing_tds', "touchdowns from passes"),
-    ('passing_yds', "yards on passes"),
-    ('passing_twoptm', "successful 2 pt passes"),
-
-    # rushing
-    ('rushing_att', "run attempts"),
-    ('rushing_tds', "tds on runs"),
-    ('rushing_yds', "yards on runs"),
-    ('rushing_twoptm', "successful 2 pt rushes"),
-
-
-        TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('passing_yds', "passing yards"),
-    ('rushing_yds', "rushing yards"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
-
-    ('op_yds', "yards allowed"),
-    ('op_pts', "points allowed"),
-    ('op_turnovers', "turnovers recovered by other team"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
-
-        EXTRA_STATS="home_C opp_l_hit_%_C opp_l_hit_%_H opp_r_hit_%_C opp_r_hit_%_H
-                   opp_starter_p_er opp_starter_p_loss opp_starter_p_qs opp_starter_p_runs
-                   opp_starter_p_win player_home_H player_win team_home_H"
-        home_C - current home game status: 1 = home game, 0 = away game
-        modeled_stat_std_mean - Season to date mean for modeled stat
-        modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
-        player_home_H - past home game status for a player: 1 = home game, 0 = away game
-        player_pos_C - player position abbr for the case game
-        player_win - Undefined for teams, for players these are recent wins for games they played in. 1 = win, .5 = tie, 0 = loss
-
-        CUR_OPP_TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
-
-    ('op_yds', "yards allowed"),
-    ('op_passing_yds', "passing yards allowed"),
-    ('op_rushing_yds', "rushing yards allowed"),
-    ('op_pts', "points allowed"),
-    ('op_turnovers', "turnovers recovered by other team"),
-    ('def_sacks', "sacks"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
-
+        TEAM_STATS=$PLAYER_TEAM_STATS
+        EXTRA_STATS=$PLAYER_EXTRA_STATS
         ;;
     WT|TE|WR)
         # wide rceiver tight end
@@ -146,184 +146,64 @@ case $P_TYPE in
             POSITIONS=$P_TYPE
         fi
 
-        PLAYER_STATS=
-    # offense misc
-    ('tds', "total touchdowns"),
-    ('fumbles_lost', "fumbles recovered by the defense"),
-    # receiving
-    ('receiving_rec', "receptions"),
-    ('receiving_targets', "attempted passes to receiver"),
-    ('receiving_tds', "touchdowns from receptions"),
-    ('receiving_yds', "yards on receptions"),
-    ('receiving_twoptm', "successful 2 pt receptions"),
+        PLAYER_STATS="
+        tds
+        fumbles_lost
+        receiving_rec
+        receiving_targets
+        receiving_tds
+        receiving_yds
+        receiving_twoptm
+        "
 
-        TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('passing_yds', "passing yards"),
-    ('rushing_yds', "rushing yards"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
-
-    ('op_yds', "yards allowed"),
-    ('op_pts', "points allowed"),
-    ('op_turnovers', "turnovers recovered by other team"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
-
-
-        EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean home_C
-                 opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
-                 opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
-                 opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
-                 opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
-                 player_home_H team_home_H"
-        home_C - current home game status: 1 = home game, 0 = away game
-        modeled_stat_std_mean - Season to date mean for modeled stat
-        modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
-        player_home_H - past home game status for a player: 1 = home game, 0 = away game
-        player_pos_C - player position abbr for the case game
-        player_win - Undefined for teams, for players these are recent wins for games they played in. 1 = win, .5 = tie, 0 = loss
-
-        CUR_OPP_TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
-
-    ('op_yds', "yards allowed"),
-    ('op_passing_yds', "passing yards allowed"),
-    ('op_rushing_yds', "rushing yards allowed"),
-    ('op_pts', "points allowed"),
-    ('op_turnovers', "turnovers recovered by other team"),
-    ('def_sacks', "sacks"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
-
+        TEAM_STATS=$PLAYER_TEAM_STATS
+        EXTRA_STATS=$PLAYER_EXTRA_STATS
         ;;
     RB)
         # wide rceiver tight end
         POSITIONS="RB"
 
-        PLAYER_STATS=
-    # offense misc
-    ('tds', "total touchdowns"),
-    ('fumbles_lost', "fumbles recovered by the defense"),
+        PLAYER_STATS="
+        tds
+        fumbles_lost
+        rushing_att
+        rushing_tds
+        rushing_yds
+        rushing_twoptm
+        receiving_rec
+        receiving_targets
+        receiving_tds
+        receiving_yds
+        receiving_twoptm
+        "
 
-    # rushing
-    ('rushing_att', "run attempts"),
-    ('rushing_tds', "tds on runs"),
-    ('rushing_yds', "yards on runs"),
-    ('rushing_twoptm', "successful 2 pt rushes"),
-
-    # receiving
-    ('receiving_rec', "receptions"),
-    ('receiving_targets', "attempted passes to receiver"),
-    ('receiving_tds', "touchdowns from receptions"),
-    ('receiving_yds', "yards on receptions"),
-    ('receiving_twoptm', "successful 2 pt receptions"),
-
-        TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('passing_yds', "passing yards"),
-    ('rushing_yds', "rushing yards"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
-
-    ('op_yds', "yards allowed"),
-    ('op_pts', "points allowed"),
-    ('op_turnovers', "turnovers recovered by other team"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
-
-        EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean home_C
-                 opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
-                 opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
-                 opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
-                 opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
-                 player_home_H team_home_H"
-        home_C - current home game status: 1 = home game, 0 = away game
-        modeled_stat_std_mean - Season to date mean for modeled stat
-        modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
-        player_home_H - past home game status for a player: 1 = home game, 0 = away game
-        player_pos_C - player position abbr for the case game
-        player_win - Undefined for teams, for players these are recent wins for games they played in. 1 = win, .5 = tie, 0 = loss
-
-        CUR_OPP_TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
-
-    ('op_yds', "yards allowed"),
-    ('op_passing_yds', "passing yards allowed"),
-    ('op_rushing_yds', "rushing yards allowed"),
-    ('op_pts', "points allowed"),
-    ('op_turnovers', "turnovers recovered by other team"),
-    ('def_sacks', "sacks"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
+        TEAM_STATS=$PLAYER_TEAM_STATS
+        EXTRA_STATS=$PLAYER_EXTRA_STATS
+        ;;
+    K)
+        POSITIONS="K"
+        PLAYER_STATS="
+            kicking_xpa
+            kicking_xpm
+            kicking_fga
+            kicking_fgm
+            kicking_fgm_0-39
+            kicking_fgm_40-49
+            kicking_fgm_50+
+            "
+        TEAM_STATS=$SHARED_TEAM_STATS
+        CUR_OPP_TEAM_STATS=$SHARED_TEAM_STATS
+        EXTRA_STATS=$PLAYER_EXTRA_STATS
         ;;
     D)
         # wide rceiver tight end
         POSITIONS="DEF"
 
-        TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
+        TEAM_STATS=$CUR_OPP_TEAM_STATS
 
-    ('op_yds', "yards allowed"),
-    ('op_passing_yds', "passing yards allowed"),
-    ('op_rushing_yds', "rushing yards allowed"),
-    ('op_pts', "points allowed"),
-
-    ('op_turnovers', "turnovers recovered by other team"),
-
-    ('def_sacks', "sacks"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
-
-        EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean home_C
-                 opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
-                 opp_starter_p_hits opp_starter_p_hr opp_starter_p_ibb opp_starter_p_ip
-                 opp_starter_p_k opp_starter_p_loss opp_starter_p_pc opp_starter_p_qs
-                 opp_starter_p_runs opp_starter_p_strikes opp_starter_p_win opp_starter_p_wp
-                 player_home_H team_home_H"
-home_C - current home game status: 1 = home game, 0 = away game
-modeled_stat_std_mean - Season to date mean for modeled stat
-modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
-        team_home_H - past home game status for a team (or a players current team): 1 = home game, 0 = away game
-
-        CUR_OPP_TEAM_STATS=
-    ('yds', "total yards of offense"),
-    ('passing_yds', "passing yards"),
-    ('rushing_yds', "rushing yards"),
-    ('pts', "points scored"),
-    ('turnovers', "turnovers recovered by other team"),
-
-    ('op_yds', "yards allowed"),
-    ('op_pts', "points allowed"),
-    ('op_turnovers', "turnovers recovered by other team"),
-    ('def_sacks', "sacks"),
-    ('def_fumble_recov', "defensive fumble recoveries"),
-    ('def_int', "defensive interceptions"),
-    ('pens', 'number of penalties'),
-    ('pen_yds', 'yards penalized'),
-    ('win', 'team win=1, loss=0')
+        EXTRA_STATS="${SHARED_EXTRA_STATS}
+        team_home_H
+        "
         ;;
     *)
         echo Unhandled position $P_TYPE
@@ -338,8 +218,7 @@ if [ "$MODEL" != "OLS" ]; then
     if [ "$P_TYPE" == "D" ]; then
         # defensive extras
         exit 1
-        EXTRA_STATS="$EXTRA_STATS off_hit_side player_pos_C
-                     opp_starter_phand_C opp_starter_phand_H"
+        EXTRA_STATS=
     else
         # player extras
         exit 1

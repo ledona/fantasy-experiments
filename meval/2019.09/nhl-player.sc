@@ -65,65 +65,54 @@ if [ "$?" -eq 1 ]; then
     exit 1
 fi
 
+# all positions use the same team stats
+TEAM_STATS="
+        ot
+        so
+        goal
+        goal_ag
+        save
+        fo
+        fo_win_pct
+        pp
+        goal_pp
+        pk
+        goal_pk_ag
+        goal_sh
+        goal_sh_ag
+        shot
+        shot_ag
+        pen
+        pen_min
+        hit
+        shot_b
+        takeaway
+        giveaway
+        win
+"
+
+# all positions use the same extra stats
+EXTRA_STATS="
+        home_C
+        modeled_stat_std_mean
+        modeled_stat_trend
+        player_home_H
+        player_pos_C
+        player_win
+        "
+
+
 case $P_TYPE in
     G)
         POSITIONS="G"
 
-        PLAYER_STATS="p_bb p_cg p_er p_hbp p_hits
-                  p_hr p_ibb p_ip p_k p_loss p_pc
-                  p_qs p_runs p_strikes p_win p_wp"
-        ("toi_g", "time on ice for goalie (seconds)"),
-    ("win", "on ice when game winning goal was scored, 1|0"),
-    ("loss", "on ice when game lossing goal was scored, 1|0"),
-    ("goal_ag", "goals against (regulation or overtime)"),
-    ("save", "saves")
-        
-        TEAM_STATS="errors off_runs p_cg p_hold p_pc p_qs
-                p_runs p_save win"
-
-        EXTRA_STATS="home_C opp_l_hit_%_C opp_l_hit_%_H opp_r_hit_%_C opp_r_hit_%_H
-                   opp_starter_p_er opp_starter_p_loss opp_starter_p_qs opp_starter_p_runs
-                   opp_starter_p_win player_home_H player_win team_home_H"
-        home_C - current home game status: 1 = home game, 0 = away game
-        modeled_stat_std_mean - Season to date mean for modeled stat
-        modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
-        player_home_H - past home game status for a player: 1 = home game, 0 = away game
-        player_pos_C - player position abbr for the case game
-        player_win - Undefined for teams, for players these are recent wins for games they played in. 1 = win, .5 = tie, 0 = loss
-        
-        CUR_OPP_TEAM_STATS="off_1b off_2b off_3b off_bb off_hit
-                        off_hr off_k off_pa off_rbi off_rbi_w2
-                        off_rlob off_runs off_sac off_sb off_sb_c
-                        p_er p_hold p_loss p_qs p_runs p_save
-                        p_win win"
-
-    ('ot', "won or lost in overtime 1|0"),
-    ('so', "won or lost in shootout 1|0"),
-    ("goal", "goals for"),
-    ("goal_ag", "goals against"),
-    ("save", "saves"),
-    ("fo", "faceoffs"),
-    ("fo_win_pct", "faceoff win %"),
-    ("pp", "powerplays"),
-    ("goal_pp", "powerplay goals"),
-    ("pk", "penalty kills"),
-    ("goal_pk_ag", "penalty kill goals against"),
-    ("goal_sh", "shorthanded goals for"),
-    ("goal_sh_ag", "shorthanded goals against"),
-    ("shot", "shots"),
-    ("shot_ag", "shots against"),
-    ("pen", "Penalties"),
-    ("pen_min", "penalty minutes"),
-    ("hit", "hits"),
-
-    # partially supported (not all seasons) by mysportsfeed, full support in nhlapi
-    ("shot_b", "blocked shots"),
-
-    # not supported by mysportsfeed, supported by nhlapi
-    ("takeaway", "team takeaways"),
-    ("giveaway", "team giveaways"),
-
-    ('win', 'team win=1, loss=0')
+        PLAYER_STATS="
+        toi_g
+        win
+        loss
+        goal_ag
+        save
+        "
         ;;
     S|CW|D)
         if [ "$P_TYPE" == "S" ]; then
@@ -133,112 +122,35 @@ case $P_TYPE in
         elif [ "$P_TYPE" == "D" ]; then
             POSITIONS="D"
         else
-            usage()
-            echo Unhandled position ${P_TYPE}
+            usage
+            echo "Unhandled position ${P_TYPE}"
         fi
 
-        PLAYER_STATS="p_bb p_cg p_er p_hbp p_hits
-                  p_hr p_ibb p_ip p_k p_loss p_pc
-                  p_qs p_runs p_strikes p_win p_wp"
-    ('goal', "goals"),
-    ("assist", "assists"),
-    ("pen", "penalties"),
-    ("pen_mins", "penalty minutes"),
-    ("goal_pp", "powerplay goals"),
-    ("assist_pp", "powerplay assists"),
-    ("goal_sh", "shorthanded goals"),
-    ("assist_sh", "shorthanded assists"),
-    ("goal_w", "game winning goals"),
-    ("goal_t", "game tying goals"),
-    ("goal_so", "shootout goals"),
-    ("toi_ev", "even time on ice (seconds)"),
-    ("toi_pp", "powerplay time on ice (seconds)"),
-    ("toi_sh", "shorthanded time on ice (seconds)"),
-    ("takeaway", "takeaways"),
-    ("giveaway", "giveaways"),
-
-    # non goalie stats
-    ("fo", "faceoffs"),
-    ("fo_win_pct", "faceoff win %"),
-    ("hit", "hits"),
-    ("pm", "plusminus"),
-    ("shot", "shots on goal"),
-    ("shot_b", "blocked shots"),
-    ("line", "starting line (for goalie 1 represents the starting goalie)"),
-
-        TEAM_STATS="errors off_runs p_cg p_hold p_pc p_qs
-                p_runs p_save win"
-    ('ot', "won or lost in overtime 1|0"),
-    ('so', "won or lost in shootout 1|0"),
-    ("goal", "goals for"),
-    ("goal_ag", "goals against"),
-    ("save", "saves"),
-    ("fo", "faceoffs"),
-    ("fo_win_pct", "faceoff win %"),
-    ("pp", "powerplays"),
-    ("goal_pp", "powerplay goals"),
-    ("pk", "penalty kills"),
-    ("goal_pk_ag", "penalty kill goals against"),
-    ("goal_sh", "shorthanded goals for"),
-    ("goal_sh_ag", "shorthanded goals against"),
-    ("shot", "shots"),
-    ("shot_ag", "shots against"),
-    ("pen", "Penalties"),
-    ("pen_min", "penalty minutes"),
-    ("hit", "hits"),
-
-    # partially supported (not all seasons) by mysportsfeed, full support in nhlapi
-    ("shot_b", "blocked shots"),
-
-    # not supported by mysportsfeed, supported by nhlapi
-    ("takeaway", "team takeaways"),
-    ("giveaway", "team giveaways"),
-
-    ('win', 'team win=1, loss=0')
-
-        EXTRA_STATS="home_C opp_l_hit_%_C opp_l_hit_%_H opp_r_hit_%_C opp_r_hit_%_H
-                   opp_starter_p_er opp_starter_p_loss opp_starter_p_qs opp_starter_p_runs
-                   opp_starter_p_win player_home_H player_win team_home_H"
-
-        home_C - current home game status: 1 = home game, 0 = away game
-        modeled_stat_std_mean - Season to date mean for modeled stat
-        modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
-        player_home_H - past home game status for a player: 1 = home game, 0 = away game
-        player_pos_C - player position abbr for the case game
-        player_win - Undefined for teams, for players these are recent wins for games they played in. 1 = win, .5 = tie, 0 = loss
-
-        CUR_OPP_TEAM_STATS="off_1b off_2b off_3b off_bb off_hit
-                        off_hr off_k off_pa off_rbi off_rbi_w2
-                        off_rlob off_runs off_sac off_sb off_sb_c
-                        p_er p_hold p_loss p_qs p_runs p_save
-                        p_win win"
-    ('ot', "won or lost in overtime 1|0"),
-    ('so', "won or lost in shootout 1|0"),
-    ("goal", "goals for"),
-    ("goal_ag", "goals against"),
-    ("save", "saves"),
-    ("fo", "faceoffs"),
-    ("fo_win_pct", "faceoff win %"),
-    ("pp", "powerplays"),
-    ("goal_pp", "powerplay goals"),
-    ("pk", "penalty kills"),
-    ("goal_pk_ag", "penalty kill goals against"),
-    ("goal_sh", "shorthanded goals for"),
-    ("goal_sh_ag", "shorthanded goals against"),
-    ("shot", "shots"),
-    ("shot_ag", "shots against"),
-    ("pen", "Penalties"),
-    ("pen_min", "penalty minutes"),
-    ("hit", "hits"),
-
-    # partially supported (not all seasons) by mysportsfeed, full support in nhlapi
-    ("shot_b", "blocked shots"),
-
-    # not supported by mysportsfeed, supported by nhlapi
-    ("takeaway", "team takeaways"),
-    ("giveaway", "team giveaways"),
-
-    ('win', 'team win=1, loss=0')
+        PLAYER_STATS="
+        goal
+        assist
+        pen
+        pen_mins
+        goal_pp
+        assist_pp
+        goal_sh
+        assist_sh
+        goal_w
+        goal_t
+        goal_so
+        toi_ev
+        toi_pp
+        toi_sh
+        takeaway
+        giveaway
+        fo
+        fo_win_pct
+        hit
+        pm
+        shot
+        shot_b
+        line
+        "
         ;;
     *)
         usage
@@ -267,7 +179,7 @@ ${DB}
 ${CALC_ARGS}
 --player_pos $POSITIONS
 --player_stats $PLAYER_STATS
---cur_opp_team_stats $CUR_OPP_TEAM_STATS
+--cur_opp_team_stats $TEAM_STATS
 --team_stats $TEAM_STATS
 --extra_stats $EXTRA_STATS
 --model_player_stat ${SERVICE}_score#
