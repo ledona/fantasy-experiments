@@ -113,6 +113,8 @@ case $P_TYPE in
         goal_ag
         save
         "
+
+        DATA_FILTER_FLAG="--only_starting_goalies"
         ;;
     S|CW|D)
         if [ "$P_TYPE" == "S" ]; then
