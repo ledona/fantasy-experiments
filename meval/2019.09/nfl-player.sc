@@ -20,40 +20,45 @@ script_dir="$(dirname "$0")"
 MODEL=$1
 P_TYPE=$2
 SERVICE=$3
-SEASONS="2018 2017 2016 2015 2014"
+SEASONS="2018 2017 2016 2015 2014 2013 2012"
 DB="nfl_hist_2009-2018.scored.db"
 
 case $P_TYPE in
-    QB|D)
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+    QB)
+        # total cases 3326
+        MAX_CASES=1650
+        MAX_OLS_FEATURES=46
+        ;;
+    D)
+        # total cases 3326
+        MAX_CASES=1650
+        MAX_OLS_FEATURES=33
         ;;
     WT)
         # both WR and TE
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        # total cases 16239
+        MAX_CASES=8100
+        MAX_OLS_FEATURES=28
         ;;
     WR)
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        # total cases 10951
+        MAX_CASES=5450
+        MAX_OLS_FEATURES=28
         ;;
     TE)
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        # total cases 5288
+        MAX_CASES=2600
+        MAX_OLS_FEATURES=28
         ;;
     RB)
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        # total cases 7813
+        MAX_CASES=3900
+        MAX_OLS_FEATURES=32
         ;;
     K)
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        # total cases 3326
+        MAX_CASES=1650
+        MAX_OLS_FEATURES=25
         ;;
     *)
         usage
@@ -61,6 +66,7 @@ case $P_TYPE in
         exit 1
 esac
 
+FOLDS=2
 source ${script_dir}/env.sc
 
 if [ "$?" -eq 1 ] ||
@@ -136,6 +142,7 @@ case $P_TYPE in
 
         TEAM_STATS=$PLAYER_TEAM_STATS
         EXTRA_STATS=$PLAYER_EXTRA_STATS
+        OFF_DEF=off
         ;;
     WT|TE|WR)
         # wide rceiver tight end
@@ -158,6 +165,7 @@ case $P_TYPE in
 
         TEAM_STATS=$PLAYER_TEAM_STATS
         EXTRA_STATS=$PLAYER_EXTRA_STATS
+        OFF_DEF=off
         ;;
     RB)
         # wide rceiver tight end
@@ -179,6 +187,7 @@ case $P_TYPE in
 
         TEAM_STATS=$PLAYER_TEAM_STATS
         EXTRA_STATS=$PLAYER_EXTRA_STATS
+        OFF_DEF=off
         ;;
     K)
         POSITIONS="K"
@@ -194,6 +203,7 @@ case $P_TYPE in
         TEAM_STATS=$SHARED_TEAM_STATS
         CUR_OPP_TEAM_STATS=$SHARED_TEAM_STATS
         EXTRA_STATS=$PLAYER_EXTRA_STATS
+        OFF_DEF=off
         ;;
     D)
         # wide rceiver tight end
@@ -204,6 +214,7 @@ case $P_TYPE in
         EXTRA_STATS="${SHARED_EXTRA_STATS}
         team_home_H
         "
+        OFF_DEF=def
         ;;
     *)
         echo Unhandled position $P_TYPE
@@ -231,11 +242,19 @@ CMD="$CMD $DATA_FILTER_FLAG
 ${DB}
 ${CALC_ARGS}
 --player_pos $POSITIONS
---player_stats $PLAYER_STATS
 --cur_opp_team_stats $CUR_OPP_TEAM_STATS
---team_stats $TEAM_STATS
 --extra_stats $EXTRA_STATS
---model_player_stat ${SERVICE}_score#
 "
+
+if [ "$PLAYER_STATS" != "" ]; then
+    CMD="$CMD --player_stats $PLAYER_STATS
+         --model_player_stat ${SERVICE}_score_${OFF_DEF}#"
+elif [ "$TEAM_STATS" != "" ]; then
+    CMD="$CMD --team_stats $TEAM_STATS
+         --model_team_stat ${SERVICE}_score_${OFF_DEF}#"
+else
+    echo Neither player not team stats were identified!
+    exit 1
+fi
 
 echo $CMD

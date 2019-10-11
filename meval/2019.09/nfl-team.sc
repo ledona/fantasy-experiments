@@ -19,11 +19,12 @@ script_dir="$(dirname "$0")"
 
 MODEL=$1
 DB="nfl_hist_2009-2018.scored.db"
-SEASONS="2018 2017 2016 2015 2014"
+SEASONS="2018 2017 2016 2015 2014 2013 2012"
 
 # MAKE SURE THIS IS ACCURATE OR HIGHER
-MAX_OLS_FEATURES=70
-MAX_CASES=16000
+MAX_OLS_FEATURES=31
+MAX_CASES=1650
+FOLDS=2
 source ${script_dir}/env.sc
 
 # parse the command line
@@ -75,13 +76,6 @@ EXTRA_STATS="
     team_home_H
 "
 
-if [ "$MODEL" != "OLS" ]; then
-    # include categorical features, not supported for OLS due to lack of feature selection support
-    EXTRA_STATS="$EXTRA_STATS venue_C
-                 opp_starter_phand_C opp_starter_phand_H
-                 starter_phand_C"
-fi
-
 CMD="$CMD
 -o nfl_team-score_${1}
 ${DB}
@@ -89,7 +83,7 @@ ${CALC_ARGS}
 --team_stats $TEAM_STATS
 --cur_opp_team_stats $CUR_OPP_TEAM_STATS
 --extra_stats $EXTRA_STATS
---model_team_stat off_runs
+--model_team_stat pts
 "
 
 echo $CMD

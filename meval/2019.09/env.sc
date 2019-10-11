@@ -1,6 +1,7 @@
 # shared environment variables for meval analyses
 # sets get_meval_base_cmd, and CALC_... variables
-# some basic args
+# If FOLDS is set in the environment then it is used as the number of cross folds
+#   if not 3fold is used
 
 # for this experiment will be used djshadow as the remote data repository
 if [[ $HOSTNAME == babylon5* ]]; then
@@ -28,12 +29,16 @@ _SHARED_MEVAL_ARGS="${REMOTE_CACHE} --cache_dir ./cache_dir
                     --progress --search_bayes_scorer mae
                     --scoring mae r2"
 
+if [ "$FOLDS" == "" ]; then
+   FOLDS=3
+fi
+
 # full meval args
 MEVAL_ARGS="${_SHARED_MEVAL_ARGS} --slack
             --seasons ${SEASONS}
             --search_method bayes --search_iters 70
             --search_bayes_init_pts 7
-            --folds 3"
+            --folds $FOLDS"
 
 COMMON_CALC_ARGS="--n_games_range 1 7
                   --n_cases_range 500 $MAX_CASES"
