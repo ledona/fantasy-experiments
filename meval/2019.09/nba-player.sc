@@ -17,14 +17,14 @@ fi
 
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
-SEASONS="20192018 20182017 20172016 20162015"
+SEASONS="20182019 20172018 20162017 20152016 20142015"
 DB="nba_hist_20082009-20182019.scored.db"
 MODEL=$1
 SERVICE=$2
 
-# total cases 20500
-MAX_CASES=13500
-MAX_OLS_FEATURES=61
+# total cases 124404
+MAX_CASES=80000
+MAX_OLS_FEATURES=65
 source ${script_dir}/env.sc
 
 if [ "$?" -eq 1 ] ||
