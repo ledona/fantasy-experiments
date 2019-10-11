@@ -18,7 +18,7 @@ fi
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
 SEASONS="20182019 20172018 20162017 20152016 20142015"
-DB="nhl_hist.db"
+DB="nhl_hist_20072008-20182019.scored.db"
 MODEL=$1
 P_TYPE=$2
 SERVICE=$3

@@ -19,7 +19,7 @@ fi
 script_dir="$(dirname "$0")"
 
 MODEL=$1
-DB="nhl_hist_2008-2018.scored.db"
+DB="nhl_hist_20072008-20182019.scored.db"
 SEASONS="20182019 20172018 20162017 20152016 20142015"
 
 # MAKE SURE THIS IS ACCURATE OR HIGHER
@@ -112,7 +112,7 @@ ${CALC_ARGS}
 --team_stats $TEAM_STATS
 --cur_opp_team_stats $CUR_OPP_TEAM_STATS
 --extra_stats $EXTRA_STATS
---model_team_stat off_runs
+--model_team_stat goal
 "
 
 echo $CMD
