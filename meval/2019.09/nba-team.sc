@@ -18,11 +18,11 @@ fi
 script_dir="$(dirname "$0")"
 
 MODEL=$1
-DB="nba_hist_2008-2018.scored.db"
+DB="nba_hist_20082009-20182019.scored.db"
 SEASONS="20192018 20182017 20172016 20162015"
 
 # MAKE SURE THIS IS ACCURATE OR HIGHER
-MAX_OLS_FEATURES=70
+MAX_OLS_FEATURES=50
 MAX_CASES=16000
 source ${script_dir}/env.sc
 
@@ -89,17 +89,15 @@ CUR_OPP_TEAM_STATS="
 "
 
 EXTRA_STATS="
-home_C - current home game status: 1 = home game, 0 = away game
-modeled_stat_std_mean - Season to date mean for modeled stat
-modeled_stat_trend - Value from (-1 - 1) describing the recent trend of the modeled value (similar to its slope)
-        team_home_H - past home game status for a team (or a players current team): 1 = home game, 0 = away game
+home_C
+modeled_stat_std_mean
+modeled_stat_trend
+team_home_H
 "
 
 if [ "$MODEL" != "OLS" ]; then
     # include categorical features, not supported for OLS due to lack of feature selection support
-    EXTRA_STATS="$EXTRA_STATS venue_C
-                 opp_starter_phand_C opp_starter_phand_H
-                 starter_phand_C"
+    EXTRA_STATS="$EXTRA_STATS venue_C"
 fi
 
 CMD="$CMD
@@ -109,7 +107,7 @@ ${CALC_ARGS}
 --team_stats $TEAM_STATS
 --cur_opp_team_stats $CUR_OPP_TEAM_STATS
 --extra_stats $EXTRA_STATS
---model_team_stat off_runs
+--model_team_stat pts
 "
 
 echo $CMD

@@ -18,7 +18,7 @@ fi
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
 SEASONS="20192018 20182017 20172016 20162015"
-DB="nba_hist.db"
+DB="nba_hist_20082009-20182019.scored.db"
 MODEL=$1
 SERVICE=$2
 
@@ -122,7 +122,6 @@ CMD="$CMD $DATA_FILTER_FLAG
 -o nfl_${SERVICE}_${P_TYPE}_${MODEL}
 ${DB}
 ${CALC_ARGS}
---player_pos $POSITIONS
 --player_stats $PLAYER_STATS
 --cur_opp_team_stats $CUR_OPP_TEAM_STATS
 --team_stats $TEAM_STATS
