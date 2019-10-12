@@ -98,13 +98,6 @@ player_win
 team_home_H
 "
 
-if [ "$MODEL" != "OLS" ]; then
-    # include categorical features, not supported for OLS due to lack of feature selection support
-    EXTRA_STATS="$EXTRA_STATS venue_C
-                 opp_starter_phand_C opp_starter_phand_H
-                 starter_phand_C"
-fi
-
 CMD="$CMD
 -o nhl_team-score_${1}
 ${DB}
