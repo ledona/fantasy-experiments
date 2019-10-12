@@ -22,8 +22,8 @@ MODEL=$1
 DB="nhl_hist_20072008-20182019.scored.db"
 SEASONS="20182019 20172018 20162017 20152016 20142015"
 
-# MAKE SURE THIS IS ACCURATE OR HIGHER
-MAX_OLS_FEATURES=50
+# MAKE SURE THIS IS ACCURATE OR HIGHER, total cases = 12093
+MAX_OLS_FEATURES=48
 MAX_CASES=8000
 source ${script_dir}/env.sc
 
@@ -92,9 +92,6 @@ EXTRA_STATS="
 home_C
 modeled_stat_std_mean
 modeled_stat_trend
-player_home_H
-player_pos_C
-player_win
 team_home_H
 "
 

@@ -17,7 +17,7 @@ fi
 
 # set environment variables needed for analysis
 script_dir="$(dirname "$0")"
-SEASONS="20182019 20172018 20162017 20152016 20142015"
+SEASONS="20182019 20172018 20162017 20152016"
 DB="nhl_hist_20072008-20182019.scored.db"
 MODEL=$1
 P_TYPE=$2
@@ -25,25 +25,26 @@ SERVICE=$3
 
 case $P_TYPE in
     G)
-        # total cases 20500
+        # total cases 6655
         POSITIONS="G"
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        MAX_CASES=3300
+        MAX_OLS_FEATURES=55
+        FOLDS=2
         ;;
     S)
         # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        MAX_CASES=55000
+        MAX_OLS_FEATURES=74
         ;;
     CW)
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        # total cases 113038
+        MAX_CASES=38000
+        MAX_OLS_FEATURES=74
         ;;
     D)
-        # total cases 20500
-        MAX_CASES=13500
-        MAX_OLS_FEATURES=61
+        # total cases 56735
+        MAX_CASES=18000
+        MAX_OLS_FEATURES=74
         ;;
     *)
         usage
@@ -114,7 +115,7 @@ case $P_TYPE in
         save
         "
 
-        DATA_FILTER_FLAG="--only_starting_goalies"
+        DATA_FILTER_FLAG="--nhl_only_starting_goalies"
         ;;
     S|CW|D)
         if [ "$P_TYPE" == "S" ]; then
@@ -158,22 +159,6 @@ case $P_TYPE in
         usage
         exit 1
 esac
-
-if [ "$MODEL" != "OLS" ]; then
-    # include categorical features, not supported for OLS due to lack of feature selection support
-    EXTRA_STATS="$EXTRA_STATS venue_C"
-
-    if [ "$P_TYPE" == "G" ]; then
-        # defensive extras
-        exit 1
-        EXTRA_STATS="$EXTRA_STATS off_hit_side player_pos_C
-                     opp_starter_phand_C opp_starter_phand_H"
-    else
-        # skater extras
-        exit 1
-    fi
-fi
-
 
 CMD="$CMD $DATA_FILTER_FLAG
 -o nfl_${SERVICE}_${P_TYPE}_${MODEL}
