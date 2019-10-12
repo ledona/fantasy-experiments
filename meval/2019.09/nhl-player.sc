@@ -3,10 +3,11 @@
 usage()
 {
     echo "NHL Player meval
-usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (G|S|CW|D) (dk|fd|y) [--test]
+usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (GS|GA|S|CW|D) (dk|fd|y) [--test]
 
 --test - (optional) Do a short test (fewer seasons, iterations, etc)
-G|S|CW|D - Position, S-All skaters, CW-Center and Forward, D - Defender
+GS|GA|S|CW|D - Position, S-All skaters, CW-Center and Forward, D - Defender, G - Starting goalies,
+   GA - All goalies
 "
 }
 
@@ -24,26 +25,32 @@ P_TYPE=$2
 SERVICE=$3
 
 case $P_TYPE in
-    G)
+    GS)
         # total cases 6655
         POSITIONS="G"
-        MAX_CASES=3300
+        MAX_CASES=4400
         MAX_OLS_FEATURES=55
-        FOLDS=2
+        ;;
+    GA)
+        # total cases 16540
+        SEASONS="20182019 20172018 20162017 20152016 20142015 20132014 20122013"
+        POSITIONS="G"
+        MAX_CASES=11000
+        MAX_OLS_FEATURES=55
         ;;
     S)
-        # total cases 20500
-        MAX_CASES=55000
+        # total cases ~160000
+        MAX_CASES=105000
         MAX_OLS_FEATURES=74
         ;;
     CW)
-        # total cases 113038
-        MAX_CASES=38000
+        # total cases ~75000
+        MAX_CASES=50000
         MAX_OLS_FEATURES=74
         ;;
     D)
-        # total cases 56735
-        MAX_CASES=18000
+        # total cases ~36000
+        MAX_CASES=24000
         MAX_OLS_FEATURES=74
         ;;
     *)
@@ -104,7 +111,7 @@ EXTRA_STATS="
 
 
 case $P_TYPE in
-    G)
+    GS|GA)
         POSITIONS="G"
 
         PLAYER_STATS="
@@ -115,7 +122,9 @@ case $P_TYPE in
         save
         "
 
-        DATA_FILTER_FLAG="--nhl_only_starting_goalies"
+        if [ "$P_TYPE" == "GS" ]; then
+            DATA_FILTER_FLAG="--nhl_only_starting_goalies"
+        fi
         ;;
     S|CW|D)
         if [ "$P_TYPE" == "S" ]; then

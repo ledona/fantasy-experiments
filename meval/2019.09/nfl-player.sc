@@ -26,38 +26,38 @@ DB="nfl_hist_2009-2018.scored.db"
 case $P_TYPE in
     QB)
         # total cases 3326
-        MAX_CASES=1650
+        MAX_CASES=2200
         MAX_OLS_FEATURES=46
         ;;
     D)
         # total cases 3326
-        MAX_CASES=1650
+        MAX_CASES=2200
         MAX_OLS_FEATURES=33
         ;;
     WT)
         # both WR and TE
         # total cases 16239
-        MAX_CASES=8100
+        MAX_CASES=10500
         MAX_OLS_FEATURES=28
         ;;
     WR)
         # total cases 10951
-        MAX_CASES=5450
+        MAX_CASES=7000
         MAX_OLS_FEATURES=28
         ;;
     TE)
         # total cases 5288
-        MAX_CASES=2600
+        MAX_CASES=3500
         MAX_OLS_FEATURES=28
         ;;
     RB)
         # total cases 7813
-        MAX_CASES=3900
+        MAX_CASES=5200
         MAX_OLS_FEATURES=32
         ;;
     K)
         # total cases 3326
-        MAX_CASES=1650
+        MAX_CASES=2200
         MAX_OLS_FEATURES=25
         ;;
     *)
@@ -66,7 +66,6 @@ case $P_TYPE in
         exit 1
 esac
 
-FOLDS=2
 source ${script_dir}/env.sc
 
 if [ "$?" -eq 1 ] ||

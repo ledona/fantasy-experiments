@@ -23,7 +23,7 @@ MODEL=$1
 SERVICE=$2
 
 # total cases 124404
-MAX_CASES=80000
+MAX_CASES=82000
 MAX_OLS_FEATURES=65
 source ${script_dir}/env.sc
 
