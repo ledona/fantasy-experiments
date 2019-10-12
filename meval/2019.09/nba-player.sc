@@ -119,7 +119,7 @@ fi
 
 
 CMD="$CMD $DATA_FILTER_FLAG
--o nfl_${SERVICE}_${P_TYPE}_${MODEL}
+-o nba_${SERVICE}_${P_TYPE}_${MODEL}
 ${DB}
 ${CALC_ARGS}
 --player_stats $PLAYER_STATS

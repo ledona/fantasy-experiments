@@ -170,7 +170,7 @@ case $P_TYPE in
 esac
 
 CMD="$CMD $DATA_FILTER_FLAG
--o nfl_${SERVICE}_${P_TYPE}_${MODEL}
+-o nhl_${SERVICE}_${P_TYPE}_${MODEL}
 ${DB}
 ${CALC_ARGS}
 --player_pos $POSITIONS
