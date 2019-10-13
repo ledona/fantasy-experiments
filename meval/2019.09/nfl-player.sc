@@ -116,7 +116,6 @@ SHARED_EXTRA_STATS="
 
 PLAYER_EXTRA_STATS="${SHARED_EXTRA_STATS}
         player_home_H
-        player_pos_C
         player_win
         "
 
@@ -163,7 +162,7 @@ case $P_TYPE in
         "
 
         TEAM_STATS=$PLAYER_TEAM_STATS
-        EXTRA_STATS=$PLAYER_EXTRA_STATS
+        EXTRA_STATS="$PLAYER_EXTRA_STATS player_pos_C"
         OFF_DEF=off
         ;;
     RB)
@@ -210,9 +209,7 @@ case $P_TYPE in
 
         TEAM_STATS=$CUR_OPP_TEAM_STATS
 
-        EXTRA_STATS="${SHARED_EXTRA_STATS}
-        team_home_H
-        "
+        EXTRA_STATS="${SHARED_EXTRA_STATS} team_home_H"
         OFF_DEF=def
         ;;
     *)
@@ -220,20 +217,6 @@ case $P_TYPE in
         exit 1
         ;;
 esac
-
-if [ "$MODEL" != "OLS" ]; then
-    # include categorical features, not supported for OLS due to lack of feature selection support
-    EXTRA_STATS="$EXTRA_STATS venue_C"
-
-    if [ "$P_TYPE" == "D" ]; then
-        # defensive extras
-        exit 1
-        EXTRA_STATS=
-    else
-        # player extras
-        exit 1
-    fi
-fi
 
 
 CMD="$CMD $DATA_FILTER_FLAG

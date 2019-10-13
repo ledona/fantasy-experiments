@@ -105,7 +105,6 @@ EXTRA_STATS="
         modeled_stat_std_mean
         modeled_stat_trend
         player_home_H
-        player_pos_C
         player_win
         "
 
@@ -129,8 +128,16 @@ case $P_TYPE in
     S|CW|D)
         if [ "$P_TYPE" == "S" ]; then
             POSITIONS="LW RW C D"
+            if [ "$MODEL" != "OLS" ]; then
+                # include categorical features, not supported for OLS due to lack of feature selection support
+                EXTRA_STATS="$EXTRA_STATS player_pos_C"
+            fi
         elif [ "$P_TYPE" == "CW" ]; then
             POSITIONS="LW RW C"
+            if [ "$MODEL" != "OLS" ]; then
+                # include categorical features, not supported for OLS due to lack of feature selection support
+                EXTRA_STATS="$EXTRA_STATS player_pos_C"
+            fi
         elif [ "$P_TYPE" == "D" ]; then
             POSITIONS="D"
         else
@@ -168,6 +175,8 @@ case $P_TYPE in
         usage
         exit 1
 esac
+
+
 
 CMD="$CMD $DATA_FILTER_FLAG
 -o nhl_${SERVICE}_${P_TYPE}_${MODEL}
