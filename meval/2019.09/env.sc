@@ -3,11 +3,17 @@
 # If FOLDS is set in the environment then it is used as the number of cross folds
 #   if not 3fold is used
 
+
+CACHE_ARGS="--cache_dir ./cache_dir"
+
 # for this experiment will be used djshadow as the remote data repository
-if [[ $HOSTNAME == babylon5* ]]; then
-    REMOTE_CACHE=""
-else
-    REMOTE_CACHE="--cache_remote babylon5:working/fantasy-research/cache_dir"
+if [[ $HOSTNAME != babylon5* ]]; then
+    CACHE_ARGS="${CACHE_ARGS} --cache_remote babylon5:working/fantasy-research/cache_dir"
+fi
+
+if [[ $RESUME == true ]]; then
+    echo python -O ${FANTASY_HOME}/scripts/meval_resume.sc $CACHE_ARGS --slack $1
+    exit 0
 fi
 
 if [ "$MAX_OLS_FEATURES" == "" ]; then
@@ -25,7 +31,7 @@ if [ "$SEASONS" == "" ]; then
     exit 1
 fi
 
-_SHARED_MEVAL_ARGS="${REMOTE_CACHE} --cache_dir ./cache_dir
+_SHARED_MEVAL_ARGS="${CACHE_ARGS}
                     --progress --search_bayes_scorer mae
                     --scoring mae r2"
 
