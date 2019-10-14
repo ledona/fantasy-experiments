@@ -12,7 +12,7 @@ if [[ $HOSTNAME != babylon5* ]]; then
 fi
 
 if [[ $RESUME == true ]]; then
-    echo python -O ${FANTASY_HOME}/scripts/meval_resume.sc $CACHE_ARGS --slack $1
+    echo python -O ${FANTASY_HOME}/scripts/meval_resume.sc $CACHE_ARGS --ignore_version --slack --progress $1
     exit 0
 fi
 
