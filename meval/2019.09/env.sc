@@ -57,7 +57,7 @@ TEST_MEVAL_ARGS="${_SHARED_MEVAL_ARGS}
             --search_bayes_init_pts 3
             --folds 2"
 TEST_COMMON_CALC_ARGS="--n_games_range 1 3
-                       --n_cases_range 100 500"
+                       --n_cases_range 10 50"
 
 
 CALC_OLS="sklearn --est ols
