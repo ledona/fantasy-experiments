@@ -161,7 +161,11 @@ case $P_TYPE in
         "
 
         TEAM_STATS=$PLAYER_TEAM_STATS
-        EXTRA_STATS="$PLAYER_EXTRA_STATS player_pos_C"
+        EXTRA_STATS=$PLAYER_EXTRA_STATS
+        if [ "$MODEL" != "OLS" ]; then
+            # include categorical features, not supported for OLS due to lack of feature selection support
+            EXTRA_STATS="$EXTRA_STATS player_pos_C"
+        fi
         ;;
     RB)
         # wide rceiver tight end
