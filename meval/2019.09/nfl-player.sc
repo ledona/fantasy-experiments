@@ -57,7 +57,7 @@ case $P_TYPE in
         ;;
     K)
         # total cases 3326
-        MAX_CASES=2200
+        MAX_CASES=2000
         MAX_OLS_FEATURES=25
         ;;
     *)
