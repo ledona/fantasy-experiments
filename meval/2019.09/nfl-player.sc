@@ -27,7 +27,7 @@ case $P_TYPE in
     QB)
         # total cases 3326
         MAX_CASES=2200
-        MAX_OLS_FEATURES=46
+        MAX_OLS_FEATURES=44
         ;;
     D)
         # total cases 3326
@@ -140,7 +140,6 @@ case $P_TYPE in
 
         TEAM_STATS=$PLAYER_TEAM_STATS
         EXTRA_STATS=$PLAYER_EXTRA_STATS
-        OFF_DEF=off
         ;;
     WT|TE|WR)
         # wide rceiver tight end
@@ -163,7 +162,6 @@ case $P_TYPE in
 
         TEAM_STATS=$PLAYER_TEAM_STATS
         EXTRA_STATS="$PLAYER_EXTRA_STATS player_pos_C"
-        OFF_DEF=off
         ;;
     RB)
         # wide rceiver tight end
@@ -185,7 +183,6 @@ case $P_TYPE in
 
         TEAM_STATS=$PLAYER_TEAM_STATS
         EXTRA_STATS=$PLAYER_EXTRA_STATS
-        OFF_DEF=off
         ;;
     K)
         POSITIONS="K"
@@ -201,7 +198,6 @@ case $P_TYPE in
         TEAM_STATS=$SHARED_TEAM_STATS
         CUR_OPP_TEAM_STATS=$SHARED_TEAM_STATS
         EXTRA_STATS=$PLAYER_EXTRA_STATS
-        OFF_DEF=off
         ;;
     D)
         # wide rceiver tight end
@@ -210,7 +206,6 @@ case $P_TYPE in
         TEAM_STATS=$CUR_OPP_TEAM_STATS
 
         EXTRA_STATS="${SHARED_EXTRA_STATS} team_home_H"
-        OFF_DEF=def
         ;;
     *)
         echo Unhandled position $P_TYPE
@@ -226,17 +221,15 @@ ${CALC_ARGS}
 --player_pos $POSITIONS
 --cur_opp_team_stats $CUR_OPP_TEAM_STATS
 --extra_stats $EXTRA_STATS
+--team_stats $TEAM_STATS
 "
 
 if [ "$PLAYER_STATS" != "" ]; then
     CMD="$CMD --player_stats $PLAYER_STATS
-         --model_player_stat ${SERVICE}_score_${OFF_DEF}#"
-elif [ "$TEAM_STATS" != "" ]; then
-    CMD="$CMD --team_stats $TEAM_STATS
-         --model_team_stat ${SERVICE}_score_${OFF_DEF}#"
+         --model_player_stat ${SERVICE}_score_off#"
 else
-    echo Neither player not team stats were identified!
-    exit 1
+    # team defense!
+    CMD="$CMD --model_team_stat ${SERVICE}_score_def#"
 fi
 
 echo $CMD
