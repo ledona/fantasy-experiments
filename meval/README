@@ -12,22 +12,23 @@ Date     Model# Service  Modeled-for -mae        r2          Active Details
 2019.09  23     DK       S           -4.034      0.135              OLS on D
 2019.09  ?      DK       CW          -4.720      0.169              BLE on C+W
 2019.09  ?      DK       D           -4.031      0.135              OLS on D
-2019.09  63     FD       GA          -10.056     0.286              XG
+2019.09  63     FD       GA          -10.056     0.286       +      XG
 2019.09  3      FD       S           -6.358      0.154              BLE on C+W
-2019.09  3      FD       S           -4.815      0.125              BLE on D
 2019.09  3      FD       S           -5.843      0.150              BLE on all skaters
+2019.09  3      FD       S           -4.815      0.125              BLE on D
 2019.09  57     FD       CW          -6.202      0.157              OLS on C+W
 2019.09  21     FD       D           -4.716      0.126              OLS on D
 2019.09  51     Y        GA          -7.249      -0.001             BLE
-2019.09  52     Y        S           -2.776      0.180              XG on all skaters
+2019.09  52     Y        S           -2.776      0.180       +      XG on all skaters
 2019.09  52     Y        S           -2.978      0.19               XG on C+W
 2019.09  52     Y        S           -2.374      0.14               XG on D
 2019.09  6      Y        CW          -3.175      0.159              OLS on C+W
 2019.09  26     Y        D           -2.498      0.134              OLS on D
-2019.01         Y        G          ?-7.0100396  0.0088403  *       BR
-2019.01         Y        S          ?-2.8467331  0.1425787  *       OLS
-2019.01         FD       G          ?-11.231898  0.009784   *       BR
-2019.01         FD       S          ?-5.4784704  0.1369088  *       OLS
+2019.01         Y        G           -7.39       0.001       *      BR
+2019.01         Y        S           -2.981      0.142       *      OLS
+2019.01         FD       G           -12.033     0.003       *      BR
+2019.01         FD       S           -5.791      0.141       *      OLS
+****************** OLDER UNUSABLE MODELS ***************
 2019.01         DK       G          ?-2.8813473  0.0089475          OLS
 2019.01         DK       S          ?-1.4582534  0.1349098          OLS
 2018.08         Y        G          ?-6.9496262  0.0007046          RF
@@ -41,27 +42,27 @@ Date     Model# Service  Modeled-for -mae        r2          Active Details
 MLB (evaluations against 2018 season)
 
 Date    Model#  Service  Modeled-for -mae        r2          Active Details
-2019.09 19      -        team-score  -2.44       0.026              BLE
-2019.09 55      FD       P           -12.893     0.128              BLE
+2019.09 19      -        team-score  -2.44       0.026        +     BLE
+2019.09 55      FD       P           -12.893     0.128        +     BLE
 2019.09 19      FD       OFF         -7.501      0.022              BLE
-2019.09 45      DK       P           -8.602      0.119              BLE
-2019.09 2       DK       OFF         -5.37       0.072              XG
-2019.09 70      Y        P           -9.581      0.104              OLS
-2019.09 22      Y        OFF         -5.429      0.025              BLE
+2019.09 45      DK       P           -8.602      0.119        +     BLE
+2019.09 2       DK       OFF         -5.37       0.072        +     XG
+2019.09 70      Y        P           -9.581      0.104        +     OLS
+2019.09 22      Y        OFF         -5.429      0.025        +     BLE
 
-2019.01         FD       P          ?-12.6298289 0.1781064   *      XG
-2019.01         FD       OFF        ?-6.6144409  -0.080325   *      ?
-2019.01         DK       P          ?-8.4285916  0.1280212   *      OLS
-2019.01         DK       OFF        ?-4.7598667  -0.0607147  *      ?
-2019.01         Y        P          ?-9.4203039  0.1239722   *      BLE
-?               Y        OFF        ?-4.7598667  -0.0607147  *      ?
+2019.01         FD       P           -12.915     0.131        *      XG
+2019.01         FD       OFF         -7.311      0.025        *      ?
+2019.01         DK       P           -8.682      0.109        *      OLS
+2019.01         DK       OFF         -5.446      0.015        *      ?
+2019.01         Y        P           -9.618      0.102        *      BLE
+?               Y        OFF         -5.209      -0.095       *      ?
+****************** OLDER UNUSABLE MODELS ***************
 2018.08         FD       P          ?-12.6715955 0.1485918          XG
 2018.08         FD       OFF        ?-6.6144409  -0.080325          DNN_ADA
 2018.08         DK       P          ?-8.5188181  0.1166153          XG
 2018.08         DK       OFF        ?-4.7598667  -0.0607147         RF
 2018.08         Y        P          ?-9.3541457  0.1227719          XG
 2018.08         Y        OFF        ?-4.0932985  0.0316359          BLE
-****************** OLDER UNUSABLE MODELS ***************
 2018.07         FD       P           -12.6507299 0.1072538          RF
 2018.07         FD       OFF         -5.8816875  -0.0745067         XG
 2018.07         DK       P           -8.6120528  0.0567777          RF
@@ -77,45 +78,45 @@ Date    Model#  Service  Modeled-for -mae        r2          Active Details
 NFL (evaluatations against 2018 season)
 
 Date    Model#  Service  Modeled-for  -mae        r2         Active Details
-2019.09 64      -        team-score   -7.732      0.113             OLS
-2019.09 32      FD       QB           -5.806      0.267             BLE
-2019.09 17      FD       WT           -4.322      0.244             OLS For WT
+2019.09 64      -        team-score   -7.732      0.113      +      OLS
+2019.09 32      FD       QB           -5.806      0.267      +      BLE
+2019.09 17      FD       WT           -4.322      0.244      +      OLS For WT
 2019.09 17      FD       WT           -4.65       0.213             OLS For W
 2019.09 17      FD       WT           -3.634      0.243             OLS For T
 2019.09 4       FD       W            -4.666      0.221             OLS
 2019.09 17      FD       T            -3.585      0.234             OLS
-2019.09 22      FD       RB           -4.876      0.342             OLS
-2019.09 48      FD       D            -4.363      0.09              BLE
+2019.09 22      FD       RB           -4.876      0.342      +      OLS
+2019.09 48      FD       D            -4.363      0.09       +      BLE
 2019.09 69      FD       K            -3.232      -0.007            OLS
-2019.09 66      DK       QB           -6.411      0.318             RF
-2019.09 36      DK       WT           -4.821      0.277             BLE For WT
+2019.09 66      DK       QB           -6.411      0.318      +      RF
+2019.09 36      DK       WT           -4.821      0.277      +      BLE For WT
 2019.09 36      DK       WT           -5.206      0.252             BLE For W
 2019.09 36      DK       WT           -4.032      0.252             BLE For T
 2019.09 23      DK       W            -5.46       0.241             OLS
 2019.09 57      DK       T            -4.244      0.208             DNN_ADA
-2019.09 66      DK       RB           -5.69       0.33              BLE
-2019.09 56      DK       D            -4.353      0.093             OLS
+2019.09 66      DK       RB           -5.69       0.33       +      BLE
+2019.09 56      DK       D            -4.353      0.093      +      OLS
 2019.09 69      DK       K            -0.035      -0.008            RF
-2019.09 67      Y        QB           -6.738      0.246             OLS
-2019.09 67      Y        WT           -4.352      0.244             OLS For WT
+2019.09 67      Y        QB           -6.738      0.246      +      OLS
+2019.09 67      Y        WT           -4.352      0.244      +      OLS For WT
 2019.09 67      Y        WT           -4.646      0.217             OLS For W
 2019.09 67      Y        WT           -3.719      0.239             OLS For T
 2019.09 30      Y        W            -4.587      0.224             OLS
 2019.09 41      Y        T            -3.88       0.215             BLE
-2019.09 60      Y        RB           -5.123      0.337             OLS
-2019.09 17      Y        D            -4.353      0.094             OLS
-2019.02         FD       QB           -6.148      0.157     *       BLE
-2019.02         FD       WT           -4.439      0.232     *       BLE
-2019.02         FD       RB           -5.116      0.301     *       DNN_ADA
-2019.02         FD       D            -4.363      0.08      *       BLE
-2019.02         DK       QB           -6.833      0.229     *       BLE
-2019.02         DK       WT           -5.065      0.253     *       BLE
-2019.02         DK       RB           -5.904      0.292     *       BLE
-2019.02         DK       D            -4.347      0.09      *       OLS
-2019.02         Y        QB           -6.392      0.206     *       OLS
-2019.02         Y        WT           -4.603      0.214     *       OLS
-2019.02         Y        RB           -5.347      0.304     *       OLS
-2019.02         Y        D            -4.657      0.048     *       BLE
+2019.09 60      Y        RB           -5.123      0.337      +      OLS
+2019.09 17      Y        D            -4.353      0.094      +      OLS
+2019.02         FD       QB           -6.148      0.157      *      BLE
+2019.02         FD       WT           -4.439      0.232      *      BLE
+2019.02         FD       RB           -5.116      0.301      *      DNN_ADA
+2019.02         FD       D            -4.363      0.08       *      BLE
+2019.02         DK       QB           -6.833      0.229      *      BLE
+2019.02         DK       WT           -5.065      0.253      *      BLE
+2019.02         DK       RB           -5.904      0.292      *      BLE
+2019.02         DK       D            -4.347      0.09       *      OLS
+2019.02         Y        QB           -6.392      0.206      *      OLS
+2019.02         Y        WT           -4.603      0.214      *      OLS
+2019.02         Y        RB           -5.347      0.304      *      OLS
+2019.02         Y        D            -4.657      0.048      *      BLE
 ****************** OLDER UNUSABLE MODELS ***************
 2018.10         FD       QB           -5.7036681  0.2701455         ols
 2018.10         FD       WT           -4.0623674  0.2479738         ble
@@ -159,13 +160,14 @@ Date    Model#  Service  Modeled-for  -mae        r2         Active Details
 NBA (evaluations against 20182019 season)
 
 Date    Model#  Service Modeled-for -mae        r2          Active  Details
-2019.09 21      -       team-score  -9.12       0.164               BLE
-2019.01 52      FD                  -7.558      0.547               OLS
+2019.09 21      -       team-score  -9.12       0.164       +       BLE
+2019.01 52      FD                  -7.558      0.547       +       OLS
 2019.01 9       Y                   -7.755      0.523               OLS
-2019.01 1       DK                  -7.555      0.561               OLS
-2019.01         FD                 ?-7.3765169  0.5222922   *       OLS
-2019.01         Y                  ?-7.3965166  0.5245876   *       OLS
-2019.01         DK                 ?-7.2909611  0.5450599   *       BLE
+2019.01 1       DK                  -7.555      0.561       +       OLS
+2019.01         FD                  -7.694      0.531       *       OLS
+2019.01         Y                   -7.685      0.531       *       OLS
+2019.01         DK                  -7.618      0.554       *       BLE
+****************** OLDER UNUSABLE MODELS ***************
 2018.11         FD                 ?-7.3639461  0.5229187           XG
 2018.11         Y                  ?-7.349535   0.5263825           BLE
 2018.11         DK                 ?-7.2949402  0.5344385           DNN_ADA
