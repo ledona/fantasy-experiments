@@ -1,4 +1,5 @@
-#/bin/fish
+#/usr/bin/fish
+
 set FILES rotogrinder-*csv
 set NEW_FILE grinder_all.csv
 echo file,player,salary,team,position,opp-team,ceil,floor,pts > $NEW_FILE
