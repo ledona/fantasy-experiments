@@ -2,3 +2,4 @@ jupyterlab
 pandas
 sklearn
 qgrid
+python-dateutil
