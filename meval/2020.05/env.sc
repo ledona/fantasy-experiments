@@ -8,7 +8,7 @@ CACHE_ARGS="--cache_dir ./cache_dir"
 
 # for this experiment will be used djshadow as the remote data repository
 if [[ $HOSTNAME != babylon5* ]]; then
-    CACHE_ARGS="${CACHE_ARGS} --cache_remote babylon5:working/fantasy-research/cache_dir"
+    CACHE_ARGS="${CACHE_ARGS} --cache_remote babylon5:working/fantasy/cache_dir"
 fi
 
 if [[ $RESUME == true ]]; then
