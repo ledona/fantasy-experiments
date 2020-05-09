@@ -56,7 +56,7 @@ fi
 
 
 CMD="$CMD $DATA_FILTER_FLAG
--o lol_${SERVICE}_${MODEL}
+-o lol-player_${MODEL}
 ${DB}
 ${CALC_ARGS}
 --player_stats $PLAYER_STATS
