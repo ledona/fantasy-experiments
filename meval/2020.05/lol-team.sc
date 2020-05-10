@@ -60,7 +60,7 @@ ${CALC_ARGS}
 --team_stats $TEAM_STATS
 --cur_opp_team_stats $CUR_OPP_TEAM_STATS
 --extra_stats $EXTRA_STATS
---model_team_stat ${TARGET}
+--model_team_stat ${TARGET_STAT}
 "
 
 echo $CMD
