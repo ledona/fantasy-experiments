@@ -54,7 +54,7 @@ EXTRA_STATS="
 "
 
 CMD="$CMD
--o lol-team_${MODEL}
+-o lol-team-${MODEL}
 ${DB}
 ${CALC_ARGS}
 --team_stats $TEAM_STATS
