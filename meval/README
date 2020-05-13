@@ -2,6 +2,16 @@ Performance metrics reported by meval
 ? - means that the scores for the model are not confirmed for the
     season the sport's models are evaluated against
 
+
+Date     Model# Stat     Modeled-for -mae        r2          Active Details
+****************** TRAINED USING 2016-2019, EVAL 2020-1:123 **********************
+2020.05  45     Win      Team        -0.468      0.057       *      OLS
+2020.05  18     DK       Team        -7.799      0.051       *      OLS
+2020.05  47     FD       Team        -7.517      0.054       *      BLE
+2020.05  50     DK       Player      -10.799     -0.008      *      XG
+2020.05  41     FD       Player      -10.764     0.001       *      XG
+
+
 NHL (evaluations against 20182019 season)
 
 Date     Model# Service  Modeled-for -mae        r2          Active Details
