@@ -104,6 +104,12 @@ CALC_XG="xgboost
        --colsample_bytree_range 0.5 1
        --rounds_range 75 150"
 
+CALC_GP='sklearn
+       --hist_agg_list mean median none
+       --gp_kernel_list rbf rq dot mat sine
+       --gp_add_white_list true false
+       --est gauss'
+
 
 # validate $MODEL
 if [ "$MODEL" == "" ]; then

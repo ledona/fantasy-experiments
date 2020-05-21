@@ -3,7 +3,7 @@
 usage()
 {
     echo "LOL Player meval
-usage: $(basename "$0") (OLS|RF|XG|BLE|DNN_RS|DNN_ADA) (dk|fd) [--test]
+usage: $(basename "$0") (OLS|RF|XG|BLE|GP|DNN_RS|DNN_ADA) (dk|fd) [--test]
 
 --test - (optional) Do a short test (fewer seasons, iterations, etc)
 "
