@@ -23,7 +23,11 @@ MODEL=$1
 SERVICE=$2
 
 # total cases 79220
-MAX_CASES=52000
+if [ "$MODEL" == "GP" ]; then
+    MAX_CASES=10000
+else
+    MAX_CASES=52000
+fi
 MAX_OLS_FEATURES=20
 source ${script_dir}/env.sc
 
