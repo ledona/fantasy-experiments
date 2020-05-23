@@ -1,0 +1,72 @@
+{"calc_name": "sklearn", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["brnk", "d", "dmg", "drgk", "fb", "g", "gl", "k", "tk", "w", "wd", "wdk"], "extra_stats": ["modeled_stat_std_mean", "modeled_stat_trend", "player_home_H", "player_pos_C", "player_win"], "model_player_stat": "dk_score#2", "model_team_stat": null, "player_stats": ["asst", "cs", "cspm", "d", "dmg", "g", "k"], "prev_opp_team_stats": [], "team_stats": ["brnk", "d", "dmg", "drgk", "fb", "g", "gl", "k", "tk", "w", "wd", "wdk"]}, "impute": true, "player_pos": ["ADCB", "JNG", "MID", "SUP", "TOP"]}, "datetime_utc": "20200522 182038", "db_id": 5, "db_path": "lol_hist_2016-2019.scored.db", "fantasy_version": "v2020.5.21", "filename_prefix": "lol-player-GP", "folds": 3, "hyper_dists": {"est": {"cls": "HPConstantDist", "name": "est", "value": "gauss"}, "gp_add_white": {"cls": "HPBooleanDist", "name": "gp_add_white", "values": [false, true]}, "gp_kernel": {"cls": "HPCategoricalDist", "name": "gp_kernel", "values": ["rbf", "rq", "dot", "mat", "sine"]}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "n_cases": {"cls": "HPNumericDist", "dist_type": "int", "high": 10000, "increment": 1, "low": 500, "name": "n_cases"}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}}, "model_name": null, "random_seed": 1692928806, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2016, 2017, 2018, 2019], "sport_pt_filter_flags": {}}
+score_mae	score_r2	est	gp_add_white	gp_kernel	hist_agg	n_cases	n_features	n_games
+-9.0951946	0.1559954	gauss	False	mat	none	7009	201	6
+-9.4376335	0.0985883	gauss	True	dot	none	8408	201	6
+-20.17673	-2.7380231	gauss	False	rbf	none	1125	168	5
+		gauss	True	sine	none	6911	69	2
+		gauss	False	sine	mean	5515	36	4
+-9.8047167	0.0825888	gauss	False	rq	median	1392	36	6
+-19.0104273	-2.3976137	gauss	False	rbf	median	7626	36	7
+-19.7733207	-2.5460828	gauss	False	rq	mean	4819	36	1
+-19.6010546	-2.6609751	gauss	True	rbf	none	2162	201	6
+		gauss	True	sine	mean	5598	36	4
+-9.9290303	-0.002892	gauss	True	rq	mean	4354	36	1
+		gauss	False	sine	median	9700	36	1
+-9.5113769	0.0975977	gauss	False	rq	none	8154	102	3
+-9.4457116	0.1187819	gauss	False	dot	median	6632	36	6
+		gauss	False	sine	mean	2927	36	3
+-14.5989061	-1.2153298	gauss	False	mat	median	8334	36	3
+-15.4312857	-1.4274819	gauss	False	mat	median	5501	36	2
+-19.305278	-2.4955581	gauss	False	rbf	mean	8917	36	6
+-8.8784407	0.1839628	gauss	False	mat	none	9232	201	6
+-9.6310723	0.0782868	gauss	True	dot	mean	2819	36	4
+-9.6022815	0.0903505	gauss	False	rq	median	1701	36	6
+		gauss	False	sine	none	9448	234	7
+-9.1712932	0.105041	gauss	False	dot	mean	2888	36	6
+-19.5091052	-2.5467216	gauss	False	rbf	median	4351	36	3
+-9.3846715	0.1137897	gauss	True	dot	mean	1895	36	3
+-9.602427	0.0804135	gauss	False	mat	none	3839	168	5
+		gauss	True	sine	mean	6481	36	1
+-14.2524728	-1.1211606	gauss	False	mat	mean	8871	36	6
+-9.6163059	0.0877317	gauss	False	dot	none	4822	135	4
+-9.4411682	0.1119557	gauss	False	dot	mean	8017	36	6
+		gauss	False	sine	median	8095	36	5
+		gauss	True	sine	median	1424	36	4
+		gauss	False	sine	median	5509	36	2
+-9.4742266	0.1097244	gauss	False	dot	none	8768	102	3
+-9.2119488	0.1215119	gauss	False	dot	median	1204	36	6
+-9.5389618	0.0900681	gauss	True	dot	none	5296	69	2
+-9.950718	-0.0045084	gauss	True	rq	mean	4162	36	5
+-20.0417658	-2.6970871	gauss	False	rq	median	3343	36	7
+		gauss	True	sine	none	6357	135	4
+-9.3090343	0.1056232	gauss	False	mat	none	5063	168	5
+-20.0456163	-2.601335	gauss	False	rbf	none	1280	69	2
+-9.5076429	0.1010036	gauss	True	dot	median	9008	36	3
+-9.9409697	-0.0099556	gauss	True	rq	mean	2500	36	4
+-10.0562849	-0.0079807	gauss	True	mat	median	2636	36	5
+-10.1480211	-0.0011639	gauss	True	rbf	median	8516	36	3
+-10.1344048	-0.0237853	gauss	True	rq	mean	1469	36	3
+-9.982972	-0.0036447	gauss	True	rbf	mean	4217	36	3
+-19.5417805	-2.6092382	gauss	False	rq	mean	4568	36	4
+-19.6920834	-2.5879652	gauss	False	rbf	median	3702	36	4
+		gauss	True	sine	none	7823	135	4
+-9.4924109	0.1130509	gauss	False	rq	mean	2343	36	5
+-9.292884	0.1170297	gauss	False	mat	none	3677	234	7
+		gauss	True	sine	none	5083	69	2
+-9.8064279	-0.0420752	gauss	True	rq	mean	1103	36	2
+		gauss	False	sine	mean	7842	36	4
+-19.6719924	-2.5490807	gauss	True	rbf	none	2098	201	6
+		gauss	True	sine	mean	2300	36	5
+		gauss	True	sine	none	3414	234	7
+-9.9645539	-0.0159846	gauss	True	mat	mean	1777	36	3
+-10.1177122	-0.0007911	gauss	True	mat	none	8633	69	2
+-19.7233962	-2.5127305	gauss	False	rbf	mean	1084	36	7
+		gauss	True	sine	median	2409	36	5
+-10.0121154	-0.0009612	gauss	True	mat	mean	9340	36	2
+-9.4968595	0.1029012	gauss	False	rq	none	9463	69	2
+-9.6228392	0.0913705	gauss	False	dot	mean	2164	36	5
+-9.5433181	0.0922172	gauss	False	dot	median	827	36	7
+-9.9505768	-0.0011605	gauss	True	rbf	mean	6966	36	6
+-9.0103289	0.1559115	gauss	False	mat	none	6719	201	6
+		gauss	False	sine	mean	9300	36	2
+		gauss	True	sine	mean	7134	36	4
