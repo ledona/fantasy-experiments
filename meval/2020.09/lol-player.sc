@@ -28,7 +28,7 @@ SERVICE=$3
 
 # total cases for all = 108272; for a position = 21373
 if [ "$MODEL" == "GP" ]; then
-    MAX_CASES=15000
+    MAX_CASES=10000
 else
     if [ "$POS" == "ALL" ]; then
         MAX_CASES=100000
