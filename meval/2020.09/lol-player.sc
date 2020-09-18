@@ -27,14 +27,10 @@ SERVICE=$3
 
 
 # total cases for all = 108272; for a position = 21373
-if [ "$MODEL" == "GP" ]; then
-    MAX_CASES=10000
+if [ "$POS" == "ALL" ]; then
+    MAX_CASES=100000
 else
-    if [ "$POS" == "ALL" ]; then
-        MAX_CASES=100000
-    else
-        MAX_CASES=20000
-    fi
+    MAX_CASES=20000
 fi
 MAX_OLS_FEATURES=74
 source ${script_dir}/env.sc
