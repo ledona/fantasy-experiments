@@ -36,6 +36,9 @@ if [ "$MAX_CASES" == "" ]; then
 elif [ "$MODEL" == "GP" ] && [ $MAX_CASES -gt 10000 ]; then
     echo "MAX_CASES of ${MAX_CASES} too high for GP. Resetting to 10000" >&2
     MAX_CASES=10000
+elif [ "$MODEL" == "POLY" ] && [ $MAX_CASES -gt 15000 ]; then
+    echo "MAX_CASES of ${MAX_CASES} too high for POLY. Resetting to 15000" >&2
+    MAX_CASES=15000
 fi
 
 if [ "$SEASONS" == "" ]; then
