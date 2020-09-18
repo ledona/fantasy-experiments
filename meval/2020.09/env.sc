@@ -33,6 +33,9 @@ fi
 if [ "$MAX_CASES" == "" ]; then
     echo Error! MAX_CASES must be set before calling env.sc
     exit 1
+elif [ "$MODEL" == "GP" ] && [ $MAX_CASES -gt 10000 ]; then
+    echo "MAX_CASES of ${MAX_CASES} too high for GP. Resetting to 10000" >&2
+    MAX_CASES=10000
 fi
 
 if [ "$SEASONS" == "" ]; then
