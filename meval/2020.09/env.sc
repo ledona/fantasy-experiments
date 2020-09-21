@@ -34,11 +34,14 @@ if [ "$MAX_CASES" == "" ]; then
     echo Error! MAX_CASES must be set before calling env.sc
     exit 1
 elif [ "$MODEL" == "GP" ] && [ $MAX_CASES -gt 10000 ]; then
-    echo "MAX_CASES of ${MAX_CASES} too high for GP. Resetting to 10000" >&2
+    echo "MAX_CASES=${MAX_CASES} too high for GP. Resetting to 10000" >&2
     MAX_CASES=10000
 elif [ "$MODEL" == "POLY" ] && [ $MAX_CASES -gt 15000 ]; then
-    echo "MAX_CASES of ${MAX_CASES} too high for POLY. Resetting to 15000" >&2
+    echo "MAX_CASES=${MAX_CASES} too high for POLY. Resetting to 15000" >&2
     MAX_CASES=15000
+elif [[ $MODEL == DNN_* ]] && [ $MAX_CASES -gt 20000 ]; then
+    echo "MAX_CASES=${MAX_CASES} too high for DNN_*. Resetting to 20000" >&2
+    MAX_CASES=20000
 fi
 
 if [ "$SEASONS" == "" ]; then
