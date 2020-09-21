@@ -105,7 +105,7 @@ _SHARED_DNN='keras
            --normalize
            --steps_range 100 1000 --steps_range_inc 100
            --layers_range 1 10
-           --units_range 25 1000 --units_range_inc 25
+           --units_range 25 500 --units_range_inc 25
            --activation_list linear relu tanh sigmoid
            --dropout_range .3 .7'
 
