@@ -104,8 +104,8 @@ _SHARED_DNN='keras
            --hist_agg_list mean median none
            --normalize
            --steps_range 100 1000 --steps_range_inc 100
-           --layers_range 1 5
-           --units_range 20 1000
+           --layers_range 1 10
+           --units_range 25 1000 --units_range_inc 25
            --activation_list linear relu tanh sigmoid
            --dropout_range .3 .7'
 
@@ -137,7 +137,7 @@ CALC_POLY='sklearn
        --sp_degree_range 1 10
        --sp_coef0_range 0 1 --sp_coef0_range_def 4 log
        --sp_tol_list 0.0001 0.001 0.003 .01 .1
-       --sp_C_range 0.00001 10000 --sp_C_range_def 10 log
+       --sp_C_range 0.0001 1000 --sp_C_range_def 8 log
        --sp_epsilon_range .001 10 --sp_epsilon_range_def 5 log
        --sp_shrinking_list true false
        --sp_gamma_list auto scale
