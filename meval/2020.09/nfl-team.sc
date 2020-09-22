@@ -85,7 +85,7 @@ EXTRA_STATS="
 "
 
 CMD="$CMD
--o nfl_team-score_${1}
+-o nfl_team_${1}
 ${DB}
 ${CALC_ARGS}
 --team_stats $TEAM_STATS
