@@ -1,0 +1,72 @@
+{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["brnk", "csat10", "csat15", "csdat10", "csdat15", "cspm", "d", "dmgpm", "dpm", "drgk", "gat10", "gat15", "gdat10", "gdat15", "gepm", "k", "kpm", "tk", "vspm", "wdcpm", "wdpm", "xpat10", "xpat15", "xpdat10", "xpdat15"], "extra_stats": ["modeled_stat_std_mean", "modeled_stat_trend"], "model_player_stat": null, "model_team_stat": "dk_performance_score#2", "player_stats": [], "prev_opp_team_stats": [], "team_stats": ["brnk", "csat10", "csat15", "csdat10", "csdat15", "cspm", "d", "dmgpm", "dpm", "drgk", "gat10", "gat15", "gdat10", "gdat15", "gepm", "k", "kpm", "tk", "vspm", "wdcpm", "wdpm", "xpat10", "xpat15", "xpdat10", "xpdat15"]}, "impute": true, "models_path": "./MODELS_keras", "normalize": true, "player_pos": []}, "datetime_utc": "20200921 155033", "db_id": 5, "db_path": "lol_hist_2014-2019.scored.db", "eval_cases": null, "fantasy_version": "v2020.9.13-9-g5f2fc3c5", "filename_prefix": "lol-team-DNN_RS", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 10, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["rmsprop", "sgd"]}, "lr": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.01, "low": 0.005, "max_float_percision": 10, "name": "lr"}, "n_cases": {"cls": "HPConstantDist", "name": "n_cases", "value": 20000}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 500, "increment": 25, "low": 25, "name": "units"}}, "model_name": null, "random_seed": 1194109430, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2014, 2015, 2016, 2017, 2018, 2019], "sport_pt_filter_flags": {}}
+score_mae	score_r2	activation	dropout	hist_agg	layers	learning_method	lr	n_cases	n_features	n_games	steps	units
+		relu	0.382266033	median	7	sgd	0.0094232399	20000	52	3	200	250
+-6.2174047	0.0439383	sigmoid	0.4158241221	mean	6	sgd	0.00531178	20000	52	2	700	250
+		relu	0.6470090576	none	6	sgd	0.0059784083	20000	252	5	800	225
+		tanh	0.322172621	median	5	sgd	0.0088864415	20000	52	1	300	450
+-6.6582016	-0.0042848	relu	0.6415825546	median	8	rmsprop	0.0067483326	20000	52	5	300	425
+		relu	0.347189041	none	10	sgd	0.0082231623	20000	52	1	800	450
+-6.3972547	0.0547194	relu	0.4743344184	mean	4	rmsprop	0.0070318976	20000	52	2	500	125
+-6.0520254	0.1225264	tanh	0.3774144848	mean	5	rmsprop	0.0071871222	20000	52	7	100	50
+-5.9465963	0.1450264	tanh	0.3000000007	median	1	rmsprop	0.005	20000	52	7	100	25
+-6.411617	-0.0845005	sigmoid	0.4271398068	none	5	rmsprop	0.0063419581	20000	202	4	400	250
+-6.6811229	-0.0038478	linear	0.6999999179	median	10	rmsprop	0.0099999999	20000	52	7	100	25
+		linear	0.7	mean	1	sgd	0.01	20000	52	7	100	500
+-6.2260051	0.046539	sigmoid	0.410631656	mean	6	sgd	0.0052282282	20000	52	2	700	250
+-6.2138675	0.0454212	sigmoid	0.4089225526	mean	6	sgd	0.0052304529	20000	52	2	700	250
+-6.2095858	0.0510656	sigmoid	0.4077280128	mean	6	sgd	0.0051888481	20000	52	2	700	250
+-6.2169627	0.0499985	sigmoid	0.4052205655	mean	6	sgd	0.005136061	20000	52	2	700	250
+-6.2013817	0.0514529	sigmoid	0.4066945908	mean	6	sgd	0.0051850323	20000	52	2	700	250
+-6.1852676	0.050565	sigmoid	0.4065143564	mean	6	sgd	0.0051726677	20000	52	2	700	250
+-6.2182867	0.0439233	sigmoid	0.4037983146	mean	6	sgd	0.0051685802	20000	52	2	700	250
+-6.194187	0.0512887	sigmoid	0.4057089581	mean	6	sgd	0.0051638826	20000	52	2	700	250
+-6.4280392	0.0266584	tanh	0.41640206	mean	8	sgd	0.0065002113	20000	52	2	1000	375
+-6.6817838	-0.0036701	linear	0.6999997277	none	10	rmsprop	0.0099999971	20000	352	7	1000	25
+-5.9184863	0.1503174	linear	0.3	median	1	rmsprop	0.01	20000	52	7	200	25
+-6.2083078	0.0483829	sigmoid	0.4049527188	mean	6	sgd	0.0052925391	20000	52	2	700	250
+-6.2921693	0.0758868	tanh	0.3	mean	10	sgd	0.005	20000	52	1	1000	25
+-6.5784805	0.0127966	relu	0.5332353471	mean	6	rmsprop	0.0070845582	20000	52	5	500	300
+-6.3684766	-0.0024404	linear	0.7	mean	1	rmsprop	0.01	20000	52	1	1000	500
+-6.1541867	0.0793762	tanh	0.7	none	1	rmsprop	0.0082975457	20000	52	1	1000	500
+-6.47251	0.0182824	tanh	0.3	mean	10	rmsprop	0.005	20000	52	7	100	500
+-6.0463551	0.1033613	sigmoid	0.4938852439	mean	6	rmsprop	0.01	20000	52	4	600	250
+-1230059.332905	-45993545629.57941	linear	0.7	none	10	rmsprop	0.005	20000	52	1	1000	500
+-6.2735391	0.0671896	tanh	0.4937793833	mean	5	rmsprop	0.01	20000	52	4	1000	250
+-6.3097562	0.0857781	relu	0.4598426569	median	5	rmsprop	0.0080542577	20000	52	7	100	50
+-6.2520119	0.0868307	relu	0.4667719699	median	5	rmsprop	0.0081299331	20000	52	7	100	50
+-6.6079034	-0.0737766	tanh	0.4090205157	mean	8	sgd	0.0063824893	20000	52	2	1000	350
+-6.2425602	0.1059461	relu	0.4609008517	median	5	rmsprop	0.0080560583	20000	52	7	100	50
+-6.3101026	0.093888	relu	0.4686966118	median	5	rmsprop	0.0081556886	20000	52	7	100	50
+-6.2925513	0.0899149	relu	0.454497124	median	5	rmsprop	0.0077934334	20000	52	7	100	50
+-6.2218897	0.0423896	sigmoid	0.4042194177	mean	6	sgd	0.0051653791	20000	52	2	700	250
+-6.2095937	0.0497496	sigmoid	0.4089657435	mean	6	sgd	0.0051555514	20000	52	2	700	250
+-6.2089765	0.0455076	sigmoid	0.395947583	mean	6	sgd	0.0051156841	20000	52	2	700	200
+-6.209175	0.0473987	sigmoid	0.4024819381	mean	6	sgd	0.0052890746	20000	52	2	700	250
+-6.2217366	0.0490897	sigmoid	0.3914093818	mean	6	sgd	0.0050792291	20000	52	2	700	200
+-6.1956734	0.0530601	sigmoid	0.4126138344	mean	6	sgd	0.0052148359	20000	52	2	700	250
+-6.2214284	0.0457421	sigmoid	0.396402086	mean	6	sgd	0.0050652285	20000	52	2	700	225
+-6.2401687	0.0395665	sigmoid	0.4082790922	mean	6	sgd	0.0052241443	20000	52	2	700	250
+-6.1960408	0.055042	sigmoid	0.41500035	mean	6	sgd	0.0052887604	20000	52	2	700	275
+-6.2203108	0.0508412	sigmoid	0.3891725919	mean	6	sgd	0.0052296534	20000	52	2	700	200
+-6.217696	0.0473766	sigmoid	0.3863773346	mean	6	sgd	0.0050060159	20000	52	2	700	200
+-6.2208674	0.0494088	sigmoid	0.4143941875	mean	6	sgd	0.0052412955	20000	52	2	700	275
+-6.2218212	0.0380314	sigmoid	0.4049791426	mean	6	sgd	0.0052957729	20000	52	2	700	250
+-6.2152625	0.0502214	sigmoid	0.39728525	mean	6	sgd	0.0051123354	20000	52	2	700	225
+-6.1960878	0.0448993	sigmoid	0.406037314	mean	6	sgd	0.0051881951	20000	52	2	700	250
+-6.2310022	0.0463406	sigmoid	0.4009443288	mean	6	sgd	0.0051651344	20000	52	2	700	250
+-6.2053731	0.051049	sigmoid	0.4008779637	mean	6	sgd	0.0051207038	20000	52	2	700	225
+-6.1922348	0.0475082	sigmoid	0.3940548863	mean	6	sgd	0.0052494986	20000	52	2	700	250
+-6.19812	0.0486304	sigmoid	0.4136386226	mean	6	sgd	0.0052712028	20000	52	2	700	275
+-6.2103641	0.0370236	sigmoid	0.404466314	mean	6	sgd	0.0051638775	20000	52	2	700	250
+-6.1837499	0.0589659	sigmoid	0.4037516651	mean	6	sgd	0.0051935548	20000	52	2	700	250
+-6.2189043	0.0469421	sigmoid	0.3995018198	mean	6	sgd	0.0051262423	20000	52	2	700	225
+-6.2047733	0.0515963	sigmoid	0.4031201961	mean	6	sgd	0.0051736627	20000	52	2	700	250
+-6.2014708	0.0610939	sigmoid	0.4122473062	mean	6	sgd	0.0052583783	20000	52	2	700	250
+-6.2173548	0.0481702	sigmoid	0.3826611483	mean	6	sgd	0.0050474468	20000	52	2	700	200
+-6.2172691	0.0503599	sigmoid	0.4023174806	mean	6	sgd	0.0051445982	20000	52	2	700	225
+-6.2117881	0.0483793	sigmoid	0.39884049	mean	6	sgd	0.0051745006	20000	52	2	700	225
+-6.2157947	0.0477303	sigmoid	0.4046626321	mean	6	sgd	0.0051870291	20000	52	2	700	250
+-6.1877932	0.0580091	sigmoid	0.4073787689	mean	6	sgd	0.0051916659	20000	52	2	700	250
+-6.1993064	0.0538648	sigmoid	0.4034949802	mean	6	sgd	0.0051666232	20000	52	2	700	250
+-6.2104424	0.0528912	sigmoid	0.4064359397	mean	6	sgd	0.00520586	20000	52	2	700	250
+-6.1972597	0.0504764	sigmoid	0.3947211946	mean	6	sgd	0.0051361544	20000	52	2	700	225
