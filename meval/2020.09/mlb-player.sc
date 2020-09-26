@@ -90,10 +90,10 @@ case $P_TYPE in
                   off_rbi off_rbi_w2 off_rlob off_runs
                   off_sac off_sb off_sb_c"
 
-        TEAM_STATS="off_1b off_2b off_3b off_bb
+        TEAM_STATS="
                 off_hit off_hr off_k off_pa
                 off_rbi off_rbi_w2 off_rlob off_runs
-                off_sac off_sb off_sb_c p_runs win"
+                off_sac"
 
         EXTRA_STATS="modeled_stat_trend modeled_stat_std_mean home_C
                  opp_starter_p_bb opp_starter_p_cg opp_starter_p_er opp_starter_p_hbp
@@ -104,7 +104,7 @@ case $P_TYPE in
 
         CUR_OPP_TEAM_STATS="errors p_bb p_cg p_er p_hbp p_hits
                         p_hold p_hr p_ibb p_k p_loss p_pc p_qs
-                        p_runs p_save p_strikes p_win win"
+                        p_runs p_save p_strikes"
 
         DATA_FILTER_FLAG="--mlb_only_starting_hitters"
         ;;
