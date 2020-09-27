@@ -35,7 +35,7 @@ case $P_TYPE in
     H)
         # total cases 198241
         MAX_CASES=100000
-        MAX_OLS_FEATURES=73
+        MAX_OLS_FEATURES=63
         ;;
     *)
         usage
