@@ -1,0 +1,72 @@
+{"calc_name": "keras", "calc_params": {"calc_stats": {"cur_opp_team_stats": ["brnk", "csat10", "csat15", "csdat10", "csdat15", "cspm", "d", "dmgpm", "dpm", "drgk", "gat10", "gat15", "gdat10", "gdat15", "gepm", "k", "kpm", "tk", "vspm", "wdcpm", "wdpm", "xpat10", "xpat15", "xpdat10", "xpdat15"], "extra_stats": ["modeled_stat_std_mean", "modeled_stat_trend", "player_pos_C"], "model_player_stat": "fd_performance_score#1", "model_team_stat": null, "player_stats": ["asst", "cs", "csat10", "csat15", "csdat10", "csdat15", "cspm", "d", "dmgpm", "dsh", "gat10", "gat15", "gdat10", "gdat15", "gepm", "k", "ka10+", "mbo", "mgp", "w", "xpat10", "xpat15"], "prev_opp_team_stats": [], "team_stats": ["brnk", "csat10", "csat15", "csdat10", "csdat15", "cspm", "d", "dmgpm", "dpm", "drgk", "gat10", "gat15", "gdat10", "gdat15", "gepm", "k", "kpm", "tk", "vspm", "wdcpm", "wdpm", "xpat10", "xpat15", "xpdat10", "xpdat15"]}, "impute": true, "models_path": "./MODELS_keras", "normalize": true, "player_pos": ["ADCB"]}, "datetime_utc": "20200929 041314", "db_id": 5, "db_path": "lol_hist_2014-2019.scored.db", "eval_cases": null, "fantasy_version": "3c69a969b7687588841d6ba2a8713cf1b13deb0b", "filename_prefix": "lol-player-ADCB-DNN_RS", "folds": 3, "hyper_dists": {"activation": {"cls": "HPCategoricalDist", "name": "activation", "values": ["linear", "relu", "tanh", "sigmoid"]}, "dropout": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.7, "low": 0.3, "max_float_percision": 10, "name": "dropout"}, "hist_agg": {"cls": "HPCategoricalDist", "name": "hist_agg", "values": ["mean", "median", "none"]}, "layers": {"cls": "HPNumericDist", "dist_type": "int", "high": 10, "increment": 1, "low": 1, "name": "layers"}, "learning_method": {"cls": "HPCategoricalDist", "name": "learning_method", "values": ["rmsprop", "sgd"]}, "lr": {"cls": "HPNumericDist", "dist_type": "float", "high": 0.01, "low": 0.005, "max_float_percision": 10, "name": "lr"}, "n_cases": {"cls": "HPConstantDist", "name": "n_cases", "value": 20000}, "n_features": {"cls": "HPConstantDist", "name": "n_features", "value": null}, "n_games": {"cls": "HPNumericDist", "dist_type": "int", "high": 7, "increment": 1, "low": 1, "name": "n_games"}, "steps": {"cls": "HPNumericDist", "dist_type": "int", "high": 1000, "increment": 100, "low": 100, "name": "steps"}, "units": {"cls": "HPNumericDist", "dist_type": "int", "high": 500, "increment": 25, "low": 25, "name": "units"}}, "model_name": null, "random_seed": 42263783, "resume_datetimes": null, "scoring": ["mae", "r2"], "search": {"bayes_fail_fast": false, "bayes_init_pts": 7, "bayes_retry_cache": true, "iterations": 70, "method": "bayes", "pretend": false}, "search_bayes_scoring_method": "mae", "season_parts": ["REG"], "seasons": [2014, 2015, 2016, 2017, 2018, 2019], "sport_pt_filter_flags": {}}
+score_mae	score_r2	activation	dropout	hist_agg	layers	learning_method	lr	n_cases	n_features	n_games	steps	units
+-9.8549076	-0.0720121	tanh	0.614531919	median	7	sgd	0.0061210984	20000	75	3	400	375
+-8.9314333	0.095609	linear	0.3383503852	median	3	rmsprop	0.0052198285	20000	75	4	900	50
+-9.4294949	0.001312	tanh	0.4277745026	median	1	sgd	0.0076272036	20000	75	3	600	175
+-9.5665287	-0.0017928	relu	0.562627966	none	5	rmsprop	0.0075565652	20000	219	3	1000	250
+-9.5053606	-0.0123515	relu	0.3722941053	median	2	rmsprop	0.0089490771	20000	75	3	600	325
+-9.5080633	-0.0025049	relu	0.6364841321	median	7	rmsprop	0.0075361149	20000	75	5	600	250
+-9.5642827	-0.0021765	sigmoid	0.5340974745	median	9	rmsprop	0.0093974081	20000	75	3	400	475
+-9.2864082	0.0426198	linear	0.4858950694	median	8	rmsprop	0.0060622612	20000	75	4	900	50
+-8.8739485	0.1014661	linear	0.3	median	1	rmsprop	0.005	20000	75	7	1000	25
+-8.9127364	0.0940267	linear	0.7	mean	1	rmsprop	0.01	20000	75	7	1000	25
+-9.2128851	0.0584674	linear	0.3	none	1	sgd	0.005	20000	147	2	100	50
+-9.2447132	0.0529663	sigmoid	0.3	median	2	rmsprop	0.01	20000	75	1	100	25
+		linear	0.3	none	1	sgd	0.005	20000	363	5	1000	25
+-9.503173	-0.0164217	tanh	0.4360995082	median	1	sgd	0.0076112221	20000	75	3	600	175
+-8.8599542	0.1018611	linear	0.4999980124	median	1	rmsprop	0.0074999793	20000	75	7	1000	25
+-9.4747988	-0.0115784	tanh	0.4342835228	median	1	sgd	0.0076290665	20000	75	3	600	175
+-8.8303602	0.101865	linear	0.5007082373	median	1	rmsprop	0.0075087468	20000	75	7	1000	25
+-8.8723736	0.099824	linear	0.5012459389	median	1	rmsprop	0.007515593	20000	75	7	1000	25
+-8.8811818	0.0976517	linear	0.5016858847	median	1	rmsprop	0.0075212523	20000	75	7	1000	25
+-8.8819912	0.0992422	linear	0.502064176	median	1	rmsprop	0.0075258084	20000	75	7	1000	25
+-8.8802361	0.0952413	linear	0.5023549845	median	1	rmsprop	0.0075294009	20000	75	7	1000	25
+-8.9256644	0.0897937	linear	0.5026461107	median	1	rmsprop	0.0075338634	20000	75	7	1000	25
+-9.6586174	-0.0567047	tanh	0.5075270074	median	3	sgd	0.007006833	20000	75	3	500	250
+-8.8901347	0.0982318	linear	0.5028237942	median	1	rmsprop	0.0075353159	20000	75	7	1000	25
+-8.8517355	0.0983931	linear	0.5030599538	median	1	rmsprop	0.0075367673	20000	75	7	1000	25
+-8.8477394	0.1004442	linear	0.5033446822	median	1	rmsprop	0.0075417458	20000	75	7	1000	25
+-8.896606	0.0978304	linear	0.5036214713	median	1	rmsprop	0.0075469819	20000	75	7	1000	25
+-8.8945418	0.0957118	linear	0.503665188	median	1	rmsprop	0.0075468408	20000	75	7	1000	25
+-8.8539929	0.1003639	linear	0.5037874229	median	1	rmsprop	0.0075470224	20000	75	7	1000	25
+-8.9559044	0.0848616	linear	0.5039358137	median	1	rmsprop	0.0075494075	20000	75	7	1000	25
+-8.8681698	0.098538	linear	0.5040722821	median	1	rmsprop	0.0075508476	20000	75	7	1000	25
+-10.3815205	-0.1960026	tanh	0.6845067072	median	10	sgd	0.0056624943	20000	75	1	100	500
+-8.8608798	0.0973682	linear	0.504218763	median	1	rmsprop	0.0075527677	20000	75	7	1000	25
+-8.8527185	0.0994978	linear	0.5043843281	median	1	rmsprop	0.0075544899	20000	75	7	1000	25
+-8.8735841	0.0920891	linear	0.504478863	median	1	rmsprop	0.0075560194	20000	75	7	1000	25
+-8.8793524	0.0953281	linear	0.5046198174	median	1	rmsprop	0.0075572509	20000	75	7	1000	25
+-9.5254402	-0.02827	tanh	0.461454631	median	2	sgd	0.0073632866	20000	75	3	600	225
+-8.8614707	0.0990004	linear	0.5051211136	median	1	rmsprop	0.0075616829	20000	75	7	1000	25
+-8.8930996	0.0991769	linear	0.5045478398	median	1	rmsprop	0.0075565937	20000	75	7	1000	25
+-8.8536857	0.1028877	linear	0.5049010577	median	1	rmsprop	0.007560469	20000	75	7	1000	25
+-8.8999934	0.09024	linear	0.5046223219	median	1	rmsprop	0.0075611359	20000	75	7	1000	25
+-9.4690914	-0.0016785	tanh	0.4987837869	median	3	sgd	0.0070757475	20000	75	3	500	250
+-9.599338	-0.049916	tanh	0.4530084984	median	2	sgd	0.0072787905	20000	75	3	600	250
+-9.4973675	-0.0206869	tanh	0.4647352327	median	2	sgd	0.0075711013	20000	75	3	600	225
+		tanh	0.5181591166	median	4	sgd	0.0071610265	20000	75	3	600	400
+-9.8674252	-0.0953724	tanh	0.6133200633	median	7	sgd	0.0061733414	20000	75	3	400	375
+-9.9596579	-0.0980828	tanh	0.6151033203	median	7	sgd	0.0061429508	20000	75	3	400	375
+		tanh	0.572667279	median	9	sgd	0.0076449254	20000	75	1	400	375
+-9.5280548	-0.0136292	tanh	0.4295210687	median	1	sgd	0.0076282708	20000	75	3	600	175
+-9.5080566	-0.0025359	relu	0.6437269619	median	7	rmsprop	0.0075042466	20000	75	5	600	250
+-9.4916585	-0.0032394	tanh	0.4996572444	median	5	sgd	0.006094813	20000	75	3	600	250
+-9.5157876	-0.0105622	tanh	0.5612080466	median	5	sgd	0.0066609234	20000	75	3	600	250
+-9.7388697	-0.052187	tanh	0.6135455796	mean	9	sgd	0.0077549491	20000	75	3	600	250
+-9.4077906	0.0009781	tanh	0.4408650876	median	2	sgd	0.008706944	20000	75	3	600	175
+-9.4879422	-0.0045919	tanh	0.5617338862	median	8	sgd	0.0068650687	20000	75	3	600	250
+-9.546624	-0.0217111	tanh	0.3714978567	mean	4	sgd	0.0068429009	20000	75	3	600	250
+-9.7941448	-0.0572193	tanh	0.6056309876	median	5	sgd	0.0084370315	20000	75	3	600	250
+-8.8824117	0.09528	linear	0.505080376	median	1	rmsprop	0.0075629493	20000	75	7	1000	25
+		tanh	0.5509903915	median	7	sgd	0.0061469155	20000	75	3	400	375
+-9.2074613	0.0153988	tanh	0.5632983396	mean	1	sgd	0.01	20000	75	5	100	175
+-9.8617716	-0.0870847	tanh	0.3	none	2	sgd	0.009582664	20000	75	1	300	175
+-10.1235621	-0.1809618	relu	0.5690754096	none	1	sgd	0.0068296393	20000	147	2	700	100
+		linear	0.3283319372	median	2	sgd	0.0058411055	20000	75	1	100	75
+-9.1146405	0.0655406	tanh	0.5689325712	median	3	sgd	0.0060903826	20000	75	3	300	125
+-9.2643994	0.0294663	tanh	0.5447963801	median	1	sgd	0.01	20000	75	4	100	200
+-9.181816	0.0667213	linear	0.3	none	1	sgd	0.0051176297	20000	75	1	100	100
+-10.7736239	-0.3010125	tanh	0.6230232915	median	3	sgd	0.01	20000	75	5	300	325
+-9.5914854	-0.0337537	linear	0.3951179189	median	4	rmsprop	0.0064284258	20000	75	6	700	125
+-9.7510167	-0.0666404	tanh	0.4922551306	mean	4	sgd	0.0076329195	20000	75	3	500	250
+-9.5654882	-0.0014122	relu	0.3832402581	median	6	rmsprop	0.0075440992	20000	75	3	400	150
