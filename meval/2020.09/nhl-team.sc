@@ -106,7 +106,7 @@ team_home_H
 "
 
 CMD="$CMD
--o nhl_team-score_${1}
+-o nhl_team_${1}
 ${DB}
 ${CALC_ARGS}
 --team_stats $TEAM_STATS
