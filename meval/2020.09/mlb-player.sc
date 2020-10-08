@@ -127,7 +127,7 @@ fi
 
 
 CMD="$CMD $DATA_FILTER_FLAG
--o mlb_${SERVICE}_${P_TYPE}_${MODEL}
+-o mlb-${P_TYPE}-${MODEL}
 ${DB}
 ${CALC_ARGS}
 --player_pos $POSITIONS

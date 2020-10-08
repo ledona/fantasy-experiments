@@ -110,7 +110,7 @@ if [ "$MODEL" != "OLS" ]; then
 fi
 
 CMD="$CMD
--o nba_team_${1}
+-o nba-team-${1}
 ${DB}
 ${CALC_ARGS}
 --team_stats $TEAM_STATS

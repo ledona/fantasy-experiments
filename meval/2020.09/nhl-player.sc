@@ -175,7 +175,7 @@ esac
 
 
 CMD="$CMD $DATA_FILTER_FLAG
--o nhl_${SERVICE}_${P_TYPE}_${MODEL}
+-o nhl-${P_TYPE}-${MODEL}
 ${DB}
 ${CALC_ARGS}
 --player_pos $POSITIONS

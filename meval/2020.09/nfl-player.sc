@@ -186,7 +186,7 @@ esac
 
 
 CMD="$CMD $DATA_FILTER_FLAG
--o nfl_${SERVICE}_${P_TYPE}_${MODEL}
+-o nfl-${P_TYPE}-${MODEL}
 ${DB}
 ${CALC_ARGS}
 --player_pos $POSITIONS
