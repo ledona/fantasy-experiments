@@ -73,9 +73,24 @@ Date    Model#  Service  Modeled-for -mae        r2          Active Details
 NFL (evaluatations against 2018 season)
 
 Date    Model#  Service  Modeled-for  -mae        r2         Active Details
+2020.09 11      DK       QB           -6.451      0.210             OLS
+2020.09 53      DK       WT           -4.936      0.274             OLS
+2020.09 6       DK       RB           -5.545      0.351             BLE
+2020.09 26      DK       D            -4.513      0.085             OLS
+2020.09 5       FD       QB           -5.937      0.219             OLS
+2020.09 46      FD       WT           -4.320      0.247      *      BLE
+2020.09 21      FD       RB           -4/891      0.334             OLS
+2020.09 22      FD       D            -4.513      0.086             OLS
+2020.09 7       Y        QB           -6.420      0.221             OLS
+2020.09 61      Y        WT           -4.316      0.247      *      OLS
+2020.09 53      Y        RB           -5.145      0.327             OLS
+2020.09 15      Y        D            -4.532      0.082             BLE
+2020.09 25      -        team-score   -7.646      0.129      *      OLS
+2020.09 52      -        team-win     -0.430      0.169      *      OLS
+
 2019.09 64      -        team-score   -7.732      0.113      *      OLS
 2019.09 32      FD       QB           -5.806      0.267      *      BLE
-2019.09 17      FD       WT           -4.322      0.244      *      OLS For WT
+2019.09 17      FD       WT           -4.322      0.244             OLS For WT
 2019.09 17      FD       WT           -4.65       0.213             OLS For W
 2019.09 17      FD       WT           -3.634      0.243             OLS For T
 2019.09 4       FD       W            -4.666      0.221             OLS
@@ -84,7 +99,7 @@ Date    Model#  Service  Modeled-for  -mae        r2         Active Details
 2019.09 48      FD       D            -4.363      0.09       *      BLE
 2019.09 69      FD       K            -3.232      -0.007            OLS
 2019.09 66      DK       QB           -6.411      0.318      *      RF
-2019.09 36      DK       WT           -4.821      0.277      *      BLE For WT
+2019.09 36      DK       WT           -4.821      0.277             BLE For WT
 2019.09 36      DK       WT           -5.206      0.252             BLE For W
 2019.09 36      DK       WT           -4.032      0.252             BLE For T
 2019.09 23      DK       W            -5.46       0.241             OLS
