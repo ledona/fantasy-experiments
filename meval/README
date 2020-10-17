@@ -42,6 +42,27 @@ Date       Model# Stat     Modeled-for -mae        r2          Active Details
 NHL (evaluations against 20182019 season)
 
 Date     Model# Service  Modeled-for -mae        r2          Active Details
+2020.09  36     -        team-win    -0.488      0.015       *      OLS
+2020.09  61     -        team-score  -1.382      0.026              OLS
+2020.09  22     DK       G           -9.026      -0.11              OLS
+2020.09  29     DK       S           -4.511      0.158              OLS
+2020.09  29     DK       S-CW        -4.724      0.166              OLS
+2020.09  64     DK       CW          -4.698      0.169              OLS
+2020.09  29     DK       S-D         -4.084      0.133              OLS
+2020.09  12     DK       D           -4.054      0.136              OLS
+2020.09  48     FD       G           -11.832     -0.003             OLS
+2020.09  12     FD       S           -5.833      0.151       *      BLE
+2020.09  12     FD       S-CW        -6.344      0.155              BLE
+2020.09  5      FD       CW          -6.167      0.158              OLS
+2020.09  12     FD       S-D         -4.813      0.125              BLE
+2020.09  3      FD       D           -4.818      0.128              BLE
+2020.09  48     Y        G           -7.275      -0.005             OLS
+2020.09  34     Y        S           -3.013      0.151              BLE
+2020.09  34     Y        S-CW        -3.249      0.157              BLE
+2020.09  14     Y        CW          -3.152      0.160              OLS
+2020.09  34     Y        S-D         -2.543      0.128              BLE
+2020.09  8      Y        D           -2.511      0.133              OLS
+
 2019.09  14     -        team-score  -1.382      0.036       *      BLE
 2019.09  62     DK       GA          -7.734      0.210       *      RF
 2019.09  23     DK       S           -4.501      0.159       *      OLS on all skaters
@@ -64,12 +85,21 @@ Date     Model# Service  Modeled-for -mae        r2          Active Details
 2019.01         Y        G           -7.39       0.001       *      BR
 2019.01         Y        S           -2.981      0.142              OLS
 2019.01         FD       G           -12.033     0.003              BR
-2019.01         FD       S           -5.791      0.141       *      OLS
+2019.01         FD       S           -5.791      0.141              OLS
 
 
 MLB (evaluations against 2018 season)
 
 Date    Model#  Service  Modeled-for -mae        r2          Active Details
+2020.09 34      -        team-win                                   OLS
+2020.09 1       -        team-score                                 BLE
+2020.09 7       FD       P                                          GP
+2020.09 6       FD       OFF                                        BLE
+2020.09 8       DK       P                                          BLE
+2020.09 42      DK       OFF                                        BLE
+2020.09 43      Y        P                                          BLE
+2020.09 26      Y        OFF                                        BLE
+
 2019.09 19      -        team-score  -2.44       0.026        *     BLE
 2019.09 55      FD       P           -12.893     0.128        *     BLE
 2019.09 19      FD       OFF         -7.501      0.022              BLE
