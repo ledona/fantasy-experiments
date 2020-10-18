@@ -112,7 +112,6 @@ Date    Model#  Service  Modeled-for -mae        r2          Active Details
 2019.01         DK       P           -8.682      0.109              OLS
 2019.01         DK       OFF         -5.446      0.015              ?
 2019.01         Y        P           -9.618      0.102              BLE
-?               Y        OFF         -5.209      -0.095             ?
 
 
 NFL (evaluatations against 2018 season)
@@ -165,10 +164,13 @@ Date    Model#  Service  Modeled-for  -mae        r2         Active Details
 NBA (evaluations against 20182019 season)
 
 Date    Model#  Service Modeled-for -mae        r2          Active  Details
+2020.09 25      -       team-win    -0.434      0.133       *       OLS
+2020.09 6       -       team-score  -9.334      0.132               OLS
+2020.09 36      FD                  -7.574      0.546               BLE
+2020.09 30      DK                  -7.543      0.564       *       BLE
+2020.09 52      Y                   -7.574      0.546               BLE
+
 2019.09 21      -       team-score  -9.12       0.164       *       BLE
 2019.01 52      FD                  -7.558      0.547       *       OLS
 2019.01 9       Y                   -7.755      0.523               OLS
-2019.01 1       DK                  -7.555      0.561       *       OLS
-2019.01         FD                  -7.694      0.531               OLS
-2019.01         Y                   -7.685      0.531       *       OLS
-2019.01         DK                  -7.618      0.554               BLE
+2019.01 1       DK                  -7.555      0.561               OLS
