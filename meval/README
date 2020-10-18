@@ -91,14 +91,14 @@ Date     Model# Service  Modeled-for -mae        r2          Active Details
 MLB (evaluations against 2018 season)
 
 Date    Model#  Service  Modeled-for -mae        r2          Active Details
-2020.09 34      -        team-win                                   OLS
-2020.09 1       -        team-score                                 BLE
-2020.09 7       FD       P                                          GP
-2020.09 6       FD       OFF                                        BLE
-2020.09 8       DK       P                                          BLE
-2020.09 42      DK       OFF                                        BLE
-2020.09 43      Y        P                                          BLE
-2020.09 26      Y        OFF                                        BLE
+2020.09 34      -        team-win    -0.491      0.019       *      OLS
+2020.09 1       -        team-score  -2.457      0.018              BLE
+2020.09 7       FD       P           -12.982     0.116              GP
+2020.09 6       FD       OFF         -7.392      0.018              BLE
+2020.09 8       DK       P           -8.648      0.109              BLE
+2020.09 42      DK       OFF         -5.530      0.018              BLE
+2020.09 43      Y        P           -9.583      0.104              BLE
+2020.09 26      Y        OFF         -5.461      0.019              BLE
 
 2019.09 19      -        team-score  -2.44       0.026        *     BLE
 2019.09 55      FD       P           -12.893     0.128        *     BLE
@@ -172,5 +172,5 @@ Date    Model#  Service Modeled-for -mae        r2          Active  Details
 
 2019.09 21      -       team-score  -9.12       0.164       *       BLE
 2019.01 52      FD                  -7.558      0.547       *       OLS
-2019.01 9       Y                   -7.755      0.523               OLS
+2019.01 9       Y                   -7.755      0.523       *       OLS
 2019.01 1       DK                  -7.555      0.561               OLS
