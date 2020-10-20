@@ -39,7 +39,7 @@ Date       Model# Stat     Modeled-for -mae        r2          Active Details
 2020.05.18 44     Win      Team        -0.687      -0.019             BLE
 
 
-NHL (evaluations against 20182019 season)
+NHL (evaluations against 20182019 season, only starting goalies)
 
 Date     Model# Service  Modeled-for -mae        r2          Active Details
 2020.09  36     -        team-win    -0.488      0.015       *      OLS
@@ -64,19 +64,19 @@ Date     Model# Service  Modeled-for -mae        r2          Active Details
 2020.09  8      Y        D           -2.511      0.133              OLS
 
 2019.09  14     -        team-score  -1.382      0.036       *      BLE
-2019.09  62     DK       GA          -7.734      0.210       *      RF
+2019.09  62     DK       G           -7.102      0.323       *      RF
 2019.09  23     DK       S           -4.501      0.159       *      OLS on all skaters
 2019.09  23     DK       S           -4.735      0.167              OLS on C+W
 2019.09  23     DK       S           -4.034      0.135              OLS on D
 2019.09  ?      DK       CW          -4.720      0.169              BLE on C+W
 2019.09  ?      DK       D           -4.031      0.135              OLS on D
-2019.09  63     FD       GA          -10.056     0.286       *      XG
+2019.09  63     FD       G           -10.074     0.288       *      XG
 2019.09  3      FD       S           -6.358      0.154              BLE on C+W
 2019.09  3      FD       S           -5.843      0.150              BLE on all skaters
 2019.09  3      FD       S           -4.815      0.125              BLE on D
 2019.09  57     FD       CW          -6.202      0.157              OLS on C+W
 2019.09  21     FD       D           -4.716      0.126              OLS on D
-2019.09  51     Y        GA          -7.249      -0.001             BLE
+2019.09  51     Y        G           -7.26       0.000             BLE
 2019.09  52     Y        S           -2.776      0.180       *      XG on all skaters
 2019.09  52     Y        S           -2.978      0.19               XG on C+W
 2019.09  52     Y        S           -2.374      0.14               XG on D
