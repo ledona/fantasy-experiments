@@ -121,7 +121,7 @@ CALC_DNN_ADA="$_SHARED_DNN
 
 CALC_XG="xgboost
        --hist_agg_list mean median none
-       --learning_rate_list .001 0.01.1
+       --learning_rate_list .001 .01 .1
        --subsample_range .5 1
        --min_child_weight_range 1 15
        --max_depth_range 3 15
