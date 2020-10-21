@@ -42,6 +42,11 @@ Date       Model# Stat     Modeled-for -mae        r2          Active Details
 NHL (evaluations against 20182019 season, G=only starting goalies, GA=all goalies)
 
 Date     Model# Service  Modeled-for -mae        r2          Active Details
+2020.09  61     DK       G           -9.008      -0.002             POLY
+2020.09  36     FD       G           -12.014     -0.015             POLY
+2020.09  67     Y        G           -7.380      -0.010             POLY
+
+
 2020.09  36     -        team-win    -0.488      0.015       *      OLS
 2020.09  61     -        team-score  -1.382      0.026              OLS
 2020.09  22     DK       G           -9.026      -0.11              OLS
@@ -76,7 +81,7 @@ Date     Model# Service  Modeled-for -mae        r2          Active Details
 2019.09  3      FD       S           -4.815      0.125              BLE on D
 2019.09  57     FD       CW          -6.202      0.157              OLS on C+W
 2019.09  21     FD       D           -4.716      0.126              OLS on D
-2019.09  51     Y        GA          -7.26       0.000             BLE
+2019.09  51     Y        GA          -7.26       0.000              BLE
 2019.09  52     Y        S           -2.776      0.180       *      XG on all skaters
 2019.09  52     Y        S           -2.978      0.19               XG on C+W
 2019.09  52     Y        S           -2.374      0.14               XG on D
