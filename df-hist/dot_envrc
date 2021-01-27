@@ -1,6 +1,6 @@
 echo "adding chrome to path"
 export PATH=$PATH:/opt/google/chrome
+export CHROME_DEBUG_PORT=9222
 
 echo "Start chrome by running:"
-echo "chrome --remote-debugging-port=9222 --user-data-dir='./chrome-profile' &"
-
+echo "chrome --remote-debugging-port=$CHROME_DEBUG_PORT --user-data-dir='./chrome-profile' &"

@@ -1,5 +1,7 @@
 import logging
 
+from selenium.webdriver.common.by import By
+
 from service_data_retriever import ServiceDataRetriever
 
 LOGGER = logging.getLogger(__name__)
@@ -7,9 +9,8 @@ LOGGER = logging.getLogger(__name__)
 
 class Fanduel(ServiceDataRetriever):
     SERVICE_URL = "https://www.fanduel.com"
-    
-    def login(self, username, password):
-        raise NotImplementedError()
+    LOC_SIGN_IN = (By.LINK_TEXT, "Log in")
+    LOC_LOGGED_IN = (By.LINK_TEXT, "Lobby")
 
     def get_entries(self, history_file_dir, sport, start_date, end_date):
         """ return an iterator that yields entries """

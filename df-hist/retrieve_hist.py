@@ -14,13 +14,16 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy"
 
 
-def retrieve_history(service_name, username, password, history_file_dir,
-                     sport=None, start_date=None, end_date=None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def retrieve_history(
+        service_name, history_file_dir,
+        sport=None, start_date=None, end_date=None, chrome_port=None
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     returns (contest history dataframe, player draft history dataframe, betting dataframe)
     """
-    service_obj = get_service_data_retriever(service_name)
-    service_obj.login(username, password)
+    service_obj = get_service_data_retriever(service_name, chrome_port=chrome_port)
+    service_obj.wait_on_login()
+    service_obj.confirm_logged_in()
 
     for entry_info in service_obj.get_entries(history_file_dir, sport, start_date, end_date):
         service_obj.process_entry(entry_info)
@@ -31,6 +34,8 @@ def retrieve_history(service_name, username, password, history_file_dir,
 def process_cmd_line(cmd_line_str=None):
     parser = ArgumentParser(description="Retrieve historic contest history from daily fantasy services")
 
+    parser.add_argument("--chrome-port",
+                        help="Debug chrome port to connect to")
     parser.add_argument(
         "--history-file-dir", default=DEFAULT_HISTORY_FILE_DIR,
         help=(
@@ -50,8 +55,6 @@ def process_cmd_line(cmd_line_str=None):
     parser.add_argument(
         "service", choices=("fanduel", "draftkings", "yahoo")
     )
-    parser.add_argument("username")
-    parser.add_argument("password")
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
@@ -59,11 +62,12 @@ def process_cmd_line(cmd_line_str=None):
     LOGGER.info("starting data retrieval")
 
     contest_history_df, player_draft_df, betting_history_df = retrieve_history(
-        args.service, args.username, args.password,
+        args.service,
         args.history_file_dir,
         sport=args.sport,
         start_date=args.start_date,
         end_date=args.end_date,
+        chrome_port=args.chrome_port,
     )
 
     if args.filename_prefix:

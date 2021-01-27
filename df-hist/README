@@ -1,3 +1,6 @@
 # To pull data...
 cp dot_envrc .envrc
+# EDIT .envrc
 direnv allow
+# RUN THE FOLLOWING ON THE CROMEDRIVER BINARY...
+perl -pi -e 's/cdc/dog/g' /path/to/chromedriver
