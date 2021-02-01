@@ -1,5 +1,9 @@
+from collections import defaultdict
+import glob
 import logging
+import os
 
+import pandas as pd
 from selenium.webdriver.common.by import By
 
 from service_data_retriever import ServiceDataRetriever
@@ -14,6 +18,25 @@ class Fanduel(ServiceDataRetriever):
 
     def get_entries(self, history_file_dir, sport, start_date, end_date):
         """ return an iterator that yields entries """
+        glob_pattern = os.path.join(history_file_dir, "fanduel entry history *.csv")
+        glob_pattern = os.path.expanduser(glob_pattern)
+        history_filenames = glob.glob(glob_pattern)
+
+        if len(history_filenames) == 0:
+            raise FileNotFoundError(f"No history files found for '{glob_pattern}'")
+
+        # find the most recent date
+        retrieval_date_filenames = defaultdict(list)
+        for filename in history_filenames:
+            retrieval_date_filenames[filename.rsplit(' ', 1)[1][:8]].append(filename)
+        most_recent_date = sorted(retrieval_date_filenames.keys())[-1]
+        LOGGER.info("Loading history data from '%s'", retrieval_date_filenames[most_recent_date])
+        dfs = (
+            pd.read_csv(filename, index_col=False)
+            for filename in sorted(retrieval_date_filenames[most_recent_date])
+        )
+        entries_df = pd.concat(dfs)
+
         raise NotImplementedError()
 
     def process_entry(self, entry_info):

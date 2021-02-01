@@ -30,10 +30,12 @@ def retrieve_history(
                                              browser_profile_path=profile_path,
                                              browser_address=browser_debug_address,
                                              browser_debug_port=browser_debug_port)
+    # do this first since
+    contest_entries = service_obj.get_entries(history_file_dir, sport, start_date, end_date)
     service_obj.wait_on_login()
     service_obj.confirm_logged_in()
 
-    for entry_info in service_obj.get_entries(history_file_dir, sport, start_date, end_date):
+    for entry_info in contest_entries:
         service_obj.process_entry(entry_info)
 
     return service_obj.contest_history_df, service_obj.draft_history_df, service_obj.betting_history_df

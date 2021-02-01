@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractclassmethod
 from importlib import import_module
 from typing import Optional
 import logging
@@ -51,14 +51,14 @@ class ServiceDataRetriever(ABC):
 
         self.browser = webdriver.Chrome("chromedriver", options=chrome_options)
 
-        LOGGER.info("Opening '%s'", self.SERVICE_URL)
-        self.browser.get(self.SERVICE_URL)
-
         self.contest_history_df = None
         self.draft_history_df = None
         self.betting_history_df = None
 
     def wait_on_login(self):
+        LOGGER.info("Opening '%s'", self.SERVICE_URL)
+        self.browser.get(self.SERVICE_URL)
+
         try:
             # if found, then signin is required
             self.browser.find_element(*self.LOC_SIGN_IN)
@@ -83,8 +83,8 @@ class ServiceDataRetriever(ABC):
                         self.LOC_LOGGED_IN)
             return
 
-    @abstractmethod
-    def get_entries(self, history_file_dir, sport, start_date, end_date):
+    @abstractclassmethod
+    def get_entries(cls, history_file_dir, sport, start_date, end_date):
         """ return an iterator that yields entries """
         raise NotImplementedError()
 
