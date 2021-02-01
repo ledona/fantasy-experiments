@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from importlib import import_module
+from typing import Optional
 import logging
 
 from selenium import webdriver
@@ -21,23 +22,37 @@ class ServiceDataRetriever(ABC):
     # how long to wait for login before timing out
     TIMEOUT_LOGIN = 30
 
-    def __init__(self, chrome_port=None):
+    def __init__(
+            self, browser_address: Optional[str] = None, browser_debug_port: Optional[bool] = None,
+            browser_profile_path: Optional[str] = None,
+    ):
+        """
+        browser_address - the connection address of the chrome instance to use. e.g. ip-address:port
+        """
         chrome_options = ChromeOptions()
-        chrome_options.add_experimental_option("excludeSwitches", ['enable-automation'])
+        if browser_address is not None:
+            assert browser_debug_port is None
+            assert browser_profile_path is None
 
-        if chrome_port is not None:
+            LOGGER.info("try and connect to an existing browser at %s", browser_address)
             chrome_options.add_experimental_option(
-                "debuggerAddress", f"127.0.0.1:{chrome_port}"
+                "debuggerAddress", browser_address
             )
-
-        LOGGER.info("Opening '%s'", self.SERVICE_URL)
+        else:
+            # try and create a new browser to run the retrieval from
+            LOGGER.info("Opening new browser")
+            chrome_options.add_experimental_option("excludeSwitches", ['enable-automation'])
+            if browser_debug_port is not None:
+                LOGGER.info("Exposing chrome debugging on port '%s'", browser_debug_port)
+                chrome_options.add_argument(f"--remote-debugging-port={browser_debug_port}")
+            if browser_profile_path is not None:
+                LOGGER.info("Using chrome profile at '%s'", browser_profile_path)
+                chrome_options.add_argument(f"--user-data-dir={browser_profile_path}")
 
         self.browser = webdriver.Chrome("chromedriver", options=chrome_options)
-        try:
-            self.browser.get(self.SERVICE_URL)
-        finally:
-            if chrome_port is None:
-                self.browser.close()
+
+        LOGGER.info("Opening '%s'", self.SERVICE_URL)
+        self.browser.get(self.SERVICE_URL)
 
         self.contest_history_df = None
         self.draft_history_df = None
@@ -52,7 +67,7 @@ class ServiceDataRetriever(ABC):
                         self.LOC_SIGN_IN)
             return
 
-        LOGGER.info("Waiting for you to log in...")
+        LOGGER.info("Waiting %i seconds for you to log in...", self.TIMEOUT_LOGIN)
         WebDriverWait(self.browser, self.TIMEOUT_LOGIN).until(
             EC.presence_of_element_located(self.LOC_LOGGED_IN),
             "Still not logged in..."
@@ -82,8 +97,17 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
 
-def get_service_data_retriever(service: str, chrome_port=None) -> ServiceDataRetriever:
+def get_service_data_retriever(
+        service: str,
+        browser_address: Optional[str] = None,
+        browser_debug_port: Optional[str] = None,
+        browser_profile_path: Optional[str] = None,
+) -> ServiceDataRetriever:
     """ attempt to import the data retriever for the requested service """
     module = import_module(service)
     class_ = getattr(module, service.capitalize())
-    return class_(chrome_port=chrome_port)
+    return class_(
+        browser_address=browser_address,
+        browser_debug_port=browser_debug_port,
+        browser_profile_path=browser_profile_path
+    )

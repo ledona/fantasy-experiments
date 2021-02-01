@@ -16,12 +16,20 @@ DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy"
 
 def retrieve_history(
         service_name, history_file_dir,
-        sport=None, start_date=None, end_date=None, chrome_port=None
+        sport=None, start_date=None, end_date=None,
+        browser_debug_address=None, browser_debug_port=None, profile_path=None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
+    browser_debug_address - address of an existing chrome browser to use, ip-address:port
+    browser_debug_port - port to request that the new browser used for debugging will be available on
+
     returns (contest history dataframe, player draft history dataframe, betting dataframe)
     """
-    service_obj = get_service_data_retriever(service_name, chrome_port=chrome_port)
+    assert (browser_debug_address is None) or (browser_debug_port is None)
+    service_obj = get_service_data_retriever(service_name,
+                                             browser_profile_path=profile_path,
+                                             browser_address=browser_debug_address,
+                                             browser_debug_port=browser_debug_port)
     service_obj.wait_on_login()
     service_obj.confirm_logged_in()
 
@@ -34,8 +42,17 @@ def retrieve_history(
 def process_cmd_line(cmd_line_str=None):
     parser = ArgumentParser(description="Retrieve historic contest history from daily fantasy services")
 
-    parser.add_argument("--chrome-port",
-                        help="Debug chrome port to connect to")
+    mut_ex_group = parser.add_mutually_exclusive_group()
+    mut_ex_group.add_argument(
+        "--chrome-debug-port", "--chrome-port", "--port",
+        help="Debug chrome port request be made available on the created chrome instance"
+    )
+    mut_ex_group.add_argument("--chrome-debug-address", "--chrome-address", "--address",
+                              help="Address of chrome instance to connect to")
+    parser.add_argument(
+        "--chrome-profile-path", "--profile-path",
+        help="path to chrome user profile, only valid if --chrome-debug-address is NOT used"
+    )
     parser.add_argument(
         "--history-file-dir", default=DEFAULT_HISTORY_FILE_DIR,
         help=(
@@ -59,6 +76,8 @@ def process_cmd_line(cmd_line_str=None):
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
+    if (args.chrome_debug_address is not None) and (args.chrome_profile_path is not None):
+        parser.error("--chrome-profile-path cannot be used with --chrome-debug-address")
     LOGGER.info("starting data retrieval")
 
     contest_history_df, player_draft_df, betting_history_df = retrieve_history(
@@ -67,7 +86,9 @@ def process_cmd_line(cmd_line_str=None):
         sport=args.sport,
         start_date=args.start_date,
         end_date=args.end_date,
-        chrome_port=args.chrome_port,
+        browser_debug_port=args.chrome_debug_port,
+        browser_debug_address=args.chrome_debug_address,
+        profile_path=args.chrome_profile_path,
     )
 
     if args.filename_prefix:

@@ -1,6 +1,11 @@
 echo "adding chrome to path"
 export PATH=$PATH:/opt/google/chrome
-export CHROME_DEBUG_PORT=9222
 
-echo "Start chrome by running:"
-echo "chrome --remote-debugging-port=$CHROME_DEBUG_PORT --user-data-dir='./chrome-profile' &"
+echo "To create a reusable chrome instance to use for retrieval, run the following. Replace PORT with a port number"
+echo "chrome --remote-debugging-port=PORT --user-data-dir='./chrome-profile'"
+echo
+echo "To use an existing chrome instance for retrieval run..."
+echo "python retrieve_hist.py --address 127.0.0.1:PORT SERVICE"
+echo
+echo "To retrieval data using a new/dedicated instance run..."
+echo "python retrieve_hist.py SERVICE"
