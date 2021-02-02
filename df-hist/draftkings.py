@@ -16,7 +16,7 @@ class Draftkings(ServiceDataRetriever):
     LOC_LOGGED_IN = (By.LINK_TEXT, "Lobby")
 
     @classmethod
-    def get_entries(cls, history_file_dir, sport, start_date, end_date):
+    def get_entries_df(cls, history_file_dir):
         """ return an iterator that yields contest entries """
         # get the most recent dk contest entry filename
         glob_pattern = os.path.join(history_file_dir, "draftkings-contest-entry-history.*.csv")
@@ -28,8 +28,9 @@ class Draftkings(ServiceDataRetriever):
         history_filename = sorted(history_filenames)[-1]
         LOGGER.info("Loading history data from '%s'", history_filename)
         entries_df = pd.read_csv(history_filename)
-
-        raise NotImplementedError()
+        entries_df.Sport = entries_df.Sport.str.lower()
+        entries_df["Date"] = pd.to_datetime(entries_df.Contest_Date_EST)
+        return entries_df
 
     def process_entry(self, entry_info):
         """

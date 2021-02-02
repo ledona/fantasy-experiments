@@ -79,13 +79,17 @@ class ServiceDataRetriever(ABC):
             # if found, then signin is required
             self.browser.find_element(*self.LOC_LOGGED_IN)
         except NoSuchElementException:
-            LOGGER.info("Logged in link %s not found! Confirmation of logged in status failed",
-                        self.LOC_LOGGED_IN)
-            return
+            LOGGER.error("Logged in link %s not found! Confirmation of logged in status failed",
+                         self.LOC_LOGGED_IN)
+            raise
 
     @abstractclassmethod
-    def get_entries(cls, history_file_dir, sport, start_date, end_date):
-        """ return an iterator that yields entries """
+    def get_entries_df(cls, history_file_dir):
+        """
+        return a dataframe with entries data, the dataframe must include the following columns
+           Sport - lower case sport abbreviation
+           Date - column with date.date objects
+        """
         raise NotImplementedError()
 
     @abstractmethod

@@ -16,8 +16,7 @@ class Fanduel(ServiceDataRetriever):
     LOC_SIGN_IN = (By.LINK_TEXT, "Log in")
     LOC_LOGGED_IN = (By.LINK_TEXT, "Lobby")
 
-    def get_entries(self, history_file_dir, sport, start_date, end_date):
-        """ return an iterator that yields entries """
+    def get_entries_df(self, history_file_dir):
         glob_pattern = os.path.join(history_file_dir, "fanduel entry history *.csv")
         glob_pattern = os.path.expanduser(glob_pattern)
         history_filenames = glob.glob(glob_pattern)
@@ -36,12 +35,33 @@ class Fanduel(ServiceDataRetriever):
             for filename in sorted(retrieval_date_filenames[most_recent_date])
         )
         entries_df = pd.concat(dfs)
+        rows_of_data = len(entries_df)
 
-        raise NotImplementedError()
+        # convert dates and drop rows with invalid dates (happens for cancelled contests)
+        entries_df.Date = pd.to_datetime(entries_df.Date, errors='coerce')
+        entries_df = entries_df[entries_df.Date.notna()]
+        if (invalid_dates := rows_of_data - len(entries_df)) > 0:
+            LOGGER.info("%i invalid dates found. dropping those entries", invalid_dates)
+            rows_of_data = len(entries_df)
+
+        return entries_df
 
     def process_entry(self, entry_info):
         """
         process a contest entry. if the contest has not yet been processed then add contest
         information to the contest dataframe and draft information from non entry lineups
         """
+        # go to page in entry_info.Link
+
+        # get draft % for all players in my lineup
+
+        # if contest has been processed then we are done
+
+        # get top score
+
+        # get last winning score
+
+        # get draft % for all players in top 5 lineups
+
+        # get draft % for last winning lineup
         raise NotImplementedError()

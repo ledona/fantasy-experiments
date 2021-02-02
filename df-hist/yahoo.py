@@ -15,7 +15,7 @@ class Yahoo(ServiceDataRetriever):
     LOC_SIGN_IN = (By.LINK_TEXT, "Sign in")
     LOC_LOGGED_IN = (By.NAME, "Profile Picture")
 
-    def get_entries(self, history_file_dir, sport, start_date, end_date):
+    def get_entries_df(self, history_file_dir):
         """ return an iterator that yields entries """
         # get the most recent dk contest entry filename
         glob_pattern = os.path.join(history_file_dir, "Yahoo_DF_my_contest_history.*.csv")
@@ -27,8 +27,10 @@ class Yahoo(ServiceDataRetriever):
         history_filename = sorted(history_filenames)[-1]
         LOGGER.info("Loading history data from '%s'", history_filename)
         entries_df = pd.read_csv(history_filename)
+        entries_df["Date"] = pd.to_datetime(entries_df['Start Date'])
+        entries_df.Sport = entries_df.Sport.str.lower()
 
-        raise NotImplementedError()
+        return entries_df
 
     def process_entry(self, entry_info):
         """

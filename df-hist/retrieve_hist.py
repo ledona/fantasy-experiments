@@ -3,6 +3,7 @@ import logging
 import shlex
 
 import pandas as pd
+from tqdm import tqdm
 
 from service_data_retriever import get_service_data_retriever
 
@@ -12,14 +13,15 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy"
-
+REQUIRED_COLUMNS = {'Date', 'Sport'}
 
 def retrieve_history(
         service_name, history_file_dir,
-        sport=None, start_date=None, end_date=None,
+        sports=None, start_date=None, end_date=None,
         browser_debug_address=None, browser_debug_port=None, profile_path=None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
+    sports - collection of sports to process, if None then process all sports
     browser_debug_address - address of an existing chrome browser to use, ip-address:port
     browser_debug_port - port to request that the new browser used for debugging will be available on
 
@@ -31,12 +33,35 @@ def retrieve_history(
                                              browser_address=browser_debug_address,
                                              browser_debug_port=browser_debug_port)
     # do this first since
-    contest_entries = service_obj.get_entries(history_file_dir, sport, start_date, end_date)
+    assert (sports is None) or set(sports) == {sport.lower() for sport in sports}, \
+        "all sports must be in lower case"
+    contest_entries_df = service_obj.get_entries_df(history_file_dir)
+    assert REQUIRED_COLUMNS <= set(contest_entries_df.columns), \
+        f"dataframe does not have the following required columns: {REQUIRED_COLUMNS - set(contest_entries_df.columns)}"
+    entry_count = len(contest_entries_df)
+
+    filters = []
+    if start_date is not None:
+        filters.append("Date >= @start_date")
+    if end_date is not None:
+        filters.append("Date <= @end_date")
+    if sports is not None:
+        filters.append("Sport in @sports")
+
+    if len(filters) > 0:
+        contest_entries_df = contest_entries_df.query(" and ".join(filters))
+        if (removed_entries := entry_count - len(contest_entries_df)) > 0:
+            LOGGER.info("%i rows filtered out", removed_entries)
+            entry_count -= removed_entries
+    LOGGER.info("%i entries to process", entry_count)
+    if entry_count == 0:
+        raise ValueError("No entries to process!")
+
     service_obj.wait_on_login()
     service_obj.confirm_logged_in()
 
-    for entry_info in contest_entries:
-        service_obj.process_entry(entry_info)
+    tqdm.pandas(desc="entries")
+    contest_entries_df.progress_apply(service_obj.process_entry, axis=1)
 
     return service_obj.contest_history_df, service_obj.draft_history_df, service_obj.betting_history_df
 
@@ -68,7 +93,8 @@ def process_cmd_line(cmd_line_str=None):
               "one for contest history the other for player draft history). "
               "Filenames will be prefixed with this value.")
     )
-    parser.add_argument("--sport")
+    parser.add_argument("--sports", help="Sports to process", nargs="+",
+                        choices=('nhl', 'nfl', 'mlb', 'nba', 'lol'))
     parser.add_argument("--start-date")
     parser.add_argument("--end-date")
     parser.add_argument(
@@ -85,7 +111,7 @@ def process_cmd_line(cmd_line_str=None):
     contest_history_df, player_draft_df, betting_history_df = retrieve_history(
         args.service,
         args.history_file_dir,
-        sport=args.sport,
+        sports=args.sports,
         start_date=args.start_date,
         end_date=args.end_date,
         browser_debug_port=args.chrome_debug_port,
