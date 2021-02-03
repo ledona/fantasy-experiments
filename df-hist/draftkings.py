@@ -33,8 +33,19 @@ class Draftkings(ServiceDataRetriever):
         return entries_df
 
     def process_entry(self, entry_info):
-        """
-        process a contest entry. if the contest has not yet been processed then add contest
-        information to the contest dataframe and draft information from non entry lineups
-        """
+        # go to contest page
+        link = f"https://www.draftkings.com/contest/gamecenter/{entry_info.Contest_Key}?uc={entry_info.Entry_Key}#/"
+        self.browse_to(link)
+
+        # get draft % for all players in my lineup
         raise NotImplementedError()
+
+        # if contest has been processed then we are done
+
+        # get top score
+
+        # get last winning score
+
+        # get draft % for all players in top 5 lineups
+
+        # get draft % for last winning lineup

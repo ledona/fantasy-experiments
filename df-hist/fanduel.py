@@ -52,8 +52,10 @@ class Fanduel(ServiceDataRetriever):
         information to the contest dataframe and draft information from non entry lineups
         """
         # go to page in entry_info.Link
+        self.browse_to(entry_info.Link)
 
         # get draft % for all players in my lineup
+        raise NotImplementedError()
 
         # if contest has been processed then we are done
 
@@ -64,4 +66,3 @@ class Fanduel(ServiceDataRetriever):
         # get draft % for all players in top 5 lineups
 
         # get draft % for last winning lineup
-        raise NotImplementedError()

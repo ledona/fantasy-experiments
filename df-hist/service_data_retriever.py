@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod, abstractclassmethod
 from importlib import import_module
+import time
+import random
 from typing import Optional
 import logging
 
@@ -11,6 +13,9 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 LOGGER = logging.getLogger(__name__)
 
+PAUSE_MIN = 10
+PAUSE_MAX = 15
+
 
 class ServiceDataRetriever(ABC):
     # URL to the service home page
@@ -20,7 +25,7 @@ class ServiceDataRetriever(ABC):
     LOC_LOGGED_IN: tuple[str, str]
 
     # how long to wait for login before timing out
-    TIMEOUT_LOGIN = 30
+    LOGIN_TIMEOUT = 30
 
     def __init__(
             self, browser_address: Optional[str] = None, browser_debug_port: Optional[bool] = None,
@@ -56,8 +61,7 @@ class ServiceDataRetriever(ABC):
         self.betting_history_df = None
 
     def wait_on_login(self):
-        LOGGER.info("Opening '%s'", self.SERVICE_URL)
-        self.browser.get(self.SERVICE_URL)
+        self.browse_to(self.SERVICE_URL, pause_before=False)
 
         try:
             # if found, then signin is required
@@ -67,8 +71,8 @@ class ServiceDataRetriever(ABC):
                         self.LOC_SIGN_IN)
             return
 
-        LOGGER.info("Waiting %i seconds for you to log in...", self.TIMEOUT_LOGIN)
-        WebDriverWait(self.browser, self.TIMEOUT_LOGIN).until(
+        LOGGER.info("Waiting %i seconds for you to log in...", self.LOGIN_TIMEOUT)
+        WebDriverWait(self.browser, self.LOGIN_TIMEOUT).until(
             EC.presence_of_element_located(self.LOC_LOGGED_IN),
             "Still not logged in..."
         )
@@ -99,6 +103,14 @@ class ServiceDataRetriever(ABC):
         information to the contest dataframe and draft information from non entry lineups
         """
         raise NotImplementedError()
+
+    def browse_to(self, url, pause_before=True):
+        if pause_before:
+            pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
+            LOGGER.info("Pausing for %i seconds", pause_for)
+            time.sleep(pause_for)
+        LOGGER.info("Opening '%s'", url)
+        self.browser.get(url)
 
 
 def get_service_data_retriever(

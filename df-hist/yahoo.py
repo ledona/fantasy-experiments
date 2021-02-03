@@ -13,7 +13,8 @@ LOGGER = logging.getLogger(__name__)
 class Yahoo(ServiceDataRetriever):
     SERVICE_URL = "https://sports.yahoo.com/dailyfantasy/"
     LOC_SIGN_IN = (By.LINK_TEXT, "Sign in")
-    LOC_LOGGED_IN = (By.NAME, "Profile Picture")
+    LOC_LOGGED_IN = (By.LINK_TEXT, "Create contest")
+    LOGIN_TIMEOUT = 45
 
     def get_entries_df(self, history_file_dir):
         """ return an iterator that yields entries """
@@ -33,8 +34,19 @@ class Yahoo(ServiceDataRetriever):
         return entries_df
 
     def process_entry(self, entry_info):
-        """
-        process a contest entry. if the contest has not yet been processed then add contest
-        information to the contest dataframe and draft information from non entry lineups
-        """
+        # go to page in entry_info.Link
+        link = f"https://sports.yahoo.com/dailyfantasy/contest/{entry_info.Id}/{entry_info['Entry Id']}"
+        self.browse_to(link)
+
+        # get draft % for all players in my lineup
         raise NotImplementedError()
+
+        # if contest has been processed then we are done
+
+        # get top score
+
+        # get last winning score
+
+        # get draft % for all players in top 5 lineups
+
+        # get draft % for last winning lineup
