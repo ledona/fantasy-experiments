@@ -5,6 +5,8 @@ import os
 
 import pandas as pd
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from service_data_retriever import ServiceDataRetriever
 
@@ -15,6 +17,8 @@ class Fanduel(ServiceDataRetriever):
     SERVICE_URL = "https://www.fanduel.com"
     LOC_SIGN_IN = (By.LINK_TEXT, "Log in")
     LOC_LOGGED_IN = (By.LINK_TEXT, "Lobby")
+    # how long to wait for login before timing out
+    LOGIN_TIMEOUT = 300
 
     def get_entries_df(self, history_file_dir):
         glob_pattern = os.path.join(history_file_dir, "fanduel entry history *.csv")
@@ -55,9 +59,17 @@ class Fanduel(ServiceDataRetriever):
         self.browse_to(entry_info.Link)
 
         # get draft % for all players in my lineup
+        my_lineup_element = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@data-test-id="contest-entry"]')),
+            "Waiting for lineup"
+        )
+
         raise NotImplementedError()
 
         # if contest has been processed then we are done
+        contest_id = (entry_info.Sport, entry_info.Date, entry_info.Title)
+        if contest_id in self.processed_contests:
+            return
 
         # get top score
 
@@ -66,3 +78,5 @@ class Fanduel(ServiceDataRetriever):
         # get draft % for all players in top 5 lineups
 
         # get draft % for last winning lineup
+
+        self.processed_contests.add(contest_id)

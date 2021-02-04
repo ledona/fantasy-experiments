@@ -38,6 +38,14 @@ class Draftkings(ServiceDataRetriever):
         self.browse_to(link)
 
         # get draft % for all players in my lineup
+        my_lineup_element = self.browser.find_elements_by_xpath(
+            '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div'
+        )[1]
+        raise NotImplementedError("use the text from this as a direct input to a dataframe")
+
+        # if contest has been processed then we are done
+        if contest_info.Contest_Key in self.processed_contests:
+            return
         raise NotImplementedError()
 
         # if contest has been processed then we are done

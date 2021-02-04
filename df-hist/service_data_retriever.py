@@ -5,6 +5,7 @@ import random
 from typing import Optional
 import logging
 
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -36,6 +37,7 @@ class ServiceDataRetriever(ABC):
         """
         chrome_options = ChromeOptions()
         if browser_address is not None:
+            # connect to existing browser
             assert browser_debug_port is None
             assert browser_profile_path is None
 
@@ -47,18 +49,61 @@ class ServiceDataRetriever(ABC):
             # try and create a new browser to run the retrieval from
             LOGGER.info("Opening new browser")
             chrome_options.add_experimental_option("excludeSwitches", ['enable-automation'])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+            chrome_options.add_argument("start-maximized")
             if browser_debug_port is not None:
                 LOGGER.info("Exposing chrome debugging on port '%s'", browser_debug_port)
                 chrome_options.add_argument(f"--remote-debugging-port={browser_debug_port}")
             if browser_profile_path is not None:
                 LOGGER.info("Using chrome profile at '%s'", browser_profile_path)
                 chrome_options.add_argument(f"--user-data-dir={browser_profile_path}")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-software-rasterizer")
+            chrome_options.add_argument('--disable-blink-features=AutomationControlled')
 
         self.browser = webdriver.Chrome("chromedriver", options=chrome_options)
+        self.browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
-        self.contest_history_df = None
-        self.draft_history_df = None
-        self.betting_history_df = None
+        self._player_draft_dicts: list[dict] = []
+        self._contest_dicts: list[dict] = []
+        self._entry_dicts: list[dict] = []
+        # used to keep track of the contests that have been processed
+        self.processed_contests = set()
+
+    @property
+    def player_draft_df(self):
+        """
+        returns - dataframe with columns: contest_id, date, sport, team, position, first name, last name,
+            draft position, draft %, score
+        """
+        df = pd.DataFrame(self._player_draft_dicts)
+        assert set(df.columns) == {
+            'contest_id', 'date', 'sport', 'team', 'position', 'draft_position',
+            'score', 'first_name', 'last_name', 'draft_%'
+        }
+        return df
+
+    @property
+    def contest_df(self):
+        """
+        returns - dataframe with columns: contest_id, date, sport, contest_name,
+           entry_fee, entry_count, winning_places, top_score, last_winning_score, last_winner_rank
+        """
+        df = pd.DataFrame(self._contest_dicts)
+        assert set(df.columns) == {
+            'contest_id', 'date', 'sport', 'contest_name', 'entry_fee', 'entry_count',
+            'winning_places', 'top_score', 'last_winning_score', 'last_winning_rank',
+        }
+        return df
+
+    @property
+    def entry_df(self):
+        """
+        returns - dataframe with columns: contest_id, entry_id, link, winnings, rank, score
+        """
+        df = pd.DataFrame(self._entry_dicts)
+        assert set(df.columns) == {'contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score'}
+        return df
 
     def wait_on_login(self):
         self.browse_to(self.SERVICE_URL, pause_before=False)
@@ -80,8 +125,11 @@ class ServiceDataRetriever(ABC):
     def confirm_logged_in(self):
         """ use self.LOC_LOGGED_IN to confirm that the account is logged in """
         try:
-            # if found, then signin is required
-            self.browser.find_element(*self.LOC_LOGGED_IN)
+            # if found, then signin succeeded
+            WebDriverWait(self.browser, self.LOGIN_TIMEOUT).until(
+                EC.presence_of_element_located(self.LOC_LOGGED_IN),
+                "Still not logged in..."
+            )
         except NoSuchElementException:
             LOGGER.error("Logged in link %s not found! Confirmation of logged in status failed",
                          self.LOC_LOGGED_IN)

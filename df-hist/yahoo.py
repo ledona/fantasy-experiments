@@ -38,6 +38,12 @@ class Yahoo(ServiceDataRetriever):
         link = f"https://sports.yahoo.com/dailyfantasy/contest/{entry_info.Id}/{entry_info['Entry Id']}"
         self.browse_to(link)
 
+        my_lineup_element = self.browser.find_element_by_xpath('//div[@data-tst="contest-entry"]')
+        raise NotImplementedError("directly parse the text from the element")
+        # if contest has been processed then we are done
+        if entry_info.Id in self.processed_contests:
+            return
+
         # get draft % for all players in my lineup
         raise NotImplementedError()
 
@@ -50,3 +56,5 @@ class Yahoo(ServiceDataRetriever):
         # get draft % for all players in top 5 lineups
 
         # get draft % for last winning lineup
+
+        self.processed_contests.add(entry_info.Id)
