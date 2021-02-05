@@ -18,6 +18,7 @@ REQUIRED_COLUMNS = {'Date', 'Sport'}
 def retrieve_history(
         service_name, history_file_dir,
         sports=None, start_date=None, end_date=None,
+        cache_path=None,
         browser_debug_address=None, browser_debug_port=None, profile_path=None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -29,6 +30,7 @@ def retrieve_history(
     """
     assert (browser_debug_address is None) or (browser_debug_port is None)
     service_obj = get_service_data_retriever(service_name,
+                                             cache_path=cache_path,
                                              browser_profile_path=profile_path,
                                              browser_address=browser_debug_address,
                                              browser_debug_port=browser_debug_port)
@@ -57,9 +59,6 @@ def retrieve_history(
     if entry_count == 0:
         raise ValueError("No entries to process!")
 
-    service_obj.wait_on_login()
-    service_obj.confirm_logged_in()
-
     tqdm.pandas(desc="entries")
     contest_entries_df.progress_apply(service_obj.process_entry, axis=1)
 
@@ -69,6 +68,7 @@ def retrieve_history(
 def process_cmd_line(cmd_line_str=None):
     parser = ArgumentParser(description="Retrieve historic contest history from daily fantasy services")
 
+    parser.add_argument("--cache-path", "--cache", help="path to cached files")
     mut_ex_group = parser.add_mutually_exclusive_group()
     mut_ex_group.add_argument(
         "--chrome-debug-port", "--chrome-port", "--port",
@@ -117,6 +117,7 @@ def process_cmd_line(cmd_line_str=None):
         browser_debug_port=args.chrome_debug_port,
         browser_debug_address=args.chrome_debug_address,
         profile_path=args.chrome_profile_path,
+        cache_path=args.cache_path,
     )
 
     if args.filename_prefix:

@@ -23,7 +23,8 @@
                 "--address", "127.0.0.1:9222",
                 "--sports", "nba", "nhl",
                 "--start-date", "2020-01-01",
-                "--end-date", "2020-03-01"
+                "--end-date", "2020-03-01",
+                "--cache", "cache"
             ]
         },
         {
@@ -37,7 +38,8 @@
                 "--sports", "nba", "nhl",
                 "--start-date", "2020-01-01",
                 "--end-date", "2020-03-01",
-                "--profile-path", "chrome-profile"
+                "--profile-path", "chrome-profile",
+                "--cache", "cache"
             ]
         },
         {

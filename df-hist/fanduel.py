@@ -17,8 +17,10 @@ class Fanduel(ServiceDataRetriever):
     SERVICE_URL = "https://www.fanduel.com"
     LOC_SIGN_IN = (By.LINK_TEXT, "Log in")
     LOC_LOGGED_IN = (By.LINK_TEXT, "Lobby")
-    # how long to wait for login before timing out
+    
+    # use longer waits for captcha
     LOGIN_TIMEOUT = 300
+    WAIT_TIMEOUT = 300
 
     def get_entries_df(self, history_file_dir):
         glob_pattern = os.path.join(history_file_dir, "fanduel entry history *.csv")
@@ -50,33 +52,43 @@ class Fanduel(ServiceDataRetriever):
 
         return entries_df
 
-    def process_entry(self, entry_info):
-        """
-        process a contest entry. if the contest has not yet been processed then add contest
-        information to the contest dataframe and draft information from non entry lineups
-        """
-        # go to page in entry_info.Link
-        self.browse_to(entry_info.Link)
+    def get_entry_lineup_data(self, link, title):
+        self.browse_to(link, title=title)
 
         # get draft % for all players in my lineup
-        my_lineup_element = WebDriverWait(self.browser, 10).until(
+        my_lineup_element = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located((By.XPATH, '//div[@data-test-id="contest-entry"]')),
             "Waiting for lineup"
         )
 
+        return my_lineup_element.text
+
+    def get_entry_lineup_df(self, lineup_data):
         raise NotImplementedError()
 
-        # if contest has been processed then we are done
-        contest_id = (entry_info.Sport, entry_info.Date, entry_info.Title)
-        if contest_id in self.processed_contests:
-            return
+    def get_contest_data(self, link, title) -> dict:
+        self.browse_to(link, title=title)
 
-        # get top score
-
-        # get last winning score
+        min_winning_score = self.browser.find_element_by_xpath('//span[@data-test-id="RunningManScore"]').text
+        winning_score = self.browser.find_element_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr') \
+            .text.rsplit('\n', 1)[1]
 
         # get draft % for all players in top 5 lineups
 
         # get draft % for last winning lineup
 
-        self.processed_contests.add(contest_id)
+        raise NotImplementedError()
+        return {
+            'min_winning_score': float(min_winning_score),
+            'winning_score': float(winning_score),
+        }
+
+
+    @staticmethod
+    def get_contest_identifiers(entry_info) -> tuple[str, tuple, str, str]:
+        return (
+            f"fd-{entry_info.Sport}-{entry_info.Date:%Y%m%d}-{entry_info.Title}",
+            (entry_info.Sport, entry_info.Date, entry_info.Title),
+            entry_info.Link,
+            "Scoring for " + entry_info.Title,
+        )
