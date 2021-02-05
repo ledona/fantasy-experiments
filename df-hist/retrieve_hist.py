@@ -13,7 +13,7 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy"
-REQUIRED_COLUMNS = {'Date', 'Sport'}
+REQUIRED_COLUMNS = {'date', 'sport'}
 
 def retrieve_history(
         service_name, history_file_dir,
@@ -44,11 +44,11 @@ def retrieve_history(
 
     filters = []
     if start_date is not None:
-        filters.append("Date >= @start_date")
+        filters.append("date >= @start_date")
     if end_date is not None:
-        filters.append("Date <= @end_date")
+        filters.append("date <= @end_date")
     if sports is not None:
-        filters.append("Sport in @sports")
+        filters.append("sport in @sports")
 
     if len(filters) > 0:
         contest_entries_df = contest_entries_df.query(" and ".join(filters))

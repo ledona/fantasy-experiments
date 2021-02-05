@@ -163,8 +163,9 @@ class ServiceDataRetriever(ABC):
     def get_entries_df(cls, history_file_dir):
         """
         return a dataframe with entries data, the dataframe must include the following columns
-           Sport - lower case sport abbreviation
-           Date - column with date.date objects
+          'contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score', 'date', 'sport'
+           sport - lower case sport abbreviation
+           date - column with date.date objects
         """
         raise NotImplementedError()
 
@@ -184,14 +185,11 @@ class ServiceDataRetriever(ABC):
 
     @abstractmethod
     def get_contest_data(self, link, title) -> dict:
-        """ 
-        get all contest data that is not in the entry info, return a dict containing that data 
+        """
+        get all contest data that is not in the entry info, return a dict containing that data
         dict is expected to have a key named 'lineups' that contains lineup data for player draft
         """
         raise NotImplementedError()
-
-    def add_entry_info(self, entry_info):
-        raise NotImplementedError("add entry information to the entry dataset")
 
     def process_entry(self, entry_info):
         """
@@ -199,10 +197,12 @@ class ServiceDataRetriever(ABC):
         If the contest has not yet been processed then add contest
         information to the contest dataframe and draft information from non entry lineups
         """
-        self.add_entry_info(entry_info)
+        entry_dict = {name: getattr(entry_info, name)
+                      for name in ['contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score']}
+        self._entry_dicts.append(entry_dict)
 
         contest_key, contest_id, link, title = self.get_contest_identifiers(entry_info)
-        entry_key = contest_key + '-' + entry_info['Entry Id']
+        entry_key = contest_key + '-' + entry_info.entry_id
 
         # handle entry lineup info
         entry_lineup_data = self.get_data(entry_key, self.get_entry_lineup_data, link, title, data_type='txt')

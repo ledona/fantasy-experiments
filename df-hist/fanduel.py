@@ -25,6 +25,12 @@ class Fanduel(ServiceDataRetriever):
     LOGIN_TIMEOUT = 300
     WAIT_TIMEOUT = 300
 
+    _COLUMN_RENAMES = {
+        'Date': 'date', 'Sport': 'sport', 'Link': 'link', 'Score': 'score',
+        'Entry Id': 'entry_id', 'Winnings ($)': 'winnings', 'Position': 'rank',
+        'Title': 'title',
+    }
+
     def get_entries_df(self, history_file_dir):
         glob_pattern = os.path.join(history_file_dir, "fanduel entry history *.csv")
         glob_pattern = os.path.expanduser(glob_pattern)
@@ -50,9 +56,10 @@ class Fanduel(ServiceDataRetriever):
         entries_df.Date = pd.to_datetime(entries_df.Date, errors='coerce')
         entries_df = entries_df[entries_df.Date.notna()]
         if (invalid_dates := rows_of_data - len(entries_df)) > 0:
-            LOGGER.info("%i invalid dates found. dropping those entries", invalid_dates)
+            LOGGER.info("%i invalid dates found. dropped those entries", invalid_dates)
             rows_of_data = len(entries_df)
-
+        entries_df['contest_id'] = entries_df.Link
+        entries_df = entries_df.rename(columns=self._COLUMN_RENAMES)
         return entries_df
 
     def get_entry_lineup_data(self, link, title):
@@ -86,12 +93,11 @@ class Fanduel(ServiceDataRetriever):
             'winning_score': float(winning_score),
         }
 
-
     @staticmethod
     def get_contest_identifiers(entry_info) -> tuple[str, tuple, str, str]:
         return (
-            f"fd-{entry_info.Sport}-{entry_info.Date:%Y%m%d}-{entry_info.Title}",
-            (entry_info.Sport, entry_info.Date, entry_info.Title),
-            entry_info.Link,
-            "Scoring for " + entry_info.Title,
+            f"fd-{entry_info.sport}-{entry_info.date:%Y%m%d}-{entry_info.title}",
+            (entry_info.sport, entry_info.date, entry_info.title),
+            entry_info.link,
+            "Scoring for " + entry_info.title,
         )
