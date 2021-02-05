@@ -24,6 +24,8 @@ PAUSE_MAX = 15
 class ServiceDataRetriever(ABC):
     # URL to the service home page
     SERVICE_URL: str
+    # links to go to after logging in (look like a human)
+    POST_LOGIN_URLS: list[str] = []
     # locator for the signin/login link. if present then the account is not logged in
     LOC_SIGN_IN: tuple[str, str]
     LOC_LOGGED_IN: tuple[str, str]
@@ -238,6 +240,13 @@ class ServiceDataRetriever(ABC):
 
         if not self.logged_in_to_service:
             self.wait_on_login()
+            for i, url in enumerate(self.POST_LOGIN_URLS, 1):
+                if pause_before:
+                    pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
+                    LOGGER.info("Pausing for %i seconds before post login link #%igetting url content", pause_for, i)
+                    time.sleep(pause_for)
+                LOGGER.info("Going to post login url #%i '%s'", i, url)
+                self.browser.get(url)
 
         if pause_before:
             pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)

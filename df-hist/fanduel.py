@@ -15,9 +15,12 @@ LOGGER = logging.getLogger(__name__)
 
 class Fanduel(ServiceDataRetriever):
     SERVICE_URL = "https://www.fanduel.com"
+    POST_LOGIN_URLS: list[str] = [
+        "https://www.fanduel.com/history",
+    ]
     LOC_SIGN_IN = (By.LINK_TEXT, "Log in")
     LOC_LOGGED_IN = (By.LINK_TEXT, "Lobby")
-    
+
     # use longer waits for captcha
     LOGIN_TIMEOUT = 300
     WAIT_TIMEOUT = 300
