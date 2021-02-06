@@ -2,3 +2,4 @@ pandas
 ipython
 selenium
 tqdm
+beautifulsoup4

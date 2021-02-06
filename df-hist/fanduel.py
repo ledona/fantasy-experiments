@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 
+from bs4 import BeautifulSoup
 import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -63,6 +64,7 @@ class Fanduel(ServiceDataRetriever):
         return entries_df
 
     def get_entry_lineup_data(self, link, title):
+        """ return the HTML for the entry lineup """
         self.browse_to(link, title=title)
 
         # get draft % for all players in my lineup
@@ -71,10 +73,34 @@ class Fanduel(ServiceDataRetriever):
             "Waiting for lineup"
         )
 
-        return my_lineup_element.text
+        return my_lineup_element.get_attribute('innerHTML')
 
     def get_entry_lineup_df(self, lineup_data):
-        raise NotImplementedError()
+        soup = BeautifulSoup(lineup_data, 'html.parser')
+
+        lineup_players = []
+        for player_row in soup.contents[1:]:
+            position = player_row.find('span', {'data-test-id': "player-position"}).text
+            assert len(position) > 0
+            name = player_row.find('span', {'data-test-id': "player-display-name"}).text
+            assert len(name) > 0
+            team_ele = player_row.find('abbr', {'data-test-id': "primary-team"})
+            team_name = team_ele['title']
+            assert len(team_name) > 0
+            team_abbr = team_ele.text.split(' ')[0]
+            assert len(team_abbr) > 0
+            drafted_pct_text = player_row.find("span", text="DRAFTED").parent.span.text
+            assert drafted_pct_text[-1] == '%'
+            drafted_pct = float(drafted_pct_text[:-1])
+            lineup_players.append({
+                'position': position,
+                'name': name,
+                'team_abbr': team_abbr,
+                'team_name': team_name,
+                'drafted_pct': drafted_pct,
+            })
+
+        return pd.DataFrame(lineup_players)
 
     def get_contest_data(self, link, title) -> dict:
         self.browse_to(link, title=title)
@@ -83,14 +109,20 @@ class Fanduel(ServiceDataRetriever):
         winning_score = self.browser.find_element_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr') \
             .text.rsplit('\n', 1)[1]
 
-        # get draft % for all players in top 5 lineups
-
-        # get draft % for last winning lineup
+        lineups_data: list[str] = []
+        # add draft % for all players in top 5 lineups
+        for entry_pos in range(1, 6):
+            raise NotImplementedError()
+            self.pause(f"getting winning lineups at position {entry_pos}")
 
         raise NotImplementedError()
+        self.pause("getting last winning lineup")
+        # add draft % for last winning lineup
+
         return {
             'min_winning_score': float(min_winning_score),
             'winning_score': float(winning_score),
+            'lineups_data': lineups_data,
         }
 
     @staticmethod

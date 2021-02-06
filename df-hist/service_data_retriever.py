@@ -46,7 +46,7 @@ class ServiceDataRetriever(ABC):
         self.browser_debug_port = browser_debug_port
         self.browser_profile_path = browser_profile_path
 
-        self._player_draft_dicts: list[dict] = []
+        self._player_draft_dfs: list[pd.DataFrame] = []
         self._contest_dicts: list[dict] = []
         self._entry_dicts: list[dict] = []
         # used to keep track of the contests that have been processed
@@ -93,7 +93,8 @@ class ServiceDataRetriever(ABC):
         returns - dataframe with columns: contest_id, date, sport, team, position, first name, last name,
             draft position, draft %, score
         """
-        df = pd.DataFrame(self._player_draft_dicts)
+        raise NotImplementedError("the dataframe should be the concatation of all draft lineups, after dropping all duplicates")
+
         assert set(df.columns) == {
             'contest_id', 'date', 'sport', 'team', 'position', 'draft_position',
             'score', 'first_name', 'last_name', 'draft_%'
@@ -176,7 +177,10 @@ class ServiceDataRetriever(ABC):
 
     @abstractmethod
     def get_entry_lineup_df(self, lineup_data) -> pd.DataFrame:
-        """ process the entry data returned by get_entry_data, return a dataframe """
+        """
+        process the entry data returned by get_entry_data, return a dataframe
+        returned dataframe should have columns position, name, team_abbr, team_name, drafted_pct
+        """
         raise NotImplementedError()
 
     def add_entry_data(self, lineup_df, entry_info):
@@ -187,7 +191,7 @@ class ServiceDataRetriever(ABC):
     def get_contest_data(self, link, title) -> dict:
         """
         get all contest data that is not in the entry info, return a dict containing that data
-        dict is expected to have a key named 'lineups' that contains lineup data for player draft
+        dict is expected to have a key named 'lineup_data' that contains a list of lineup data strings
         """
         raise NotImplementedError()
 
@@ -205,9 +209,9 @@ class ServiceDataRetriever(ABC):
         entry_key = contest_key + '-' + entry_info.entry_id
 
         # handle entry lineup info
-        entry_lineup_data = self.get_data(entry_key, self.get_entry_lineup_data, link, title, data_type='txt')
+        entry_lineup_data = self.get_data(entry_key, self.get_entry_lineup_data, link, title, data_type='html')
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
-        self.add_lineup_to_draft_df(entry_lineup_df)
+        self._player_draft_dfs.append(entry_lineup_df)
 
         # if contest has been processed then we are done
         if contest_id in self.processed_contests:
@@ -226,6 +230,13 @@ class ServiceDataRetriever(ABC):
         """ returns - (contest key, contest id, entry link, browser page title) """
         raise NotImplementedError()
 
+    @staticmethod
+    def pause(msg=None):
+        pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
+        msg = "" if msg is None else ": " + msg
+        LOGGER.info("Pausing for %i seconds%s", pause_for, msg)
+        time.sleep(pause_for)
+
     def browse_to(self, url, pause_before=True, title=None):
         """
         browse to the requested page, possibly with a pause before browsing
@@ -242,16 +253,12 @@ class ServiceDataRetriever(ABC):
             self.wait_on_login()
             for i, url in enumerate(self.POST_LOGIN_URLS, 1):
                 if pause_before:
-                    pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
-                    LOGGER.info("Pausing for %i seconds before post login link #%igetting url content", pause_for, i)
-                    time.sleep(pause_for)
+                    self.pause(msg=f"before post login link #{i}getting url content")
                 LOGGER.info("Going to post login url #%i '%s'", i, url)
                 self.browser.get(url)
 
         if pause_before:
-            pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
-            LOGGER.info("Pausing for %i seconds before getting url content", pause_for)
-            time.sleep(pause_for)
+            self.pause("before getting url content")
 
         LOGGER.info("Getting content at '%s'", url)
         self.browser.get(url)
@@ -262,7 +269,7 @@ class ServiceDataRetriever(ABC):
         and cache the result before returning result
 
         title - the title of the expected browser page, used to skip getting new browser content
-        type - the type of data to be loaded. csv -> dataframe, json -> dict/list, txt -> str.
+        type - the type of data to be loaded. csv -> dataframe, json -> dict/list, txt|html -> str.
             This should be the same as the data type returned by func
         func - a function that when executed returns the required data, takes as arguments, (link, title)
         """
@@ -274,7 +281,7 @@ class ServiceDataRetriever(ABC):
             elif data_type == 'json':
                 with open(cache_filepath, "r") as f_:
                     return json.load(f_)
-            elif data_type == 'txt':
+            elif data_type in {'html', 'txt'}:
                 with open(cache_filepath, "r") as f_:
                     return f_.read()
 
@@ -288,7 +295,7 @@ class ServiceDataRetriever(ABC):
             elif data_type == 'json':
                 with open(cache_filepath, "w") as f_:
                     json.save(f_, data)
-            elif data_type == 'txt':
+            elif data_type in {'html', 'txt'}:
                 with open(cache_filepath, "w") as f_:
                     f_.write(data)
             else:
