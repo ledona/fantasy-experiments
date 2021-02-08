@@ -93,14 +93,15 @@ class ServiceDataRetriever(ABC):
     @property
     def player_draft_df(self):
         """
-        returns - dataframe with columns: contest_id, date, sport, team, position, first name, last name,
-            draft position, draft %, score
+        returns - dataframe with columns: contest_id, date, sport, team_abbr, team_name,
+            position, name,
+            draft position, draft_pct, score
         """
-        raise NotImplementedError("the dataframe should be the concatation of all draft lineups, after dropping all duplicates")
-
+        df = pd.concat(self._player_draft_dfs, ignore_index=True) \
+               .drop_duplicates(ignore_index=True)
         assert set(df.columns) == {
-            'contest_id', 'date', 'sport', 'team', 'position', 'draft_position',
-            'score', 'first_name', 'last_name', 'draft_%'
+            'contest_id', 'date', 'sport', 'team_abbr', 'team_name', 'position',
+            'name', 'draft_pct'
         }
         return df
 
@@ -196,7 +197,7 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_contest_data(self, link, title) -> dict:
+    def get_contest_data(self, link, title, contest_id) -> dict:
         """
         get all contest data that is not in the entry info, return a dict containing that data
         dict is expected to have a key named 'lineup_data' that contains a list of lineup data strings
@@ -214,10 +215,13 @@ class ServiceDataRetriever(ABC):
         self._entry_dicts.append(entry_dict)
 
         contest_key, contest_id, link, title = self.get_contest_identifiers(entry_info)
-        entry_key = contest_key + '-' + entry_info.entry_id
+        entry_key = contest_key + '-entry-' + entry_info.entry_id
 
         # handle entry lineup info
-        entry_lineup_data = self.get_data(entry_key, self.get_entry_lineup_data, link, title, data_type='html')
+        entry_lineup_data = self.get_data(
+            entry_key, self.get_entry_lineup_data, data_type='html',
+            func_args=(link, title),
+        )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
         self._player_draft_dfs.append(entry_lineup_df)
 
@@ -226,10 +230,16 @@ class ServiceDataRetriever(ABC):
             return
 
         # process contest data
-        contest_data = self.get_data(contest_key, self.get_contest_data, link, title, data_type='json')
+        contest_data = self.get_data(
+            contest_key, self.get_contest_data, data_type='json',
+            func_args=(link, title, contest_key),
+        )
         for lineup_data in contest_data['lineups']:
             lineup_df = self.get_entry_lineup_df(lineup_data)
-            self.add_lineup_to_draft_df(lineup_df)
+            lineup_df['contest_id'] = contest_id
+            lineup_df['date'] = entry_info.date
+            lineup_df['sport'] = entry_info.sport
+            self._player_draft_dfs.append(lineup_df)
 
         self.processed_contests.add(contest_id)
 
@@ -275,15 +285,17 @@ class ServiceDataRetriever(ABC):
         LOGGER.info("Getting content at '%s'", url)
         self.browser.get(url)
 
-    def get_data(self, cache_key: str, func: callable, link, title=None, data_type: str = 'csv'):
+    def get_data(self, cache_key: str, func: callable, data_type: str = 'csv',
+                 func_args: Optional[tuple] = None, func_kwargs: Optional[dict] = None):
         """
         get data related to the key, first try the cache, if that fails call func
         and cache the result before returning result
 
-        title - the title of the expected browser page, used to skip getting new browser content
         type - the type of data to be loaded. csv -> dataframe, json -> dict/list, txt|html -> str.
             This should be the same as the data type returned by func
         func - a function that when executed returns the required data, takes as arguments, (link, title)
+        func_args - positional arguments to pass to func
+        func_kwargs - kwargs to pass to func
         """
         # see if it in the cache
         if self.cache_path is not None and \
@@ -299,7 +311,10 @@ class ServiceDataRetriever(ABC):
 
             raise ValueError(f"Don't know how to load '{cache_filepath}' from cache")
 
-        data = func(link, title)
+        data = func(
+            *(func_args or tuple()),
+            **(func_kwargs or {}),
+        )
 
         if self.cache_path is not None:
             if data_type == 'csv':

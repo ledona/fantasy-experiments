@@ -75,7 +75,30 @@ class Fanduel(ServiceDataRetriever):
 
         return my_lineup_element.get_attribute('innerHTML')
 
+    def _get_opponent_lineup_data(self, placement, row_ele):
+        """
+        similar to get_entry_lineup_data but for other contestents
+
+        placement - a string like '1st', '2nd', '3rd' etc...
+        """
+        LOGGER.info("scrolling/finding %s place lineup row into view", placement)
+        self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', row_ele)
+        self.pause(f"getting {placement} place lineup")
+        row_ele.click()
+        LOGGER.info("Waiting for lineup retrieval")
+
+        winning_lineup_ele = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+            EC.presence_of_element_located(
+                (By.XPATH, f'//div[@data-test-id="contest-entry"]//span[text()="{placement}"]/ancestor::div[@data-test-id="contest-entry"]')),
+            f"Waiting for {placement} place lineup"
+        )
+
+        return winning_lineup_ele.get_attribute('innerHTML')
+
     def get_entry_lineup_df(self, lineup_data):
+        """
+        lineup_data - string containing html for a contest entry
+        """
         soup = BeautifulSoup(lineup_data, 'html.parser')
 
         lineup_players = []
@@ -97,31 +120,37 @@ class Fanduel(ServiceDataRetriever):
                 'name': name,
                 'team_abbr': team_abbr,
                 'team_name': team_name,
-                'drafted_pct': drafted_pct,
+                'draft_pct': drafted_pct,
             })
 
         return pd.DataFrame(lineup_players)
 
-    def get_contest_data(self, link, title) -> dict:
+    def get_contest_data(self, link, title, contest_key) -> dict:
         self.browse_to(link, title=title)
 
-        min_winning_score = self.browser.find_element_by_xpath('//span[@data-test-id="RunningManScore"]').text
-        winning_score = self.browser.find_element_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr') \
-            .text.rsplit('\n', 1)[1]
+        min_winning_score = float(self.browser.find_element_by_xpath('//span[@data-test-id="RunningManScore"]').text)
+        entry_table_rows = self.browser.find_elements_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr')
+        winning_score = float(entry_table_rows[0].text.rsplit('\n', 1)[1])
 
         lineups_data: list[str] = []
         # add draft % for all players in top 5 lineups
-        for entry_pos in range(1, 6):
-            raise NotImplementedError()
-            self.pause(f"getting winning lineups at position {entry_pos}")
+        for row_ele in entry_table_rows[:5]:
+            placement = row_ele.find_element_by_tag_name('td').text
+            lineup_data = self.get_data(
+                contest_key + "-lineup-" + placement,
+                self._get_opponent_lineup_data,
+                data_type='html',
+                func_args=(placement, row_ele)
+            )
+            lineups_data.append(lineup_data)
 
         raise NotImplementedError()
         self.pause("getting last winning lineup")
         # add draft % for last winning lineup
 
         return {
-            'min_winning_score': float(min_winning_score),
-            'winning_score': float(winning_score),
+            'min_winning_score': min_winning_score,
+            'winning_score': winning_score,
             'lineups_data': lineups_data,
         }
 
