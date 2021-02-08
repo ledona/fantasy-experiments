@@ -36,11 +36,14 @@ class ServiceDataRetriever(ABC):
     def __init__(
             self, browser_address: Optional[str] = None, browser_debug_port: Optional[bool] = None,
             browser_profile_path: Optional[str] = None, cache_path: Optional[str] = None,
+            interactive = False,
     ):
         """
         browser_address - the connection address of the chrome instance to use. e.g. ip-address:port
+        interactive - if true require user confirmation prior to every browser action
         """
         self.cache_path = cache_path
+        self.interactive = interactive
 
         self.browser_address = browser_address
         self.browser_debug_port = browser_debug_port
@@ -129,6 +132,8 @@ class ServiceDataRetriever(ABC):
             self.SERVICE_URL
         )
         if self.browser.current_url != self.SERVICE_URL:
+            if self.interactive:
+                input(f"About to retrieve {self.SERVICE_URL}. <Enter> to continue")
             self.browser.get(self.SERVICE_URL)
 
         try:
@@ -138,6 +143,9 @@ class ServiceDataRetriever(ABC):
             LOGGER.info("Log in link %s not found. Assuming account is already logged in",
                         self.LOC_SIGN_IN)
             return
+
+        if self.interactive:
+            input("Waiting for you to log in. <Enter> to continue")
 
         LOGGER.info("Waiting %i seconds for you to log in...", self.LOGIN_TIMEOUT)
         WebDriverWait(self.browser, self.LOGIN_TIMEOUT).until(
@@ -230,8 +238,10 @@ class ServiceDataRetriever(ABC):
         """ returns - (contest key, contest id, entry link, browser page title) """
         raise NotImplementedError()
 
-    @staticmethod
-    def pause(msg=None):
+    def pause(self, msg=None):
+        if self.interactive:
+            input((msg or "") + " <Enter> to continue")
+            return
         pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
         msg = "" if msg is None else ": " + msg
         LOGGER.info("Pausing for %i seconds%s", pause_for, msg)
@@ -242,6 +252,8 @@ class ServiceDataRetriever(ABC):
         browse to the requested page, possibly with a pause before browsing
         if the current browser title is the same as title OR the current browser URL is the same as url then
         don't load anything new, use the current page content
+
+        pause_before - if false then don't pause or prompt user to continue
         """
         LOGGER.info("Browsing to url='%s' title='%s'", url, title)
         # first check to see if we are already on that page
@@ -309,6 +321,7 @@ def get_service_data_retriever(
         browser_address: Optional[str] = None,
         browser_debug_port: Optional[str] = None,
         browser_profile_path: Optional[str] = None,
+        interactive: bool = False,
 ) -> ServiceDataRetriever:
     """ attempt to import the data retriever for the requested service """
     module = import_module(service)
@@ -320,4 +333,5 @@ def get_service_data_retriever(
         browser_debug_port=browser_debug_port,
         browser_profile_path=browser_profile_path,
         cache_path=cache_path,
+        interactive=interactive,
     )

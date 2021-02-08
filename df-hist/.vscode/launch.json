@@ -28,6 +28,22 @@
             ]
         },
         {
+            "name": "Fanduel (existing browser + interactive)",
+            "type": "python",
+            "request": "launch",
+            "program": "retrieve_hist.py",
+            "console": "integratedTerminal",
+            "args": [
+                "fanduel",
+                "--address", "127.0.0.1:9222",
+                "--sports", "nba", "nhl",
+                "--start-date", "2020-01-01",
+                "--end-date", "2020-03-01",
+                "--cache", "cache",
+                "--interactive"
+            ]
+        },
+        {
             "name": "Fanduel (new browser)",
             "type": "python",
             "request": "launch",

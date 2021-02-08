@@ -18,13 +18,14 @@ REQUIRED_COLUMNS = {'date', 'sport'}
 def retrieve_history(
         service_name, history_file_dir,
         sports=None, start_date=None, end_date=None,
-        cache_path=None,
+        cache_path=None, interactive=False,
         browser_debug_address=None, browser_debug_port=None, profile_path=None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     sports - collection of sports to process, if None then process all sports
     browser_debug_address - address of an existing chrome browser to use, ip-address:port
     browser_debug_port - port to request that the new browser used for debugging will be available on
+    interactive - require user response prior to every browser action
 
     returns (contest history dataframe, player draft history dataframe, betting dataframe)
     """
@@ -33,7 +34,8 @@ def retrieve_history(
                                              cache_path=cache_path,
                                              browser_profile_path=profile_path,
                                              browser_address=browser_debug_address,
-                                             browser_debug_port=browser_debug_port)
+                                             browser_debug_port=browser_debug_port,
+                                             interactive=interactive)
     # do this first since
     assert (sports is None) or set(sports) == {sport.lower() for sport in sports}, \
         "all sports must be in lower case"
@@ -68,6 +70,10 @@ def retrieve_history(
 def process_cmd_line(cmd_line_str=None):
     parser = ArgumentParser(description="Retrieve historic contest history from daily fantasy services")
 
+    parser.add_argument(
+        "--interactive", action="store_true", default=False,
+        help="Prompt user to continue prior to all browser actions"
+    )
     parser.add_argument("--cache-path", "--cache", help="path to cached files")
     mut_ex_group = parser.add_mutually_exclusive_group()
     mut_ex_group.add_argument(
@@ -118,6 +124,7 @@ def process_cmd_line(cmd_line_str=None):
         browser_debug_address=args.chrome_debug_address,
         profile_path=args.chrome_profile_path,
         cache_path=args.cache_path,
+        interactive=args.interactive,
     )
 
     if args.filename_prefix:
