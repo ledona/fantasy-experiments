@@ -17,8 +17,8 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 LOGGER = logging.getLogger(__name__)
 
-PAUSE_MIN = 10
-PAUSE_MAX = 15
+PAUSE_MIN = 5
+PAUSE_MAX = 60
 
 
 class ServiceDataRetriever(ABC):
@@ -108,12 +108,12 @@ class ServiceDataRetriever(ABC):
     @property
     def contest_df(self):
         """
-        returns - dataframe with columns: contest_id, date, sport, contest_name,
+        returns - dataframe with columns: contest, date, sport, contest_name,
            entry_fee, entry_count, winning_places, top_score, last_winning_score, last_winner_rank
         """
         df = pd.DataFrame(self._contest_dicts)
         assert set(df.columns) == {
-            'contest_id', 'date', 'sport', 'contest_name', 'entry_fee', 'entry_count',
+            'contest', 'date', 'sport', 'contest_name', 'entry_fee', 'entry_count',
             'winning_places', 'top_score', 'last_winning_score', 'last_winning_rank',
         }
         return df
@@ -197,7 +197,7 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_contest_data(self, link, title, contest_id) -> dict:
+    def get_contest_data(self, link, title, contest_key) -> dict:
         """
         get all contest data that is not in the entry info, return a dict containing that data
         dict is expected to have a key named 'lineup_data' that contains a list of lineup data strings
@@ -210,6 +210,10 @@ class ServiceDataRetriever(ABC):
         If the contest has not yet been processed then add contest
         information to the contest dataframe and draft information from non entry lineups
         """
+        LOGGER.info(
+            "Processing %s %s '%s'", 
+            entry_info.date.strftime("%Y%m%d"), entry_info.sport, entry_info.title
+        )
         entry_dict = {name: getattr(entry_info, name)
                       for name in ['contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score']}
         self._entry_dicts.append(entry_dict)
@@ -223,6 +227,9 @@ class ServiceDataRetriever(ABC):
             func_args=(link, title),
         )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
+        entry_lineup_df['contest'] = contest_key
+        entry_lineup_df['date'] = entry_info.date
+        entry_lineup_df['sport'] = entry_info.sport
         self._player_draft_dfs.append(entry_lineup_df)
 
         # if contest has been processed then we are done
@@ -234,9 +241,9 @@ class ServiceDataRetriever(ABC):
             contest_key, self.get_contest_data, data_type='json',
             func_args=(link, title, contest_key),
         )
-        for lineup_data in contest_data['lineups']:
+        for lineup_data in contest_data['lineups_data']:
             lineup_df = self.get_entry_lineup_df(lineup_data)
-            lineup_df['contest_id'] = contest_id
+            lineup_df['contest'] = contest_key
             lineup_df['date'] = entry_info.date
             lineup_df['sport'] = entry_info.sport
             self._player_draft_dfs.append(lineup_df)
@@ -250,7 +257,7 @@ class ServiceDataRetriever(ABC):
 
     def pause(self, msg=None):
         if self.interactive:
-            input((msg or "") + " <Enter> to continue")
+            input("Paused for '" + (msg or "?") + "' <Enter> to continue ")
             return
         pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
         msg = "" if msg is None else ": " + msg
@@ -298,6 +305,8 @@ class ServiceDataRetriever(ABC):
         func_kwargs - kwargs to pass to func
         """
         # see if it in the cache
+        if os.sep in cache_key:
+            cache_key = cache_key.replace(os.sep, "|")
         if self.cache_path is not None and \
            os.path.isfile(cache_filepath := os.path.join(self.cache_path, f"{cache_key}.{data_type}")):
             if data_type == 'csv':
@@ -321,7 +330,7 @@ class ServiceDataRetriever(ABC):
                 data.to_csv(cache_filepath)
             elif data_type == 'json':
                 with open(cache_filepath, "w") as f_:
-                    json.save(f_, data)
+                    json.dump(data, f_)
             elif data_type in {'html', 'txt'}:
                 with open(cache_filepath, "w") as f_:
                     f_.write(data)

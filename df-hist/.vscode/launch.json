@@ -86,5 +86,30 @@
                 "--end-date" , "2020-03-01"
             ]
         }
-    ]
+        {
+            "name": "Fanduel Real Full (existing browser + interactive)",
+            "type": "python",
+            "request": "launch",
+            "program": "retrieve_hist.py",
+            "console": "integratedTerminal",
+            "args": [
+                "fanduel",
+                "--address", "127.0.0.1:9222",
+                "--cache", "cache",
+                "--interactive"
+            ]
+        },
+        {
+            "name": "Fanduel Real Full (existing browser + no-interactive)",
+            "type": "python",
+            "request": "launch",
+            "program": "retrieve_hist.py",
+            "console": "integratedTerminal",
+            "args": [
+                "fanduel",
+                "--address", "127.0.0.1:9222",
+                "--cache", "cache",
+            ]
+        },
+     ]
 }

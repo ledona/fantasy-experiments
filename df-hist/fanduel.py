@@ -2,6 +2,7 @@ from collections import defaultdict
 import glob
 import logging
 import os
+import time
 
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -68,6 +69,7 @@ class Fanduel(ServiceDataRetriever):
         self.browse_to(link, title=title)
 
         # get draft % for all players in my lineup
+        LOGGER.info("waiting for my lineup")
         my_lineup_element = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located((By.XPATH, '//div[@data-test-id="contest-entry"]')),
             "Waiting for lineup"
@@ -82,18 +84,44 @@ class Fanduel(ServiceDataRetriever):
         placement - a string like '1st', '2nd', '3rd' etc...
         """
         LOGGER.info("scrolling/finding %s place lineup row into view", placement)
-        self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', row_ele)
         self.pause(f"getting {placement} place lineup")
+        self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', row_ele)
+        time.sleep(.3)
         row_ele.click()
-        LOGGER.info("Waiting for lineup retrieval")
+        LOGGER.info("Waiting for %s place lineup retrieval", placement)
 
-        winning_lineup_ele = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+        opp_lineup_ele = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located(
                 (By.XPATH, f'//div[@data-test-id="contest-entry"]//span[text()="{placement}"]/ancestor::div[@data-test-id="contest-entry"]')),
             f"Waiting for {placement} place lineup"
         )
 
-        return winning_lineup_ele.get_attribute('innerHTML')
+        # scroll to end of lineup (really I'm a human)
+        LOGGER.info("Scrolling to bottom of lineup")
+        self.browser.execute_script('arguments[0].scrollIntoView({block: "start"})', opp_lineup_ele)
+        time.sleep(.3)
+        self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', opp_lineup_ele)
+        time.sleep(.3)
+        self.browser.execute_script('arguments[0].scrollIntoView({block: "end"})', opp_lineup_ele)
+
+        return opp_lineup_ele.get_attribute('innerHTML')
+
+    def _get_last_winner_lineup_data(self, score):
+        """ score - the last winning score for the contest """
+        self.pause("getting last winning lineup")
+        last_winner_link_ele = self.browser.find_element_by_xpath('//button[text()="Last winning position"]')
+        LOGGER.info("scrolling/finding last winning lineup link into view")
+        self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', last_winner_link_ele)
+        last_winner_link_ele.click()
+        last_winning_row = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+            EC.presence_of_element_located(
+                (By.XPATH, f'//table[@data-test-id="contest-entry-table"]/tbody/tr/td/span[text()="{score}"]/ancestor::tr')
+            ),
+            "Waiting for first losing lineup"
+        )
+
+        placement = last_winning_row.text.split("\n")[0]
+        return self._get_opponent_lineup_data(placement, last_winning_row)
 
     def get_entry_lineup_df(self, lineup_data):
         """
@@ -127,9 +155,25 @@ class Fanduel(ServiceDataRetriever):
 
     def get_contest_data(self, link, title, contest_key) -> dict:
         self.browse_to(link, title=title)
+        entry_table_rows = self.browser.find_elements_by_xpath('//table[@data-test-id="contest-entry-table"]/tbody/tr')
 
-        min_winning_score = float(self.browser.find_element_by_xpath('//span[@data-test-id="RunningManScore"]').text)
-        entry_table_rows = self.browser.find_elements_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr')
+        if entry_table_rows[0].text[0] != '1':
+            # make sure that the state of the page is fresh (top of the lineups)
+            self.pause("resetting to top winning lineup")
+            first_place_ele = self.browser.find_element_by_xpath('//button/span[text()="First"]/..')
+            LOGGER.info("scrolling/finding top lineups link")
+            self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', first_place_ele)
+            first_place_ele.click()
+            WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, '//table[@data-test-id="contest-entry-table"]/tbody/tr/td/div[text()="1st"]')
+                ),
+                "Waiting for first place"
+            )
+
+            entry_table_rows = self.browser.find_elements_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr')
+
+        min_winning_score_str = self.browser.find_element_by_xpath('//span[@data-test-id="RunningManScore"]').text
         winning_score = float(entry_table_rows[0].text.rsplit('\n', 1)[1])
 
         lineups_data: list[str] = []
@@ -144,12 +188,16 @@ class Fanduel(ServiceDataRetriever):
             )
             lineups_data.append(lineup_data)
 
-        raise NotImplementedError()
-        self.pause("getting last winning lineup")
-        # add draft % for last winning lineup
+        lineup_data = self.get_data(
+            contest_key + "-lineup-lastwinner",
+            self._get_last_winner_lineup_data,
+            data_type="html",
+            func_args=(min_winning_score_str, ),
+        )
+        lineups_data.append(lineup_data)
 
         return {
-            'min_winning_score': min_winning_score,
+            'min_winning_score': float(min_winning_score_str),
             'winning_score': winning_score,
             'lineups_data': lineups_data,
         }
