@@ -100,7 +100,7 @@ class ServiceDataRetriever(ABC):
         df = pd.concat(self._player_draft_dfs, ignore_index=True) \
                .drop_duplicates(ignore_index=True)
         assert set(df.columns) == {
-            'contest_id', 'date', 'sport', 'team_abbr', 'team_name', 'position',
+            'contest', 'date', 'sport', 'team_abbr', 'team_name', 'position',
             'name', 'draft_pct'
         }
         return df
@@ -108,13 +108,13 @@ class ServiceDataRetriever(ABC):
     @property
     def contest_df(self):
         """
-        returns - dataframe with columns: contest, date, sport, contest_name,
+        returns - dataframe with columns: contest, date, sport, title,
            entry_fee, entry_count, winning_places, top_score, last_winning_score, last_winner_rank
         """
         df = pd.DataFrame(self._contest_dicts)
         assert set(df.columns) == {
-            'contest', 'date', 'sport', 'contest_name', 'entry_fee', 'entry_count',
-            'winning_places', 'top_score', 'last_winning_score', 'last_winning_rank',
+            'contest', 'date', 'sport', 'title', 'fee', 'entries',
+            'winners', 'top_score', 'last_winning_score', 'last_winning_rank',
         }
         return df
 
@@ -214,7 +214,7 @@ class ServiceDataRetriever(ABC):
             "Processing %s %s '%s'", 
             entry_info.date.strftime("%Y%m%d"), entry_info.sport, entry_info.title
         )
-        entry_dict = {name: getattr(entry_info, name)
+        entry_dict = {name: entry_info.get(name)
                       for name in ['contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score']}
         self._entry_dicts.append(entry_dict)
 
@@ -237,6 +237,20 @@ class ServiceDataRetriever(ABC):
             return
 
         # process contest data
+        raise NotImplementedError()
+        self._contest_dicts.append({
+            'contest': contest_key,
+            'date': entry_info.date,
+            'sport': entry_info.sport,
+            'title': title,
+            'fee': None,
+            'entries': None,
+            'winners': None,
+            'top_score': None,
+            'last_winning_score': None,
+            'last_winning_rank': None,
+        })
+
         contest_data = self.get_data(
             contest_key, self.get_contest_data, data_type='json',
             func_args=(link, title, contest_key),

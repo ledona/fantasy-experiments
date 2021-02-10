@@ -64,7 +64,7 @@ def retrieve_history(
     tqdm.pandas(desc="entries")
     contest_entries_df.progress_apply(service_obj.process_entry, axis=1)
 
-    return service_obj.contest_history_df, service_obj.draft_history_df, service_obj.betting_history_df
+    return service_obj.contest_df, service_obj.player_draft_df, service_obj.entry_df
 
 
 def process_cmd_line(cmd_line_str=None):
