@@ -20,6 +20,30 @@ LOGGER = logging.getLogger(__name__)
 PAUSE_MIN = 5
 PAUSE_MAX = 60
 
+EXPECTED_CONTEST_COLS = {
+    'contest', 'date', 'sport', 'title', 'fee', 'entries',
+    'winners', 'top_score', 'last_winning_score', 'last_winning_rank',
+}
+
+# columns expected to be in expected entries_df
+EXPECTED_ENTRIES_COLS = {
+    'contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score',
+    'date',   # column with date.date objects
+    'sport',  # lower case sport abbreviation
+    'fee',
+    'entries',
+}
+
+EXPECTED_DRAFT_PLAYER_COLS = {
+    'contest', 'date', 'sport', 'team_abbr', 'team_name', 'position',
+    'name', 'draft_pct'
+}
+
+EXPECTED_CONTEST_DATA_KEYS = {
+    'lineups_data',  # list of lineup data strings
+    'winners', 'top_score', 'last_winning_score', 'last_winning_rank'
+}
+
 
 class ServiceDataRetriever(ABC):
     # URL to the service home page
@@ -93,29 +117,20 @@ class ServiceDataRetriever(ABC):
     @property
     def player_draft_df(self):
         """
-        returns - dataframe with columns: contest_id, date, sport, team_abbr, team_name,
-            position, name,
-            draft position, draft_pct, score
+        returns - dataframe with columns in EXPETED_DRAFT_PLAYER_COLS
         """
         df = pd.concat(self._player_draft_dfs, ignore_index=True) \
                .drop_duplicates(ignore_index=True)
-        assert set(df.columns) == {
-            'contest', 'date', 'sport', 'team_abbr', 'team_name', 'position',
-            'name', 'draft_pct'
-        }
+        assert set(df.columns) == EXPECTED_DRAFT_PLAYER_COLS
         return df
 
     @property
     def contest_df(self):
         """
-        returns - dataframe with columns: contest, date, sport, title,
-           entry_fee, entry_count, winning_places, top_score, last_winning_score, last_winner_rank
+        returns - dataframe with columns matching EXPECTED_CONTEST_COLS
         """
         df = pd.DataFrame(self._contest_dicts)
-        assert set(df.columns) == {
-            'contest', 'date', 'sport', 'title', 'fee', 'entries',
-            'winners', 'top_score', 'last_winning_score', 'last_winning_rank',
-        }
+        assert set(df.columns) <= EXPECTED_CONTEST_COLS
         return df
 
     @property
@@ -172,10 +187,8 @@ class ServiceDataRetriever(ABC):
     @abstractclassmethod
     def get_entries_df(cls, history_file_dir):
         """
-        return a dataframe with entries data, the dataframe must include the following columns
-          'contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score', 'date', 'sport'
-           sport - lower case sport abbreviation
-           date - column with date.date objects
+        return a dataframe with entries data, the dataframe must include EXPECTED_ENTRIES_COLS
+
         """
         raise NotImplementedError()
 
@@ -192,15 +205,11 @@ class ServiceDataRetriever(ABC):
         """
         raise NotImplementedError()
 
-    def add_entry_data(self, lineup_df, entry_info):
-        """ add entry lineup and info to player draft and entry datasets """
-        raise NotImplementedError()
-
     @abstractmethod
     def get_contest_data(self, link, title, contest_key) -> dict:
         """
         get all contest data that is not in the entry info, return a dict containing that data
-        dict is expected to have a key named 'lineup_data' that contains a list of lineup data strings
+        dict is expected to have keys
         """
         raise NotImplementedError()
 
@@ -211,7 +220,7 @@ class ServiceDataRetriever(ABC):
         information to the contest dataframe and draft information from non entry lineups
         """
         LOGGER.info(
-            "Processing %s %s '%s'", 
+            "Processing %s %s '%s'",
             entry_info.date.strftime("%Y%m%d"), entry_info.sport, entry_info.title
         )
         entry_dict = {name: entry_info.get(name)
@@ -237,24 +246,36 @@ class ServiceDataRetriever(ABC):
             return
 
         # process contest data
-        raise NotImplementedError()
-        self._contest_dicts.append({
-            'contest': contest_key,
-            'date': entry_info.date,
-            'sport': entry_info.sport,
-            'title': title,
-            'fee': None,
-            'entries': None,
-            'winners': None,
-            'top_score': None,
-            'last_winning_score': None,
-            'last_winning_rank': None,
-        })
-
         contest_data = self.get_data(
             contest_key, self.get_contest_data, data_type='json',
             func_args=(link, title, contest_key),
         )
+        if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
+            # see if the required data is in entry_info
+            still_missing = []
+            for key in missing_keys:
+                if key in entry_info:
+                    contest_data[key] = entry_info[key]
+                else:
+                    still_missing.append(key)
+            assert len(still_missing) == 0, \
+                f"Could not find contest data for {still_missing}"
+
+        contest_dict = {
+            'contest': contest_key,
+            'date': entry_info.date,
+            'sport': entry_info.sport,
+            'title': title,
+            'fee': entry_info.fee,
+            'entries': contest_data['entries'],
+            'winners': None,
+            'top_score': None,
+            'last_winning_score': None,
+            'last_winning_rank': None,
+        }
+        
+        self._contest_dicts.append(contest_dict)
+
         for lineup_data in contest_data['lineups_data']:
             lineup_df = self.get_entry_lineup_df(lineup_data)
             lineup_df['contest'] = contest_key

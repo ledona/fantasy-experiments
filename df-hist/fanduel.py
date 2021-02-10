@@ -28,9 +28,16 @@ class Fanduel(ServiceDataRetriever):
     WAIT_TIMEOUT = 300
 
     _COLUMN_RENAMES = {
-        'Date': 'date', 'Sport': 'sport', 'Link': 'link', 'Score': 'score',
-        'Entry Id': 'entry_id', 'Winnings ($)': 'winnings', 'Position': 'rank',
+        'Date': 'date', 
+        'Sport': 'sport', 
+        'Link': 'link', 
+        'Score': 'score',
+        'Entry Id': 'entry_id', 
+        'Winnings ($)': 'winnings', 
+        'Position': 'rank',
         'Title': 'title',
+        'Entries': 'entries',
+        'Entry ($)': 'fee',
     }
 
     def get_entries_df(self, history_file_dir):
@@ -197,8 +204,8 @@ class Fanduel(ServiceDataRetriever):
         lineups_data.append(lineup_data)
 
         return {
-            'min_winning_score': float(min_winning_score_str),
-            'winning_score': winning_score,
+            'last_winning_score': float(min_winning_score_str),
+            'top_score': winning_score,
             'lineups_data': lineups_data,
         }
 

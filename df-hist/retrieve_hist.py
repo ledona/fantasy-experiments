@@ -5,15 +5,15 @@ import shlex
 import pandas as pd
 from tqdm import tqdm
 
-from service_data_retriever import get_service_data_retriever
+from service_data_retriever import get_service_data_retriever, EXPECTED_ENTRIES_COLS
 
 
 LOGGING_FORMAT = '%(asctime)s-%(levelname)s-%(name)s(%(lineno)s)-%(message)s'
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 LOGGER = logging.getLogger(__name__)
-DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy"
-REQUIRED_COLUMNS = {'date', 'sport'}
+DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy/betting"
+
 
 def retrieve_history(
         service_name, history_file_dir,
@@ -40,8 +40,8 @@ def retrieve_history(
     assert (sports is None) or set(sports) == {sport.lower() for sport in sports}, \
         "all sports must be in lower case"
     contest_entries_df = service_obj.get_entries_df(history_file_dir)
-    assert REQUIRED_COLUMNS <= set(contest_entries_df.columns), \
-        f"dataframe does not have the following required columns: {REQUIRED_COLUMNS - set(contest_entries_df.columns)}"
+    assert EXPECTED_ENTRIES_COLS <= set(contest_entries_df.columns), \
+        f"dataframe does not have the following required columns: {EXPECTED_ENTRIES_COLS - set(contest_entries_df.columns)}"
     entry_count = len(contest_entries_df)
 
     filters = []
