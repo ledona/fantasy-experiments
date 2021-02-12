@@ -20,28 +20,34 @@ LOGGER = logging.getLogger(__name__)
 PAUSE_MIN = 5
 PAUSE_MAX = 60
 
+# columns that will be present in the outputted contest dataframe
 EXPECTED_CONTEST_COLS = {
-    'contest', 'date', 'sport', 'title', 'fee', 'entries',
-    'winners', 'top_score', 'last_winning_score', 'last_winning_rank',
+    'contest_id', 'date', 'sport', 'title', 'fee', 'entries',
+    'winners', 'top_score', 'last_winning_score',
 }
 
-# columns expected to be in expected entries_df
+# columns that will be in the outputted entries dataframe
 EXPECTED_ENTRIES_COLS = {
     'contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score',
     'date',   # column with date.date objects
     'sport',  # lower case sport abbreviation
-    'fee',
-    'entries',
 }
 
+# columns that must exist in dataframe based on historic entries data files
+EXPECTED_HISTORIC_ENTRIES_DF_COLS = {
+    'contest_id', 'date', 'sport', 'title', 'fee', 'entries',
+}
+
+# columns that will be in the player draft percentage dataframe
 EXPECTED_DRAFT_PLAYER_COLS = {
     'contest', 'date', 'sport', 'team_abbr', 'team_name', 'position',
     'name', 'draft_pct'
 }
 
+
 EXPECTED_CONTEST_DATA_KEYS = {
     'lineups_data',  # list of lineup data strings
-    'winners', 'top_score', 'last_winning_score', 'last_winning_rank'
+    'winners', 'top_score', 'last_winning_score',
 }
 
 
@@ -117,7 +123,7 @@ class ServiceDataRetriever(ABC):
     @property
     def player_draft_df(self):
         """
-        returns - dataframe with columns in EXPETED_DRAFT_PLAYER_COLS
+        returns - dataframe with columns in EXPECTED_DRAFT_PLAYER_COLS
         """
         df = pd.concat(self._player_draft_dfs, ignore_index=True) \
                .drop_duplicates(ignore_index=True)
@@ -130,7 +136,8 @@ class ServiceDataRetriever(ABC):
         returns - dataframe with columns matching EXPECTED_CONTEST_COLS
         """
         df = pd.DataFrame(self._contest_dicts)
-        assert set(df.columns) <= EXPECTED_CONTEST_COLS
+        assert set(df.columns) <= EXPECTED_CONTEST_COLS, \
+            f"Missing columns: {EXPECTED_CONTEST_COLS - set(df.columns)}"
         return df
 
     @property
@@ -139,7 +146,8 @@ class ServiceDataRetriever(ABC):
         returns - dataframe with columns: contest_id, entry_id, link, winnings, rank, score
         """
         df = pd.DataFrame(self._entry_dicts)
-        assert set(df.columns) == {'contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score'}
+        assert EXPECTED_ENTRIES_COLS <= set(df.columns), \
+            f"Missing cols: {EXPECTED_ENTRIES_COLS - set(df.columns)}"
         return df
 
     def wait_on_login(self):
@@ -185,10 +193,10 @@ class ServiceDataRetriever(ABC):
             return False
 
     @abstractclassmethod
-    def get_entries_df(cls, history_file_dir):
+    def get_historic_entries_df_from_file(cls, history_file_dir):
         """
-        return a dataframe with entries data, the dataframe must include EXPECTED_ENTRIES_COLS
-
+        return a dataframe with entries data retrieved from the service's entry history data files
+            The dataframe must include all columns named in EXPECTED_HISTORIC_ENTRIES_DF_COLS.
         """
         raise NotImplementedError()
 
@@ -208,8 +216,7 @@ class ServiceDataRetriever(ABC):
     @abstractmethod
     def get_contest_data(self, link, title, contest_key) -> dict:
         """
-        get all contest data that is not in the entry info, return a dict containing that data
-        dict is expected to have keys
+        get all contest data that is not in the entry info and return in a dict
         """
         raise NotImplementedError()
 
@@ -223,8 +230,10 @@ class ServiceDataRetriever(ABC):
             "Processing %s %s '%s'",
             entry_info.date.strftime("%Y%m%d"), entry_info.sport, entry_info.title
         )
-        entry_dict = {name: entry_info.get(name)
-                      for name in ['contest_id', 'entry_id', 'link', 'winnings', 'rank', 'score']}
+        entry_dict = {
+            name: entry_info.get(name)
+            for name in EXPECTED_ENTRIES_COLS
+        }
         self._entry_dicts.append(entry_dict)
 
         contest_key, contest_id, link, title = self.get_contest_identifiers(entry_info)
@@ -262,18 +271,17 @@ class ServiceDataRetriever(ABC):
                 f"Could not find contest data for {still_missing}"
 
         contest_dict = {
-            'contest': contest_key,
+            'contest_id': contest_key,
             'date': entry_info.date,
             'sport': entry_info.sport,
             'title': title,
             'fee': entry_info.fee,
-            'entries': contest_data['entries'],
-            'winners': None,
-            'top_score': None,
-            'last_winning_score': None,
-            'last_winning_rank': None,
+            'entries': entry_info.entries,
+            'winners': contest_data['winners'],
+            'top_score': contest_data['top_score'],
+            'last_winning_score': contest_data['last_winning_score'],
         }
-        
+
         self._contest_dicts.append(contest_dict)
 
         for lineup_data in contest_data['lineups_data']:

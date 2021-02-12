@@ -5,7 +5,7 @@ import shlex
 import pandas as pd
 from tqdm import tqdm
 
-from service_data_retriever import get_service_data_retriever, EXPECTED_ENTRIES_COLS
+from service_data_retriever import get_service_data_retriever, EXPECTED_HISTORIC_ENTRIES_DF_COLS
 
 
 LOGGING_FORMAT = '%(asctime)s-%(levelname)s-%(name)s(%(lineno)s)-%(message)s'
@@ -39,9 +39,9 @@ def retrieve_history(
     # do this first since
     assert (sports is None) or set(sports) == {sport.lower() for sport in sports}, \
         "all sports must be in lower case"
-    contest_entries_df = service_obj.get_entries_df(history_file_dir)
-    assert EXPECTED_ENTRIES_COLS <= set(contest_entries_df.columns), \
-        f"dataframe does not have the following required columns: {EXPECTED_ENTRIES_COLS - set(contest_entries_df.columns)}"
+    contest_entries_df = service_obj.get_historic_entries_df_from_file(history_file_dir)
+    assert EXPECTED_HISTORIC_ENTRIES_DF_COLS <= set(contest_entries_df.columns), \
+        f"dataframe does not have the following required columns: {EXPECTED_HISTORIC_ENTRIES_DF_COLS - set(contest_entries_df.columns)}"
     entry_count = len(contest_entries_df)
 
     filters = []

@@ -28,19 +28,19 @@ class Fanduel(ServiceDataRetriever):
     WAIT_TIMEOUT = 300
 
     _COLUMN_RENAMES = {
-        'Date': 'date', 
-        'Sport': 'sport', 
-        'Link': 'link', 
+        'Date': 'date',
+        'Sport': 'sport',
+        'Link': 'link',
         'Score': 'score',
-        'Entry Id': 'entry_id', 
-        'Winnings ($)': 'winnings', 
+        'Entry Id': 'entry_id',
+        'Winnings ($)': 'winnings',
         'Position': 'rank',
         'Title': 'title',
         'Entries': 'entries',
         'Entry ($)': 'fee',
     }
 
-    def get_entries_df(self, history_file_dir):
+    def get_historic_entries_df_from_file(self, history_file_dir):
         glob_pattern = os.path.join(history_file_dir, "fanduel entry history *.csv")
         glob_pattern = os.path.expanduser(glob_pattern)
         history_filenames = glob.glob(glob_pattern)
@@ -63,12 +63,13 @@ class Fanduel(ServiceDataRetriever):
 
         # convert dates and drop rows with invalid dates (happens for cancelled contests)
         entries_df.Date = pd.to_datetime(entries_df.Date, errors='coerce')
-        entries_df = entries_df[entries_df.Date.notna()]
+        entries_df = entries_df[entries_df.Date.notna() & entries_df.Entries.notna()]
         if (invalid_dates := rows_of_data - len(entries_df)) > 0:
             LOGGER.info("%i invalid dates found. dropped those entries", invalid_dates)
             rows_of_data = len(entries_df)
         entries_df['contest_id'] = entries_df.Link
         entries_df = entries_df.rename(columns=self._COLUMN_RENAMES)
+        entries_df.entries = entries_df.entries.astype(int)
         return entries_df
 
     def get_entry_lineup_data(self, link, title):
@@ -113,8 +114,11 @@ class Fanduel(ServiceDataRetriever):
 
         return opp_lineup_ele.get_attribute('innerHTML')
 
-    def _get_last_winner_lineup_data(self, score):
-        """ score - the last winning score for the contest """
+    def _get_last_winning_lineup_data(self, score) -> tuple[int, str]:
+        """
+        score - the last winning score for the contest
+        returns tuple(placement, lineup html)
+        """
         self.pause("getting last winning lineup")
         last_winner_link_ele = self.browser.find_element_by_xpath('//button[text()="Last winning position"]')
         LOGGER.info("scrolling/finding last winning lineup link into view")
@@ -128,7 +132,7 @@ class Fanduel(ServiceDataRetriever):
         )
 
         placement = last_winning_row.text.split("\n")[0]
-        return self._get_opponent_lineup_data(placement, last_winning_row)
+        return int(placement[:-2]), self._get_opponent_lineup_data(placement, last_winning_row)
 
     def get_entry_lineup_df(self, lineup_data):
         """
@@ -162,7 +166,14 @@ class Fanduel(ServiceDataRetriever):
 
     def get_contest_data(self, link, title, contest_key) -> dict:
         self.browse_to(link, title=title)
-        entry_table_rows = self.browser.find_elements_by_xpath('//table[@data-test-id="contest-entry-table"]/tbody/tr')
+        entry_table = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+            EC.presence_of_element_located(
+                (By.XPATH, '//table[@data-test-id="contest-entry-table"]')
+            ),
+            "Waiting for first place"
+        )
+
+        entry_table_rows = entry_table.find_elements_by_xpath('tbody/tr')
 
         if entry_table_rows[0].text[0] != '1':
             # make sure that the state of the page is fresh (top of the lineups)
@@ -197,16 +208,16 @@ class Fanduel(ServiceDataRetriever):
 
         lineup_data = self.get_data(
             contest_key + "-lineup-lastwinner",
-            self._get_last_winner_lineup_data,
-            data_type="html",
+            self._get_last_winning_lineup_data,
+            data_type="json",
             func_args=(min_winning_score_str, ),
         )
-        lineups_data.append(lineup_data)
-
+        lineups_data.append(lineup_data[1])
         return {
             'last_winning_score': float(min_winning_score_str),
             'top_score': winning_score,
             'lineups_data': lineups_data,
+            'winners': lineup_data[0],
         }
 
     @staticmethod
