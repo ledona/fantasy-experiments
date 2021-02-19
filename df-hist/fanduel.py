@@ -153,7 +153,7 @@ class Fanduel(ServiceDataRetriever):
             assert len(team_abbr) > 0
             drafted_pct_text = player_row.find("span", text="DRAFTED").parent.span.text
             assert drafted_pct_text[-1] == '%'
-            drafted_pct = float(drafted_pct_text[:-1])
+            drafted_pct = 0.05 if drafted_pct_text == '<0.1%' else float(drafted_pct_text[:-1])
             lineup_players.append({
                 'position': position,
                 'name': name,
