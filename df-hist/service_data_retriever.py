@@ -12,13 +12,14 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
 PAUSE_MIN = 5
-PAUSE_MAX = 60
+PAUSE_MAX = 45
 
 # columns that will be present in the outputted contest dataframe
 EXPECTED_CONTEST_COLS = {
@@ -40,7 +41,7 @@ EXPECTED_HISTORIC_ENTRIES_DF_COLS = {
 
 # columns that will be in the player draft percentage dataframe
 EXPECTED_DRAFT_PLAYER_COLS = {
-    'contest', 'date', 'sport', 'team_abbr', 'team_name', 'position',
+    'contest', 'date', 'sport', 'team_abbr', 'position',
     'name', 'draft_pct'
 }
 
@@ -52,6 +53,7 @@ EXPECTED_CONTEST_DATA_KEYS = {
 
 
 class ServiceDataRetriever(ABC):
+    SERVICE_ABBR: str
     # URL to the service home page
     SERVICE_URL: str
     # links to go to after logging in (look like a human)
@@ -118,6 +120,7 @@ class ServiceDataRetriever(ABC):
             browser_.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         except Exception as ex:
             LOGGER.error("Error updating browser webdriver property", exc_info=ex)
+        LOGGER.info("Connected to browser")
         return browser_
 
     @property
@@ -127,7 +130,8 @@ class ServiceDataRetriever(ABC):
         """
         df = pd.concat(self._player_draft_dfs, ignore_index=True) \
                .drop_duplicates(ignore_index=True)
-        assert set(df.columns) == EXPECTED_DRAFT_PLAYER_COLS
+        assert set(df.columns) == EXPECTED_DRAFT_PLAYER_COLS, \
+            f"Missing columns: {EXPECTED_DRAFT_PLAYER_COLS - set(df.columns)}"
         return df
 
     @property
@@ -181,14 +185,12 @@ class ServiceDataRetriever(ABC):
     def logged_in_to_service(self) -> bool:
         """ use self.LOC_LOGGED_IN to confirm that the account is logged in """
         try:
-            # if found, then signin succeeded
-            WebDriverWait(self.browser, self.LOGIN_TIMEOUT).until(
-                EC.presence_of_element_located(self.LOC_LOGGED_IN),
-                "Still not logged in..."
-            )
+            LOGGER.info("Looking for logged in indication...")
+            # if found, then signin has already taken place
+            self.browser.find_element(*self.LOC_LOGGED_IN)
             return True
         except NoSuchElementException:
-            LOGGER.error("Logged in link %s not found! Confirmation of logged in status failed",
+            LOGGER.error("Logged in indicator %s not found! Confirmation of logged in status failed",
                          self.LOC_LOGGED_IN)
             return False
 
@@ -236,13 +238,15 @@ class ServiceDataRetriever(ABC):
         }
         self._entry_dicts.append(entry_dict)
 
-        contest_key, contest_id, link, title = self.get_contest_identifiers(entry_info)
-        entry_key = contest_key + '-entry-' + entry_info.entry_id
+        contest_key = f"{self.SERVICE_ABBR}-{entry_info.sport}-{entry_info.date:%Y%m%d}-{entry_info.title}"
+        contest_id =  (entry_info.sport, entry_info.date, entry_info.title)
+        contest_link = self.get_contest_link(entry_info)
+        entry_key = f"{contest_key}-entry-{entry_info.entry_id}"
 
         # handle entry lineup info
         entry_lineup_data = self.get_data(
             entry_key, self.get_entry_lineup_data, data_type='html',
-            func_args=(link, title),
+            func_args=(contest_link, entry_info.title),
         )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
         entry_lineup_df['contest'] = contest_key
@@ -257,7 +261,7 @@ class ServiceDataRetriever(ABC):
         # process contest data
         contest_data = self.get_data(
             contest_key, self.get_contest_data, data_type='json',
-            func_args=(link, title, contest_key),
+            func_args=(contest_link, entry_info.title, contest_key),
         )
         if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
             # see if the required data is in entry_info
@@ -274,7 +278,7 @@ class ServiceDataRetriever(ABC):
             'contest_id': contest_key,
             'date': entry_info.date,
             'sport': entry_info.sport,
-            'title': title,
+            'title': entry_info.title,
             'fee': entry_info.fee,
             'entries': entry_info.entries,
             'winners': contest_data['winners'],
@@ -294,8 +298,7 @@ class ServiceDataRetriever(ABC):
         self.processed_contests.add(contest_id)
 
     @abstractstaticmethod
-    def get_contest_identifiers(entry_info) -> tuple[str, tuple, str, str]:
-        """ returns - (contest key, contest id, entry link, browser page title) """
+    def get_contest_link(entry_info) -> str:
         raise NotImplementedError()
 
     def pause(self, msg=None):
@@ -305,7 +308,8 @@ class ServiceDataRetriever(ABC):
         pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
         msg = "" if msg is None else ": " + msg
         LOGGER.info("Pausing for %i seconds%s", pause_for, msg)
-        time.sleep(pause_for)
+        for _ in tqdm.trange(pause_for, unit="", desc="pause"):
+            time.sleep(.995)
 
     def browse_to(self, url, pause_before=True, title=None):
         """
@@ -323,11 +327,11 @@ class ServiceDataRetriever(ABC):
 
         if not self.logged_in_to_service:
             self.wait_on_login()
-            for i, url in enumerate(self.POST_LOGIN_URLS, 1):
+            for i, post_login_url in enumerate(self.POST_LOGIN_URLS, 1):
                 if pause_before:
-                    self.pause(msg=f"before post login link #{i}getting url content")
-                LOGGER.info("Going to post login url #%i '%s'", i, url)
-                self.browser.get(url)
+                    self.pause(msg=f"before post login link #{i}, getting url content")
+                LOGGER.info("Going to post login url #%i '%s'", i, post_login_url)
+                self.browser.get(post_login_url)
 
         if pause_before:
             self.pause("before getting url content")

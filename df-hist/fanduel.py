@@ -16,6 +16,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Fanduel(ServiceDataRetriever):
+    SERVICE_ABBR = 'fd'
     SERVICE_URL = "https://www.fanduel.com"
     POST_LOGIN_URLS: list[str] = [
         "https://www.fanduel.com/history",
@@ -25,6 +26,7 @@ class Fanduel(ServiceDataRetriever):
 
     # use longer waits for captcha
     LOGIN_TIMEOUT = 300
+
     WAIT_TIMEOUT = 300
 
     _COLUMN_RENAMES = {
@@ -40,7 +42,8 @@ class Fanduel(ServiceDataRetriever):
         'Entry ($)': 'fee',
     }
 
-    def get_historic_entries_df_from_file(self, history_file_dir):
+    @classmethod
+    def get_historic_entries_df_from_file(cls, history_file_dir):
         glob_pattern = os.path.join(history_file_dir, "fanduel entry history *.csv")
         glob_pattern = os.path.expanduser(glob_pattern)
         history_filenames = glob.glob(glob_pattern)
@@ -68,7 +71,7 @@ class Fanduel(ServiceDataRetriever):
             LOGGER.info("%i invalid dates found. dropped those entries", invalid_dates)
             rows_of_data = len(entries_df)
         entries_df['contest_id'] = entries_df.Link
-        entries_df = entries_df.rename(columns=self._COLUMN_RENAMES)
+        entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
         entries_df.entries = entries_df.entries.astype(int)
         return entries_df
 
@@ -191,7 +194,12 @@ class Fanduel(ServiceDataRetriever):
 
             entry_table_rows = self.browser.find_elements_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr')
 
-        min_winning_score_str = self.browser.find_element_by_xpath('//span[@data-test-id="RunningManScore"]').text
+        min_winning_score_str = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+            EC.presence_of_element_located(
+                (By.XPATH, '//span[@data-test-id="RunningManScore"]')
+            ),
+            "Waiting contest min winning score info"
+        ).text
         winning_score = float(entry_table_rows[0].text.rsplit('\n', 1)[1])
 
         lineups_data: list[str] = []
@@ -221,10 +229,5 @@ class Fanduel(ServiceDataRetriever):
         }
 
     @staticmethod
-    def get_contest_identifiers(entry_info) -> tuple[str, tuple, str, str]:
-        return (
-            f"fd-{entry_info.sport}-{entry_info.date:%Y%m%d}-{entry_info.title}",
-            (entry_info.sport, entry_info.date, entry_info.title),
-            entry_info.link,
-            "Scoring for " + entry_info.title,
-        )
+    def get_contest_link(entry_info) -> str:
+        return entry_info.link
