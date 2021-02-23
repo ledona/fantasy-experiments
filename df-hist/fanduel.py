@@ -70,6 +70,13 @@ class Fanduel(ServiceDataRetriever):
         if (invalid_dates := rows_of_data - len(entries_df)) > 0:
             LOGGER.info("%i invalid dates found. dropped those entries", invalid_dates)
             rows_of_data = len(entries_df)
+
+        if (rows_with_no_score := len(entries_df[entries_df.Score.isna()])) > 0:
+            LOGGER.info(
+                "dropping %i rows with no score, likely the contests was cancelled.",
+                rows_with_no_score
+            )
+            entries_df = entries_df.dropna(subset=['Score'])
         entries_df['contest_id'] = entries_df.Link
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
         entries_df.entries = entries_df.entries.astype(int)
@@ -83,7 +90,7 @@ class Fanduel(ServiceDataRetriever):
         LOGGER.info("waiting for my lineup")
         my_lineup_element = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located((By.XPATH, '//div[@data-test-id="contest-entry"]')),
-            "Waiting for lineup"
+            "Waiting for my lineup"
         )
 
         return my_lineup_element.get_attribute('innerHTML')

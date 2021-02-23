@@ -308,7 +308,7 @@ class ServiceDataRetriever(ABC):
         pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
         msg = "" if msg is None else ": " + msg
         LOGGER.info("Pausing for %i seconds%s", pause_for, msg)
-        for _ in tqdm.trange(pause_for, unit="", desc="pause"):
+        for _ in tqdm.trange(pause_for, unit="", desc="pause", leave=False):
             time.sleep(.995)
 
     def browse_to(self, url, pause_before=True, title=None):
