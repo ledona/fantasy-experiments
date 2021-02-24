@@ -213,19 +213,27 @@ class Fanduel(ServiceDataRetriever):
         # add draft % for all players in top 5 lineups
         for row_ele in entry_table_rows[:5]:
             placement = row_ele.find_element_by_tag_name('td').text
-            lineup_data = self.get_data(
+            lineup_data, src, cache_filepath = self.get_data(
                 contest_key + "-lineup-" + placement,
                 self._get_opponent_lineup_data,
                 data_type='html',
                 func_args=(placement, row_ele)
             )
+            LOGGER.info(
+                "%s place entry lineup for '%s' retrieved from %s, cached from/to '%s'",
+                placement, title, src, cache_filepath
+            )
             lineups_data.append(lineup_data)
 
-        lineup_data = self.get_data(
+        lineup_data, src, cache_filepath = self.get_data(
             contest_key + "-lineup-lastwinner",
             self._get_last_winning_lineup_data,
             data_type="json",
             func_args=(min_winning_score_str, ),
+        )
+        LOGGER.info(
+            "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
+            title, src, cache_filepath
         )
         lineups_data.append(lineup_data[1])
         return {

@@ -62,7 +62,14 @@ def retrieve_history(
         raise ValueError("No entries to process!")
 
     tqdm.pandas(desc="entries")
-    contest_entries_df.progress_apply(service_obj.process_entry, axis=1)
+    try:
+        contest_entries_df.progress_apply(service_obj.process_entry, axis=1)
+    finally:
+        LOGGER.info(
+            "Entry processing done. %i entries processed. Entries processed by data source: %s",
+            sum(service_obj.processed_counts_by_src.values()),
+            service_obj.processed_counts_by_src,
+        )
 
     return service_obj.contest_df, service_obj.player_draft_df, service_obj.entry_df
 

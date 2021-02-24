@@ -4,7 +4,7 @@ import functools
 import json
 import time
 import random
-from typing import Optional
+from typing import Literal, Optional, Union
 import logging
 import os
 
@@ -48,8 +48,14 @@ EXPECTED_DRAFT_PLAYER_COLS = {
 
 EXPECTED_CONTEST_DATA_KEYS = {
     'lineups_data',  # list of lineup data strings
-    'winners', 'top_score', 'last_winning_score',
+    'winners',       # number of contest winners
+    'top_score',
+    'last_winning_score',
 }
+
+
+# the return type for get_data. tuple(data, retrieved from, cache filename)
+GetDataResult = tuple[Union[dict, list, pd.DataFrame, str], Literal['cache', 'web'], Optional[str]]
 
 
 class ServiceDataRetriever(ABC):
@@ -86,6 +92,9 @@ class ServiceDataRetriever(ABC):
         self._entry_dicts: list[dict] = []
         # used to keep track of the contests that have been processed
         self.processed_contests = set()
+
+        # count of where data was retrieved from for the entries that were processed
+        self.processed_counts_by_src = {'cache': 0, 'web': 0}
 
     @functools.cached_property
     def browser(self):
@@ -218,7 +227,8 @@ class ServiceDataRetriever(ABC):
     @abstractmethod
     def get_contest_data(self, link, title, contest_key) -> dict:
         """
-        get all contest data that is not in the entry info and return in a dict
+        get all contest data that is not in the entry info and return in a dict with keys
+        in EXPECTED_CONTEST_DATA_KEYS
         """
         raise NotImplementedError()
 
@@ -244,9 +254,14 @@ class ServiceDataRetriever(ABC):
         entry_key = f"{contest_key}-entry-{entry_info.entry_id}"
 
         # handle entry lineup info
-        entry_lineup_data = self.get_data(
+        entry_lineup_data, src, _ = self.get_data(
             entry_key, self.get_entry_lineup_data, data_type='html',
             func_args=(contest_link, entry_info.title),
+        )
+        self.processed_counts_by_src[src] += 1
+        LOGGER.info(
+            "Entry lineup for '%s' retrieved from %s",
+            entry_key, src
         )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
         entry_lineup_df['contest'] = contest_key
@@ -256,12 +271,17 @@ class ServiceDataRetriever(ABC):
 
         # if contest has been processed then we are done
         if contest_id in self.processed_contests:
+            LOGGER.info("Contest data for '%s' already processed. Skipping to next entry.", contest_id)
             return
 
         # process contest data
-        contest_data = self.get_data(
+        contest_data, src, _ = self.get_data(
             contest_key, self.get_contest_data, data_type='json',
             func_args=(contest_link, entry_info.title, contest_key),
+        )
+        LOGGER.info(
+            "Contest data for '%s' retrieved from %s",
+            contest_key, src
         )
         if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
             # see if the required data is in entry_info
@@ -339,8 +359,10 @@ class ServiceDataRetriever(ABC):
         LOGGER.info("Getting content at '%s'", url)
         self.browser.get(url)
 
-    def get_data(self, cache_key: str, func: callable, data_type: str = 'csv',
-                 func_args: Optional[tuple] = None, func_kwargs: Optional[dict] = None):
+    def get_data(
+        self, cache_key: str, func: callable, data_type: str = 'csv',
+        func_args: Optional[tuple] = None, func_kwargs: Optional[dict] = None
+    ) -> GetDataResult:
         """
         get data related to the key, first try the cache, if that fails call func
         and cache the result before returning result
@@ -351,19 +373,21 @@ class ServiceDataRetriever(ABC):
         func_args - positional arguments to pass to func
         func_kwargs - kwargs to pass to func
         """
+        cache_filepath = None
+
         # see if it in the cache
         if os.sep in cache_key:
             cache_key = cache_key.replace(os.sep, "|")
         if self.cache_path is not None and \
            os.path.isfile(cache_filepath := os.path.join(self.cache_path, f"{cache_key}.{data_type}")):
             if data_type == 'csv':
-                return pd.read_csv(cache_filepath)
+                return pd.read_csv(cache_filepath), 'cache', cache_filepath
             elif data_type == 'json':
                 with open(cache_filepath, "r") as f_:
-                    return json.load(f_)
+                    return json.load(f_), 'cache', cache_filepath
             elif data_type in {'html', 'txt'}:
                 with open(cache_filepath, "r") as f_:
-                    return f_.read()
+                    return f_.read(), 'cache', cache_filepath
 
             raise ValueError(f"Don't know how to load '{cache_filepath}' from cache")
 
@@ -384,7 +408,7 @@ class ServiceDataRetriever(ABC):
             else:
                 raise ValueError(f"Don't know how to write '{cache_filepath}' to cache")
 
-        return data
+        return data, 'web', cache_filepath
 
 def get_service_data_retriever(
         service: str,
