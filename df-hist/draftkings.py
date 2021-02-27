@@ -1,12 +1,14 @@
 import glob
 import logging
 import os
+import time
 
 from bs4 import BeautifulSoup
 import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 
 from service_data_retriever import ServiceDataRetriever
 
@@ -33,6 +35,7 @@ class Draftkings(ServiceDataRetriever):
         'Contest_Entries': 'entries',
         'Entry_Fee': 'fee',
         'Contest_Key': 'contest_id',
+        'Places_Paid': 'winners',
     }
 
     WAIT_TIMEOUT = 300
@@ -83,25 +86,95 @@ class Draftkings(ServiceDataRetriever):
             })
         return pd.DataFrame(lineup_players)
 
-    def get_contest_data(self, link, title, contest_key) -> dict:
+    def _get_lineup_data(self, contestant_name=None) -> tuple:
+        """ 
+        contestant_name - If not none then wait for the header to display the contestant name
+        return tuple of (header element of rendered linup, element containing rendered lineup)
+        """
+        if contestant_name is not None:
+            raise NotImplementedError()
+        return self.browser.find_elements_by_xpath(
+            '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div'
+        )[:2]
+
+    def _get_opponent_lineup_data(self, row_div) -> str:
+        """
+        return the HTML for the lineup of the opponent on the row
+        """
+        opp_rank, opp_name = row_div.text.split("\n", 2)[:2]
+        self.pause(f"Pausing before getting lineup for opponent '{opp_name}' ranked #{opp_rank}")
+        actions = ActionChains(self.browser)
+        actions.move_to_element(row_div) \
+               .move_by_offset(0, row_div.size['height']) \
+               .click() \
+               .perform()
+        header_ele, lineup_ele = self._get_lineup_data(opp_name)
+        return lineup_ele.get_attribute('innerHTML')
+
+    def _get_last_winning_lineup_data(self, last_winner_placement) -> tuple[int, str]:
+        raise NotImplementedError()
+
+    def get_contest_data(self, link, contest_key, entry_info) -> dict:
         self.browse_to(
             link,
-            title="DraftKings - " + title
+            title="DraftKings - " + entry_info.title
         )
-        entry_table = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+        WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located(
                 (By.XPATH, '//label[@id="multiplayer-live-scoring-Rank"]')
             ),
-            "Waiting for first place"
+            "Waiting for contest data to fully load"
         )
 
-        raise NotImplementedError("parse my lineup for draft % and cache it")
-        raise NotImplementedError("Parse contest info")
+        standings_list_ele = self.browser.find_element_by_xpath('//div[div/div/span[text()="Rank"]]/div[position()=2]')
+
+        top_entry_table_rows = standings_list_ele.find_elements_by_xpath('div/div')
+        if top_entry_table_rows[0].text.split("\n", 1)[0] != "1":
+            # scroll to the top
+            self.pause(f"scrolling to top of entries")
+            self.browser.execute_script(
+                "arguments[0].scroll({top: 0, behavior: 'smooth'})", 
+                standings_list_ele
+            )
+            time.sleep(.5)
+            top_entry_table_rows = standings_list_ele.find_elements_by_xpath('div/div')
+
+        assert top_entry_table_rows[0].text.split("\n", 1)[0] == "1"
+        winning_score = float(top_entry_table_rows[0].text.rsplit('\n', 1)[-1])
+
+        lineups_data: list[str] = []
+        # add draft % for all players in top 5 lineups
+        for row_ele in top_entry_table_rows[:5]:
+            placement_div, _, __ = row_ele.find_elements_by_xpath('div/div')
+            placement = int(placement_div.text)
+            lineup_data, src, cache_filepath = self.get_data(
+                contest_key + f"-lineup-{placement}",
+                self._get_opponent_lineup_data,
+                data_type='html',
+                func_args=(row_ele, )
+            )
+            LOGGER.info(
+                "Entry lineup for '%s' lineup %i retrieved from %s, cached from/to '%s'",
+                entry_info.title, placement, src, cache_filepath
+            )
+            lineups_data.append(lineup_data)
+
+        (min_winning_score, lineup_data), src, cache_filepath = self.get_data(
+            contest_key + "-lineup-lastwinner",
+            self._get_last_winning_lineup_data,
+            data_type="json",
+            func_args=(entry_info.winners, ),
+        )
+        LOGGER.info(
+            "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
+            entry_info.title, src, cache_filepath
+        )
+        lineups_data.append(lineup_data)
+
         return {
-            'last_winning_score': float(min_winning_score_str),
+            'last_winning_score': min_winning_score,
             'top_score': winning_score,
             'lineups_data': lineups_data,
-            'winners': lineup_data[0],
         }
 
     @staticmethod
@@ -110,9 +183,5 @@ class Draftkings(ServiceDataRetriever):
 
     def get_entry_lineup_data(self, link, title):
         self.browse_to(link, title=title)
+        return self._get_lineup_data()[1].get_attribute('innerHTML')
 
-        # get draft % for all players in my lineup
-        my_lineup_element = self.browser.find_elements_by_xpath(
-            '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div'
-        )[1]
-        return my_lineup_element.get_attribute('innerHTML')

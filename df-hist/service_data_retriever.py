@@ -225,7 +225,7 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_contest_data(self, link, title, contest_key) -> dict:
+    def get_contest_data(self, link, contest_key, entry_info) -> dict:
         """
         get all contest data that is not in the entry info and return in a dict with keys
         in EXPECTED_CONTEST_DATA_KEYS
@@ -277,7 +277,7 @@ class ServiceDataRetriever(ABC):
         # process contest data
         contest_data, src, _ = self.get_data(
             contest_key, self.get_contest_data, data_type='json',
-            func_args=(contest_link, entry_info.title, contest_key),
+            func_args=(contest_link, contest_key, entry_info),
         )
         LOGGER.info(
             "Contest data for '%s' retrieved from %s",

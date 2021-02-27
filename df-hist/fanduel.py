@@ -174,8 +174,8 @@ class Fanduel(ServiceDataRetriever):
 
         return pd.DataFrame(lineup_players)
 
-    def get_contest_data(self, link, title, contest_key) -> dict:
-        self.browse_to(link, title=title)
+    def get_contest_data(self, link, contest_key, entry_info) -> dict:
+        self.browse_to(link, title=entry_info.title)
         entry_table = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located(
                 (By.XPATH, '//table[@data-test-id="contest-entry-table"]')
@@ -221,7 +221,7 @@ class Fanduel(ServiceDataRetriever):
             )
             LOGGER.info(
                 "%s place entry lineup for '%s' retrieved from %s, cached from/to '%s'",
-                placement, title, src, cache_filepath
+                placement, entry_info.title, src, cache_filepath
             )
             lineups_data.append(lineup_data)
 
@@ -233,7 +233,7 @@ class Fanduel(ServiceDataRetriever):
         )
         LOGGER.info(
             "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
-            title, src, cache_filepath
+            entry_info.title, src, cache_filepath
         )
         lineups_data.append(lineup_data[1])
         return {
