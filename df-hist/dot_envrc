@@ -9,3 +9,6 @@ echo "python retrieve_hist.py --address 127.0.0.1:PORT SERVICE"
 echo
 echo "To retrieval data using a new/dedicated instance run..."
 echo "python retrieve_hist.py SERVICE"
+echo
+echo "**** MAKE SURE THAT ZOOM IS ALWAYS AT 100% ****"
+

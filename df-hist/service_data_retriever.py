@@ -194,13 +194,15 @@ class ServiceDataRetriever(ABC):
     def logged_in_to_service(self) -> bool:
         """ use self.LOC_LOGGED_IN to confirm that the account is logged in """
         try:
-            LOGGER.info("Looking for logged in indication...")
+            LOGGER.debug("Looking for logged in indication...")
             # if found, then signin has already taken place
             self.browser.find_element(*self.LOC_LOGGED_IN)
             return True
         except NoSuchElementException:
-            LOGGER.error("Logged in indicator %s not found! Confirmation of logged in status failed",
-                         self.LOC_LOGGED_IN)
+            LOGGER.error(
+                "Logged in indicator %s not found! Confirmation of logged in status failed",
+                 self.LOC_LOGGED_IN
+            )
             return False
 
     @abstractclassmethod

@@ -8,7 +8,6 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.action_chains import ActionChains
 
 from service_data_retriever import ServiceDataRetriever
 
@@ -87,12 +86,17 @@ class Draftkings(ServiceDataRetriever):
         return pd.DataFrame(lineup_players)
 
     def _get_lineup_data(self, contestant_name=None) -> tuple:
-        """ 
+        """
         contestant_name - If not none then wait for the header to display the contestant name
         return tuple of (header element of rendered linup, element containing rendered lineup)
         """
         if contestant_name is not None:
-            raise NotImplementedError()
+            WebDriverWait(self.browser, 5).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, f'//div[@role="heading"]/div/div[text()="{contestant_name}"]')
+                ),
+                "Waiting for opposing content's lineup to load"
+            )
         return self.browser.find_elements_by_xpath(
             '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div'
         )[:2]
@@ -103,16 +107,34 @@ class Draftkings(ServiceDataRetriever):
         """
         opp_rank, opp_name = row_div.text.split("\n", 2)[:2]
         self.pause(f"Pausing before getting lineup for opponent '{opp_name}' ranked #{opp_rank}")
-        actions = ActionChains(self.browser)
-        actions.move_to_element(row_div) \
-               .move_by_offset(0, row_div.size['height']) \
-               .click() \
-               .perform()
-        header_ele, lineup_ele = self._get_lineup_data(opp_name)
+        row_div.click()
+        lineup_ele = self._get_lineup_data(opp_name)[1]
         return lineup_ele.get_attribute('innerHTML')
 
-    def _get_last_winning_lineup_data(self, last_winner_placement) -> tuple[int, str]:
-        raise NotImplementedError()
+    def _get_last_winning_lineup_data(self, last_winner_rank, standings_list_ele) -> tuple[int, str]:
+        self.pause(f"Scrolling to last winner ranked {last_winner_rank}")
+        list_height = standings_list_ele.size['height']
+        position = self.browser.execute_script("return arguments[0].scrollTop", standings_list_ele)
+
+        # iterate while the rank of the last row is less than the desired rank
+        while True:
+            rows = standings_list_ele.find_elements_by_xpath('div/div')
+            last_row_rank = int(rows[-1].text.split("\n", 1)[0])
+            if last_row_rank > last_winner_rank:
+                break
+            position += list_height
+            self.browser.execute_script(
+                "arguments[0].scroll({top: arguments[1]})",
+                standings_list_ele, position
+            )
+
+        # iterate through rows in reverse order till we find the first rank <= last_winner_rank
+        for row_ele in reversed(rows):
+            if int(row_ele.text.split("\n", 1)[0]) <= last_winner_rank:
+                score = float(row_ele.text.rsplit("\n", 1)[-1])
+                return score, self._get_opponent_lineup_data(row_ele)
+
+        raise ValueError("Unable to find last winner")
 
     def get_contest_data(self, link, contest_key, entry_info) -> dict:
         self.browse_to(
@@ -131,12 +153,11 @@ class Draftkings(ServiceDataRetriever):
         top_entry_table_rows = standings_list_ele.find_elements_by_xpath('div/div')
         if top_entry_table_rows[0].text.split("\n", 1)[0] != "1":
             # scroll to the top
-            self.pause(f"scrolling to top of entries")
+            self.pause("scrolling to top of entries")
             self.browser.execute_script(
-                "arguments[0].scroll({top: 0, behavior: 'smooth'})", 
+                "arguments[0].scroll({top: 0})",
                 standings_list_ele
             )
-            time.sleep(.5)
             top_entry_table_rows = standings_list_ele.find_elements_by_xpath('div/div')
 
         assert top_entry_table_rows[0].text.split("\n", 1)[0] == "1"
@@ -163,7 +184,7 @@ class Draftkings(ServiceDataRetriever):
             contest_key + "-lineup-lastwinner",
             self._get_last_winning_lineup_data,
             data_type="json",
-            func_args=(entry_info.winners, ),
+            func_args=(entry_info.winners, standings_list_ele),
         )
         LOGGER.info(
             "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
