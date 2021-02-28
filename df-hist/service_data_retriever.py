@@ -19,7 +19,7 @@ import tqdm
 LOGGER = logging.getLogger(__name__)
 
 PAUSE_MIN = 5
-PAUSE_MAX = 45
+PAUSE_MAX = 30
 
 # columns that will be present in the outputted contest dataframe
 EXPECTED_CONTEST_COLS = {
@@ -57,6 +57,8 @@ EXPECTED_CONTEST_DATA_KEYS = {
 # the return type for get_data. tuple(data, retrieved from, cache filename)
 GetDataResult = tuple[Union[dict, list, pd.DataFrame, str], Literal['cache', 'web'], Optional[str]]
 
+class WebLimitReached(Exception):
+    """ raised when the web retrieval limit is reached and data must be retrieved from the web """
 
 class ServiceDataRetriever(ABC):
     SERVICE_ABBR: str
@@ -69,16 +71,19 @@ class ServiceDataRetriever(ABC):
     LOC_LOGGED_IN: tuple[str, str]
 
     # how long to wait for login before timing out
-    LOGIN_TIMEOUT = 30
+    LOGIN_TIMEOUT = 300
+
+    WAIT_TIMEOUT = 300
 
     def __init__(
             self, browser_address: Optional[str] = None, browser_debug_port: Optional[bool] = None,
             browser_profile_path: Optional[str] = None, cache_path: Optional[str] = None,
-            interactive = False,
+            interactive = False, web_limit = None,
     ):
         """
         browser_address - the connection address of the chrome instance to use. e.g. ip-address:port
         interactive - if true require user confirmation prior to every browser action
+        web_limit - halt processing if this number of web retrievals is exceeded
         """
         self.cache_path = cache_path
         self.interactive = interactive
@@ -95,6 +100,8 @@ class ServiceDataRetriever(ABC):
 
         # count of where data was retrieved from for the entries that were processed
         self.processed_counts_by_src = {'cache': 0, 'web': 0}
+
+        self.web_limit = web_limit
 
     @functools.cached_property
     def browser(self):
@@ -393,6 +400,10 @@ class ServiceDataRetriever(ABC):
 
             raise ValueError(f"Don't know how to load '{cache_filepath}' from cache")
 
+        if self.web_limit is not None and \
+           self.web_limit < self.processed_counts_by_src['web']:
+            LOGGER.info("Data not in cache and web retrieval limit reached. Processing stopped on %s", cache_key)
+            raise WebLimitReached(cache_key)
         data = func(
             *(func_args or tuple()),
             **(func_kwargs or {}),
@@ -419,6 +430,7 @@ def get_service_data_retriever(
         browser_debug_port: Optional[str] = None,
         browser_profile_path: Optional[str] = None,
         interactive: bool = False,
+        web_limit: Optional[int] = None,
 ) -> ServiceDataRetriever:
     """ attempt to import the data retriever for the requested service """
     module = import_module(service)
@@ -431,4 +443,5 @@ def get_service_data_retriever(
         browser_profile_path=browser_profile_path,
         cache_path=cache_path,
         interactive=interactive,
+        web_limit=web_limit,
     )

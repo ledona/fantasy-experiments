@@ -24,11 +24,6 @@ class Fanduel(ServiceDataRetriever):
     LOC_SIGN_IN = (By.LINK_TEXT, "Log in")
     LOC_LOGGED_IN = (By.LINK_TEXT, "Lobby")
 
-    # use longer waits for captcha
-    LOGIN_TIMEOUT = 300
-
-    WAIT_TIMEOUT = 300
-
     _COLUMN_RENAMES = {
         'Date': 'date',
         'Sport': 'sport',

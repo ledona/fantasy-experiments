@@ -18,7 +18,7 @@ DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy/betting"
 def retrieve_history(
         service_name, history_file_dir,
         sports=None, start_date=None, end_date=None,
-        cache_path=None, interactive=False,
+        cache_path=None, interactive=False, web_limit=None,
         browser_debug_address=None, browser_debug_port=None, profile_path=None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -35,7 +35,8 @@ def retrieve_history(
                                              browser_profile_path=profile_path,
                                              browser_address=browser_debug_address,
                                              browser_debug_port=browser_debug_port,
-                                             interactive=interactive)
+                                             interactive=interactive,
+                                             web_limit=web_limit)
     # do this first since
     assert (sports is None) or set(sports) == {sport.lower() for sport in sports}, \
         "all sports must be in lower case"
@@ -111,6 +112,10 @@ def process_cmd_line(cmd_line_str=None):
     parser.add_argument("--start-date")
     parser.add_argument("--end-date")
     parser.add_argument(
+        "--web-limit", type=int, 
+        help="Only processes this number of entries retrieved from internet"
+    )
+    parser.add_argument(
         "service", choices=("fanduel", "draftkings", "yahoo")
     )
 
@@ -132,6 +137,7 @@ def process_cmd_line(cmd_line_str=None):
         profile_path=args.chrome_profile_path,
         cache_path=args.cache_path,
         interactive=args.interactive,
+        web_limit=args.web_limit,
     )
 
     if args.filename_prefix:

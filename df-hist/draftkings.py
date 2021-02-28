@@ -37,8 +37,6 @@ class Draftkings(ServiceDataRetriever):
         'Places_Paid': 'winners',
     }
 
-    WAIT_TIMEOUT = 300
-
     @classmethod
     def get_historic_entries_df_from_file(cls, history_file_dir):
         """ return an iterator that yields contest entries """
@@ -63,9 +61,11 @@ class Draftkings(ServiceDataRetriever):
         lineup_players = []
         for player_row in soup.table.tbody.contents:
             position = player_row.contents[0].text
-            assert '$' in player_row.contents[1].text, \
-                "Expected cost to be in the same cell as name, seperated by '$'"
-            name = player_row.contents[1].text.split('$', 1)[0]
+            name = player_row.contents[1].text
+            if '$' in name:
+                name = name.split('$', 1)[0]
+            else:
+                LOGGER.warning("Player cost did not appear with name, maybe processed before cost was retrieved...")
             drafted_pct_text = player_row.contents[2].text
             assert drafted_pct_text[-1] == '%'
             team_cell_spans = player_row.contents[3].find_all('span')
@@ -97,9 +97,12 @@ class Draftkings(ServiceDataRetriever):
                 ),
                 "Waiting for opposing content's lineup to load"
             )
-        return self.browser.find_elements_by_xpath(
+            time.sleep(.1)
+        lineup_data = self.browser.find_elements_by_xpath(
             '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div'
-        )[:2]
+        )
+        assert len(lineup_data) >= 2
+        return lineup_data[:2]
 
     def _get_opponent_lineup_data(self, row_div) -> str:
         """
@@ -117,11 +120,13 @@ class Draftkings(ServiceDataRetriever):
         position = self.browser.execute_script("return arguments[0].scrollTop", standings_list_ele)
 
         # iterate while the rank of the last row is less than the desired rank
+        prev_last_row_rank = -1
         while True:
             rows = standings_list_ele.find_elements_by_xpath('div/div')
             last_row_rank = int(rows[-1].text.split("\n", 1)[0])
-            if last_row_rank > last_winner_rank:
+            if last_row_rank > last_winner_rank or prev_last_row_rank == last_row_rank:
                 break
+            prev_last_row_rank = last_row_rank
             position += list_height
             self.browser.execute_script(
                 "arguments[0].scroll({top: arguments[1]})",
@@ -204,5 +209,6 @@ class Draftkings(ServiceDataRetriever):
 
     def get_entry_lineup_data(self, link, title):
         self.browse_to(link, title=title)
-        return self._get_lineup_data()[1].get_attribute('innerHTML')
+        lineup_data = self._get_lineup_data()
+        return lineup_data[1].get_attribute('innerHTML')
 

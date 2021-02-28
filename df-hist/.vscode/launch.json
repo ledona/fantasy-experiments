@@ -58,7 +58,7 @@
             ]
         },
         {
-            "name": "DK",
+            "name": "DK test +web-limit 10",
             "type": "python",
             "request": "launch",
             "program": "retrieve_hist.py",
@@ -68,11 +68,13 @@
                 "--address", "127.0.0.1:9222",
                 "--sports", "nba", "nhl",
                 "--start-date", "2020-01-01",
-                "--end-date" , "2020-03-01"
+                "--end-date" , "2020-03-01",
+                "--web-limit", "10",
+                "--cache", "cache",
             ]
         },
         {
-            "name": "DK (existing browser + interactive)",
+            "name": "DK test (existing browser + interactive)",
             "type": "python",
             "request": "launch",
             "program": "retrieve_hist.py",
