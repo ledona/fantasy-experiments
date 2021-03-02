@@ -152,10 +152,15 @@ class Fanduel(ServiceDataRetriever):
             name = player_row.find('span', {'data-test-id': "player-display-name"}).text
             assert len(name) > 0
             team_ele = player_row.find('abbr', {'data-test-id': "primary-team"})
-            team_name = team_ele['title']
-            assert len(team_name) > 0
-            team_abbr = team_ele.text.split(' ')[0]
-            assert len(team_abbr) > 0
+            if team_ele is None:
+                LOGGER.warning("Could not identify which team the player named '%s' was on", name)
+                team_name = None
+                team_abbr = None
+            else:
+                team_name = team_ele['title']
+                assert len(team_name) > 0
+                team_abbr = team_ele.text.split(' ')[0]
+                assert len(team_abbr) > 0
             drafted_pct_text = player_row.find("span", text="DRAFTED").parent.span.text
             assert drafted_pct_text[-1] == '%'
             drafted_pct = 0.05 if drafted_pct_text == '<0.1%' else float(drafted_pct_text[:-1])

@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import time
+from typing import Optional
 
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -55,6 +56,31 @@ class Draftkings(ServiceDataRetriever):
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
         return entries_df
 
+    @staticmethod
+    def _draft_percentages(player_row) -> list[tuple[float, Optional[str]]]:
+        """ 
+        parse the soup coutents of a player row, return percentages and associated lineup position
+        return - list of tuples of (draft percentage, lineup position)
+        """
+        drafted_pct_text = player_row.contents[2].text
+        if drafted_pct_text.count('%') == 1:
+            assert drafted_pct_text[-1] == '%'
+            return [(float(drafted_pct_text[:-1]), None)]
+
+        drafted_pcts = []
+        # there are multiple draft percentages
+        for drafted_pct_ele in player_row.contents[2].div.contents:
+            assert len(drafted_pct_ele.contents) in (1, 2), \
+                "Expecting either 2 elements (position, pct) or just an element with pct!"
+            if len(drafted_pct_ele.contents) == 1:
+                drafted_pcts.append((float(drafted_pct_ele.text[:-1]), None))
+            else:
+                drafted_pcts.append((
+                    float(drafted_pct_ele.contents[1].text[:-1]),
+                    drafted_pct_ele.contents[0].text
+                ))
+        return drafted_pcts
+
     def get_entry_lineup_df(self, lineup_data):
         soup = BeautifulSoup(lineup_data, 'html.parser')
 
@@ -66,8 +92,6 @@ class Draftkings(ServiceDataRetriever):
                 name = name.split('$', 1)[0]
             else:
                 LOGGER.warning("Player cost did not appear with name, maybe processed before cost was retrieved...")
-            drafted_pct_text = player_row.contents[2].text
-            assert drafted_pct_text[-1] == '%'
             team_cell_spans = player_row.contents[3].find_all('span')
 
             assert (len(team_cell_spans[0]['class']) > 0) != (len(team_cell_spans[3]['class']) > 0), \
@@ -77,12 +101,14 @@ class Draftkings(ServiceDataRetriever):
                 if len(team_cell_spans[0]['class']) > 0 else
                 team_cell_spans[3].text
             )
-            lineup_players.append({
-                'position': position,
-                'name': name,
-                'team_abbr': team,
-                'draft_pct': float(drafted_pct_text[:-1]),
-            })
+
+            for (draft_pct, draft_position) in self._draft_percentages(player_row):
+                lineup_players.append({
+                    'position': draft_position,
+                    'name': name,
+                    'team_abbr': team,
+                    'draft_pct': draft_pct,
+                })
         return pd.DataFrame(lineup_players)
 
     def _get_lineup_data(self, contestant_name=None) -> tuple:
