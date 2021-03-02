@@ -13,7 +13,7 @@
             "args": []
         },
         {
-            "name": "Yahoo",
+            "name": "Yahoo test (existing browser + interactive)",
             "type": "python",
             "request": "launch",
             "program": "retrieve_hist.py",
@@ -23,11 +23,12 @@
                 "--address", "127.0.0.1:9222",
                 "--sports", "nba", "nhl",
                 "--start-date", "2020-01-01",
-                "--end-date" , "2020-03-01"
+                "--end-date" , "2020-03-01",
+                "--interactive",
             ]
         },
         {
-            "name": "DK test +web-limit 10",
+            "name": "DK Real Full (web-limit 10 + existing browser + no-interactive)",
             "type": "python",
             "request": "launch",
             "program": "retrieve_hist.py",
@@ -35,9 +36,6 @@
             "args": [
                 "draftkings",
                 "--address", "127.0.0.1:9222",
-                "--sports", "nba", "nhl",
-                "--start-date", "2020-01-01",
-                "--end-date" , "2020-03-01",
                 "--web-limit", "10",
                 "--cache", "cache",
             ]
@@ -59,7 +57,7 @@
             ]
         },
         {
-            "name": "Fanduel Real Full (existing browser + interactive)",
+            "name": "Fanduel Real Full (limit + existing browser + no-interactive)",
             "type": "python",
             "request": "launch",
             "program": "retrieve_hist.py",
@@ -68,11 +66,11 @@
                 "fanduel",
                 "--address", "127.0.0.1:9222",
                 "--cache", "cache",
-                "--interactive"
+                "--web-limit", "10",
             ]
         },
         {
-            "name": "Fanduel Real Full (existing browser + no-interactive)",
+            "name": "Fanduel Real Remaining (limit + existing browser + no-interactive)",
             "type": "python",
             "request": "launch",
             "program": "retrieve_hist.py",
@@ -81,18 +79,7 @@
                 "fanduel",
                 "--address", "127.0.0.1:9222",
                 "--cache", "cache",
-            ]
-        },
-        {
-            "name": "Fanduel Real Remaining (existing browser + no-interactive)",
-            "type": "python",
-            "request": "launch",
-            "program": "retrieve_hist.py",
-            "console": "integratedTerminal",
-            "args": [
-                "fanduel",
-                "--address", "127.0.0.1:9222",
-                "--cache", "cache",
+                "--web-limit", "10",
                 "--end-date", "2020-08-01",
             ]
         },
