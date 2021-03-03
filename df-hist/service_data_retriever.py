@@ -18,8 +18,8 @@ import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
-PAUSE_MIN = 5
-PAUSE_MAX = 30
+PAUSE_MIN = 4
+PAUSE_MAX = 20
 
 # columns that will be present in the outputted contest dataframe
 EXPECTED_CONTEST_COLS = {
@@ -135,7 +135,7 @@ class ServiceDataRetriever(ABC):
         try:
             browser_.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         except Exception as ex:
-            LOGGER.error("Error updating browser webdriver property", exc_info=ex)
+            LOGGER.warning("Error updating browser webdriver property", exc_info=ex)
         LOGGER.info("Connected to browser")
         return browser_
 
@@ -221,7 +221,7 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_entry_lineup_data(self, link, title) -> str:
+    def get_entry_lineup_data(self, link, title):
         """ retrieve entry data from link. returns a dict containing unprocessed/raw data that can be cached and processed """
         raise NotImplementedError()
 
@@ -255,17 +255,19 @@ class ServiceDataRetriever(ABC):
             name: entry_info.get(name)
             for name in EXPECTED_ENTRIES_COLS
         }
+        if entry_dict['link'] is None:
+            entry_dict['link'] = self.get_entry_link(entry_info)
+
         self._entry_dicts.append(entry_dict)
 
         contest_key = f"{self.SERVICE_ABBR}-{entry_info.sport}-{entry_info.date:%Y%m%d}-{entry_info.title}"
         contest_id =  (entry_info.sport, entry_info.date, entry_info.title)
-        contest_link = self.get_contest_link(entry_info)
         entry_key = f"{contest_key}-entry-{entry_info.entry_id}"
 
         # handle entry lineup info
         entry_lineup_data, src, _ = self.get_data(
             entry_key, self.get_entry_lineup_data, data_type='html',
-            func_args=(contest_link, entry_info.title),
+            func_args=(entry_dict['link'], entry_info.title),
         )
         self.processed_counts_by_src[src] += 1
         LOGGER.info(
@@ -286,7 +288,7 @@ class ServiceDataRetriever(ABC):
         # process contest data
         contest_data, src, _ = self.get_data(
             contest_key, self.get_contest_data, data_type='json',
-            func_args=(contest_link, contest_key, entry_info),
+            func_args=(entry_dict['link'], contest_key, entry_info),
         )
         LOGGER.info(
             "Contest data for '%s' retrieved from %s",
@@ -318,7 +320,7 @@ class ServiceDataRetriever(ABC):
         self._contest_dicts.append(contest_dict)
 
         for lineup_data in contest_data['lineups_data']:
-            lineup_df = self.get_entry_lineup_df(lineup_data)
+            lineup_df = self.get_opp_lineup_df(lineup_data)
             lineup_df['contest'] = contest_key
             lineup_df['date'] = entry_info.date
             lineup_df['sport'] = entry_info.sport
@@ -326,8 +328,12 @@ class ServiceDataRetriever(ABC):
 
         self.processed_contests.add(contest_id)
 
+    def get_opp_lineup_df(self, lineup_data):
+        """ default to using get_entry_lineup_df """
+        return self.get_entry_lineup_df(lineup_data)
+
     @abstractstaticmethod
-    def get_contest_link(entry_info) -> str:
+    def get_entry_link(entry_info) -> str:
         raise NotImplementedError()
 
     def pause(self, msg=None):
@@ -403,6 +409,7 @@ class ServiceDataRetriever(ABC):
         if self.web_limit is not None and \
            self.web_limit < self.processed_counts_by_src['web']:
             LOGGER.info("Data not in cache and web retrieval limit reached. Processing stopped on %s", cache_key)
+
             raise WebLimitReached(cache_key)
         data = func(
             *(func_args or tuple()),

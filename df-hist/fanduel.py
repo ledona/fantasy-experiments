@@ -176,14 +176,12 @@ class Fanduel(ServiceDataRetriever):
 
     def get_contest_data(self, link, contest_key, entry_info) -> dict:
         self.browse_to(link, title=entry_info.title)
-        entry_table = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//table[@data-test-id="contest-entry-table"]')
+        entry_table_rows = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+            EC.presence_of_all_elements_located(
+                (By.XPATH, '//table[@data-test-id="contest-entry-table"]/tbody/tr')
             ),
             "Waiting for first place"
         )
-
-        entry_table_rows = entry_table.find_elements_by_xpath('tbody/tr')
 
         if entry_table_rows[0].text[0] != '1':
             # make sure that the state of the page is fresh (top of the lineups)
@@ -192,14 +190,12 @@ class Fanduel(ServiceDataRetriever):
             LOGGER.info("scrolling/finding top lineups link")
             self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', first_place_ele)
             first_place_ele.click()
-            WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+            entry_table_rows = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
                 EC.presence_of_element_located(
-                    (By.XPATH, '//table[@data-test-id="contest-entry-table"]/tbody/tr/td/div[text()="1st"]')
+                    (By.XPATH, '//table[@data-test-id="contest-entry-table"]//tbody/tr/td/div[text()="1st"]/../..')
                 ),
                 "Waiting for first place"
             )
-
-            entry_table_rows = self.browser.find_elements_by_xpath('//table[@data-test-id="contest-entry-table"]//tbody/tr')
 
         min_winning_score_str = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located(
@@ -211,6 +207,7 @@ class Fanduel(ServiceDataRetriever):
 
         lineups_data: list[str] = []
         # add draft % for all players in top 5 lineups
+        assert entry_table_rows[0].find_element_by_tag_name('td').text == '1st'
         for row_ele in entry_table_rows[:5]:
             placement = row_ele.find_element_by_tag_name('td').text
             lineup_data, src, cache_filepath = self.get_data(
@@ -244,5 +241,5 @@ class Fanduel(ServiceDataRetriever):
         }
 
     @staticmethod
-    def get_contest_link(entry_info) -> str:
+    def get_entry_link(entry_info) -> str:
         return entry_info.link

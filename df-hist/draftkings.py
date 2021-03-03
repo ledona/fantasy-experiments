@@ -58,7 +58,7 @@ class Draftkings(ServiceDataRetriever):
 
     @staticmethod
     def _draft_percentages(player_row) -> list[tuple[float, Optional[str]]]:
-        """ 
+        """
         parse the soup coutents of a player row, return percentages and associated lineup position
         return - list of tuples of (draft percentage, lineup position)
         """
@@ -123,9 +123,12 @@ class Draftkings(ServiceDataRetriever):
                 ),
                 "Waiting for opposing content's lineup to load"
             )
-            time.sleep(.1)
-        lineup_data = self.browser.find_elements_by_xpath(
-            '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div'
+
+        lineup_data = WebDriverWait(self.browser, 5).until(
+            EC.presence_of_all_elements_located(
+                (By.XPATH, '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div')
+            ),
+            "Waiting for lineup data to load"
         )
         assert len(lineup_data) >= 2
         return lineup_data[:2]
@@ -179,7 +182,9 @@ class Draftkings(ServiceDataRetriever):
             "Waiting for contest data to fully load"
         )
 
-        standings_list_ele = self.browser.find_element_by_xpath('//div[div/div/span[text()="Rank"]]/div[position()=2]')
+        standings_list_ele = self.browser.find_element_by_xpath(
+            '//div[div/div/span[text()="Rank"]]/div[position()=2]'
+        )
 
         top_entry_table_rows = standings_list_ele.find_elements_by_xpath('div/div')
         if top_entry_table_rows[0].text.split("\n", 1)[0] != "1":
@@ -230,7 +235,7 @@ class Draftkings(ServiceDataRetriever):
         }
 
     @staticmethod
-    def get_contest_link(entry_info) -> str:
+    def get_entry_link(entry_info) -> str:
         return f"https://www.draftkings.com/contest/gamecenter/{entry_info.contest_id}?uc={entry_info.entry_id}#/"
 
     def get_entry_lineup_data(self, link, title):

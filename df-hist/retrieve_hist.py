@@ -5,7 +5,7 @@ import shlex
 import pandas as pd
 from tqdm import tqdm
 
-from service_data_retriever import get_service_data_retriever, EXPECTED_HISTORIC_ENTRIES_DF_COLS
+from service_data_retriever import get_service_data_retriever, EXPECTED_HISTORIC_ENTRIES_DF_COLS, WebLimitReached
 
 
 LOGGING_FORMAT = '%(asctime)s-%(levelname)s-%(name)s(%(lineno)s)-%(message)s'
@@ -62,15 +62,25 @@ def retrieve_history(
     if entry_count == 0:
         raise ValueError("No entries to process!")
 
-    tqdm.pandas(desc="entries")
-    try:
-        contest_entries_df.progress_apply(service_obj.process_entry, axis=1)
-    finally:
-        LOGGER.info(
-            "Entry processing done. %i entries processed. Entries processed by data source: %s",
-            sum(service_obj.processed_counts_by_src.values()),
-            service_obj.processed_counts_by_src,
-        )
+    with tqdm(total=entry_count, desc="entries") as pbar:
+        pbar.set_postfix(cache=0, web=0)
+        def func(entry_info):
+            pbar.update()
+            result = service_obj.process_entry(entry_info)
+            pbar.set_postfix(**service_obj.processed_counts_by_src)
+            return result
+
+        try:
+            contest_entries_df.apply(func, axis=1)
+        except WebLimitReached as limit_reached_ex:
+            LOGGER.info("Web retrieval limit was reached before retrieval attempt for %s",
+                        limit_reached_ex.args[0])
+        finally:
+            LOGGER.info(
+                "Entry processing done. %i entries processed. Entries processed by data source: %s",
+                sum(service_obj.processed_counts_by_src.values()),
+                service_obj.processed_counts_by_src,
+            )
 
     return service_obj.contest_df, service_obj.player_draft_df, service_obj.entry_df
 

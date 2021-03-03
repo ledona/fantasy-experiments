@@ -24,7 +24,35 @@
                 "--sports", "nba", "nhl",
                 "--start-date", "2020-01-01",
                 "--end-date" , "2020-03-01",
+                "--cache", "cache",
                 "--interactive",
+            ]
+        },
+        {
+            "name": "Y Real Full (web-limit 10 + existing browser + no-interactive)",
+            "type": "python",
+            "request": "launch",
+            "program": "retrieve_hist.py",
+            "console": "integratedTerminal",
+            "args": [
+                "yahoo",
+                "--address", "127.0.0.1:9222",
+                "--web-limit", "10",
+                "--cache", "cache",
+            ]
+        },
+        {
+            "name": "Y Real Remaining (limit + existing browser + no-interactive)",
+            "type": "python",
+            "request": "launch",
+            "program": "retrieve_hist.py",
+            "console": "integratedTerminal",
+            "args": [
+                "yahoo",
+                "--address", "127.0.0.1:9222",
+                "--cache", "cache",
+                "--web-limit", "10",
+                "--end-date", "2021-07-01",
             ]
         },
         {
@@ -41,7 +69,7 @@
             ]
         },
         {
-            "name": "DK test (existing browser + interactive)",
+            "name": "DK Real Remaining (limit + existing browser + no-interactive)",
             "type": "python",
             "request": "launch",
             "program": "retrieve_hist.py",
@@ -49,11 +77,9 @@
             "args": [
                 "draftkings",
                 "--address", "127.0.0.1:9222",
-                "--sports", "nba", "nhl",
-                "--start-date", "2020-01-01",
-                "--end-date", "2020-03-01",
                 "--cache", "cache",
-                "--interactive"
+                "--web-limit", "10",
+                "--end-date", "2021-07-01",
             ]
         },
         {
@@ -80,7 +106,7 @@
                 "--address", "127.0.0.1:9222",
                 "--cache", "cache",
                 "--web-limit", "10",
-                "--end-date", "2020-08-01",
+                "--end-date", "2020-07-01",
             ]
         },
      ]
