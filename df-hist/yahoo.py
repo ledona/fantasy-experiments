@@ -1,3 +1,4 @@
+import functools
 import glob
 import logging
 import math
@@ -5,6 +6,7 @@ import os
 
 from bs4 import BeautifulSoup
 import pandas as pd
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -49,6 +51,8 @@ class Yahoo(ServiceDataRetriever):
         entries_df["date"] = pd.to_datetime(entries_df['Start Date'])
         entries_df.Sport = entries_df.Sport.str.lower()
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
+        entries_df.fee = entries_df.fee.str.replace('$', '').astype(float)
+        entries_df.winnings = entries_df.winnings.str.replace('$', '').astype(float)
         return entries_df
 
     def _get_h2h_contest_data(self, link, contest_key, entry_info) -> dict:
@@ -80,68 +84,141 @@ class Yahoo(ServiceDataRetriever):
     # xpath to the entry-rankings / entry vs entry grid
     _CONTEST_GRID_XPATH = '//div[@class="Grid D(f)"]/div[@data-tst="contest-entry"]/..'
     _XPATH_OPPONENT_LINEUP_ROWS = f'({_CONTEST_GRID_XPATH}/div)[3]//tbody/tr[not(@aria-hidden="true")]'
-    def _get_opp_lineup_data(self, opponent_lineup_row_ele) -> str:
+    _PAGE_LINKS_XPATH = f'({_CONTEST_GRID_XPATH}/div)[3]//div[@class="Grid Cf"]//a'
+
+    def _get_opp_lineup_data(self, opponent_lineup_row_ele, rank, reset_when_done=True) -> str:
         """ click on the row, get the html, browser back then return the html """
+        self.pause(f"Waiting before clicking on oppenent lineup row for placement {rank}", 
+                   pause_min=1, pause_max=5)
         opponent_lineup_row_ele.click()
-        self.pause("Waiting after request for opponent lineup")
         WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located((By.XPATH, '//div[text()="Dim Common Players"]')),
             "Waiting for opponent lineup"
         )
         html = self.get_entry_lineup_data(None, None)
-        self.browser.execute_script("window.history.go(-1)")
+
+        if reset_when_done:
+            self.pause("Waiting before going back to contestants page", pause_min=1, pause_max=5)
+            self.browser.execute_script("window.history.go(-1)")
+            WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+                EC.presence_of_element_located((By.XPATH, '//div[text()="Select a team below to compare"]')),
+                "Waiting to for reload of lineups"
+            )
         return html
 
-    def _get_opponent_rows(self, my_name):
-        rows = self.browser.find_elements_by_xpath(self._XPATH_OPPONENT_LINEUP_ROWS)
-        raise NotImplementedError("drop the last row if it is for me")
-        return rows
+    def _wait_for_paging(self, page_link, lineups_per_page, page_number, pause_msg):
+        """ click on a contestant list page and wait for it to load """
+        self.pause(pause_msg, pause_min=1, pause_max=3)
+        page_link.click()
 
-    def _find_min_winning_contestant_data(self, last_winner_placement) -> tuple[str, float]:
-        # figure out my name
-        raise NotImplementedError()
+        expected_lineup_ranks_showing_text = \
+            f"Showing {1 + lineups_per_page * (page_number - 1):,} - {lineups_per_page * page_number:,}"
+        WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
+            EC.presence_of_element_located(
+                (By.XPATH, f"//h5[text()[contains(.,'{expected_lineup_ranks_showing_text}')]]")
+            ),
+            "Waiting for last winner row"
+        )
 
-        rows = self._get_opponent_rows(my_name)
-        if int(rows[-1].find_element_by_tag_name('td').text) < last_winner_placement:
-            # figure out which page the last winner is on
-            last_winner_page = math.ceil(last_winner_placement / len(rows))
-            # figure out the last page number
-            raise NotImplementedError()
-            if (last_page_number / 2) > last_winner_page:
-                # page up to the last winner page from the beginning
-                raise NotImplementedError()
+    def _go_to_last_winner_page(self, last_winner_page, lineups_per_page):
+        """ navigate to the page of contestant results that has the last paid winner """
+        while True:
+            try:
+                last_winner_page_a = self.browser.find_element_by_xpath(
+                    f"{self._PAGE_LINKS_XPATH}[text()={last_winner_page}]"
+                )
+                # the link is available
+                break
+            except NoSuchElementException:
+                pass
+
+            page_links = self.browser.find_elements_by_xpath(self._PAGE_LINKS_XPATH)
+
+            # find the next page to go to
+            if ((last_page_num := int(page_links[-1].text)) - \
+                (second_last_page_num := int(page_links[-2].text))) > 1:
+                # there is a page gap when there are a lot of pages, between the current page and the last page
+                next_page_num = second_last_page_num
+                next_page_link = page_links[-2]
             else:
-                # page down to the last winner page from the end
-                raise NotImplementedError()
-            rows = self._get_opponent_rows(my_name)
+                next_page_num = last_page_num
+                next_page_link = page_links[-1]
 
-        # test to make sure the last winner is on this page, warn if something looks hinky
-        raise NotImplementedError()
+            self._wait_for_paging(
+                next_page_link, lineups_per_page, next_page_num,
+                f"Click on next page ({next_page_num})"
+            )
 
-        raise NotImplementedError("find min winning score and the associated lineup")
+        self._wait_for_paging(
+            last_winner_page_a, lineups_per_page, last_winner_page,
+            f"Click on last winner page {last_winner_page}"
+        )
+
+    def _find_last_winning_contestant_data(self, last_winner_placement) -> tuple[str, float]:
+        """ returns - tuple(html for lineup, score) """
+        try:
+            page_lineups_ele = self.browser.find_element_by_xpath("//h5[text()[contains(.,'Showing 1 - ')]]")
+            lineups_per_page = int(page_lineups_ele.text.rsplit(' ', 1)[1])
+            last_winner_page = math.ceil(last_winner_placement / lineups_per_page)
+        except NoSuchElementException:
+            # there are no additional pages
+            last_winner_page = 1
+
+        if last_winner_page > 1:
+            self._go_to_last_winner_page(last_winner_page, lineups_per_page)
+
+        try:
+            last_winner_row = self.browser.find_element_by_xpath(
+                f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement}']/.."
+            )
+        except NoSuchElementException:
+            LOGGER.warning(
+                "Failed to find contestant with ranking %s. Likely a tie. Using last contestant on page instead",
+                last_winner_placement
+            )
+            for row in reversed(self.browser.find_elements_by_xpath(self._XPATH_OPPONENT_LINEUP_ROWS)):
+                if int(row.find_element_by_tag_name('td').text) < last_winner_placement:
+                    last_winner_row = row
+                    break
+            else:
+                raise ValueError("Failed to find a rank higher than the last winning placement")
+
+        last_winner_score = float(last_winner_row.find_elements_by_tag_name('td')[2].text)
+        lineup_data = self._get_opp_lineup_data(last_winner_row, last_winner_placement, reset_when_done=False)
+        return lineup_data, last_winner_score
 
     def _get_multi_opponent_contest_data(self, link, contest_key, entry_info) -> dict:
         # we should be on the contest page, with no opponent selected
         self.browse_to(link)
-        paid_places = int(self.browser.find_element_by_xpath(
-            '//div[@data-tst="contest-header-payout-places"]'
-        ).text)
+        if entry_info.fee > 0:
+            paid_places = int(self.browser.find_element_by_xpath(
+                '//div[@data-tst="contest-header-payout-places"]'
+            ).text.replace(',', ''))
+        else:
+            paid_places = 0
 
         top_contestant_row = self.browser.find_element_by_xpath(self._XPATH_OPPONENT_LINEUP_ROWS + "[1]")
-        assert top_contestant_row.find_element_by_tag_name('td').text == "1"
+
+        if not top_contestant_row.find_element_by_tag_name('td').text == "1":
+            # can happen if we halted a previous retrieval
+            self.browser.refresh()
+            top_contestant_row = self.browser.find_element_by_xpath(self._XPATH_OPPONENT_LINEUP_ROWS + "[1]")            
+            assert top_contestant_row.find_element_by_tag_name('td').text == "1"
+
         winning_score = float(top_contestant_row.find_elements_by_tag_name('td')[2].text)
 
         lineups_data = []
         for rank in range(1, 6):
+            if rank == entry_info['rank']:
+                continue
             row_ele = self.browser.find_element_by_xpath(
                 self._XPATH_OPPONENT_LINEUP_ROWS + f'[{rank}]'
             )
-            assert int(row_ele.find_element_by_tag_name("td").text) == rank
             lineup_data, src, cache_filepath = self.get_data(
                 f"{contest_key}-lineup-{rank}",
                 self._get_opp_lineup_data,
                 data_type='html',
-                func_args=(row_ele, )
+                func_args=(row_ele, rank)
             )
             LOGGER.info(
                 "Opponent lineup for '%s' lineup at rank #%i retrieved from %s, cached from/to '%s'",
@@ -149,12 +226,20 @@ class Yahoo(ServiceDataRetriever):
             )
             lineups_data.append(lineup_data)
 
-        (lineup_data, min_winning_score), src, cache_filepath = self.get_data(
-            f"{contest_key}-lineup-{rank}",
-            self._find_min_winning_contestant_data,
-            data_type='json',
-            func_args=(paid_places, )
-        )
+        if paid_places > 0:
+            (lineup_data, min_winning_score), src, cache_filepath = self.get_data(
+                f"{contest_key}-lineup-{rank}",
+                self._find_last_winning_contestant_data,
+                data_type='json',
+                func_args=(paid_places, )
+            )
+            lineups_data.append(lineup_data)
+            LOGGER.info(
+                "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
+                entry_info.title, src, cache_filepath
+            )
+        else:
+            min_winning_score = None
 
         return {
             'last_winning_score': min_winning_score,
@@ -194,9 +279,14 @@ class Yahoo(ServiceDataRetriever):
         for player_row, pos_row in zip(players_ele.div.table.tbody.contents,
                                        positions_ele.div.table.tbody.contents):
             drafted_pct_ele = player_row.find("span", **{'title': 'Percentage rostered'})
-            assert drafted_pct_ele.text.endswith("% Rostered")
-            drafted_pct = float(drafted_pct_ele.text.split('%')[0])
+            if drafted_pct_ele is None:
+                LOGGER.warning("Draft %% not available for player: %s", player_row.text)
+                drafted_pct = None
+            else:
+                drafted_pct = float(drafted_pct_ele.text.split('%')[0])
 
+            if player_row.text.startswith("No player selected"):
+                continue
             name = player_row.find("div", **{'data-tst': "player-name"}).a.text
             player_record = {
                 'position': pos_row.text,

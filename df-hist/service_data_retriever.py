@@ -179,7 +179,7 @@ class ServiceDataRetriever(ABC):
         )
         if self.browser.current_url != self.SERVICE_URL:
             if self.interactive:
-                input(f"About to retrieve {self.SERVICE_URL}. <Enter> to continue")
+                input(f"About to retrieve {self.SERVICE_URL}. <Enter> to continue:")
             self.browser.get(self.SERVICE_URL)
 
         try:
@@ -191,7 +191,7 @@ class ServiceDataRetriever(ABC):
             return
 
         if self.interactive:
-            input("Waiting for you to log in. <Enter> to continue")
+            input("Waiting for you to log in. <Enter> to continue:")
 
         LOGGER.info("Waiting %i seconds for you to log in...", self.LOGIN_TIMEOUT)
         WebDriverWait(self.browser, self.LOGIN_TIMEOUT).until(
@@ -267,14 +267,13 @@ class ServiceDataRetriever(ABC):
         entry_key = f"{contest_key}-entry-{entry_info.entry_id}"
 
         # handle entry lineup info
-        entry_lineup_data, src, _ = self.get_data(
+        entry_lineup_data, entry_src, _ = self.get_data(
             entry_key, self.get_entry_lineup_data, data_type='html',
             func_args=(entry_dict['link'], entry_info.title),
         )
-        self.processed_counts_by_src[src] += 1
         LOGGER.info(
             "Entry lineup for '%s' retrieved from %s",
-            entry_key, src
+            entry_key, entry_src
         )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
         entry_lineup_df['contest'] = contest_key
@@ -288,13 +287,16 @@ class ServiceDataRetriever(ABC):
             return
 
         # process contest data
-        contest_data, src, _ = self.get_data(
+        contest_data, contest_src, _ = self.get_data(
             contest_key, self.get_contest_data, data_type='json',
             func_args=(entry_dict['link'], contest_key, entry_info),
         )
+
+        src = 'web' if 'web' in (contest_src, entry_src) else 'cache'
+        self.processed_counts_by_src[src] += 1
         LOGGER.info(
             "Contest data for '%s' retrieved from %s",
-            contest_key, src
+            contest_key, contest_src
         )
         if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
             # see if the required data is in entry_info
@@ -338,15 +340,28 @@ class ServiceDataRetriever(ABC):
     def get_entry_link(entry_info) -> str:
         raise NotImplementedError()
 
-    def pause(self, msg=None):
+    def pause(self, msg=None, pause_min=PAUSE_MIN, pause_max=PAUSE_MAX, progress_bar=True):
+        """
+        Pause for a random amount of time
+
+        msg - message to print describing the pause
+        pause_min - minimum pause duration
+        pause_max - maximum pause duration
+        progress_bar - show a progress bar counting down the pause.
+           if final pause duration is <= 2 then no progress bar is displayed regardless
+        """
         if self.interactive:
-            input("Paused for '" + (msg or "?") + "' <Enter> to continue ")
+            input("Paused for '" + (msg or "?") + "' <Enter> to continue:")
             return
-        pause_for = random.randint(PAUSE_MIN, PAUSE_MAX)
+        assert pause_min <= pause_max
+        pause_for = random.randint(pause_min, pause_max)
         msg = "" if msg is None else ": " + msg
         LOGGER.info("Pausing for %i seconds%s", pause_for, msg)
-        for _ in tqdm.trange(pause_for, unit="", desc="pause", leave=False):
-            time.sleep(.995)
+        if pause_for > 2 and progress_bar:
+            for _ in tqdm.trange(pause_for, unit="", desc="pause", leave=False):
+                time.sleep(.995)
+        else:
+            time.sleep(pause_for)
 
     def browse_to(self, url, pause_before=True, title=None):
         """
@@ -371,7 +386,7 @@ class ServiceDataRetriever(ABC):
                 self.browser.get(post_login_url)
 
         if pause_before:
-            self.pause("before getting url content")
+            self.pause(f"before getting url: {url}")
 
         LOGGER.info("Getting content at '%s'", url)
         self.browser.get(url)

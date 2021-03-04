@@ -60,12 +60,14 @@ class Draftkings(ServiceDataRetriever):
         return entries_df
 
     @staticmethod
-    def _draft_percentages(player_row) -> list[tuple[float, Optional[str]]]:
+    def _draft_percentages(player_row) -> Optional[list[tuple[float, Optional[str]]]]:
         """
         parse the soup coutents of a player row, return percentages and associated lineup position
         return - list of tuples of (draft percentage, lineup position)
         """
         drafted_pct_text = player_row.contents[2].text
+        if drafted_pct_text == '--':
+            return []
         if drafted_pct_text.count('%') == 1:
             assert drafted_pct_text[-1] == '%'
             return [(float(drafted_pct_text[:-1]), None)]
@@ -124,7 +126,7 @@ class Draftkings(ServiceDataRetriever):
                 EC.presence_of_element_located(
                     (By.XPATH, f'//div[@role="heading"]/div/div[text()="{contestant_name}"]')
                 ),
-                "Waiting for opposing content's lineup to load"
+                f"Waiting for opposing content's lineup to load. {contestant_name=}"
             )
 
         lineup_data = WebDriverWait(self.browser, 5).until(

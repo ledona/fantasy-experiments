@@ -68,7 +68,7 @@ def retrieve_history(
             return result
 
         try:
-            contest_entries_df.apply(func, axis=1)
+            contest_entries_df.sort_values(['date', 'title'], ascending=False).apply(func, axis=1)
         except WebLimitReached as limit_reached_ex:
             LOGGER.info("Web retrieval limit was reached before retrieval attempt for %s",
                         limit_reached_ex.args[0])

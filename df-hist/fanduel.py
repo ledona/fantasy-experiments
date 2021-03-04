@@ -222,7 +222,7 @@ class Fanduel(ServiceDataRetriever):
             )
             lineups_data.append(lineup_data)
 
-        lineup_data, src, cache_filepath = self.get_data(
+        (_, lineup_data), src, cache_filepath = self.get_data(
             contest_key + "-lineup-lastwinner",
             self._get_last_winning_lineup_data,
             data_type="json",
@@ -232,7 +232,7 @@ class Fanduel(ServiceDataRetriever):
             "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
             entry_info.title, src, cache_filepath
         )
-        lineups_data.append(lineup_data[1])
+        lineups_data.append(lineup_data)
         return {
             'last_winning_score': float(min_winning_score_str),
             'top_score': winning_score,
