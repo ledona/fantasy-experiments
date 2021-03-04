@@ -36,7 +36,7 @@ EXPECTED_ENTRIES_COLS = {
 
 # columns that must exist in dataframe based on historic entries data files
 EXPECTED_HISTORIC_ENTRIES_DF_COLS = {
-    'contest_id', 'date', 'sport', 'title', 'fee', 'entries',
+    'contest_id', 'date', 'sport', 'title', 'fee', 'entries', 'winnings',
 }
 
 # columns that will be in the player draft percentage dataframe
@@ -57,8 +57,10 @@ EXPECTED_CONTEST_DATA_KEYS = {
 # the return type for get_data. tuple(data, retrieved from, cache filename)
 GetDataResult = tuple[Union[dict, list, pd.DataFrame, str], Literal['cache', 'web'], Optional[str]]
 
+
 class WebLimitReached(Exception):
     """ raised when the web retrieval limit is reached and data must be retrieved from the web """
+
 
 class ServiceDataRetriever(ABC):
     SERVICE_ABBR: str
@@ -146,8 +148,8 @@ class ServiceDataRetriever(ABC):
         """
         df = pd.concat(self._player_draft_dfs, ignore_index=True) \
                .drop_duplicates(ignore_index=True)
-        assert set(df.columns) == EXPECTED_DRAFT_PLAYER_COLS, \
-            f"Missing columns: {EXPECTED_DRAFT_PLAYER_COLS - set(df.columns)}"
+        assert len(missing := EXPECTED_DRAFT_PLAYER_COLS - set(df.columns)) == 0, \
+            f"Missing columns: {missing}"
         return df
 
     @property
@@ -156,8 +158,8 @@ class ServiceDataRetriever(ABC):
         returns - dataframe with columns matching EXPECTED_CONTEST_COLS
         """
         df = pd.DataFrame(self._contest_dicts)
-        assert set(df.columns) <= EXPECTED_CONTEST_COLS, \
-            f"Missing columns: {EXPECTED_CONTEST_COLS - set(df.columns)}"
+        assert len(missing := EXPECTED_CONTEST_COLS - set(df.columns)) == 0, \
+            f"Missing columns: {missing}"
         return df
 
     @property

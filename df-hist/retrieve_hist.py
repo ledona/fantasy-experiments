@@ -5,11 +5,8 @@ import shlex
 import pandas as pd
 from tqdm import tqdm
 
+import log
 from service_data_retriever import get_service_data_retriever, EXPECTED_HISTORIC_ENTRIES_DF_COLS, WebLimitReached
-
-
-LOGGING_FORMAT = '%(asctime)s-%(levelname)s-%(name)s(%(lineno)s)-%(message)s'
-DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy/betting"
@@ -41,8 +38,8 @@ def retrieve_history(
     assert (sports is None) or set(sports) == {sport.lower() for sport in sports}, \
         "all sports must be in lower case"
     contest_entries_df = service_obj.get_historic_entries_df_from_file(history_file_dir)
-    assert EXPECTED_HISTORIC_ENTRIES_DF_COLS <= set(contest_entries_df.columns), \
-        f"dataframe does not have the following required columns: {EXPECTED_HISTORIC_ENTRIES_DF_COLS - set(contest_entries_df.columns)}"
+    assert len(missing_cols := EXPECTED_HISTORIC_ENTRIES_DF_COLS - set(contest_entries_df.columns)) == 0, \
+        f"dataframe does not have the following required columns: {missing_cols}"
     entry_count = len(contest_entries_df)
 
     filters = []
@@ -156,13 +153,19 @@ def process_cmd_line(cmd_line_str=None):
         player_draft_df.to_csv(args.filename_prefix + ".draft.csv")
         betting_history_df.to_csv(args.filename_prefix + ".betting.csv")
     else:
-        print(contest_history_df)
-        print(player_draft_df)
-        print(betting_history_df)
+        with pd.option_context('display.max_rows', None, 
+                               'display.max_columns', None, 
+                               "display.expand_frame_repr", False):
+            print("Contest History")
+            print(contest_history_df)
+            print("Betting History")
+            print(betting_history_df)
+            print("Draft History")
+            print(player_draft_df)
 
     LOGGER.info("done")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format=LOGGING_FORMAT, datefmt=DATE_FORMAT, level=logging.INFO)
+    log.setup()
     process_cmd_line()

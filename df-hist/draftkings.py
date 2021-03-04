@@ -29,8 +29,7 @@ class Draftkings(ServiceDataRetriever):
         'Sport': 'sport',
         'Points': 'score',
         'Entry_Key': 'entry_id',
-        'Winnings ($)': 'winnings',
-        'Position': 'rank',
+        'Place': 'rank',
         'Entry': 'title',
         'Contest_Entries': 'entries',
         'Entry_Fee': 'fee',
@@ -54,6 +53,10 @@ class Draftkings(ServiceDataRetriever):
         entries_df.Sport = entries_df.Sport.str.lower()
         entries_df["date"] = pd.to_datetime(entries_df.Contest_Date_EST)
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
+        entries_df['winnings'] = (
+            entries_df.Winnings_Non_Ticket.str.replace('$', '').astype(float) + 
+            entries_df.Winnings_Ticket.str.replace('$', '').astype(float)
+        )
         return entries_df
 
     @staticmethod
@@ -216,17 +219,20 @@ class Draftkings(ServiceDataRetriever):
             )
             lineups_data.append(lineup_data)
 
-        (min_winning_score, lineup_data), src, cache_filepath = self.get_data(
-            contest_key + "-lineup-lastwinner",
-            self._get_last_winning_lineup_data,
-            data_type="json",
-            func_args=(entry_info.winners, standings_list_ele),
-        )
-        LOGGER.info(
-            "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
-            entry_info.title, src, cache_filepath
-        )
-        lineups_data.append(lineup_data)
+        if entry_info.winners > 0:
+            (min_winning_score, lineup_data), src, cache_filepath = self.get_data(
+                contest_key + "-lineup-lastwinner",
+                self._get_last_winning_lineup_data,
+                data_type="json",
+                func_args=(entry_info.winners, standings_list_ele),
+            )
+            LOGGER.info(
+                "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
+                entry_info.title, src, cache_filepath
+            )
+            lineups_data.append(lineup_data)
+        else:
+            min_winning_score = 0
 
         return {
             'last_winning_score': min_winning_score,
