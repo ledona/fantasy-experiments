@@ -15,7 +15,8 @@ DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy/betting"
 def retrieve_history(
         service_name, history_file_dir,
         sports=None, start_date=None, end_date=None,
-        cache_path=None, interactive=False, web_limit=None,
+        cache_path=None, cache_overwrite=False, 
+        interactive=False, web_limit=None,
         browser_debug_address=None, browser_debug_port=None, profile_path=None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -29,6 +30,7 @@ def retrieve_history(
     assert (browser_debug_address is None) or (browser_debug_port is None)
     service_obj = get_service_data_retriever(service_name,
                                              cache_path=cache_path,
+                                             cache_overwrite=cache_overwrite,
                                              browser_profile_path=profile_path,
                                              browser_address=browser_debug_address,
                                              browser_debug_port=browser_debug_port,
@@ -72,6 +74,8 @@ def retrieve_history(
         except WebLimitReached as limit_reached_ex:
             LOGGER.info("Web retrieval limit was reached before retrieval attempt for %s",
                         limit_reached_ex.args[0])
+        except Exception as ex:
+            LOGGER.exception("Unhandled Exception!", exc_info=ex)
         finally:
             LOGGER.info(
                 "Entry processing done. %i entries processed. Entries processed by data source: %s",
@@ -90,6 +94,7 @@ def process_cmd_line(cmd_line_str=None):
         help="Prompt user to continue prior to all browser actions"
     )
     parser.add_argument("--cache-path", "--cache", help="path to cached files")
+    parser.add_argument("--cache-overwrite", action="store_true", default=False)
     mut_ex_group = parser.add_mutually_exclusive_group()
     mut_ex_group.add_argument(
         "--chrome-debug-port", "--chrome-port", "--port",
@@ -119,8 +124,8 @@ def process_cmd_line(cmd_line_str=None):
     parser.add_argument("--start-date")
     parser.add_argument("--end-date")
     parser.add_argument(
-        "--web-limit", type=int, 
-        help="Only processes this number of entries retrieved from internet"
+        "--web-limit", type=int, default=3,
+        help="Only processes this number of entries retrieved from internet. Default is 3"
     )
     parser.add_argument(
         "service", choices=("fanduel", "draftkings", "yahoo")
@@ -143,6 +148,7 @@ def process_cmd_line(cmd_line_str=None):
         browser_debug_address=args.chrome_debug_address,
         profile_path=args.chrome_profile_path,
         cache_path=args.cache_path,
+        cache_overwrite=args.cache_overwrite,
         interactive=args.interactive,
         web_limit=args.web_limit,
     )

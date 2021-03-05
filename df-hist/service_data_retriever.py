@@ -79,7 +79,8 @@ class ServiceDataRetriever(ABC):
 
     def __init__(
             self, browser_address: Optional[str] = None, browser_debug_port: Optional[bool] = None,
-            browser_profile_path: Optional[str] = None, cache_path: Optional[str] = None,
+            browser_profile_path: Optional[str] = None,
+            cache_path: Optional[str] = None, cache_overwrite = False,
             interactive = False, web_limit = None,
     ):
         """
@@ -88,6 +89,7 @@ class ServiceDataRetriever(ABC):
         web_limit - halt processing if this number of web retrievals is exceeded
         """
         self.cache_path = cache_path
+        self.cache_overwrite = cache_overwrite
         self.interactive = interactive
 
         self.browser_address = browser_address
@@ -355,10 +357,10 @@ class ServiceDataRetriever(ABC):
             return
         assert pause_min <= pause_max
         pause_for = random.randint(pause_min, pause_max)
-        msg = "" if msg is None else ": " + msg
-        LOGGER.info("Pausing for %i seconds%s", pause_for, msg)
+        if msg is None:
+            msg = "?"
         if pause_for > 2 and progress_bar:
-            for _ in tqdm.trange(pause_for, unit="", desc="pause", leave=False):
+            for _ in tqdm.trange(pause_for, unit="", desc=f"pause for '{msg}'", leave=False):
                 time.sleep(.995)
         else:
             time.sleep(pause_for)
@@ -381,12 +383,12 @@ class ServiceDataRetriever(ABC):
             self.wait_on_login()
             for i, post_login_url in enumerate(self.POST_LOGIN_URLS, 1):
                 if pause_before:
-                    self.pause(msg=f"before post login link #{i}, getting url content")
+                    self.pause(msg=f"wait before post login link #{i}")
                 LOGGER.info("Going to post login url #%i '%s'", i, post_login_url)
                 self.browser.get(post_login_url)
 
         if pause_before:
-            self.pause(f"before getting url: {url}")
+            self.pause(f"wait before url '{url}'")
 
         LOGGER.info("Getting content at '%s'", url)
         self.browser.get(url)
@@ -411,7 +413,8 @@ class ServiceDataRetriever(ABC):
         if os.sep in cache_key:
             cache_key = cache_key.replace(os.sep, "|")
         if self.cache_path is not None and \
-           os.path.isfile(cache_filepath := os.path.join(self.cache_path, f"{cache_key}.{data_type}")):
+           os.path.isfile(cache_filepath := os.path.join(self.cache_path, f"{cache_key}.{data_type}")) and \
+           not self.cache_overwrite:
             if data_type == 'csv':
                 return pd.read_csv(cache_filepath), 'cache', cache_filepath
             elif data_type == 'json':
@@ -426,8 +429,8 @@ class ServiceDataRetriever(ABC):
         if self.web_limit is not None and \
            self.web_limit < self.processed_counts_by_src['web']:
             LOGGER.info("Data not in cache and web retrieval limit reached. Processing stopped on %s", cache_key)
-
             raise WebLimitReached(cache_key)
+
         data = func(
             *(func_args or tuple()),
             **(func_kwargs or {}),
@@ -450,6 +453,7 @@ class ServiceDataRetriever(ABC):
 def get_service_data_retriever(
         service: str,
         cache_path: Optional[str] = None,
+        cache_overwrite = False,
         browser_address: Optional[str] = None,
         browser_debug_port: Optional[str] = None,
         browser_profile_path: Optional[str] = None,
@@ -466,6 +470,7 @@ def get_service_data_retriever(
         browser_debug_port=browser_debug_port,
         browser_profile_path=browser_profile_path,
         cache_path=cache_path,
+        cache_overwrite=cache_overwrite,
         interactive=interactive,
         web_limit=web_limit,
     )

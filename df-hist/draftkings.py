@@ -143,13 +143,13 @@ class Draftkings(ServiceDataRetriever):
         return the HTML for the lineup of the opponent on the row
         """
         opp_rank, opp_name = row_div.text.split("\n", 2)[:2]
-        self.pause(f"Pausing before getting lineup for opponent '{opp_name}' ranked #{opp_rank}")
+        self.pause(f"wait before getting lineup for opponent '{opp_name}' ranked #{opp_rank}")
         row_div.click()
         lineup_ele = self._get_lineup_data(opp_name)[1]
         return lineup_ele.get_attribute('innerHTML')
 
     def _get_last_winning_lineup_data(self, last_winner_rank, standings_list_ele) -> tuple[int, str]:
-        self.pause(f"Scrolling to last winner ranked {last_winner_rank}")
+        self.pause(f"scroll to last winner ranked {last_winner_rank}")
         list_height = standings_list_ele.size['height']
         position = self.browser.execute_script("return arguments[0].scrollTop", standings_list_ele)
 
@@ -194,7 +194,7 @@ class Draftkings(ServiceDataRetriever):
         top_entry_table_rows = standings_list_ele.find_elements_by_xpath('div/div')
         if top_entry_table_rows[0].text.split("\n", 1)[0] != "1":
             # scroll to the top
-            self.pause("scrolling to top of entries")
+            self.pause("scroll to top of entries")
             self.browser.execute_script(
                 "arguments[0].scroll({top: 0})",
                 standings_list_ele

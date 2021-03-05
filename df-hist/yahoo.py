@@ -88,7 +88,7 @@ class Yahoo(ServiceDataRetriever):
 
     def _get_opp_lineup_data(self, opponent_lineup_row_ele, rank, reset_when_done=True) -> str:
         """ click on the row, get the html, browser back then return the html """
-        self.pause(f"Waiting before clicking on oppenent lineup row for placement {rank}", 
+        self.pause(f"wait before clicking on opp lineup row for rank #{rank}", 
                    pause_min=1, pause_max=5)
         opponent_lineup_row_ele.click()
         WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
@@ -98,7 +98,7 @@ class Yahoo(ServiceDataRetriever):
         html = self.get_entry_lineup_data(None, None)
 
         if reset_when_done:
-            self.pause("Waiting before going back to contestants page", pause_min=1, pause_max=5)
+            self.pause("wait before going back to contestants page", pause_min=1, pause_max=5)
             self.browser.execute_script("window.history.go(-1)")
             WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
                 EC.presence_of_element_located((By.XPATH, '//div[text()="Select a team below to compare"]')),
@@ -146,7 +146,7 @@ class Yahoo(ServiceDataRetriever):
 
             self._wait_for_paging(
                 next_page_link, lineups_per_page, next_page_num,
-                f"Click on next page ({next_page_num})"
+                f"click on next page ({next_page_num})"
             )
 
         self._wait_for_paging(

@@ -185,7 +185,7 @@ class Fanduel(ServiceDataRetriever):
 
         if entry_table_rows[0].text[0] != '1':
             # make sure that the state of the page is fresh (top of the lineups)
-            self.pause("resetting to top winning lineup")
+            self.pause("reset to top winning lineup")
             first_place_ele = self.browser.find_element_by_xpath('//button/span[text()="First"]/..')
             LOGGER.info("scrolling/finding top lineups link")
             self.browser.execute_script('arguments[0].scrollIntoView({block: "center"})', first_place_ele)
