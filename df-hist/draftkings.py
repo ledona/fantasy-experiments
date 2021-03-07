@@ -60,9 +60,11 @@ class Draftkings(ServiceDataRetriever):
         return entries_df
 
     @staticmethod
-    def _draft_percentages(player_row) -> Optional[list[tuple[float, Optional[str]]]]:
+    def _draft_percentages(player_row, lineup_position) -> Optional[list[tuple[float, Optional[str]]]]:
         """
         parse the soup coutents of a player row, return percentages and associated lineup position
+        lineup_position - the position of the player in the lineup, use this for single position percentage data
+            ignored for multiple pct data
         return - list of tuples of (draft percentage, lineup position)
         """
         drafted_pct_text = player_row.contents[2].text
@@ -70,7 +72,7 @@ class Draftkings(ServiceDataRetriever):
             return []
         if drafted_pct_text.count('%') == 1:
             assert drafted_pct_text[-1] == '%'
-            return [(float(drafted_pct_text[:-1]), None)]
+            return [(float(drafted_pct_text[:-1]), lineup_position)]
 
         drafted_pcts = []
         # there are multiple draft percentages
@@ -107,7 +109,7 @@ class Draftkings(ServiceDataRetriever):
                 team_cell_spans[3].text
             )
 
-            for (draft_pct, draft_position) in self._draft_percentages(player_row):
+            for (draft_pct, draft_position) in self._draft_percentages(player_row, position):
                 lineup_players.append({
                     'position': draft_position,
                     'name': name,
@@ -202,7 +204,7 @@ class Draftkings(ServiceDataRetriever):
             top_entry_table_rows = standings_list_ele.find_elements_by_xpath('div/div')
 
         assert top_entry_table_rows[0].text.split("\n", 1)[0] == "1"
-        winning_score = float(top_entry_table_rows[0].text.rsplit('\n', 1)[-1])
+        winning_score = float(top_entry_table_rows[0].text.rsplit('\n', 1)[-1].replace(',', ''))
 
         lineups_data: list[str] = []
         # add draft % for all players in top 5 lineups

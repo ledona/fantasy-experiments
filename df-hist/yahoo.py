@@ -184,7 +184,25 @@ class Yahoo(ServiceDataRetriever):
                 raise ValueError("Failed to find a rank higher than the last winning placement")
 
         last_winner_score = float(last_winner_row.find_elements_by_tag_name('td')[2].text)
-        lineup_data = self._get_opp_lineup_data(last_winner_row, last_winner_placement, reset_when_done=False)
+        if 'highlight' in last_winner_row.get_attribute('class'):
+            # I am the last winner, so lets get the lineup for the next contestant
+            LOGGER.warning("I am the last winner, retrieving the lineup draft %%s for the first loser instead")
+            try:
+                first_loser_row = self.browser.find_element_by_xpath(
+                    f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement + 1}']/.."
+                )
+                lineup_data = self._get_opp_lineup_data(
+                    first_loser_row, last_winner_placement + 1, reset_when_done=False
+                )
+            except NoSuchElementException:
+                LOGGER.warning(
+                    "First loser row not found on this page. Not worth it. No additional lineup data will be retrieved",
+                )
+                lineup_data = None
+        else:
+            lineup_data = self._get_opp_lineup_data(
+                last_winner_row, last_winner_placement, reset_when_done=False
+            )
         return lineup_data, last_winner_score
 
     def _get_multi_opponent_contest_data(self, link, contest_key, entry_info) -> dict:
@@ -233,7 +251,8 @@ class Yahoo(ServiceDataRetriever):
                 data_type='json',
                 func_args=(paid_places, )
             )
-            lineups_data.append(lineup_data)
+            if lineup_data is not None:
+                lineups_data.append(lineup_data)
             LOGGER.info(
                 "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
                 entry_info.title, src, cache_filepath
@@ -285,7 +304,7 @@ class Yahoo(ServiceDataRetriever):
             else:
                 drafted_pct = float(drafted_pct_ele.text.split('%')[0])
 
-            if player_row.text.startswith("No player selected"):
+            if "No player selected" in player_row.text:
                 continue
             name = player_row.find("div", **{'data-tst': "player-name"}).a.text
             player_record = {
