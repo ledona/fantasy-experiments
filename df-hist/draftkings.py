@@ -54,7 +54,7 @@ class Draftkings(ServiceDataRetriever):
         entries_df["date"] = pd.to_datetime(entries_df.Contest_Date_EST)
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
         entries_df['winnings'] = (
-            entries_df.Winnings_Non_Ticket.str.replace('$', '').astype(float) + 
+            entries_df.Winnings_Non_Ticket.str.replace('$', '').astype(float) +
             entries_df.Winnings_Ticket.str.replace('$', '').astype(float)
         )
         return entries_df
@@ -101,12 +101,31 @@ class Draftkings(ServiceDataRetriever):
                 LOGGER.warning("Player cost did not appear with name, maybe processed before cost was retrieved...")
             team_cell_spans = player_row.contents[3].find_all('span')
 
-            assert (len(team_cell_spans[0]['class']) > 0) != (len(team_cell_spans[3]['class']) > 0), \
-                "Expected 1 team to have a class, the player's team"
+            if len(team_cell_spans) == 7:
+                # this happens when there is a starters indication, drop the first 2 spans to get AWAY @ HOME
+                team_cell_spans = team_cell_spans[2:]
+                assert team_cell_spans[2].text.strip() == '@'
+
+            assert len(team_cell_spans[0].text) > 0, "First item should be a team abbr"
+
+            # there are either 3 or 5 spans. 5 if the player's game happened, 3 if it was postponed (no spans for score)
+            if len(team_cell_spans) in (5, 6):
+                assert team_cell_spans[2].text.strip() in ['@', 'v']
+                team_2_span_idx = 3
+            else:
+                assert len(team_cell_spans) == 3, "Expected there to be 3 spans!"
+                assert team_cell_spans[2].text.strip() in ['@', 'v']
+                team_2_span_idx = 2
+
+            # for the following assert the index of team 2's abbr span is based on the number of spans
+            assert (
+                (len(team_cell_spans[0]['class']) > 0) !=
+                (len(team_cell_spans[team_2_span_idx]['class']) > 0)
+            ), "Expected 1 team to have a class, the player's team"
             team = (
                 team_cell_spans[0].text
                 if len(team_cell_spans[0]['class']) > 0 else
-                team_cell_spans[3].text
+                team_cell_spans[team_2_span_idx].text
             )
 
             for (draft_pct, draft_position) in self._draft_percentages(player_row, position):
@@ -172,7 +191,7 @@ class Draftkings(ServiceDataRetriever):
         # iterate through rows in reverse order till we find the first rank <= last_winner_rank
         for row_ele in reversed(rows):
             if int(row_ele.text.split("\n", 1)[0]) <= last_winner_rank:
-                score = float(row_ele.text.rsplit("\n", 1)[-1])
+                score = float(row_ele.text.rsplit("\n", 1)[-1].replace(',', ''))
                 return score, self._get_opponent_lineup_data(row_ele)
 
         raise ValueError("Unable to find last winner")

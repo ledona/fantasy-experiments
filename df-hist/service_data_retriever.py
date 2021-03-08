@@ -18,8 +18,8 @@ import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
-PAUSE_MIN = 4
-PAUSE_MAX = 20
+PAUSE_MIN = 3
+PAUSE_MAX = 15
 
 # columns that will be present in the outputted contest dataframe
 EXPECTED_CONTEST_COLS = {

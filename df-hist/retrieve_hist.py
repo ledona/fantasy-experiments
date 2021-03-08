@@ -44,7 +44,7 @@ def retrieve_history(
         f"dataframe does not have the following required columns: {missing_cols}"
     entry_count = len(contest_entries_df)
 
-    filters = []
+    filters = ["entries > 0"]
     if start_date is not None:
         filters.append("date >= @start_date")
     if end_date is not None:
@@ -71,11 +71,10 @@ def retrieve_history(
 
         try:
             contest_entries_df.sort_values(['date', 'title'], ascending=False).apply(func, axis=1)
+            unhandled_ex = None
         except WebLimitReached as limit_reached_ex:
             LOGGER.info("Web retrieval limit was reached before retrieval attempt for %s",
                         limit_reached_ex.args[0])
-        except Exception as ex:
-            LOGGER.exception("Unhandled Exception!", exc_info=ex)
         finally:
             LOGGER.info(
                 "Entry processing done. %i entries processed. Entries processed by data source: %s",

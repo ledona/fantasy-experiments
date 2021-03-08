@@ -57,6 +57,10 @@ class Fanduel(ServiceDataRetriever):
             for filename in sorted(retrieval_date_filenames[most_recent_date])
         )
         entries_df = pd.concat(dfs)
+        dropped_dup_df = entries_df.drop_duplicates()
+        if (dup_rows := len(entries_df) - len(dropped_dup_df)) > 0:
+            LOGGER.info("%i duplicate rows dropped", dup_rows)
+            entries_df = dropped_dup_df
         rows_of_data = len(entries_df)
 
         # convert dates and drop rows with invalid dates (happens for cancelled contests)
@@ -217,7 +221,7 @@ class Fanduel(ServiceDataRetriever):
                 func_args=(placement, row_ele)
             )
             LOGGER.info(
-                "%s place entry lineup for '%s' retrieved from %s, cached from/to '%s'",
+                "%s place entry lineup for '%s' retrieved from %s, cached at '%s'",
                 placement, entry_info.title, src, cache_filepath
             )
             lineups_data.append(lineup_data)

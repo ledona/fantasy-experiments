@@ -50,7 +50,8 @@ class Yahoo(ServiceDataRetriever):
         entries_df = pd.read_csv(history_filename)
         entries_df["date"] = pd.to_datetime(entries_df['Start Date'])
         entries_df.Sport = entries_df.Sport.str.lower()
-        entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
+        entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES) \
+                               .query("entries > 1")
         entries_df.fee = entries_df.fee.str.replace('$', '').astype(float)
         entries_df.winnings = entries_df.winnings.str.replace('$', '').astype(float)
         return entries_df
