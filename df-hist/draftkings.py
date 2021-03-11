@@ -143,7 +143,7 @@ class Draftkings(ServiceDataRetriever):
         return tuple of (header element of rendered linup, element containing rendered lineup)
         """
         if contestant_name is not None:
-            WebDriverWait(self.browser, 5).until(
+            WebDriverWait(self.browser, 10).until(
                 EC.presence_of_element_located(
                     (By.XPATH, f'//div[@role="heading"]/div/div[text()="{contestant_name}"]')
                 ),
