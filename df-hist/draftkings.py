@@ -114,7 +114,7 @@ class Draftkings(ServiceDataRetriever):
                 team_2_span_idx = 3
             else:
                 assert len(team_cell_spans) == 3, "Expected there to be 3 spans!"
-                assert team_cell_spans[2].text.strip() in ['@', 'v']
+                assert team_cell_spans[1].text.strip() in ['@', 'v']
                 team_2_span_idx = 2
 
             # for the following assert the index of team 2's abbr span is based on the number of spans
