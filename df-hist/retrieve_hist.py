@@ -15,7 +15,7 @@ DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy/betting"
 def retrieve_history(
         service_name, history_file_dir,
         sports=None, start_date=None, end_date=None,
-        cache_path=None, cache_overwrite=False, 
+        cache_path=None, cache_overwrite=False, cache_only=False,
         interactive=False, web_limit=None,
         browser_debug_address=None, browser_debug_port=None, profile_path=None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -31,6 +31,7 @@ def retrieve_history(
     service_obj = get_service_data_retriever(service_name,
                                              cache_path=cache_path,
                                              cache_overwrite=cache_overwrite,
+                                             cache_only=cache_only,
                                              browser_profile_path=profile_path,
                                              browser_address=browser_debug_address,
                                              browser_debug_port=browser_debug_port,
@@ -93,11 +94,15 @@ def process_cmd_line(cmd_line_str=None):
         help="Prompt user to continue prior to all browser actions"
     )
     parser.add_argument("--cache-path", "--cache", help="path to cached files")
-    parser.add_argument("--cache-overwrite", action="store_true", default=False)
+
+    mut_ex_group = parser.add_mutually_exclusive_group()
+    mut_ex_group.add_argument("--cache-overwrite", action="store_true", default=False)
+    mut_ex_group.add_argument("--cache-only", action="store_true", default=False)
+
     mut_ex_group = parser.add_mutually_exclusive_group()
     mut_ex_group.add_argument(
         "--chrome-debug-port", "--chrome-port", "--port",
-        help="Debug chrome port request be made available on the created chrome instance"
+        help="Create a chrome instance and make this the debug port"
     )
     mut_ex_group.add_argument("--chrome-debug-address", "--chrome-address", "--address",
                               help="Address of chrome instance to connect to")
@@ -135,6 +140,8 @@ def process_cmd_line(cmd_line_str=None):
 
     if (args.chrome_debug_address is not None) and (args.chrome_profile_path is not None):
         parser.error("--chrome-profile-path cannot be used with --chrome-debug-address")
+    if (args.cache_only is True) and (args.cache_path is None):
+        parser.error("--cache_path is required if --cache_only is used")
     LOGGER.info("starting data retrieval")
 
     contest_history_df, player_draft_df, betting_history_df = retrieve_history(
@@ -148,15 +155,16 @@ def process_cmd_line(cmd_line_str=None):
         profile_path=args.chrome_profile_path,
         cache_path=args.cache_path,
         cache_overwrite=args.cache_overwrite,
+        cache_only=args.cache_only,
         interactive=args.interactive,
         web_limit=args.web_limit,
     )
 
     if args.filename_prefix:
         LOGGER.info("Writing CSV files")
-        contest_history_df.to_csv(args.filename_prefix + ".contest.csv")
-        player_draft_df.to_csv(args.filename_prefix + ".draft.csv")
-        betting_history_df.to_csv(args.filename_prefix + ".betting.csv")
+        contest_history_df.to_csv(args.filename_prefix + ".contest.csv", index=False)
+        player_draft_df.to_csv(args.filename_prefix + ".draft.csv", index=False)
+        betting_history_df.to_csv(args.filename_prefix + ".betting.csv", index=False)
     else:
         with pd.option_context('display.max_rows', None, 
                                'display.max_columns', None, 

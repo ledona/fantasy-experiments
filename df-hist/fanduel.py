@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import time
+from typing import Optional
 
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -80,6 +81,11 @@ class Fanduel(ServiceDataRetriever):
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
         entries_df.entries = entries_df.entries.astype(int)
         return entries_df
+
+    def is_entry_supported(self, entry_info) -> Optional[str]:
+        if entry_info.entries == 2:
+            return "H2H contests with only 2 entries is not supported"
+        return None
 
     def get_entry_lineup_data(self, link, title):
         """ return the HTML for the entry lineup """

@@ -62,6 +62,10 @@ class WebLimitReached(Exception):
     """ raised when the web retrieval limit is reached and data must be retrieved from the web """
 
 
+class DataUnavailableInCache(Exception):
+    """ raised when cache only is enabled but the requested data is not in the cache """
+
+
 class ServiceDataRetriever(ABC):
     SERVICE_ABBR: str
     # URL to the service home page
@@ -80,7 +84,7 @@ class ServiceDataRetriever(ABC):
     def __init__(
             self, browser_address: Optional[str] = None, browser_debug_port: Optional[bool] = None,
             browser_profile_path: Optional[str] = None,
-            cache_path: Optional[str] = None, cache_overwrite = False,
+            cache_path: Optional[str] = None, cache_overwrite=False, cache_only=False,
             interactive = False, web_limit = None,
     ):
         """
@@ -90,6 +94,7 @@ class ServiceDataRetriever(ABC):
         """
         self.cache_path = cache_path
         self.cache_overwrite = cache_overwrite
+        self.cache_only = cache_only
         self.interactive = interactive
 
         self.browser_address = browser_address
@@ -245,6 +250,14 @@ class ServiceDataRetriever(ABC):
         """
         raise NotImplementedError()
 
+    def is_entry_supported(self, entry_info) -> Optional[str]:
+        """ 
+        test to see if the data retriever supports this type of entry
+        returns - None if supported or a string describing the rejection reason if rejected
+        """
+        # default to assuming support
+        return None
+
     def process_entry(self, entry_info):
         """
         Process a contest entry.
@@ -269,6 +282,10 @@ class ServiceDataRetriever(ABC):
         entry_key = f"{contest_key}-entry-{entry_info.entry_id}"
 
         # handle entry lineup info
+        if (rejection_reason := self.is_entry_supported(entry_info)) is not None:
+            LOGGER.info("Skipping entry '%s': %s", entry_key, rejection_reason)
+            return
+
         entry_lineup_data, entry_src, _ = self.get_data(
             entry_key, self.get_entry_lineup_data, data_type='html',
             func_args=(entry_dict['link'], entry_info.title),
@@ -312,7 +329,7 @@ class ServiceDataRetriever(ABC):
                 f"Could not find contest data for {still_missing}"
 
         contest_dict = {
-            'contest_id': contest_key,
+            'contest_id': entry_info.contest_id,
             'date': entry_info.date,
             'sport': entry_info.sport,
             'title': entry_info.title,
@@ -426,8 +443,10 @@ class ServiceDataRetriever(ABC):
 
             raise ValueError(f"Don't know how to load '{cache_filepath}' from cache")
 
+        if self.cache_only:
+            raise DataUnavailableInCache(cache_key)
         if self.web_limit is not None and \
-           self.web_limit < self.processed_counts_by_src['web']:
+           self.web_limit <= self.processed_counts_by_src['web']:
             LOGGER.info("Data not in cache and web retrieval limit reached. Processing stopped on %s", cache_key)
             raise WebLimitReached(cache_key)
 
@@ -453,7 +472,8 @@ class ServiceDataRetriever(ABC):
 def get_service_data_retriever(
         service: str,
         cache_path: Optional[str] = None,
-        cache_overwrite = False,
+        cache_overwrite=False,
+        cache_only=False,
         browser_address: Optional[str] = None,
         browser_debug_port: Optional[str] = None,
         browser_profile_path: Optional[str] = None,
@@ -471,6 +491,7 @@ def get_service_data_retriever(
         browser_profile_path=browser_profile_path,
         cache_path=cache_path,
         cache_overwrite=cache_overwrite,
+        cache_only=cache_only,
         interactive=interactive,
         web_limit=web_limit,
     )

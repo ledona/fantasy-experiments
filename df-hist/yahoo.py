@@ -52,8 +52,8 @@ class Yahoo(ServiceDataRetriever):
         entries_df.Sport = entries_df.Sport.str.lower()
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES) \
                                .query("entries > 1")
-        entries_df.fee = entries_df.fee.str.replace('$', '').astype(float)
-        entries_df.winnings = entries_df.winnings.str.replace('$', '').astype(float)
+        entries_df.fee = entries_df.fee.str.replace('$', '', regex=False).astype(float)
+        entries_df.winnings = entries_df.winnings.str.replace('$', '', regex=False).astype(float)
         return entries_df
 
     def _get_h2h_contest_data(self, link, contest_key, entry_info) -> dict:

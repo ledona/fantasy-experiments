@@ -54,8 +54,8 @@ class Draftkings(ServiceDataRetriever):
         entries_df["date"] = pd.to_datetime(entries_df.Contest_Date_EST)
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES)
         entries_df['winnings'] = (
-            entries_df.Winnings_Non_Ticket.str.replace('$', '').astype(float) +
-            entries_df.Winnings_Ticket.str.replace('$', '').astype(float)
+            entries_df.Winnings_Non_Ticket.str.replace('$', '', regex=False).astype(float) +
+            entries_df.Winnings_Ticket.str.replace('$', '', regex=False).astype(float)
         )
         return entries_df
 
@@ -150,7 +150,7 @@ class Draftkings(ServiceDataRetriever):
                 f"Waiting for opposing content's lineup to load. {contestant_name=}"
             )
 
-        lineup_data = WebDriverWait(self.browser, 5).until(
+        lineup_data = WebDriverWait(self.browser, 10).until(
             EC.presence_of_all_elements_located(
                 (By.XPATH, '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div')
             ),
@@ -272,3 +272,7 @@ class Draftkings(ServiceDataRetriever):
         lineup_data = self._get_lineup_data()
         return lineup_data[1].get_attribute('innerHTML')
 
+    def is_entry_supported(self, entry_info) -> Optional[str]:
+        if entry_info.entries == 2:
+            return "H2H contests with only 2 entries is not supported"
+        return None
