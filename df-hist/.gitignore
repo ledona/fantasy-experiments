@@ -1,3 +1,4 @@
 .envrc
 chrome-profile
 cache
+*.csv
