@@ -228,7 +228,7 @@ class Draftkings(ServiceDataRetriever):
         lineups_data: list[str] = []
         # add draft % for all players in top 5 lineups
         for row_ele in top_entry_table_rows[:5]:
-            placement_div, _, __ = row_ele.find_elements_by_xpath('div/div')
+            placement_div = row_ele.find_element_by_xpath('div/div[1]')
             placement = int(placement_div.text)
             lineup_data, src, cache_filepath = self.get_data(
                 contest_key + f"-lineup-{placement}",
