@@ -235,10 +235,12 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_entry_lineup_df(self, lineup_data) -> pd.DataFrame:
+    def get_entry_lineup_df(self, lineup_data) -> Optional[pd.DataFrame]:
         """
         process the entry data returned by get_entry_data, return a dataframe
         returned dataframe should have columns position, name, team_abbr, team_name, drafted_pct
+
+        returns - dataframe with lineup data or None if a lineup was not found
         """
         raise NotImplementedError()
 
@@ -295,10 +297,13 @@ class ServiceDataRetriever(ABC):
             entry_key, entry_src
         )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
-        entry_lineup_df['contest'] = contest_key
-        entry_lineup_df['date'] = entry_info.date
-        entry_lineup_df['sport'] = entry_info.sport
-        self._player_draft_dfs.append(entry_lineup_df)
+        if entry_lineup_df is None:
+            LOGGER.warning("No entry data returned for '%s'", contest_id)            
+        else:
+            entry_lineup_df['contest'] = contest_key
+            entry_lineup_df['date'] = entry_info.date
+            entry_lineup_df['sport'] = entry_info.sport
+            self._player_draft_dfs.append(entry_lineup_df)
 
         # if contest has been processed then we are done
         if contest_id in self.processed_contests:

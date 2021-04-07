@@ -90,7 +90,11 @@ class Draftkings(ServiceDataRetriever):
 
     def get_entry_lineup_df(self, lineup_data):
         soup = BeautifulSoup(lineup_data, 'html.parser')
-
+        if soup.table.tbody is None:
+            if 'Failed to draft in time' not in soup.text:
+                raise ValueError("Failed to parse entry lineup. Missing tbody")
+            return None
+            
         lineup_players = []
         for player_row in soup.table.tbody.contents:
             position = player_row.contents[0].text
