@@ -3,6 +3,7 @@ import glob
 import logging
 import math
 import os
+from typing import Optional
 
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -56,12 +57,18 @@ class Yahoo(ServiceDataRetriever):
         entries_df.winnings = entries_df.winnings.str.replace('$', '', regex=False).astype(float)
         return entries_df
 
-    def _get_h2h_contest_data(self, link, contest_key, entry_info) -> dict:
+    def _get_h2h_contest_data(self, link, contest_key, entry_info) -> Optional[dict]:
+        """
+        return head to head contest data if page content is for head to head, otherwise return None
+        """
         self.browse_to(link)
         score_spans = self.browser.find_elements_by_xpath(
             '//div[@class="Grid Pos-r"]//span[@class="ydfs-scoring-points"]'
         )
-        assert len(score_spans) == 2
+        if len(score_spans) != 2:
+            # either there is an error or this contest is for more than 2 contestants
+            return None
+
         winning_score = max(float(score_spans[0].text), float(score_spans[1].text))
 
         lineup_data, src, cache_filepath = self.get_data(
@@ -89,7 +96,7 @@ class Yahoo(ServiceDataRetriever):
 
     def _get_opp_lineup_data(self, opponent_lineup_row_ele, rank, reset_when_done=True) -> str:
         """ click on the row, get the html, browser back then return the html """
-        self.pause(f"wait before clicking on opp lineup row for rank #{rank}", 
+        self.pause(f"wait before clicking on opp lineup row for rank #{rank}",
                    pause_min=1, pause_max=5)
         opponent_lineup_row_ele.click()
         WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
@@ -221,18 +228,19 @@ class Yahoo(ServiceDataRetriever):
         if not top_contestant_row.find_element_by_tag_name('td').text == "1":
             # can happen if we halted a previous retrieval
             self.browser.refresh()
-            top_contestant_row = self.browser.find_element_by_xpath(self._XPATH_OPPONENT_LINEUP_ROWS + "[1]")            
+            top_contestant_row = self.browser.find_element_by_xpath(self._XPATH_OPPONENT_LINEUP_ROWS + "[1]")
             assert top_contestant_row.find_element_by_tag_name('td').text == "1"
 
         winning_score = float(top_contestant_row.find_elements_by_tag_name('td')[2].text)
 
         lineups_data = []
-        for rank in range(1, 6):
+        for rank in range(1, min(6, entry_info.entries)):
             if rank == entry_info['rank']:
                 continue
             row_ele = self.browser.find_element_by_xpath(
                 self._XPATH_OPPONENT_LINEUP_ROWS + f'[{rank}]'
             )
+
             lineup_data, src, cache_filepath = self.get_data(
                 f"{contest_key}-lineup-{rank}",
                 self._get_opp_lineup_data,
@@ -269,11 +277,13 @@ class Yahoo(ServiceDataRetriever):
         }
 
     def get_contest_data(self, link, contest_key, entry_info) -> dict:
-        return (
+        data = (
             self._get_h2h_contest_data(link, contest_key, entry_info)
             if entry_info.entries == 2 else
-            self._get_multi_opponent_contest_data(link, contest_key, entry_info)
+            None
         )
+
+        return data or self._get_multi_opponent_contest_data(link, contest_key, entry_info)
 
     @staticmethod
     def get_entry_link(entry_info) -> str:
@@ -307,7 +317,10 @@ class Yahoo(ServiceDataRetriever):
 
             if "No player selected" in player_row.text:
                 continue
-            name = player_row.find("div", **{'data-tst': "player-name"}).a.text
+            player_name_div = player_row.find("div", **{'data-tst': "player-name"})
+            if player_name_div is None:
+                continue
+            name = player_name_div.a.text
             player_record = {
                 'position': pos_row.text,
                 'name': name,
