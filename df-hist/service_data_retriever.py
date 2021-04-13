@@ -108,7 +108,7 @@ class ServiceDataRetriever(ABC):
         self.processed_contests = set()
 
         # count of where data was retrieved from for the entries that were processed
-        self.processed_counts_by_src = {'cache': 0, 'web': 0}
+        self.processed_counts_by_src = {'cache': 0, 'web': 0, 'skipped': 0}
 
         self.web_limit = web_limit
 
@@ -253,7 +253,7 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
     def is_entry_supported(self, entry_info) -> Optional[str]:
-        """ 
+        """
         test to see if the data retriever supports this type of entry
         returns - None if supported or a string describing the rejection reason if rejected
         """
@@ -286,6 +286,7 @@ class ServiceDataRetriever(ABC):
         # handle entry lineup info
         if (rejection_reason := self.is_entry_supported(entry_info)) is not None:
             LOGGER.info("Skipping entry '%s': %s", entry_key, rejection_reason)
+            self.processed_counts_by_src['skipped'] += 1
             return
 
         entry_lineup_data, entry_src, _ = self.get_data(
@@ -298,7 +299,7 @@ class ServiceDataRetriever(ABC):
         )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
         if entry_lineup_df is None:
-            LOGGER.warning("No entry data returned for '%s'", contest_id)            
+            LOGGER.warning("No entry data returned for '%s'", contest_id)
         else:
             entry_lineup_df['contest'] = contest_key
             entry_lineup_df['date'] = entry_info.date
@@ -308,6 +309,7 @@ class ServiceDataRetriever(ABC):
         # if contest has been processed then we are done
         if contest_id in self.processed_contests:
             LOGGER.info("Contest data for '%s' already processed. Skipping to next entry.", contest_id)
+            self.processed_counts_by_src['skipped'] += 1
             return
 
         # process contest data
