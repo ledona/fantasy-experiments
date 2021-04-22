@@ -335,7 +335,7 @@ class Yahoo(ServiceDataRetriever):
             elif 'Fw-b' in teams_ele.contents[-1]['class']:
                 team_ele = teams_ele.contents[-1]
             else:
-                LOGGER.warning("Unable to determine team for player '%s'", name)
+                LOGGER.debug("Unable to determine team for player '%s'", name)
                 team_ele = None
 
             if team_ele is not None:

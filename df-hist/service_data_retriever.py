@@ -155,7 +155,8 @@ class ServiceDataRetriever(ABC):
         """
         df = pd.concat(self._player_draft_dfs, ignore_index=True) \
                .drop_duplicates(ignore_index=True)
-        assert len(missing := EXPECTED_DRAFT_PLAYER_COLS - set(df.columns)) == 0, \
+        assert (len(df) == 0) or \
+            (len(missing := EXPECTED_DRAFT_PLAYER_COLS - set(df.columns)) == 0), \
             f"Missing columns: {missing}"
         return df
 
@@ -294,7 +295,7 @@ class ServiceDataRetriever(ABC):
             func_args=(entry_dict['link'], entry_info.title),
         )
         LOGGER.info(
-            "Entry lineup for '%s' retrieved from %s",
+            "Entry lineup for '%s' from %s",
             entry_key, entry_src
         )
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
@@ -321,7 +322,7 @@ class ServiceDataRetriever(ABC):
         src = 'web' if 'web' in (contest_src, entry_src) else 'cache'
         self.processed_counts_by_src[src] += 1
         LOGGER.info(
-            "Contest data for '%s' retrieved from %s",
+            "Contest data for '%s' from %s",
             contest_key, contest_src
         )
         if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
@@ -397,10 +398,10 @@ class ServiceDataRetriever(ABC):
 
         pause_before - if false then don't pause or prompt user to continue
         """
-        LOGGER.info("Browsing to url='%s' title='%s'", url, title)
+        LOGGER.info("Browsing url='%s' title='%s'", url, title)
         # first check to see if we are already on that page
         if self.browser.current_url == url or self.browser.title == title:
-            LOGGER.info("Browser is already at url='%s', title='%s'", url, title)
+            LOGGER.info("Browser already at url='%s', title='%s'", url, title)
             return
 
         if not self.logged_in_to_service:

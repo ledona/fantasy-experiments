@@ -94,7 +94,7 @@ class Draftkings(ServiceDataRetriever):
             if 'Failed to draft in time' not in soup.text:
                 raise ValueError("Failed to parse entry lineup. Missing tbody")
             return None
-            
+
         lineup_players = []
         for player_row in soup.table.tbody.contents:
             position = player_row.contents[0].text
@@ -105,7 +105,7 @@ class Draftkings(ServiceDataRetriever):
                 LOGGER.warning("Player cost did not appear with name, maybe processed before cost was retrieved...")
             team_cell_spans = player_row.contents[3].find_all('span')
 
-            if len(team_cell_spans) == 7:
+            if len(team_cell_spans) in [7, 8]:
                 # this happens when there is a starters indication, drop the first 2 spans to get AWAY @ HOME
                 team_cell_spans = team_cell_spans[2:]
                 assert team_cell_spans[2].text.strip() == '@'
@@ -139,6 +139,7 @@ class Draftkings(ServiceDataRetriever):
                     'team_abbr': team,
                     'draft_pct': draft_pct,
                 })
+
         return pd.DataFrame(lineup_players)
 
     def _get_lineup_data(self, contestant_name=None) -> tuple:

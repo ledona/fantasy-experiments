@@ -168,15 +168,17 @@ def process_cmd_line(cmd_line_str=None):
         with pd.option_context('display.max_rows', None,
                                'display.max_columns', None,
                                "display.expand_frame_repr", False):
-            print("Contest History")
+            print("\nContest History")
             print(service_obj.contest_df)
-            print("Betting History")
+            print("\nBetting History")
             print(service_obj.entry_df)
-            print("Draft History")
+            print("\nDraft History")
             print(service_obj.player_draft_df)
 
-    LOGGER.info("Done! %i / %i entries processed. %s",
-                sum(service_obj.processed_counts_by_src.values()), entry_count, service_obj.processed_counts_by_src)
+    LOGGER.info(
+        "Done! %i / %i entries processed. %s",
+        sum(service_obj.processed_counts_by_src.values()), entry_count, service_obj.processed_counts_by_src
+    )
 
 
 if __name__ == "__main__":
