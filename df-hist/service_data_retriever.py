@@ -16,6 +16,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 import tqdm
 
+
 LOGGER = logging.getLogger(__name__)
 
 PAUSE_MIN = 3
@@ -305,6 +306,7 @@ class ServiceDataRetriever(ABC):
             entry_lineup_df['contest'] = contest_key
             entry_lineup_df['date'] = entry_info.date
             entry_lineup_df['sport'] = entry_info.sport
+            entry_lineup_df['contest_id'] = entry_info.contest_id
             self._player_draft_dfs.append(entry_lineup_df)
 
         # if contest has been processed then we are done
