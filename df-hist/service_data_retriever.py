@@ -357,6 +357,7 @@ class ServiceDataRetriever(ABC):
             lineup_df['contest'] = contest_key
             lineup_df['date'] = entry_info.date
             lineup_df['sport'] = entry_info.sport
+            lineup_df['contest_id'] = entry_info.contest_id
             self._player_draft_dfs.append(lineup_df)
 
         self.processed_contests.add(contest_id)

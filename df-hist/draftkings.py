@@ -102,7 +102,10 @@ class Draftkings(ServiceDataRetriever):
             if '$' in name:
                 name = name.split('$', 1)[0]
             else:
-                LOGGER.warning("Player cost did not appear with name, maybe processed before cost was retrieved...")
+                LOGGER.warning(
+                    "Player cost for '%s' did not appear with name, maybe processed before cost was retrieved...",
+                    name
+                )
             team_cell_spans = player_row.contents[3].find_all('span')
 
             if len(team_cell_spans) in [7, 8]:

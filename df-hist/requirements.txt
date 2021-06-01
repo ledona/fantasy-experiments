@@ -5,5 +5,4 @@ tqdm
 beautifulsoup4
 
 # for modeling
-nbdiff
 jupyterlab
