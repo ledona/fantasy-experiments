@@ -4,3 +4,6 @@ cp dot_envrc .envrc
 direnv allow
 # RUN THE FOLLOWING ON THE CROMEDRIVER BINARY...
 perl -pi -e 's/cdc/dog/g' /path/to/chromedriver
+# install automl
+sudo apt-get install swig
+pip install auto-sklearn
