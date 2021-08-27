@@ -20,6 +20,12 @@ nba     dk      gpp     classic top     .31     18.34   3.67    automl      2021
 nba     fd      gpp     classic top     .348    22.73   3.71    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
 nba     fd      5050    classic top     .399    19.95   4.12    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
 
+lol     dk      5050    classic top     .959    56.29   5.89    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+lol     dk      5050    classic last    .842    103.8   9.17    automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+lol     dk      gpp     classic top     .998    6.94    2.35    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+lol     dk      gpp     classic last    .949    49.03   6.35    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+lol     fd      5050    classic top     .485    43.62   6.18    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+
 
 # NONE USABLE MODELS START HERE
 nhl     fd      5050    classic last    .13     21.719  4.07    automl      20210806     {'train_time': 120, 'per_run_time': 30, 'model_cols': None}
@@ -122,27 +128,22 @@ nba     fd      5050    classic last    -.38    31.9    5.24    automl-pca  2021
 nba     fd      5050    classic top     -.945   35.9    5.18    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
 nba     fd      5050    classic last    -.5     33.4    4.88    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
 
-lol     dk      5050    classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      5050    classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      5050    classic top         automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     dk      5050    classic last        automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     dk      gpp     classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      gpp     classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      gpp     classic top         automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     dk      gpp     classic last        automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     dk      5050    classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     dk      5050    classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     dk      gpp     classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     dk      gpp     classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     fd      5050    classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     fd      5050    classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     fd      5050    classic top         automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     fd      5050    classic last        automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+lol     dk      5050    classic top     .939    68.84   6.61    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
+lol     dk      5050    classic last    .681    139.78  9.9     automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
+lol     dk      5050    classic top     .953    60.15   6.19    automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+lol     dk      5050    classic last    .769    119.02  9.89    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+lol     dk      gpp     classic top     .998    8.06    2.55    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
+lol     dk      gpp     classic last    .938    54.39   6.3     automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
+lol     dk      gpp     classic top     .998    9.07    2.7     automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+lol     dk      gpp     classic last    .938    54.01   6.63    automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+lol     fd      5050    classic top     .168    55.4    7.23    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
+lol     fd      5050    classic last    -1.28   97.43   8.85    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
+lol     fd      5050    classic last    -.3     73.8    8.32    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+lol     fd      5050    classic top     .112    57.29   6.88    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+lol     fd      5050    classic last    -.52    79.6    8.41    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
 lol     fd      gpp     classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
 lol     fd      gpp     classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
 lol     fd      gpp     classic top         automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
 lol     fd      gpp     classic last        automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     fd      5050    classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     fd      5050    classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
 lol     fd      gpp     classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
 lol     fd      gpp     classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
