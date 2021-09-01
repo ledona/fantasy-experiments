@@ -1,149 +1,149 @@
-Sport   Service Style   Type    y       R2      RMSE    MAE     ModelType   Date     Use Params
-nhl     dk      5050    classic top     .313    18.781  3.85    automl-pca  20210805     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     dk      5050    classic last    .115    12.333  3.06    automl-pca  20210805     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     dk      gpp     classic top     .498    18.478  3.72    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     dk      gpp     classic last    .18     20.03   3.99    automl-pca  20210807     {'train_time': 120, 'per_run_time': 30, 'model_cols': None, 'n_components': 5}
-nhl     fd      gpp     classic top     .547    20.786  4.0     automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     fd      5050    classic top     .277    26.709  4.43    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     fd      5050    classic last    .151    21.51   4.018   automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     yahoo   5050    classic top     .22     16.59   3.71    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     yahoo   gpp     classic top     .425    14.03   3.26    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     yahoo   gpp     classic last    .177    10.36   2.83    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+Sport   Service    Type        Style   y       R2      RMSE    MAE     ModelType   Date         Params
+nhl     draftkings FIFTY_FIFTY classic top     .313    18.781  3.85    automl-pca  20210805     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     draftkings FIFTY_FIFTY classic last    .115    12.333  3.06    automl-pca  20210805     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     draftkings GPP         classic top     .498    18.478  3.72    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     draftkings GPP         classic last    .18     20.03   3.99    automl-pca  20210807     '{"train_time": 120, "per_run_time": 30, "model_cols": null, "n_components": 5}'
+nhl     fanduel    GPP         classic top     .547    20.786  4.0     automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     fanduel    FIFTY_FIFTY classic top     .277    26.709  4.43    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     fanduel    FIFTY_FIFTY classic last    .151    21.51   4.018   automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     yahoo      FIFTY_FIFTY classic top     .22     16.59   3.71    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     yahoo      GPP         classic top     .425    14.03   3.26    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     yahoo      GPP         classic last    .177    10.36   2.83    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
 
-mlb     yahoo   5050    classic top     .21     21.88   4.48    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     dk      gpp     classic top     .408    19.04   3.84    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     fd      gpp     classic top     .549    28.36   4.2     automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     fd      gpp     classic last    .308    20.75   3.83    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+mlb     yahoo      FIFTY_FIFTY classic top     .21     21.88   4.48    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     draftkings GPP         classic top     .408    19.04   3.84    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     fanduel    GPP         classic top     .549    28.36   4.2     automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     fanduel    GPP         classic last    .308    20.75   3.83    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
 
-nba     dk      gpp     classic last    .208    21.8    4.3     automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nba     dk      gpp     classic top     .31     18.34   3.67    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nba     fd      gpp     classic top     .348    22.73   3.71    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nba     fd      5050    classic top     .399    19.95   4.12    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+nba     draftkings GPP         classic last    .208    21.8    4.3     automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nba     draftkings GPP         classic top     .31     18.34   3.67    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nba     fanduel    GPP         classic top     .348    22.73   3.71    automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nba     fanduel    FIFTY_FIFTY classic top     .399    19.95   4.12    automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
 
-lol     dk      5050    classic top     .959    56.29   5.89    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     dk      5050    classic last    .842    103.8   9.17    automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     dk      gpp     classic top     .998    6.94    2.35    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     dk      gpp     classic last    .949    49.03   6.35    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     fd      5050    classic top     .485    43.62   6.18    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
+lol     draftkings FIFTY_FIFTY classic top     .959    56.29   5.89    automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+lol     draftkings FIFTY_FIFTY classic last    .842    103.8   9.17    automl-pca  20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+lol     draftkings GPP         classic top     .998    6.94    2.35    automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+lol     draftkings GPP         classic last    .949    49.03   6.35    automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+lol     fanduel    FIFTY_FIFTY classic top     .485    43.62   6.18    automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
 
-
+************************************************************************************
 # NONE USABLE MODELS START HERE
-nhl     fd      5050    classic last    .13     21.719  4.07    automl      20210806     {'train_time': 120, 'per_run_time': 30, 'model_cols': None}
-nhl     fd      5050    classic top     .19     28.28   4.46    automl      20210806     {'train_time': 120, 'per_run_time': 30, 'model_cols': None}
-nhl     dk      5050    classic top     .304    18.909  3.95    automl      20210805     {'train_time': 120, 'per_run_time': 30, 'model_cols': 'best-possible-score'}
-nhl     dk      5050    classic top     .305    18.895  3.88    automl      20210805     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     dk      5050    classic last    -.019   13.244  3.22    automl      20210805     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     fd      5050    classic top     .19     28.223  4.52    automl-pca  20210806     {'train_time': 120, 'per_run_time': 30, 'model_cols': None, 'n_components': 5}
-nhl     fd      5050    classic last    .13     21.775  4.09    automl-pca  20210806     {'train_time': 120, 'per_run_time': 30, 'model_cols': None, 'n_components': 5}
-nhl     dk      gpp     classic top     .44     19.431  3.864   automl      20210807     {'train_time': 120, 'per_run_time': 30, 'model_cols': None}
-nhl     dk      gpp     classic last    .07     21.366  4.13    automl      20210807     {'train_time': 120, 'per_run_time': 30, 'model_cols': None}
-nhl     dk      gpp     classic top     .46     19.048  3.80    automl-pca  20210807     {'train_time': 120, 'per_run_time': 30, 'model_cols': None, 'n_components': 5}
-nhl     dk      gpp     classic last    .038    21.74   4.15    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     dk      gpp     classic top     .462    19.13   3.76    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     fd      gpp     classic last    -.009   57.77   6.84    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     fd      gpp     classic top     .520    21.39   4.04    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     fd      gpp     classic last    -.003   57.6    6.82    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     fd      gpp     classic top     .429    23.31   4.19    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     dk      gpp     classic top     .422    19.83   3.89    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     dk      gpp     classic last    .09     21.13   4.16    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     dk      gpp     classic top     .44     19.431  3.864   automl      20210807     {'train_time': 120, 'per_run_time': 30, 'model_cols': None}
-nhl     dk      gpp     classic last    .07     21.366  4.13    automl      20210807     {'train_time': 120, 'per_run_time': 30, 'model_cols': None}
-nhl     dk      gpp     classic top     .46     19.048  3.80    automl-pca  20210807     {'train_time': 120, 'per_run_time': 30, 'model_cols': None, 'n_components': 5}
-nhl     dk      gpp     classic last    .038    21.74   4.15    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     dk      gpp     classic top     .462    19.13   3.76    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     dk      gpp     classic last    .11     20.88   4.1     automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     fd      5050    classic top     .203    28.04   4.45    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     fd      5050    classic last    .14     21.65   4.08    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     fd      5050    classic top     .22     27.75   4.48    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     fd      5050    classic last    .13     21.78   4.09    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     yahoo   5050    classic top     0.03    18.53   4.04    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     yahoo   5050    classic last    0       14.1    3.15    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     yahoo   5050    classic top     0.14    17.39   3.81    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     yahoo   5050    classic last    -.3     16.2    3.53    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     yahoo   gpp     classic top     .34     15.02   3.56    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     yahoo   gpp     classic top     .288    15.62   3.46    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     yahoo   gpp     classic last    .02     11.31   2.94    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nhl     yahoo   gpp     classic last    -.15    12.27   3.01    automl-pca  20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nhl     fd      gpp     classic last    .03     56.57   6.77    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nhl     yahoo   5050    classic last    .03     13.87   3.31    automl      20210807     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+nhl     fanduel    FIFTY_FIFTY classic last    .13     21.719  4.07    automl      20210806     '{"train_time": 120, "per_run_time": 30, "model_cols": null}'
+nhl     fanduel    FIFTY_FIFTY classic top     .19     28.28   4.46    automl      20210806     '{"train_time": 120, "per_run_time": 30, "model_cols": null}'
+nhl     draftkings FIFTY_FIFTY classic top     .304    18.909  3.95    automl      20210805     '{"train_time": 120, "per_run_time": 30, "model_cols": "best-possible-score"}'
+nhl     draftkings FIFTY_FIFTY classic top     .305    18.895  3.88    automl      20210805     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     draftkings FIFTY_FIFTY classic last    -.019   13.244  3.22    automl      20210805     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     fanduel    FIFTY_FIFTY classic top     .19     28.223  4.52    automl-pca  20210806     '{"train_time": 120, "per_run_time": 30, "model_cols": null, "n_components": 5}'
+nhl     fanduel    FIFTY_FIFTY classic last    .13     21.775  4.09    automl-pca  20210806     '{"train_time": 120, "per_run_time": 30, "model_cols": null, "n_components": 5}'
+nhl     draftkings GPP         classic top     .44     19.431  3.864   automl      20210807     '{"train_time": 120, "per_run_time": 30, "model_cols": null}'
+nhl     draftkings GPP         classic last    .07     21.366  4.13    automl      20210807     '{"train_time": 120, "per_run_time": 30, "model_cols": null}'
+nhl     draftkings GPP         classic top     .46     19.048  3.80    automl-pca  20210807     '{"train_time": 120, "per_run_time": 30, "model_cols": null, "n_components": 5}'
+nhl     draftkings GPP         classic last    .038    21.74   4.15    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     draftkings GPP         classic top     .462    19.13   3.76    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     fanduel    GPP         classic last    -.009   57.77   6.84    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     fanduel    GPP         classic top     .520    21.39   4.04    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     fanduel    GPP         classic last    -.003   57.6    6.82    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     fanduel    GPP         classic top     .429    23.31   4.19    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     draftkings GPP         classic top     .422    19.83   3.89    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     draftkings GPP         classic last    .09     21.13   4.16    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     draftkings GPP         classic top     .44     19.431  3.864   automl      20210807     '{"train_time": 120, "per_run_time": 30, "model_cols": null}'
+nhl     draftkings GPP         classic last    .07     21.366  4.13    automl      20210807     '{"train_time": 120, "per_run_time": 30, "model_cols": null}'
+nhl     draftkings GPP         classic top     .46     19.048  3.80    automl-pca  20210807     '{"train_time": 120, "per_run_time": 30, "model_cols": null, "n_components": 5}'
+nhl     draftkings GPP         classic last    .038    21.74   4.15    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     draftkings GPP         classic top     .462    19.13   3.76    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     draftkings GPP         classic last    .11     20.88   4.1     automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     fanduel    FIFTY_FIFTY classic top     .203    28.04   4.45    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     fanduel    FIFTY_FIFTY classic last    .14     21.65   4.08    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     fanduel    FIFTY_FIFTY classic top     .22     27.75   4.48    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     fanduel    FIFTY_FIFTY classic last    .13     21.78   4.09    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     yahoo      FIFTY_FIFTY classic top     0.03    18.53   4.04    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     yahoo      FIFTY_FIFTY classic last    0       14.1    3.15    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     yahoo      FIFTY_FIFTY classic top     0.14    17.39   3.81    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     yahoo      FIFTY_FIFTY classic last    -.3     16.2    3.53    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     yahoo      GPP         classic top     .34     15.02   3.56    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     yahoo      GPP         classic top     .288    15.62   3.46    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     yahoo      GPP         classic last    .02     11.31   2.94    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nhl     yahoo      GPP         classic last    -.15    12.27   3.01    automl-pca  20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nhl     fanduel    GPP         classic last    .03     56.57   6.77    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nhl     yahoo      FIFTY_FIFTY classic last    .03     13.87   3.31    automl      20210807     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
 
-mlb     yahoo   5050    classic top     -1.5    39.1    5.8     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     yahoo   5050    classic last    -2.2    27.3    4.7     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     yahoo   5050    classic last    -.99    21.2    4.23    automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     yahoo   5050    classic top     -.6     25.4    4.64    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     yahoo   5050    classic last    -.22    16.7    ?       automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     yahoo   gpp     classic top     -.04    19.1    3.9     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     yahoo   gpp     classic last    -.51    17.7    3.55    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     yahoo   gpp     classic top     -.08    19.5    4.0     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     yahoo   gpp     classic last    -.9     20.1    4.0     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     yahoo   gpp     classic top     -.06    19.3    4.0     automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     yahoo   gpp     classic last    -2      27.3    4.8     automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     dk      gpp     classic top     .375    19.56   3.83    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     dk      gpp     classic last    -.07    33.8    4.99    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     dk      gpp     classic last    -.1     34.29   5.07    automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     dk      gpp     classic top     .398    19.21   3.92    automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     dk      gpp     classic last    -.09    34.05   5       automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     dk      5050    classic top     -.7     30.8    5.1     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     dk      5050    classic last    -5      54.45   6.3     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     dk      5050    classic top     -.7     31.3    5.1     automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     dk      5050    classic last    -.1     23.2    4.2     automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     dk      5050    classic top     -2      46.1    5.44    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     dk      5050    classic last    -1.8    37.5    4.8     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     fd      gpp     classic top     .296    35.4    4.77    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     fd      gpp     classic last    .148    23.03   3.93    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     fd      gpp     classic top     .517    29.36   4.24    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     fd      gpp     classic last    .238    21.77   3.87    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+mlb     yahoo      FIFTY_FIFTY classic top     -1.5    39.1    5.8     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     yahoo      FIFTY_FIFTY classic last    -2.2    27.3    4.7     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     yahoo      FIFTY_FIFTY classic last    -.99    21.2    4.23    automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     yahoo      FIFTY_FIFTY classic top     -.6     25.4    4.64    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     yahoo      FIFTY_FIFTY classic last    -.22    16.7    ?       automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     yahoo      GPP         classic top     -.04    19.1    3.9     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     yahoo      GPP         classic last    -.51    17.7    3.55    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     yahoo      GPP         classic top     -.08    19.5    4.0     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     yahoo      GPP         classic last    -.9     20.1    4.0     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     yahoo      GPP         classic top     -.06    19.3    4.0     automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     yahoo      GPP         classic last    -2      27.3    4.8     automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     draftkings GPP         classic top     .375    19.56   3.83    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     draftkings GPP         classic last    -.07    33.8    4.99    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     draftkings GPP         classic last    -.1     34.29   5.07    automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     draftkings GPP         classic top     .398    19.21   3.92    automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     draftkings GPP         classic last    -.09    34.05   5       automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     draftkings FIFTY_FIFTY classic top     -.7     30.8    5.1     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     draftkings FIFTY_FIFTY classic last    -5      54.45   6.3     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     draftkings FIFTY_FIFTY classic top     -.7     31.3    5.1     automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     draftkings FIFTY_FIFTY classic last    -.1     23.2    4.2     automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     draftkings FIFTY_FIFTY classic top     -2      46.1    5.44    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     draftkings FIFTY_FIFTY classic last    -1.8    37.5    4.8     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     fanduel    GPP         classic top     .296    35.4    4.77    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     fanduel    GPP         classic last    .148    23.03   3.93    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     fanduel    GPP         classic top     .517    29.36   4.24    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     fanduel    GPP         classic last    .238    21.77   3.87    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
 
-mlb     fd      5050    classic top     -1.5    43      5.8     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     fd      5050    classic last    -1.05   36.9    5.4     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-mlb     fd      5050    classic top     -.4     32.2    5.1     automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     fd      5050    classic last    -.6     33.1    5.1     automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-mlb     fd      5050    classic top     -.48    32.9    5.12    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-mlb     fd      5050    classic last    -.407   30.63   4.9     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+mlb     fanduel    FIFTY_FIFTY classic top     -1.5    43      5.8     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     fanduel    FIFTY_FIFTY classic last    -1.05   36.9    5.4     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+mlb     fanduel    FIFTY_FIFTY classic top     -.4     32.2    5.1     automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     fanduel    FIFTY_FIFTY classic last    -.6     33.1    5.1     automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+mlb     fanduel    FIFTY_FIFTY classic top     -.48    32.9    5.12    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+mlb     fanduel    FIFTY_FIFTY classic last    -.407   30.63   4.9     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
 
-nfl     yahoo   NO DATA AVAILABLE
-nfl     dk      NO DATA AVAILABLE
-nfl     fd      NO DATA AVAILABLE
+nfl     yahoo      NO DATA AVAILABLE
+nfl     draftkings NO DATA AVAILABLE
+nfl     fanduel    NO DATA AVAILABLE
 
-nba     yahoo   NO DATA AVAILABLE
-nba     dk      gpp     classic top     -.3     25.5    4.5     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     dk      gpp     classic last    -.26    27.6    4.23    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     dk      gpp     classic top     -.04    22.6    3.85    automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nba     dk      gpp     classic last    .08     23.56   4.27    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nba     dk      5050    classic top     -1.9    40.2    5.6     automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     dk      5050    classic last    -.16    19      3.69    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     dk      5050    classic top     -1.11   33.8    5.34    automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nba     dk      5050    classic last    -.3     20.7    4.25    automl-pca  20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nba     dk      5050    classic top     -.7     30.3    4.83    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nba     dk      5050    classic last    -.8     24.1    4.54    automl      20210808     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+nba     yahoo      NO DATA AVAILABLE
+nba     draftkings GPP         classic top     -.3     25.5    4.5     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     draftkings GPP         classic last    -.26    27.6    4.23    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     draftkings GPP         classic top     -.04    22.6    3.85    automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nba     draftkings GPP         classic last    .08     23.56   4.27    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nba     draftkings FIFTY_FIFTY classic top     -1.9    40.2    5.6     automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     draftkings FIFTY_FIFTY classic last    -.16    19      3.69    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     draftkings FIFTY_FIFTY classic top     -1.11   33.8    5.34    automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nba     draftkings FIFTY_FIFTY classic last    -.3     20.7    4.25    automl-pca  20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nba     draftkings FIFTY_FIFTY classic top     -.7     30.3    4.83    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nba     draftkings FIFTY_FIFTY classic last    -.8     24.1    4.54    automl      20210808     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
 
-nba     fd      gpp     classic top     .29     23.66   3.97    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     fd      gpp     classic last    -.7     64.39   7.67    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     fd      gpp     classic last    -1.2    69.5    7.92    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nba     fd      gpp     classic top     -.01    28.3    4.53    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nba     fd      gpp     classic last    -.18    53      6.99    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nba     fd      5050    classic top     -.55    32.08   4.79    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     fd      5050    classic last    -1.04   38.8    5.56    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-nba     fd      5050    classic last    -.38    31.9    5.24    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-nba     fd      5050    classic top     -.945   35.9    5.18    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-nba     fd      5050    classic last    -.5     33.4    4.88    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+nba     fanduel    GPP         classic top     .29     23.66   3.97    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     fanduel    GPP         classic last    -.7     64.39   7.67    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     fanduel    GPP         classic last    -1.2    69.5    7.92    automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nba     fanduel    GPP         classic top     -.01    28.3    4.53    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nba     fanduel    GPP         classic last    -.18    53      6.99    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nba     fanduel    FIFTY_FIFTY classic top     -.55    32.08   4.79    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     fanduel    FIFTY_FIFTY classic last    -1.04   38.8    5.56    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+nba     fanduel    FIFTY_FIFTY classic last    -.38    31.9    5.24    automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+nba     fanduel    FIFTY_FIFTY classic top     -.945   35.9    5.18    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+nba     fanduel    FIFTY_FIFTY classic last    -.5     33.4    4.88    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
 
-lol     dk      5050    classic top     .939    68.84   6.61    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      5050    classic last    .681    139.78  9.9     automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      5050    classic top     .953    60.15   6.19    automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     dk      5050    classic last    .769    119.02  9.89    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     dk      gpp     classic top     .998    8.06    2.55    automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      gpp     classic last    .938    54.39   6.3     automl      20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     dk      gpp     classic top     .998    9.07    2.7     automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     dk      gpp     classic last    .938    54.01   6.63    automl-pca  20210825     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     fd      5050    classic top     .168    55.4    7.23    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     fd      5050    classic last    -1.28   97.43   8.85    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     fd      5050    classic last    -.3     73.8    8.32    automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     fd      5050    classic top     .112    57.29   6.88    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     fd      5050    classic last    -.52    79.6    8.41    automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     fd      gpp     classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     fd      gpp     classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None}
-lol     fd      gpp     classic top         automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     fd      gpp     classic last        automl-pca  2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': None, 'n_components': 5}
-lol     fd      gpp     classic top         automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
-lol     fd      gpp     classic last        automl      2021080?     {'train_time': 600, 'per_run_time': 120, 'model_cols': 'best-possible-score'}
+lol     draftkings FIFTY_FIFTY classic top     .939    68.84   6.61    automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     draftkings FIFTY_FIFTY classic last    .681    139.78  9.9     automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     draftkings FIFTY_FIFTY classic top     .953    60.15   6.19    automl-pca  20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+lol     draftkings FIFTY_FIFTY classic last    .769    119.02  9.89    automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+lol     draftkings GPP         classic top     .998    8.06    2.55    automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     draftkings GPP         classic last    .938    54.39   6.3     automl      20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     draftkings GPP         classic top     .998    9.07    2.7     automl-pca  20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+lol     draftkings GPP         classic last    .938    54.01   6.63    automl-pca  20210825     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+lol     fanduel    FIFTY_FIFTY classic top     .168    55.4    7.23    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     fanduel    FIFTY_FIFTY classic last    -1.28   97.43   8.85    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     fanduel    FIFTY_FIFTY classic last    -.3     73.8    8.32    automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+lol     fanduel    FIFTY_FIFTY classic top     .112    57.29   6.88    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+lol     fanduel    FIFTY_FIFTY classic last    -.52    79.6    8.41    automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+lol     fanduel    GPP         classic top         automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     fanduel    GPP         classic last        automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null}'
+lol     fanduel    GPP         classic top         automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+lol     fanduel    GPP         classic last        automl-pca  2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": null, "n_components": 5}'
+lol     fanduel    GPP         classic top         automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
+lol     fanduel    GPP         classic last        automl      2021080?     '{"train_time": 600, "per_run_time": 120, "model_cols": "best-possible-score"}'
