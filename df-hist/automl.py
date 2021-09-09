@@ -1,7 +1,8 @@
+import logging
 import os
 import shutil
 from math import sqrt
-from typing import Optional
+from typing import Optional, Literal
 
 import autosklearn.regression
 import matplotlib.pyplot as plt
@@ -10,40 +11,71 @@ import sklearn
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 from skl2onnx.common.data_types import FloatTensorType, Int64TensorType, DoubleTensorType
+from tpot import TPOTRegressor
+
+LOGGER = logging.getLogger("automl")
+
+Frameworks = Literal['skautoml', 'tpot']
 
 
-def automl(model_name,
-           train_time=60, per_run_time_limit=10,
-           pca_components=None,
-           overwrite: bool = False,
-           seed=1) -> tuple:
+def create_automl_model(
+        model_name,
+        pca_components=None,
+        seed=1,
+        framework: Frameworks = 'skautoml',
+        max_train_time=None,
+        sk_overwrite=True,
+        **automl_params
+) -> tuple:
     """
     create the model
 
-    overwrite - overwrite the output folder
+    sk_overwrite - overwrite the output folder for sk automl
     pca_components - if not None then add a PCA transformation step
        prior to model fit
+    max_train_time - time to train the model in seconds
+    **automl_params - used when creating the model object
 
     returns - (model, fit_params)
     """
-    output_folder = '/tmp/autosklearn_regression_' + model_name
-    if overwrite and os.path.isdir(output_folder):
-        shutil.rmtree(output_folder)
-    model = autosklearn.regression.AutoSklearnRegressor(
-        time_left_for_this_task=train_time,
-        per_run_time_limit=per_run_time_limit,
-        output_folder=output_folder,
-        seed=seed,
-    )
+    fit_params = {}
+    if framework == 'skautoml':
+        if max_train_time is None:
+            raise ValueError("max_train_time must not be None for skautoml")
+        output_folder = '/tmp/autosklearn_regression_' + model_name
+        if sk_overwrite and os.path.isdir(output_folder):
+            shutil.rmtree(output_folder)
+        model = autosklearn.regression.AutoSklearnRegressor(
+            time_left_for_this_task=max_train_time,
+            output_folder=output_folder,
+            seed=seed,
+            **automl_params
+        )
+        if pca_components is not None:
+            fit_params['automl__dataset_name'] = model_name
+        else:
+            fit_params['dataset_name'] = model_name
+
+    elif framework == 'tpot':
+        if max_train_time is not None:
+            if (rem:= max_train_time % 60) != 0:
+                new_train_time = max_train_time + 60 - rem
+                LOGGER.warning(f"TPot requires a training time in minutes. Rounding requested train time from {train_time} up to {new_train_time} seconds")
+                max_train_time = new_train_time
+            max_train_time /= 60
+        model = TPOTRegressor(
+            random_state=seed,
+            max_time_mins=max_train_time,
+            **automl_params
+        )
+    else:
+        raise NotImplementedError(f"framework '{framework}' not supported")
 
     if pca_components is not None:
         model = Pipeline([
             ('pca', PCA(n_components=pca_components)),
             ('automl', model),
         ])
-        fit_params = {'automl__dataset_name': model_name}
-    else:
-        fit_params = {'dataset_name': model_name}
 
     return model, fit_params
 
@@ -52,9 +84,18 @@ def error_report(model, X_test, y_test, desc: str):
     print(desc)
     # print(model.show_models())
     predictions = model.predict(X_test)
-    print("R2 score:", sklearn.metrics.r2_score(y_test, predictions))
-    print("RMSE score:", sqrt(sklearn.metrics.mean_squared_error(y_test, predictions)))
-    print("MAE score:", sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)))
+    print(
+        "R2 score:",
+        (r2 := round(sklearn.metrics.r2_score(y_test, predictions), 4))
+    )
+    print(
+        "RMSE score:",
+        (rmse := round(sqrt(sklearn.metrics.mean_squared_error(y_test, predictions)), 4))
+    )
+    print(
+        "MAE score:",
+        (mae := round(sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)), 4))
+    )
 
     plot_data = pd.DataFrame({
         'truth': y_test,
@@ -64,7 +105,7 @@ def error_report(model, X_test, y_test, desc: str):
     # display(plot_data)
 
     fig, axs = plt.subplots(1,2, figsize=(10, 5))
-    fig.suptitle(desc)
+    fig.suptitle(desc + f" : {r2=} {rmse=} {mae=}")
     for ax in axs:
         ax.axis('equal')
 

@@ -6,4 +6,4 @@ direnv allow
 perl -pi -e 's/cdc/dog/g' /path/to/chromedriver
 # install automl
 sudo apt-get install swig
-pip install auto-sklearn
+pip install auto-sklearn tpot
