@@ -1,1 +1,9 @@
 .ipynb_checkpoints
+
+# compiled python
+*.pyc
+*.pyo
+venv
+
+# emacs backup
+*~
