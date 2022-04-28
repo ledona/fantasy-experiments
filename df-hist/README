@@ -1,9 +1,17 @@
 # To pull data...
 cp dot_envrc .envrc
+
 # EDIT .envrc
 direnv allow
+
 # RUN THE FOLLOWING ON THE CROMEDRIVER BINARY...
 perl -pi -e 's/cdc/dog/g' /path/to/chromedriver
+
 # install automl
 sudo apt-get install swig
 pip install auto-sklearn tpot
+
+# install onnx
+sudo apt-get install libprotobuf-dev protobuf-compiler
+export CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON"
+pip install skl2onnx
