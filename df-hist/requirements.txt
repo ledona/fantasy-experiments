@@ -6,3 +6,6 @@ beautifulsoup4
 
 # for modeling
 jupyterlab
+skl2onnx
+auto-sklearn
+tpot
