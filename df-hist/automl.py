@@ -80,7 +80,10 @@ def create_automl_model(
     return model, fit_params
 
 
-def error_report(model, X_test, y_test, desc: str):
+def error_report(model, X_test, y_test, desc: str) -> dict:
+    """ 
+    display the error report for the model, also return a dict with the scores
+    """
     print(desc)
     # print(model.show_models())
     predictions = model.predict(X_test)
@@ -122,6 +125,11 @@ def error_report(model, X_test, y_test, desc: str):
                 (0, 0),
                 '-g', linewidth=1)
     plot_data.plot(kind='scatter', x='truth', y='error', ax=axs[1])
+    return {
+        'R2': r2,
+        'RMSE': rmse,
+        'MAE': mae,
+    }
 
 
 def get_df_types(df, drop: Optional[list[str]] = None) -> list:
