@@ -1,6 +1,4 @@
 import logging
-import os
-import shutil
 from math import sqrt
 from typing import Optional, Literal
 
@@ -24,13 +22,12 @@ def create_automl_model(
         seed=1,
         framework: Frameworks = 'skautoml',
         max_train_time=None,
-        sk_overwrite=True,
+        # sk_overwrite=True,
         **automl_params
 ) -> tuple:
     """
     create the model
 
-    sk_overwrite - overwrite the output folder for sk automl
     pca_components - if not None then add a PCA transformation step
        prior to model fit
     max_train_time - time to train the model in seconds
@@ -42,12 +39,8 @@ def create_automl_model(
     if framework == 'skautoml':
         if max_train_time is None:
             raise ValueError("max_train_time must not be None for skautoml")
-        output_folder = '/tmp/autosklearn_regression_' + model_name
-        if sk_overwrite and os.path.isdir(output_folder):
-            shutil.rmtree(output_folder)
         model = autosklearn.regression.AutoSklearnRegressor(
             time_left_for_this_task=max_train_time,
-            output_folder=output_folder,
             seed=seed,
             **automl_params
         )

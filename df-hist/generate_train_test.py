@@ -21,8 +21,8 @@ def load_csv(sport, service, style: ContestStyle, contest_type) -> pd.DataFrame:
     nan_slate_rows = len(df.query('slate_id.isnull()'))
     nan_best_score_rows = len(df.query('`best-possible-score`.isnull()'))
     if nan_slate_rows > 0 or nan_best_score_rows > 0:
-        print(f"dropping {nan_slate_rows + nan_best_score_rows} rows due to {nan_slate_rows=} {nan_best_score_rows=}")
         df = df.dropna()
+        print(f"dropped {nan_slate_rows + nan_best_score_rows} rows due to {nan_slate_rows=} {nan_best_score_rows=}. {len(df)=}")
     return df
 
 
@@ -35,7 +35,9 @@ def generate_train_test(df, train_size: float = .5,
     return (X-train, X-test y-top-train, y-top-test, y-last-win-train, y-last-win-test)
     """
     x_cols = []
-    assert (model_cols is None) or model_cols <= set(df.columns), \
+    assert (model_cols is None) or \
+        (type(model_cols) == set and model_cols <= set(df.columns)) or \
+        (type(model_cols) == str and model_cols in set(df.columns)), \
         "Requested model columns not a subset of available data columns"
     for col in df.columns:
         if col in COLS_TO_IGNORE:
@@ -48,6 +50,7 @@ def generate_train_test(df, train_size: float = .5,
 
     X = df[x_cols]
     if len(X) == 0:
+        
         return None
     # display(X)
     y_top = df.top_score
