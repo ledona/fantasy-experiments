@@ -1,4 +1,5 @@
 from argparse import Namespace
+import argparse
 import traceback
 import os
 from typing import Optional, Literal
@@ -65,21 +66,22 @@ def best_score_cache(sport: str, top_score_cache_mode: TopScoreCacheMode) -> dic
     # TODO: for diff, can probably do this more efficiently by comparing a hash of the before and after
     top_score_dict = dict(orig_top_score_dict)
 
-    yield top_score_dict
-
-    if orig_top_score_dict != top_score_dict:
-        print(
-            f"Writing updated best score values to cache '{top_score_cache_filename}'")
-        with open(top_score_cache_filename, 'w') as f:
-            json.dump(top_score_dict, f)
-    # else:
-    # print("No change to best score cache.")
-
+    try:
+        yield top_score_dict
+    finally:
+        if orig_top_score_dict != top_score_dict:
+            # TODO: should save the cache as new scores are added
+            print(
+                f"Writing updated best score values to cache '{top_score_cache_filename}'")
+            with open(top_score_cache_filename, 'w') as f:
+                json.dump(top_score_dict, f)
+        print("Exiting best_score_cache")
 
 def best_possible_lineup_score(
-    db_filename, sport, service_abbr,
+    db_filename, service_abbr,
     slate_id,
-    best_score_cache: Optional[dict[int, Optional[float]]] = None
+    best_score_cache: Optional[dict[int, Optional[float]]] = None,
+    sport: str | None = None,
 ) -> Optional[float]:
     """ 
     calculate the best possible fantasy score for the requested slate
@@ -103,6 +105,10 @@ def best_possible_lineup_score(
         print(f"{slate_id=} not in best score cache")
 
     db_obj = db.get_db_obj(db_filename)
+    if sport:
+        assert sport == db_obj.db_manager.ABBR
+    else:
+        sport = db_obj.db_manager.ABBR
 
     # slate date
     with db_obj.session_scoped() as session:
@@ -182,9 +188,9 @@ def best_possible_lineup_score(
             slate_date=game_date,
         )[0]
         score = lineups[0].fpts
-    except Exception as ex:
+    except Exception:
         print(
-            f"Error calculating best lineup for {slate_id=} on {game_date}. "
+            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. "
         )
         traceback.print_exc()
         raise
@@ -194,13 +200,14 @@ def best_possible_lineup_score(
     return score
 
 if __name__ == "__main__":
-    db_filename = os.path.join(
-        os.environ['FANTASY_HOME'], 
-        "nhl_hist_20072008-20192020.scored.db"
+    parser = argparse.ArgumentParser(
+        description="testing the best lineup calculation"
     )
-    sport = 'nhl'
-    service = 'fd'
-    slate_id = 2478
+    parser.add_argument("db_filename", help="database filename")
+    parser.add_argument("service", help="service abbreviation")
+    parser.add_argument("slate_id", help="slate id", type=int)
 
-    score = best_possible_lineup_score(db_filename, sport, service, slate_id)
+    args = parser.parse_args()
+
+    score = best_possible_lineup_score(args.db_filename, args.service, args.slate_id)
     print(f"{score=}")
