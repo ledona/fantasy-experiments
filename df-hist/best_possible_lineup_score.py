@@ -188,14 +188,14 @@ def best_possible_lineup_score(
             slate_date=game_date,
         )[0]
         score = lineups[0].fpts
-    except Exception:
+    except Exception as ex:
         print(
-            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. "
+            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. {ex=}"
         )
         traceback.print_exc()
-        raise
+        return None
 
-    if best_score_cache is not None:
+    if best_score_cache is not None and score is not None:
         best_score_cache[slate_id] = score
     return score
 
