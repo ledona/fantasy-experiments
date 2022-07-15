@@ -99,8 +99,8 @@ def best_possible_lineup_score(
     slate_id = int(slate_id)
     if best_score_cache:
         if slate_id in best_score_cache:
-            print(
-                f"For {slate_id=} using cached best score value of {best_score_cache[slate_id]}")
+            # print(
+            #     f"For {slate_id=} using cached best score value of {best_score_cache[slate_id]}")
             return best_score_cache[slate_id]
         print(f"{slate_id=} not in best score cache")
 
@@ -190,9 +190,9 @@ def best_possible_lineup_score(
         score = lineups[0].fpts
     except Exception as ex:
         print(
-            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. {ex=}"
+            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. {type(ex).__name__}"
         )
-        traceback.print_exc()
+        # traceback.print_exc()
         return None
 
     if best_score_cache is not None and score is not None:
