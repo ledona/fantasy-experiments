@@ -50,7 +50,6 @@ def generate_train_test(df, train_size: float = .5,
 
     X = df[x_cols]
     if len(X) == 0:
-        
         return None
     # display(X)
     y_top = df.top_score
@@ -58,6 +57,12 @@ def generate_train_test(df, train_size: float = .5,
     y_last_win = df.last_winning_score
     # display(y_last_win)
 
-    return train_test_split(X, y_top, y_last_win,
-                            random_state=random_state,
-                            train_size=train_size)
+    try:
+        sample_data = train_test_split(X, y_top, y_last_win,
+                                       random_state=random_state,
+                                       train_size=train_size)
+    except ValueError as ex:
+        print(f"generate_train_test_split:: Error generating train test split: {ex}")
+        sample_data = None
+        
+    return sample_data

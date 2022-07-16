@@ -132,6 +132,7 @@ def best_possible_lineup_score(
         service,
         games_date=game_date,
         db_obj=db_obj,
+        slate=slate_id,
     )
     # print("all starters: ", starters)
     if slate_name not in starters.slates:
@@ -192,7 +193,7 @@ def best_possible_lineup_score(
         print(
             f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. {type(ex).__name__}"
         )
-        # traceback.print_exc()
+        traceback.print_exc()
         return None
 
     if best_score_cache is not None and score is not None:
