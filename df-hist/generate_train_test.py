@@ -26,7 +26,7 @@ def load_csv(sport, service, style: ContestStyle, contest_type) -> pd.DataFrame:
     return df
 
 
-def generate_train_test(df, train_size: float = .5,
+def generate_train_test(df: pd.DataFrame, train_size: float = .5,
                         random_state: Optional[int] = None,
                         model_cols: Optional[set[str]] = None) -> Optional[tuple]:
     """
@@ -52,9 +52,9 @@ def generate_train_test(df, train_size: float = .5,
     if len(X) == 0:
         return None
     # display(X)
-    y_top = df.top_score
+    y_top = df['top_score']
     # display(y_top)
-    y_last_win = df.last_winning_score
+    y_last_win = df['last_winning_score']
     # display(y_last_win)
 
     try:

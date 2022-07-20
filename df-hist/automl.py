@@ -11,6 +11,7 @@ from sklearn.pipeline import Pipeline
 from skl2onnx.common.data_types import FloatTensorType, Int64TensorType, DoubleTensorType
 from tpot import TPOTRegressor
 
+
 LOGGER = logging.getLogger("automl")
 
 Frameworks = Literal['skautoml', 'tpot']
@@ -53,7 +54,7 @@ def create_automl_model(
         if max_train_time is not None:
             if (rem:= max_train_time % 60) != 0:
                 new_train_time = max_train_time + 60 - rem
-                LOGGER.warning(f"TPot requires a training time in minutes. Rounding requested train time from {train_time} up to {new_train_time} seconds")
+                LOGGER.warning(f"TPot requires a training time in minutes. Rounding requested train time from {max_train_time} up to {new_train_time} seconds")
                 max_train_time = new_train_time
             max_train_time /= 60
         model = TPOTRegressor(
