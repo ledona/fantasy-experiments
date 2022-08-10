@@ -3,3 +3,5 @@ chrome-profile
 cache
 *.csv
 *.json
+# onnx models
+*.onnx
