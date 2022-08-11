@@ -1,4 +1,5 @@
 from typing import Optional
+import os
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -12,11 +13,12 @@ COLS_TO_IGNORE = {
 }
 
 
-def load_csv(sport, service, style: ContestStyle, contest_type) -> pd.DataFrame:
+def load_csv(sport, service, style: ContestStyle, contest_type, data_folder=".") -> pd.DataFrame:
     filename = f"{sport}-{service}-{style.name}-{contest_type.NAME}.csv"
-    print(f"loading {filename=}")
+    filepath = os.path.join(data_folder, filename)
+    print(f"loading {filepath=}")
 
-    df = pd.read_csv(filename)
+    df = pd.read_csv(filepath)
     print(f"{len(df)} rows of data loaded")
     nan_slate_rows = len(df.query('slate_id.isnull()'))
     nan_best_score_rows = len(df.query('`best-possible-score`.isnull()'))

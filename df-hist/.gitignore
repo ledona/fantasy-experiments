@@ -1,7 +1,9 @@
 .envrc
 chrome-profile
 cache
-*.csv
-*.json
-# onnx models
-*.onnx
+# folder with post transformed data
+data
+# onnx exported model files
+models
+# model evaluation results
+eval_results
