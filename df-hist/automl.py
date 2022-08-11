@@ -20,10 +20,9 @@ Frameworks = Literal['skautoml', 'tpot']
 def create_automl_model(
         model_name,
         pca_components=None,
-        seed=1,
+        random_state=1,
         framework: Frameworks = 'skautoml',
         max_train_time=None,
-        # sk_overwrite=True,
         **automl_params
 ) -> tuple:
     """
@@ -42,7 +41,7 @@ def create_automl_model(
             raise ValueError("max_train_time must not be None for skautoml")
         model = autosklearn.regression.AutoSklearnRegressor(
             time_left_for_this_task=max_train_time,
-            seed=seed,
+            seed=random_state,
             **automl_params
         )
         if pca_components is not None:
@@ -58,7 +57,7 @@ def create_automl_model(
                 max_train_time = new_train_time
             max_train_time /= 60
         model = TPOTRegressor(
-            random_state=seed,
+            random_state=random_state,
             max_time_mins=max_train_time,
             **automl_params
         )
@@ -67,7 +66,7 @@ def create_automl_model(
 
     if pca_components is not None:
         model = Pipeline([
-            ('pca', PCA(n_components=pca_components)),
+            ('pca', PCA(n_components=pca_components, random_state=random_state)),
             ('automl', model),
         ])
 
