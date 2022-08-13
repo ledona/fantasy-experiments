@@ -38,15 +38,15 @@ def get_stat_names(sport, service_abbr: Literal['dk', 'fd', 'y'], as_str=False) 
 
 
 @contextmanager
-def best_score_cache(sport: str, top_score_cache_mode: TopScoreCacheMode) -> dict[int, Optional[float]]:
+def best_score_cache(sport: str, top_score_cache_mode: TopScoreCacheMode, cache_dir=".") -> dict[int, Optional[float]]:
     top_score_cache_filename = sport + "-slate.top_score.json"
+    top_score_cache_filepath = os.path.join(cache_dir, top_score_cache_filename)
     top_score_dict: dict[int, float]
     orig_top_score_dict = {}
 
-    if os.path.isfile(top_score_cache_filename):
+    if os.path.isfile(top_score_cache_filepath):
         if top_score_cache_mode in ('default', 'missing'):
-            # print(f"Loading best score cache from '{top_score_cache_filename}'")
-            with open(top_score_cache_filename, 'r') as f:
+            with open(top_score_cache_filepath, 'r') as f:
                 cache_data = json.load(f)
             for slate_id, score in cache_data.items():
                 if top_score_cache_mode == 'missing' and score is None:
@@ -54,12 +54,12 @@ def best_score_cache(sport: str, top_score_cache_mode: TopScoreCacheMode) -> dic
                 orig_top_score_dict[int(slate_id)] = score
         elif top_score_cache_mode == 'overwrite':
             print(
-                f"Overwriting existing best score cache data at '{top_score_cache_filename}'")
+                f"Overwriting existing best score cache data at '{top_score_cache_filepath}'")
         else:
             raise ValueError("Unexpected top score cache mode",
                              top_score_cache_mode)
     else:
-        print(f"Best score cache data not found! '{top_score_cache_filename}'")
+        print(f"Best score cache data not found! '{top_score_cache_filepath}'")
         orig_top_score_dict = {}
 
     # make a copy so that we can figure out if there are updates
@@ -72,8 +72,8 @@ def best_score_cache(sport: str, top_score_cache_mode: TopScoreCacheMode) -> dic
         if orig_top_score_dict != top_score_dict:
             # TODO: should save the cache as new scores are added
             print(
-                f"Writing updated best score values to cache '{top_score_cache_filename}'")
-            with open(top_score_cache_filename, 'w') as f:
+                f"Writing updated best score values to cache '{top_score_cache_filepath}'")
+            with open(top_score_cache_filepath, 'w') as f:
                 json.dump(top_score_dict, f)
         print("Exiting best_score_cache")
 

@@ -23,8 +23,13 @@ def load_csv(sport, service, style: ContestStyle, contest_type, data_folder=".")
     nan_slate_rows = len(df.query('slate_id.isnull()'))
     nan_best_score_rows = len(df.query('`best-possible-score`.isnull()'))
     if nan_slate_rows > 0 or nan_best_score_rows > 0:
+        print(
+            f"dropping {nan_slate_rows + nan_best_score_rows} rows due to {nan_slate_rows=} {nan_best_score_rows=}. Remaining cases {len(df)=}"
+        )
+        # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        #     display(df)
         df = df.dropna()
-        print(f"dropped {nan_slate_rows + nan_best_score_rows} rows due to {nan_slate_rows=} {nan_best_score_rows=}. {len(df)=}")
+        print(f"Remaining cases after drop {len(df)=}")
     return df
 
 
@@ -63,8 +68,11 @@ def generate_train_test(df: pd.DataFrame, train_size: float = .5,
         sample_data = train_test_split(X, y_top, y_last_win,
                                        random_state=random_state,
                                        train_size=train_size)
+        if len(sample_data) == 0:
+            print("No data returned")
     except ValueError as ex:
-        print(f"generate_train_test_split:: Error generating train test split: {ex}")
+        print(
+            f"generate_train_test_split:: Error generating train test split: {ex}")
         sample_data = None
-        
+
     return sample_data
