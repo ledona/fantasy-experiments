@@ -82,6 +82,7 @@ def best_possible_lineup_score(
     slate_id,
     best_score_cache: Optional[dict[int, Optional[float]]] = None,
     sport: str | None = None,
+    screen_lineup_constraints_mode="fail"
 ) -> Optional[float]:
     """ 
     calculate the best possible fantasy score for the requested slate
@@ -188,6 +189,7 @@ def best_possible_lineup_score(
             use_pts=True, use_pts_stat_names=pts_stats,
             skip_predictions=True,
             slate_date=game_date,
+            screen_lineup_constraints_mode=screen_lineup_constraints_mode,
         )[0]
         score = lineups[0].fpts
     except Exception as ex:
