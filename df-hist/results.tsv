@@ -8,19 +8,26 @@ nhl	draftkings	GPP	CLASSIC	top	0.4479	18.8944	3.663	skautoml	20220727	{'per_run_
 nhl	draftkings	GPP	SHOWDOWN	last	0.473	11.3126	3.116	tpot-pca	20220730	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 900, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'n_components': 5, 'random_state': 0}
 nhl	draftkings	GPP	SHOWDOWN	top	0.7993	8.4596	2.6055	tpot	20220730	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 900, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'model_cols': {'best-possible-score'}, 'random_state': 0}
 nhl	fanduel	GPP	CLASSIC	top	0.5943	17.6008	3.7535	skautoml-pca	20220818	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
-nhl	fanduel	FIFTY_FIFTY	CLASSIC	top	0.3479	24.7698	4.4982	skautoml-pca	20220813	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+nhl	fanduel	GPP	CLASSIC	last
+nhl	fanduel	FIFTY_FIFTY	CLASSIC	top
+nhl	fanduel	FIFTY_FIFTY	CLASSIC	last
 nhl	yahoo	FIFTY_FIFTY	CLASSIC	top	0.1524	18.2562	3.9899	tpot	20220730	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 900, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'model_cols': {'best-possible-score'}, 'random_state': 0}
+nhl	yahoo	FIFTY_FIFTY	CLASSIC	last
 nhl	yahoo	GPP	CLASSIC	last	0.3258	9.4057	2.6753	skautoml	20220727	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
 nhl	yahoo	GPP	CLASSIC	top	0.3418	14.4089	3.5193	skautoml	20220727	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'model_cols': {'best-possible-score'}, 'random_state': 0}
 
 mlb	draftkings	FIFTY_FIFTY	SHOWDOWN	last	0.2948	11.9599	3.0868	skautoml-pca	20220819	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
 mlb	draftkings	FIFTY_FIFTY	SHOWDOWN	top	0.5524	12.2875	2.9724	skautoml-pca	20220819	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
 mlb	draftkings	GPP	CLASSIC	top	0.4517	18.3016	3.7288	tpot-pca	20220731	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'n_components': 5, 'random_state': 0}
+mlb	draftkings	GPP	CLASSIC	last
+mlb	draftkings	GPP	FIFTY_FIFTY	top
+mlb	draftkings	GPP	FIFTY_FIFTY	last
 mlb	draftkings	GPP	SHOWDOWN	top	0.734	11.5753	2.6996	skautoml	20220819	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
 mlb	draftkings	GPP	SHOWDOWN	last	0.4193	22.0547	3.8382	tpot	20220819	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
 mlb	fanduel	FIFTY_FIFTY	SHOWDOWN	last	0.6297	16.3558	3.5768	skautoml-pca	20220819	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
 mlb	fanduel	FIFTY_FIFTY	SHOWDOWN	top	0.7735	16.6046	3.5472	tpot	20220819	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
-mlb	fanduel	GPP	CLASSIC	last	0.3489	21.4842	3.7139	tpot-pca	20220731	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'n_components': 5, 'random_state': 0}
+mlb	fanduel	GPP	CLASSIC	last	0.1955	24.9375	3.9947	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	fanduel	GPP	CLASSIC	top	0.3027	40.4094	4.8197	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
 
 nba	draftkings	GPP	CLASSIC	last	0.2534	25.0711	4.6021	skautoml-pca	20220726	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'n_components': 5, 'random_state': 0}
 nba	draftkings	GPP	CLASSIC	top	0.5087	19.6467	3.7591	skautoml	20220726	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'model_cols': {'best-possible-score'}, 'random_state': 0}
@@ -40,10 +47,14 @@ lol	fanduel	FIFTY_FIFTY	CLASSIC	top	0.9615	37.0942	5.4779	tpot	20220815	{'popula
 lol	fanduel	GPP	CLASSIC	last	0.9426	46.8995	6.184	tpot-pca	20220815	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
 lol	fanduel	GPP	CLASSIC	top	0.9881	22.31	4.1264	skautoml	20220815	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
 
+nfl	draftkings	FIFTY_FIFTY	CLASSIC	top
 nfl	draftkings	FIFTY_FIFTY	CLASSIC	last	0.1726	22.8041	4.3823	skautoml	20220728	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
 nfl	draftkings	GPP	CLASSIC	top	0.9563	4.185	1.7857	skautoml-pca	20220728	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'n_components': 5, 'random_state': 0}
+nfl	draftkings	GPP	CLASSIC	last
 nfl	fanduel	GPP	CLASSIC	top	0.5352	33.5045	4.9535	skautoml	20220727	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+nfl	fanduel	GPP	CLASSIC	last
 nfl	yahoo	GPP	CLASSIC	top	0.5072	9.2229	2.7679	skautoml	20220817	"{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}"
+nfl	yahoo	GPP	CLASSIC	last
 
 ************************************************************************************
 mlb	draftkings	GPP	classic	top	.408	19.04	3.84	skautoml	20210807	{"max_train_time": 600, "per_run_time_limit": 120, "model_cols": "best-possible-score", 'random_state': 0}
@@ -791,3 +802,75 @@ mlb	fanduel	FIFTY_FIFTY	SHOWDOWN	top	0.761	17.0561	3.4774	skautoml-pca	20220819	
 mlb	fanduel	FIFTY_FIFTY	SHOWDOWN	top	0.7735	16.6046	3.5472	tpot	20220819	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 mlb	fanduel	FIFTY_FIFTY	SHOWDOWN	top	0.6464	20.7437	3.8331	tpot	20220819	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
 mlb	fanduel	FIFTY_FIFTY	SHOWDOWN	top	0.7563	17.2214	3.5383	tpot-pca	20220819	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	last	-0.664	24.6553	4.4672	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	last	-0.0569	19.6494	3.6751	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	last	-1.1354	27.9307	4.4159	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	last	-0.3894	22.5294	4.2285	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	last	-0.3588	22.2803	4.1954	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	last	-2.1327	33.8298	5.069	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	top	-0.5738	32.7076	4.9752	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	top	-0.8611	35.5672	5.2956	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	top	-0.2586	29.2492	4.5846	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	top	-0.0896	27.2149	4.44	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	top	-1.0124	36.9849	5.4568	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	FIFTY_FIFTY	CLASSIC	top	-218.5452	386.3054	13.499	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	yahoo	GPP	CLASSIC	last	-0.0979	12.0932	3.2677	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	yahoo	GPP	CLASSIC	last	0.0776	11.085	3.083	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	GPP	CLASSIC	last	0.0804	11.0678	2.9988	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	yahoo	GPP	CLASSIC	last	-3.0538	23.2381	4.178	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	yahoo	GPP	CLASSIC	last	-0.835	15.6345	3.5066	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	GPP	CLASSIC	last	-0.6196	14.6883	3.1982	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	yahoo	GPP	CLASSIC	top	-0.3013	16.9708	3.7109	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	yahoo	GPP	CLASSIC	top	-0.645	19.0804	3.8294	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	GPP	CLASSIC	top	-0.1764	16.1355	3.6233	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	yahoo	GPP	CLASSIC	top	-0.597	18.8001	3.4444	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	yahoo	GPP	CLASSIC	top	-0.0003	14.8788	3.2725	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	yahoo	GPP	CLASSIC	top	-0.0012	14.8857	3.2711	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	last	-0.1079	28.9664	4.8258	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	last	-0.3811	32.3409	4.9882	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	last	-0.2952	31.3199	4.9079	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	last	-0.6946	35.8249	5.2284	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	last	-0.2334	30.5633	4.8604	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	last	-0.1249	29.1883	4.9144	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	top	-0.0318	32.4449	5.2592	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	top	-0.0001	31.9427	5.2596	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	top	-0.1662	34.4929	5.4078	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	top	-0.0917	33.3727	5.2909	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	top	-0.044	32.636	5.2653	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	FIFTY_FIFTY	CLASSIC	top	-0.0009	31.955	5.2708	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	fanduel	GPP	CLASSIC	last	0.1716	25.306	3.9557	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	fanduel	GPP	CLASSIC	last	0.1486	25.6545	3.9535	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	GPP	CLASSIC	last	0.1955	24.9375	3.9947	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	fanduel	GPP	CLASSIC	last	0.0881	26.5501	4.0603	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	fanduel	GPP	CLASSIC	last	0.1129	26.1865	4.0817	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	GPP	CLASSIC	last	0.1085	26.2515	4.0272	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	fanduel	GPP	CLASSIC	top	0.2048	43.1508	4.9736	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	fanduel	GPP	CLASSIC	top	0.2457	42.0283	4.8807	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	GPP	CLASSIC	top	0.3027	40.4094	4.8197	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	fanduel	GPP	CLASSIC	top	0.2853	40.91	4.7632	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	fanduel	GPP	CLASSIC	top	0.2834	40.9634	4.7336	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	fanduel	GPP	CLASSIC	top	0.2751	41.2006	4.7726	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	last	-0.4928	26.9927	4.5733	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	last	-0.2561	24.7603	4.3026	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	last	-0.1979	24.1798	4.5637	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	last	-0.4579	26.676	4.5377	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	last	-0.3568	25.7339	4.4701	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	last	-0.5221	27.2567	4.6244	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	top	-0.1478	25.898	4.4778	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	top	-1.2765	36.4728	5.0406	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	top	-0.1246	25.6354	4.4761	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	top	0.0653	23.371	4.3276	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	top	-12.1592	87.6899	6.5002	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	FIFTY_FIFTY	CLASSIC	top	-0.4494	29.1028	4.7633	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	draftkings	GPP	CLASSIC	last	0.0386	31.7074	4.8384	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	draftkings	GPP	CLASSIC	last	-0.0775	33.5669	4.8961	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	GPP	CLASSIC	last	-0.2272	35.8242	5.1266	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	draftkings	GPP	CLASSIC	last	-0.0337	32.8787	4.8607	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	draftkings	GPP	CLASSIC	last	-0.019	32.6428	4.8343	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	GPP	CLASSIC	last	-0.0118	32.5278	4.8358	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
+mlb	draftkings	GPP	CLASSIC	top	0.4175	18.864	3.7577	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0}
+mlb	draftkings	GPP	CLASSIC	top	0.3357	20.1461	3.8429	skautoml	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	GPP	CLASSIC	top	0.4048	19.0693	3.7706	skautoml-pca	20220820	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'random_state': 0, 'n_components': 5}
+mlb	draftkings	GPP	CLASSIC	top	0.429	18.6775	3.8111	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	draftkings	GPP	CLASSIC	top	0.4397	18.5009	3.7033	tpot	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'model_cols': {'best-possible-score'}}
+mlb	draftkings	GPP	CLASSIC	top	0.4504	18.3234	3.6723	tpot-pca	20220820	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0, 'n_components': 5}
