@@ -1,6 +1,8 @@
-import logging
 from math import sqrt
 from typing import Optional, Literal
+
+import warnings
+warnings.filterwarnings("ignore", "Warning: optional dependency `torch` is not available. - skipping import of NN models.")
 
 import autosklearn.regression
 import matplotlib.pyplot as plt
@@ -11,6 +13,8 @@ from sklearn.pipeline import Pipeline
 from skl2onnx.common.data_types import FloatTensorType, Int64TensorType, DoubleTensorType
 from tpot import TPOTRegressor
 
+import logging
+
 
 LOGGER = logging.getLogger("automl")
 
@@ -18,22 +22,30 @@ Frameworks = Literal['skautoml', 'tpot']
 
 
 def create_automl_model(
-        model_name,
+        target,
         pca_components=None,
         random_state=1,
         framework: Frameworks = 'skautoml',
         max_train_time=None,
+        X_train=None,
+        y_train=None,
+        X_test=None,
+        y_test=None,
+        model_desc=None,
         **automl_params
-) -> tuple:
+):
     """
     create the model
 
     pca_components - if not None then add a PCA transformation step
        prior to model fit
     max_train_time - time to train the model in seconds
+    X_train, y_train - if not None then train the model
+    X_test, y_test - if not None then score
+    model_desc - required if X_test and y_test are not None
     **automl_params - used when creating the model object
 
-    returns - (model, fit_params)
+    returns - dict containing model, fit_params and evaluation results
     """
     fit_params = {}
     if framework == 'skautoml':
@@ -45,9 +57,9 @@ def create_automl_model(
             **automl_params
         )
         if pca_components is not None:
-            fit_params['automl__dataset_name'] = model_name
+            fit_params['automl__dataset_name'] = target
         else:
-            fit_params['dataset_name'] = model_name
+            fit_params['dataset_name'] = target
 
     elif framework == 'tpot':
         if max_train_time is not None:
@@ -70,15 +82,25 @@ def create_automl_model(
             ('automl', model),
         ])
 
-    return model, fit_params
+    if X_train is not None and y_train is not None:
+        model.fit(X_train, y_train, **fit_params)
+    if X_test is not None and y_test is not None:
+        results = error_report(model, X_test, y_test, desc=model_desc)
+
+    return {
+        'model': model, 
+        'fit_params': fit_params,
+        'eval_result': results
+    }
 
 
-def error_report(model, X_test, y_test, desc: str) -> dict:
+def error_report(model, X_test, y_test, desc: str = None) -> dict:
     """ 
     display the error report for the model, also return a dict with the scores
     """
-    print(desc)
-    # print(model.show_models())
+    if desc:
+        print(desc)
+
     predictions = model.predict(X_test)
     print(
         "R2 score:",
@@ -101,7 +123,7 @@ def error_report(model, X_test, y_test, desc: str) -> dict:
     # display(plot_data)
 
     fig, axs = plt.subplots(1,2, figsize=(10, 5))
-    fig.suptitle(desc + f" : {r2=} {rmse=} {mae=}")
+    fig.suptitle(f"{desc or 'unknown model'} : {r2=} {rmse=} {mae=}")
     for ax in axs:
         ax.axis('equal')
 

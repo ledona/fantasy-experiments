@@ -4,7 +4,8 @@ import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from fantasy_py import ContestStyle
+from fantasy_py.lineup.strategy import Contest
+from fantasy_py.fantasy_types import ContestStyle
 
 
 COLS_TO_IGNORE = {
@@ -13,8 +14,23 @@ COLS_TO_IGNORE = {
 }
 
 
-def load_csv(sport, service, style: ContestStyle, contest_type, data_folder=".") -> pd.DataFrame:
-    filename = f"{sport}-{service}-{style.name}-{contest_type.NAME}.csv"
+def load_csv(
+    sport, service, 
+    style: ContestStyle | str, 
+    contest_type: Contest | str, 
+    data_folder="."
+) -> pd.DataFrame:
+    contest_type_name = (
+        contest_type 
+        if isinstance(contest_type, str) else 
+        contest_type.NAME
+    )
+    style_name = (
+        style
+        if isinstance(style, str) else
+        style.name
+    )
+    filename = f"{sport}-{service}-{style_name}-{contest_type_name}.csv"
     filepath = os.path.join(data_folder, filename)
     print(f"loading {filepath=}")
 
