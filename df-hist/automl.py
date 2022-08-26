@@ -1,17 +1,13 @@
 from math import sqrt
 from typing import Optional, Literal
 
-import warnings
-warnings.filterwarnings("ignore", "Warning: optional dependency `torch` is not available. - skipping import of NN models.")
-
 import autosklearn.regression
 import matplotlib.pyplot as plt
 import pandas as pd
 import sklearn
-from sklearn.decomposition import PCA
-from sklearn.pipeline import Pipeline
 from skl2onnx.common.data_types import FloatTensorType, Int64TensorType, DoubleTensorType
 from tpot import TPOTRegressor
+from tpot.config import regressor_config_dict
 
 import logging
 
@@ -20,12 +16,22 @@ LOGGER = logging.getLogger("automl")
 
 Frameworks = Literal['skautoml', 'tpot']
 
+TPOT_CONFIG = regressor_config_dict.copy()
+UNSUPPORTED_TPOT_MODELS = [
+    'sklearn.decomposition.FastICA', 
+    'tpot.builtins.ZeroCount',
+    'tpot.builtins.OneHotEncoder',
+    'sklearn.kernel_approximation.Nystroem',
+    'sklearn.kernel_approximation.RBFSampler',
+]
+for model in UNSUPPORTED_TPOT_MODELS:
+    del TPOT_CONFIG[model]
+
 
 def create_automl_model(
         target,
-        pca_components=None,
         random_state=1,
-        framework: Frameworks = 'skautoml',
+        framework: Frameworks = 'tpot',
         max_train_time=None,
         X_train=None,
         y_train=None,
@@ -49,7 +55,7 @@ def create_automl_model(
     """
     fit_params = {}
     if framework == 'skautoml':
-        LOGGER.warning("skautoml export to onnx not yet supported 2022-08-25")
+        raise NotImplementedError("skautoml export to onnx not yet supported 2022-08-25")
         if max_train_time is None:
             raise ValueError("max_train_time must not be None for skautoml")
         model = autosklearn.regression.AutoSklearnRegressor(
@@ -72,16 +78,11 @@ def create_automl_model(
         model = TPOTRegressor(
             random_state=random_state,
             max_time_mins=max_train_time,
+            config_dict=TPOT_CONFIG,
             **automl_params
         )
     else:
         raise NotImplementedError(f"framework '{framework}' not supported")
-
-    if pca_components is not None:
-        model = Pipeline([
-            ('pca', PCA(n_components=pca_components, random_state=random_state)),
-            ('automl', model),
-        ])
 
     eval_results = None
     if X_train is not None and y_train is not None:

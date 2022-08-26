@@ -4,6 +4,6 @@ cache
 # folder with post transformed data
 data
 # onnx exported model files
-models
+# models
 # model evaluation results
 eval_results

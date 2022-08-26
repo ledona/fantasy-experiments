@@ -9,3 +9,5 @@ jupyterlab
 skl2onnx
 auto-sklearn
 tpot
+onnxruntime
+onnxmltools

@@ -3,13 +3,22 @@ import tempfile
 import logging
 from pprint import pformat
 
+from xgboost import XGBRegressor
+from onnxmltools.convert.xgboost.operator_converters.XGBoost import convert_xgboost
+from skl2onnx.common.shape_calculator import calculate_linear_regressor_output_shapes
+from skl2onnx import update_registered_converter, to_onnx
 from skl2onnx.common.data_types import FloatTensorType
-from skl2onnx import to_onnx
 import pandas as pd
 
 
+update_registered_converter(
+    XGBRegressor, 'XgBoostRegression', 
+    calculate_linear_regressor_output_shapes,
+    convert_xgboost
+)
+
 COL_SEP = '\t'
-SUPPORTED_EXPORT_MODELS = ['tpot', 'tpot-pca'] # , 'skautoml', 'skautoml-pca']
+SUPPORTED_EXPORT_MODELS = ['tpot'] # , 'skautoml']
 LOGGER = logging.getLogger("automl")
 
 
@@ -112,6 +121,9 @@ def serialize_model(
                 f.write(onnx_model.SerializeToString())
             LOGGER.info(f"Exported model to {model_filepath=}")
     except Exception as ex:
+        new_model_desc_filepath = model_desc_filepath + ".failed"
+        LOGGER.debug("Serialization failed. Renaming model description file '%s' -> '%s", model_desc_filepath, new_model_desc_filepath)
+        os.rename(model_desc_filepath, new_model_desc_filepath)
         raise SerializeFailure({
             'ex': ex,
             'model': model,
