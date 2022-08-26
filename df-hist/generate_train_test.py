@@ -6,7 +6,10 @@ from sklearn.model_selection import train_test_split
 
 from fantasy_py.lineup.strategy import Contest
 from fantasy_py.fantasy_types import ContestStyle
+import logging
 
+
+LOGGER = logging.getLogger("generate_train_test")
 
 COLS_TO_IGNORE = {
     'date', 'style', 'type', 'link', 'entries', 'slate_id',
@@ -32,20 +35,20 @@ def load_csv(
     )
     filename = f"{sport}-{service}-{style_name}-{contest_type_name}.csv"
     filepath = os.path.join(data_folder, filename)
-    print(f"loading {filepath=}")
+    LOGGER.info(f"loading {filepath=}")
 
     df = pd.read_csv(filepath)
-    print(f"{len(df)} rows of data loaded")
+    LOGGER.info("for %s, %i rows of data loaded", filepath, len(df))
     nan_slate_rows = len(df.query('slate_id.isnull()'))
     nan_best_score_rows = len(df.query('`best-possible-score`.isnull()'))
     if nan_slate_rows > 0 or nan_best_score_rows > 0:
-        print(
+        LOGGER.info(
             f"dropping {nan_slate_rows + nan_best_score_rows} rows due to {nan_slate_rows=} {nan_best_score_rows=}. Remaining cases {len(df)=}"
         )
         # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         #     display(df)
         df = df.dropna()
-        print(f"Remaining cases after drop {len(df)=}")
+        LOGGER.info(f"Remaining cases after drop {len(df)=}")
     return df
 
 
@@ -74,21 +77,17 @@ def generate_train_test(df: pd.DataFrame, train_size: float = .5,
     X = df[x_cols]
     if len(X) == 0:
         return None
-    # display(X)
     y_top = df['top_score']
-    # display(y_top)
     y_last_win = df['last_winning_score']
-    # display(y_last_win)
 
     try:
         sample_data = train_test_split(X, y_top, y_last_win,
                                        random_state=random_state,
                                        train_size=train_size)
-        if len(sample_data) == 0:
-            print("No data returned")
     except ValueError as ex:
-        print(
-            f"generate_train_test_split:: Error generating train test split: {ex}")
+        LOGGER.info(
+            f"generate_train_test_split:: Error generating train test split", exc_info=ex
+        )
         sample_data = None
 
     return sample_data

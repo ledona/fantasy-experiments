@@ -9,7 +9,7 @@ import pandas as pd
 
 
 COL_SEP = '\t'
-SUPPORTED_EXPORT_MODELS = ['tpot', 'tpod-pca', 'skautoml', 'skautoml-pca']
+SUPPORTED_EXPORT_MODELS = ['tpot', 'tpot-pca'] # , 'skautoml', 'skautoml-pca']
 LOGGER = logging.getLogger("automl")
 
 
@@ -56,12 +56,15 @@ def serialize_tpot(model, X_train, y, tmp_path):
     if not (locals()['exported_model']):
         raise ValueError("exported_model is None")
     exported_pipeline = locals()['exported_model']
-    return exported_pipeline
+    return exported_pipeline, export_code
 
 
 class SerializeFailure(Exception):
     pass
 
+
+def get_serialized_file_path(model_name, model_dir):
+    return os.path.join(model_dir, model_name + ".onnx")
 
 def serialize_model(
     model, model_type, 
@@ -82,37 +85,32 @@ def serialize_model(
     export_code = None
     try:
         if model_type.startswith('tpot'):
-            exported_pipeline = serialize_tpot(model, X_train, y, tmp_path)
+            exported_pipeline, export_code = serialize_tpot(model, X_train, y, tmp_path)
+            if model_desc_folder:
+                model_desc_filepath = os.path.join(model_desc_folder, full_model_name + ".model.py")
+                with open(model_desc_filepath, "w") as f:
+                    f.write(export_code)
         elif model_type.startswith('skauto'):
+            raise NotImplementedError("skautoml serialization not yet supported. waiting for skautoml to support ONNX 2022.08.25")
             exported_pipeline = model
+            if model_desc_folder:
+                model_details = pformat(model.show_models())
+                model_desc_filepath = os.path.join(model_desc_folder, full_model_name + ".model.txt")
+                with open(model_desc_filepath, "w") as f:
+                    f.write(model_details)
         else:
             raise NotImplementedError(f"model_type {model_type} not supported. Supported models: {SUPPORTED_EXPORT_MODELS}")
 
         LOGGER.info(f"Converting to ONNX... {exported_pipeline=}")
-        # print("ONNX export data", X_train)        
         onnx_model = to_onnx(exported_pipeline, X=X_train,
                              name=full_model_name,
                              final_types=[('variable1', FloatTensorType([1, 1]))])
 
-        if model_desc_folder:
-            if model_type.startswith("skautoml"):
-                model_details = pformat(onnx_model.show_models())
-                ext = ".txt"
-            elif model_type.startswith("tpot"):
-                model_details = get_tpot_export_code(model)
-                ext = ".py"
-            else:
-                raise NotImplementedError(f"Do not know how to log model description for {model_type=}")
-
-            model_desc_filepath = os.path.join(model_desc_folder, full_model_name + ".model." + ext)
-            with open(model_desc_filepath, "w") as f:
-                f.write(model_details)
-
         if model_folder:
-            model_filepath = os.path.join(model_folder, full_model_name + ".onnx")
+            model_filepath = get_serialized_file_path(full_model_name, model_folder)
             with open(model_filepath, "wb") as f:
                 f.write(onnx_model.SerializeToString())
-            LOGGER.info(f"Exported model to {model_filepath=}")                             
+            LOGGER.info(f"Exported model to {model_filepath=}")
     except Exception as ex:
         raise SerializeFailure({
             'ex': ex,

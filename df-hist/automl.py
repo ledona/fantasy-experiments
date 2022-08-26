@@ -49,6 +49,7 @@ def create_automl_model(
     """
     fit_params = {}
     if framework == 'skautoml':
+        LOGGER.warning("skautoml export to onnx not yet supported 2022-08-25")
         if max_train_time is None:
             raise ValueError("max_train_time must not be None for skautoml")
         model = autosklearn.regression.AutoSklearnRegressor(
@@ -82,15 +83,16 @@ def create_automl_model(
             ('automl', model),
         ])
 
+    eval_results = None
     if X_train is not None and y_train is not None:
-        model.fit(X_train, y_train, **fit_params)
-    if X_test is not None and y_test is not None:
-        results = error_report(model, X_test, y_test, desc=model_desc)
+        model.fit(X_train, y_train, **fit_params)    
+        if X_test is not None and y_test is not None:
+            eval_results = error_report(model, X_test, y_test, desc=model_desc)
 
     return {
         'model': model, 
         'fit_params': fit_params,
-        'eval_result': results
+        'eval_result': eval_results
     }
 
 
@@ -99,19 +101,19 @@ def error_report(model, X_test, y_test, desc: str = None) -> dict:
     display the error report for the model, also return a dict with the scores
     """
     if desc:
-        print(desc)
+        print("**** " + desc)
 
     predictions = model.predict(X_test)
     print(
-        "R2 score:",
+        "**** R2 score:",
         (r2 := round(sklearn.metrics.r2_score(y_test, predictions), 4))
     )
     print(
-        "RMSE score:",
+        "**** RMSE score:",
         (rmse := round(sqrt(sklearn.metrics.mean_squared_error(y_test, predictions)), 4))
     )
     print(
-        "MAE score:",
+        "**** MAE score:",
         (mae := round(sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)), 4))
     )
 
@@ -120,7 +122,6 @@ def error_report(model, X_test, y_test, desc: str = None) -> dict:
         'prediction': predictions
     })
     plot_data['error'] = plot_data.prediction - plot_data.truth
-    # display(plot_data)
 
     fig, axs = plt.subplots(1,2, figsize=(10, 5))
     fig.suptitle(f"{desc or 'unknown model'} : {r2=} {rmse=} {mae=}")

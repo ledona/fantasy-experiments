@@ -1,4 +1,4 @@
-Sport	Service	Type	Style	y	R2	RMSE	MAE	ModelType	Date	Params
+Sport	Service	Type	Style	Target	R2	RMSE	MAE	ModelType	Date	Params
 nhl	draftkings	FIFTY_FIFTY	CLASSIC	last	0.1169	13.3697	3.1693	tpot	20220730	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 900, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 nhl	draftkings	FIFTY_FIFTY	CLASSIC	top	0.4984	14.0216	3.3032	tpot	20220730	{'population_size': 100, 'n_jobs': 4, 'verbosity': 2, 'max_train_time': 900, 'generations': 100, 'early_stop': 10, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 nhl	draftkings	FIFTY_FIFTY	SHOWDOWN	last	0.0811	13.6987	3.3761	skautoml	20220727	{'per_run_time_limit': 120, 'max_train_time': 600, 'n_jobs': 4, 'model_cols': {'best-possible-score'}, 'random_state': 0, 'random_state': 0}
