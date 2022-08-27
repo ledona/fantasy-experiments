@@ -75,7 +75,7 @@ def generate_train_test(df: pd.DataFrame, train_size: float = .5,
             x_cols.append(col)
 
     X = df[x_cols]
-    if len(X) == 0:
+    if len(X) < 2:
         return None
     y_top = df['top_score']
     y_last_win = df['last_winning_score']
