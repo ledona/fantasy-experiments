@@ -74,9 +74,18 @@ def generate_train_test(df: pd.DataFrame, train_size: float = .5,
         if (model_cols is None) or col in model_cols:
             x_cols.append(col)
 
-    X = df[x_cols]
-    if len(X) < 2:
+    len_pre_na_drop = len(df)
+    df = df[df['top_score'].notna()]
+    df = df[df['last_winning_score'].notna()]
+    if len(df) < len_pre_na_drop:
+        LOGGER.info(
+            "Dropped %i rows of %i due to NaNs in top_score or last_winning_score",
+            len_pre_na_drop - len(df), len_pre_na_drop
+        )
+    if len(df) < 2:
         return None
+
+    X = df[x_cols]
     y_top = df['top_score']
     y_last_win = df['last_winning_score']
 
@@ -86,8 +95,8 @@ def generate_train_test(df: pd.DataFrame, train_size: float = .5,
                                        train_size=train_size)
     except ValueError as ex:
         LOGGER.info(
-            f"generate_train_test_split:: Error generating train test split", exc_info=ex
+            "generate_train_test_split:: Error generating train test split", exc_info=ex
         )
-        sample_data = None
+        return None
 
     return sample_data
