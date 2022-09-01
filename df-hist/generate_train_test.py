@@ -42,12 +42,13 @@ def load_csv(
     nan_slate_rows = len(df.query('slate_id.isnull()'))
     nan_best_score_rows = len(df.query('`best-possible-score`.isnull()'))
     if nan_slate_rows > 0 or nan_best_score_rows > 0:
-        LOGGER.info(
-            f"dropping {nan_slate_rows + nan_best_score_rows} rows due to {nan_slate_rows=} {nan_best_score_rows=}. Remaining cases {len(df)=}"
-        )
         # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         #     display(df)
+        orig_rows = len(df)
         df = df.dropna()
+        LOGGER.info(
+            f"dropped {orig_rows-len(df)} rows. {nan_slate_rows=} {nan_best_score_rows=}. Remaining cases {len(df)=}"
+        )
         LOGGER.info(f"Remaining cases after drop {len(df)=}")
     return df
 

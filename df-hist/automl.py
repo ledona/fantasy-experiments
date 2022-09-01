@@ -15,6 +15,9 @@ import onnx
 import onnxruntime.backend as ort_backend
 import onnxruntime as ort
 import pypmml
+from jpmml_evaluator import make_evaluator
+from jpmml_evaluator.pyjnius import jnius_configure_classpath, PyJNIusBackend
+from jpmml_evaluator.py4j import launch_gateway, Py4JBackend
 
 import logging
 
@@ -40,6 +43,44 @@ def get_tpot_config(output_type):
             del tpot_config[model]
         return tpot_config
     raise NotImplementedError(f"output_type '{output_type}' not supported")
+
+
+""" Framework to use for pmml file inference"""
+PMMLFileFramework = Literal[
+    'jpmml-Py4J', 
+    'jpmml-PyJNIus', 
+    'jpmml-file',
+    'pypmml',
+]
+
+
+class JpmmlModel:
+    """
+    Use a pmml file to create a model and generate predictions for a dataframe. The model is loaded
+    during predict, so for efficiency it is recommended to do all predictions in one go.
+    """
+    def __init__(self, pmml_filepath: str, framework: PMMLFileFramework):
+        self.pmml_filepath = pmml_filepath
+        self.framework = framework
+
+    def predict(self, X: pd.DataFrame) -> pd.DataFrame:
+        if self.framework == 'jpmml-Py4J':
+            gateway = launch_gateway()
+            backend = Py4JBackend(gateway)
+        elif self.framework == 'jpmml-PyJNIus':
+            jnius_configure_classpath()
+            backend = PyJNIusBackend()
+        else:
+            raise ValueError(f"Unsupported framework {self.framework}")
+
+        evaluator = make_evaluator(backend, self.pmml_filepath) \
+            .verify()
+        results_df = evaluator.evaluate(X)
+        
+        if self.framework == 'jpmml-Py4J':
+            gateway.shutdown()
+            
+        return results_df
 
 
 def create_automl_model(
@@ -117,14 +158,19 @@ def create_automl_model(
     }
 
 
-def error_report(model, X_test, y_test, y_fallback: None = None,
-                 desc: str = None, show_results=True) -> dict:
+def error_report(
+    model: sklearn.base.BaseEstimator | onnx.ModelProto | JpmmlModel,
+    X_test, y_test, y_fallback: None = None,
+    desc: str = None, show_results=True
+) -> dict:
     """ 
     display the error report for the model, also return a dict with the scores
     
-    model - an onnx, pmml or scikit-learn style model/pipeline
+    model - an onnx, pmml or scikit-learn style model/pipeline, or a filename
     """
-    if isinstance(model, sklearn.base.BaseEstimator) or isinstance(model, pypmml.model.Model):
+    if isinstance(model, sklearn.base.BaseEstimator) or \
+       isinstance(model, pypmml.model.Model) or \
+       isinstance(model, JpmmlModel):
         predictions = model.predict(X_test)
     elif isinstance(model, onnx.ModelProto):
         session = ort.InferenceSession(model.SerializeToString())
@@ -137,7 +183,7 @@ def error_report(model, X_test, y_test, y_fallback: None = None,
         predictions = session.run([y_test.name], X_test)
         LOGGER.debug("Predictions for %s: %s", desc, predictions)
     else:
-        raise NotImplementedError(f"model type {type(model)} not supported")
+        raise NotImplementedError(f"Model type {type(model)} not supported", model)
 
     if y_fallback and (nans := pd.isna(predictions[predictions.columns[0]])).any():
         nan_count = np.count_nonzero(nans)
