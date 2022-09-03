@@ -21,7 +21,7 @@ update_registered_converter(
 
 COL_SEP = '\t'
 SUPPORTED_EXPORT_MODELS = ['tpot'] # , 'skautoml']
-LOGGER = logging.getLogger("automl")
+LOGGER = logging.getLogger("serialize")
 
 
 def get_tpot_export_code(
@@ -103,7 +103,7 @@ def serialize_model(
     tmp_path=None,
     output_format: Literal['onnx', 'pmml']='onnx'
 ):
-    LOGGER.info(f"Serializing {full_model_name=}")
+    LOGGER.info(f"Serializing {full_model_name=} to {output_format=}")
 
     if model_desc_folder and not os.path.isdir(model_desc_folder):
         os.mkdir(model_desc_folder)
@@ -130,7 +130,6 @@ def serialize_model(
         model_filepath = get_serialized_file_path(full_model_name, model_folder, output_format)
 
         if output_format == 'onnx':
-            LOGGER.info(f"Converting to ONNX... {exported_pipeline=}")
             serialized_model = to_onnx(exported_pipeline, X=X_train,
                                        name=full_model_name,
                                        final_types=[(y.name, FloatTensorType([1, 1]))])
@@ -138,14 +137,12 @@ def serialize_model(
             if model_folder:
                 with open(model_filepath, "wb") as f:
                     f.write(serialized_model.SerializeToString())
-                LOGGER.info(f"Exported model to {model_filepath=}")
+                LOGGER.info(f"Exported ONNX model to {model_filepath=}")
         elif output_format == 'pmml':
-            # TODO: move to its own function
-            LOGGER.info(f"Converting to PMML... {exported_pipeline=}")
             serialized_model = exported_pipeline
             if model_folder:
                 sklearn2pmml(serialized_model, model_filepath, with_repr=True)
-                LOGGER.info(f"Exported model to {model_filepath=}")
+                LOGGER.info(f"Exported PMML model to {model_filepath=}")
         else:
             raise NotImplementedError(f"output_format {output_format} not supported. Supported formats: {['onnx', 'pmml']}")
     except Exception as ex:

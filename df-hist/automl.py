@@ -1,6 +1,9 @@
 from math import sqrt
+import os
+import tempfile
 from typing import Optional, Literal
 import re
+import pickle
 
 from sklearn2pmml import make_tpot_pmml_config
 import autosklearn.regression
@@ -64,21 +67,34 @@ class JpmmlModel:
         self.framework = framework
 
     def predict(self, X: pd.DataFrame) -> pd.DataFrame:
-        if self.framework == 'jpmml-Py4J':
-            gateway = launch_gateway()
-            backend = Py4JBackend(gateway)
-        elif self.framework == 'jpmml-PyJNIus':
-            jnius_configure_classpath()
-            backend = PyJNIusBackend()
+        if self.framework in ['jpmml-Py4J', 'jpmml-PyJNIus']:
+            if self.framework == 'jpmml-Py4J':
+                gateway = launch_gateway()
+                backend = Py4JBackend(gateway)
+            else:
+                jnius_configure_classpath()
+                backend = PyJNIusBackend()
+            evaluator = make_evaluator(backend, self.pmml_filepath) \
+                .verify()
+            results_df = evaluator.evaluate(X)
+            if self.framework == 'jpmml-Py4J':
+                gateway.shutdown()            
+        elif self.framework == 'jpmml-file':
+            data_file = tempfile.NamedTemporaryFile()
+            LOGGER.info("exporting dataframe tpot serialize csv export to '%s'", data_file.name)
+
+            # X.columns = [
+            #     re.sub(r'[^a-zA-Z0-9]', '_', name)
+            #     for name in X.columns
+            # ]
+            X.to_csv("/tmp/tmp.csv", index=False, sep="\t")
+
+            raise NotImplementedError("call it like... 'java -cp pmml-evaluator-example/target/pmml-evaluator-example-executable-1.6-SNAPSHOT.jar org.jpmml.evaluator.example.EvaluationExample --model /fantasy-experiments/df-hist/eval_results/nfl-fanduel-CLASSIC-GPP-top-score-tpot.pmml.failed --input /tmp/tmp.csv'")
+            raise NotImplementedError("Load the results from the output file. the last column should be the predictions")
+            raise NotImplementedError("")
+            X.to_csv(data_file, index=False)
         else:
             raise ValueError(f"Unsupported framework {self.framework}")
-
-        evaluator = make_evaluator(backend, self.pmml_filepath) \
-            .verify()
-        results_df = evaluator.evaluate(X)
-        
-        if self.framework == 'jpmml-Py4J':
-            gateway.shutdown()
             
         return results_df
 
@@ -94,7 +110,9 @@ def create_automl_model(
     y_test=None,
     model_desc=None,
     target_output: None | Literal['pmml', 'onnx'] = None,
+    pre_process_model=None,
     post_process_model=None,
+    pickle_cache_dir=None,
     **automl_params
 ):
     """
@@ -105,50 +123,75 @@ def create_automl_model(
     max_train_time - time to train the model in seconds
     X_train, y_train - if not None then train the model
     X_test, y_test - if not None then score
+    pickle_cache - if true then write models to pickle and use use the pickled model if it exists
+       instead of fitting a new model
     model_desc - required if X_test and y_test are not None
     **automl_params - used when creating the model object
 
     returns - dict containing model, fit_params and evaluation results
     """
     fit_params = {}
+    model = None
+    using_pickled_model = False
+    if pickle_cache_dir:
+        pickle_filepath = os.path.join(pickle_cache_dir, model_desc + ".pickle")
+        if os.path.isfile(pickle_filepath):
+            LOGGER.info("loading model from pickled cache at '%s'", pickle_filepath)
+            with open(pickle_filepath, 'rb') as f:
+                model = pickle.load(f)
+                using_pickled_model = True
+
     if framework == 'skautoml':
         raise NotImplementedError("skautoml export to onnx not yet supported 2022-08-25")
         if max_train_time is None:
             raise ValueError("max_train_time must not be None for skautoml")
-        model = autosklearn.regression.AutoSklearnRegressor(
-            time_left_for_this_task=max_train_time,
-            seed=random_state,
-            **automl_params
-        )
+        if not model:
+            model = autosklearn.regression.AutoSklearnRegressor(
+                time_left_for_this_task=max_train_time,
+                seed=random_state,
+                **automl_params
+            )
         if pca_components is not None:
             fit_params['automl__dataset_name'] = target
         else:
             fit_params['dataset_name'] = target
 
     elif framework == 'tpot':
-        if max_train_time is not None:
-            if (rem:= max_train_time % 60) != 0:
-                new_train_time = max_train_time + 60 - rem
-                LOGGER.warning(f"TPot requires a training time in minutes. Rounding requested train time from {max_train_time} up to {new_train_time} seconds")
-                max_train_time = new_train_time
-            max_train_time /= 60
-        model = TPOTRegressor(
-            random_state=random_state,
-            max_time_mins=max_train_time,
-            config_dict=get_tpot_config(target_output),
-            **automl_params
-        )
+        if not model:
+            if max_train_time is not None:
+                if (rem:= max_train_time % 60) != 0:
+                    new_train_time = max_train_time + 60 - rem
+                    LOGGER.warning(f"TPot requires a training time in minutes. Rounding requested train time from {max_train_time} up to {new_train_time} seconds")
+                    max_train_time = new_train_time
+                max_train_time /= 60
+            model = TPOTRegressor(
+                random_state=random_state,
+                max_time_mins=max_train_time,
+                config_dict=get_tpot_config(target_output),
+                **automl_params
+            )
     else:
         raise NotImplementedError(f"framework '{framework}' not supported")
     
     eval_results = None
     if X_train is not None and y_train is not None:
-        model.fit(X_train, y_train, **fit_params)    
+        Xtr = X_train
+        Xte = X_test
+        if not using_pickled_model:
+            if pre_process_model:
+                model, Xtr, Xte = pre_process_model(model)
+            model.fit(Xtr, y_train, **fit_params)
         if X_test is not None and y_test is not None:
-            eval_results, predictions = error_report(model, X_test, y_test, desc=model_desc)
+            eval_results, predictions = error_report(model, Xte, y_test, desc=model_desc)
 
-    if post_process_model:
+    if not using_pickled_model and post_process_model:
+        LOGGER.info("Applying post process model function to model '%s'", model_desc)
         model = post_process_model(model)
+
+    if pickle_cache_dir and not using_pickled_model:
+        with open(pickle_filepath, 'wb') as f:
+            LOGGER.info("writing model to pickled cache file '%s'", pickle_filepath)
+            pickle.dump(model, f)
 
     return {
         'model': model, 
