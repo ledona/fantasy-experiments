@@ -1,0 +1,2768 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T04:00:55Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', '1B')"],
+                           Continuo...
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'C')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'OF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'P')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SS')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'))])),
+       ('selectfrommodel', SelectorProxy(selector=SelectFromModel(estimator=ExtraTreesRegressor(max_features=0.8500000000000001),
+                                       threshold=0.2))),
+       ('pca', PCA(iterated_power=10, svd_solver='randomized')),
+       ('adaboostregressor', AdaBoostRegressor(learning_rate=0.001, loss='exponential', n_estimators=100))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="top_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="173.59999999999997" rightMargin="482.19999999999993"/>
+		</DataField>
+	</DataDictionary>
+	<MiningModel functionName="regression" algorithmName="sklearn.ensemble._weight_boosting.AdaBoostRegressor">
+		<MiningSchema>
+			<MiningField name="top_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="78" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="173.59999999999997" maximum="482.19999999999993" mean="341.8047435897436" standardDeviation="52.70957047639498" median="345.94999999999993" interQuartileRange="63.77750000000003"/>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="pca(best-possible-score)[0]" optype="continuous" dataType="double">
+				<Apply function="sum">
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="best-possible-score"/>
+							<Constant dataType="double">341.8047435897436</Constant>
+						</Apply>
+						<Constant dataType="double">-1.0</Constant>
+					</Apply>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="float(pca(best-possible-score)[0])" optype="continuous" dataType="float">
+				<FieldRef field="pca(best-possible-score)[0]"/>
+			</DerivedField>
+			<DerivedField name="double(float(pca(best-possible-score)[0]))" optype="continuous" dataType="double">
+				<FieldRef field="float(pca(best-possible-score)[0])"/>
+			</DerivedField>
+		</LocalTransformations>
+		<Segmentation multipleModelMethod="weightedMedian">
+			<Segment id="1" weight="0.0018901983818692752">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="232.6285714285714">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="275.797619047619">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="29.154743194580078"/>
+								<Node score="292.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-38.69525718688965"/>
+								</Node>
+							</Node>
+							<Node score="252.05555555555554">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="2" weight="0.0017435549742000828">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="230.58">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="288.4703125">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="259.14324324324315">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="3" weight="0.0017592462022206752">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="242.00000000000003">
+						<True/>
+						<Node score="313.39090909090913">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.05025577545166"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="287.75714285714287">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+							</Node>
+						</Node>
+						<Node score="195.32500000000005">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.14525604248047"/>
+							<Node score="271.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-22.39525604248047"/>
+							</Node>
+						</Node>
+						<Node score="277.94705882352946">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.654743671417236"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="4" weight="0.0017372994307489737">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="280.5230769230769">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.654743671417236"/>
+							<Node score="316.3">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="277.09047619047624">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="263.61538461538464">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-14.295256614685059"/>
+							</Node>
+						</Node>
+						<Node score="225.42499999999995">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="130.45474243164062"/>
+							<Node score="248.5647058823529">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="49.04974365234375"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="5" weight="0.0019314460536605437">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="232.67500000000004">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="269.3444444444445">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+								<Node score="286.8666666666668">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-13.395256042480469"/>
+								</Node>
+							</Node>
+							<Node score="251.79999999999998">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="36.80474281311035"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="6" weight="0.0017561910370789125">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="271.63392857142856">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="44.44974327087402"/>
+							<Node score="302.2999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="231.66666666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-50.89525604248047"/>
+							</Node>
+						</Node>
+						<Node score="216.0">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="231.71250000000003">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="82.80474472045898"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="7" weight="0.0017407561311203346">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="300.3">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+							<Node score="308.67500000000007">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.645255088806152"/>
+								<Node score="285.92199999999997">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="266.9107142857143">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="16.64974355697632"/>
+							</Node>
+						</Node>
+						<Node score="220.08571428571426">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="249.4818181818182">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="59.00474166870117"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="8" weight="0.0017261673296222672">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="238.1833333333333">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="76.20474624633789"/>
+							<Node score="309.24999999999994">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="267.2137096774192">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="220.6">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="216.0">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="88.60474395751953"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="9" weight="0.0017299699112973944">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="295.5">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-34.80025672912598"/>
+							<Node score="261.0">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.84525680541992"/>
+								<Node score="288.8805555555556">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-37.745256423950195"/>
+								</Node>
+							</Node>
+							<Node score="354.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-35.80025672912598"/>
+							</Node>
+						</Node>
+						<Node score="226.28333333333333">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="259.23409090909087">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.40474319458008"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="10" weight="0.0018496260449485978">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="227.7785714285714">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="274.03877551020406">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="27.604743003845215"/>
+								<Node score="301.0333333333333">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								</Node>
+							</Node>
+							<Node score="253.10000000000005">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="11" weight="0.001868004279330345">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="220.66666666666666">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="272.04404761904755">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.654743671417236"/>
+								<Node score="297.8666666666667">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								</Node>
+							</Node>
+							<Node score="252.32916666666665">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="71.9997444152832"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="12" weight="0.0017761756089283674">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="227.0">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="286.2566666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="263.67499999999995">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="55.54974365234375"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="13" weight="0.0018793999000744632">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="251.00384615384607">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="277.7989583333333">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.654743671417236"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="14" weight="0.0015515860377668588">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="310.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="277.9791666666667">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.54525566101074"/>
+							</Node>
+						</Node>
+						<Node score="256.27954545454537">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="214.25000000000003">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.14525604248047"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="15" weight="0.0017555662027175325">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="226.14285714285714">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="294.4833333333333">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-103.64525985717773"/>
+								</Node>
+							</Node>
+							<Node score="262.49047619047616">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="62.29974365234375"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.8">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="16" weight="0.0018484607376816182">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="227.87142857142857">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="272.32395833333334">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+								<Node score="311.2625">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								</Node>
+							</Node>
+							<Node score="250.64545454545453">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="17" weight="0.0017355582179362677">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="226.14999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="291.29999999999995">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-37.745256423950195"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+								</Node>
+							</Node>
+							<Node score="257.82115384615383">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="18" weight="0.0013667737835087496">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="261.6238095238094">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="277.375">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-34.80025672912598"/>
+								<Node score="296.6571428571428">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-38.69525718688965"/>
+								</Node>
+							</Node>
+							<Node score="233.4727272727272">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.14525604248047"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.8">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="19" weight="0.0017784967966135226">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="308.4727272727273">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="283.1529411764706">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+							</Node>
+						</Node>
+						<Node score="229.6142857142857">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="262.31052631578945">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="20" weight="0.0017620904079201384">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="234.26999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="283.69999999999993">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-99.69525909423828"/>
+								</Node>
+							</Node>
+							<Node score="259.77333333333326">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="21" weight="0.0017436631270037314">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="303.4571428571429">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+							<Node score="269.25">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.84525680541992"/>
+								<Node score="295.79999999999995">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-38.69525718688965"/>
+								</Node>
+							</Node>
+							<Node score="354.9">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-35.80025672912598"/>
+							</Node>
+						</Node>
+						<Node score="221.11999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="257.8">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="22" weight="0.0015052219410007857">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="255.30526315789476">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="126.35474395751953"/>
+							<Node score="279.4944444444444">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.645255088806152"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="228.5818181818182">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="23" weight="0.0015612896103863237">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="258.70000000000005">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="279.68125">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="306.0571428571428">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								</Node>
+							</Node>
+							<Node score="223.2666666666667">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="24" weight="0.0017054922808620906">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="236.38571428571427">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="295.6267857142857">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="259.16410256410256">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="25" weight="0.0017420173904955454">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="305.5375000000001">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="290.54">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.84525680541992"/>
+							</Node>
+						</Node>
+						<Node score="228.04000000000002">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="262.40434782608685">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="26" weight="0.0016683585668302006">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="269.49137931034477">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="71.9997444152832"/>
+							<Node score="299.2200000000001">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="233.26666666666665">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-50.89525604248047"/>
+							</Node>
+						</Node>
+						<Node score="216.0">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="230.2">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="82.80474472045898"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="27" weight="0.0017627745505521693">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="243.50909090909087">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="124.65474319458008"/>
+							<Node score="293.31428571428575">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-38.69525718688965"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="269.3901960784314">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="30.14974308013916"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="28" weight="0.0017130430318217735">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="233.78181818181818">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="320.2">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.990257263183594"/>
+								<Node score="286.1571428571428">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="263.1">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="38.20474433898926"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="29" weight="0.0017344133355429552">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="230.8727272727273">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="306.07500000000005">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="291.6444444444444">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-34.55025672912598"/>
+								</Node>
+							</Node>
+							<Node score="261.0526315789473">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="30" weight="0.0018004361817008873">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="231.57692307692312">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="108.15974044799805"/>
+							<Node score="292.825">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.04525661468506"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="266.46578947368425">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="31" weight="0.0017841380340769218">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="229.33333333333334">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="288.8152173913043">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="264.9204081632653">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="32" weight="0.0017527505127397829">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="229.4428571428571">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="290.04999999999995">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="261.928125">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="38.20474433898926"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="33" weight="0.0015226562327830726">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="252.99230769230766">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="320.73750000000007">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="284.76153846153846">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="208.25">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-14.145256280899048"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="34" weight="0.0018865283301347147">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="286.8769230769231">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-3.445256292819977"/>
+							<Node score="335.09999999999997">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-34.80025672912598"/>
+								<Node score="288.39230769230767">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.84525680541992"/>
+								</Node>
+							</Node>
+							<Node score="275.38750000000005">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.095255851745605"/>
+							</Node>
+						</Node>
+						<Node score="224.6">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="254.64999999999998">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="35" weight="0.0018855821842752377">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="220.6">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="267.14666666666665">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="28.80474281311035"/>
+								<Node score="286.9516129032258">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.995256423950195"/>
+								</Node>
+							</Node>
+							<Node score="242.70000000000005">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="80.30474472045898"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="36" weight="0.001894697223868728">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="226.9125">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="277.51779661016957">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="29.154743194580078"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-99.69525909423828"/>
+								</Node>
+							</Node>
+							<Node score="255.08571428571426">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="37" weight="0.001760830039794343">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="230.01666666666665">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="282.6694444444444">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="298.1625">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								</Node>
+							</Node>
+							<Node score="262.3568181818182">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="38" weight="0.0018097233493515527">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="221.4">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="271.24117647058824">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="29.154743194580078"/>
+								<Node score="281.5887096774193">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.995256423950195"/>
+								</Node>
+							</Node>
+							<Node score="254.41111111111115">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="45.84974479675293"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="39" weight="0.0015513935941419378">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="305.875">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-42.54525566101074"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="294.8444444444445">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.54525566101074"/>
+							</Node>
+						</Node>
+						<Node score="251.01818181818172">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="271.0388888888889">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="40" weight="0.001710848453341362">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="288.4857142857142">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+							<Node score="316.3999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								<Node score="299.95000000000005">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-58.84525489807129"/>
+								</Node>
+							</Node>
+							<Node score="244.77499999999995">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-50.89525604248047"/>
+							</Node>
+						</Node>
+						<Node score="232.21999999999997">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="263.0809523809524">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="41" weight="0.0017667162822882485">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="231.6">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="108.15974044799805"/>
+							<Node score="290.52115384615377">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+								</Node>
+							</Node>
+							<Node score="261.8954545454545">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="42" weight="0.0016859728241418984">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="292.77272727272725">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+							<Node score="305.77777777777777">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-42.54525566101074"/>
+								<Node score="282.2888888888889">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.54525566101074"/>
+								</Node>
+							</Node>
+							<Node score="258.0625">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+							</Node>
+						</Node>
+						<Node score="265.2034482758621">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							<Node score="220.25000000000006">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.14525604248047"/>
+							</Node>
+						</Node>
+						<Node score="227.22857142857146">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="43" weight="0.001904636313924806">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="230.07777777777775">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="276.61875">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-3.445256292819977"/>
+								<Node score="293.0875">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								</Node>
+							</Node>
+							<Node score="259.26956521739123">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="44" weight="0.001758298495068681">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="262.53333333333325">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="292.13749999999993">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.05025577545166"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+								</Node>
+							</Node>
+							<Node score="191.76666666666665">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.095255851745605"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="45" weight="0.001852998249102562">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="231.21666666666667">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="276.1079999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+								<Node score="320.21999999999997">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								</Node>
+							</Node>
+							<Node score="251.69090909090903">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.8">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="46" weight="0.0017344659369207657">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="219.5">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="266.6392857142856">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+								<Node score="304.1625">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								</Node>
+							</Node>
+							<Node score="235.325">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="71.19974136352539"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="47" weight="0.0017365202300770287">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="227.02499999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="266.95806451612907">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="29.154743194580078"/>
+								<Node score="286.6939393939394">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								</Node>
+							</Node>
+							<Node score="245.36666666666665">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="49.04974365234375"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="48" weight="0.001555287637852335">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="267.9789473684211">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="71.9997444152832"/>
+							<Node score="286.16730769230765">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-103.64525985717773"/>
+								</Node>
+							</Node>
+							<Node score="225.74000000000007">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.14525604248047"/>
+							</Node>
+						</Node>
+						<Node score="216.0">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="225.4">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="80.29974365234375"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="49" weight="0.0016658878577535485">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="225.88000000000002">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="287.0203703703703">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+								</Node>
+							</Node>
+							<Node score="255.18780487804867">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							</Node>
+						</Node>
+						<Node score="108.8">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="50" weight="0.0018791526476134674">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="249.92962962962963">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+							</Node>
+							<Node score="281.8652173913043">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.654743671417236"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="51" weight="0.0018543689773673142">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="266.34">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="31.00474262237549"/>
+							<Node score="292.31551724137915">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="274.5153846153847">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="0.8497435636818409"/>
+							</Node>
+						</Node>
+						<Node score="223.85">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="130.45474243164062"/>
+							<Node score="246.7625">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="64.95474243164062"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="52" weight="0.0017284268243864865">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="236.26666666666662">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="108.15974044799805"/>
+							<Node score="296.84999999999997">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="284.22941176470584">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="263.59148936170214">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="59.804744720458984"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="53" weight="0.0017439845448390928">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="262.34090909090907">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+							</Node>
+							<Node score="286.2477272727272">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+							</Node>
+						</Node>
+						<Node score="217.53333333333333">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="231.91666666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="82.80474472045898"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="54" weight="0.0018481026882797178">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="230.98000000000002">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="271.2">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+								<Node score="301.20000000000005">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								</Node>
+							</Node>
+							<Node score="250.44444444444446">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="55" weight="0.0018447354944563625">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="225.6428571428571">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="274.62553191489354">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+								<Node score="313.08571428571423">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-71.84525680541992"/>
+								</Node>
+							</Node>
+							<Node score="250.61333333333334">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="56" weight="0.0015962209107116916">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="261.7682926829267">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="101.55974197387695"/>
+							<Node score="284.5071428571428">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="218.60000000000005">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.095255851745605"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="57" weight="0.0016629302666008351">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="227.75833333333335">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="301.24999999999994">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="258.9087719298245">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="58" weight="0.0017208356018621148">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="225.5666666666667">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="283.7589285714285">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-21.995256423950195"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="258.6028571428572">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="59" weight="0.001623224657161988">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="218.3">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="130.45474243164062"/>
+							<Node score="259.88">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+								<Node score="289.25714285714287">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-52.34525680541992"/>
+								</Node>
+							</Node>
+							<Node score="235.1428571428571">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="82.80474472045898"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="60" weight="0.001985999715756517">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="230.675">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+							<Node score="290.39722222222224">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-8.445256471633911"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="261.3466666666667">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="38.20474433898926"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="61" weight="0.001686683897551705">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="370.8999999999999">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+						</Node>
+						<Node score="262.6880952380951">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="59.00474166870117"/>
+							<Node score="284.54814814814813">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+							</Node>
+						</Node>
+						<Node score="234.6833333333333">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="62" weight="0.0017560880452359563">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="234.29999999999995">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="301.92499999999995">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="263.1926229508195">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="56.054744720458984"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="63" weight="0.0017946670969026764">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="241.54375000000002">
+						<True/>
+						<Node score="276.5107142857143">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="293.4555555555556">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+							</Node>
+						</Node>
+						<Node score="220.08000000000007">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							<Node score="231.7000000000001">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-25.345255851745605"/>
+							</Node>
+						</Node>
+						<Node score="273.5678571428572">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="29.499743461608887"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="64" weight="0.0016868851063387871">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="245.03076923076927">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="100.75973892211914"/>
+							<Node score="332.67500000000007">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="291.4166666666667">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.84525680541992"/>
+								</Node>
+							</Node>
+							<Node score="265.460975609756">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="30.14974308013916"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="65" weight="0.0020198414549697035">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="264.8666666666667">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							<Node score="321.45000000000005">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.995256423950195"/>
+								<Node score="283.82916666666665">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.84525680541992"/>
+								</Node>
+							</Node>
+							<Node score="235.40000000000003">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+						<Node score="228.82857142857142">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="237.59999999999997">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="71.9997444152832"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="66" weight="0.0019603064274729748">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="227.35999999999999">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="285.74642857142857">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-14.145256280899048"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+								</Node>
+							</Node>
+							<Node score="259.35555555555555">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="59.00474166870117"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="67" weight="0.0018683039523105516">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="224.84">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="273.85849056603774">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+								</Node>
+							</Node>
+							<Node score="251.91818181818178">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="68" weight="0.0018102282585732074">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="232.31666666666663">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="126.35474395751953"/>
+							<Node score="275.63846153846157">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-8.445256471633911"/>
+								<Node score="291.01249999999993">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								</Node>
+							</Node>
+							<Node score="262.8382352941176">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="59.00474166870117"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="69" weight="0.0020024552901149605">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="232.2888888888889">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="288.939024390244">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-12.595256090164185"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="257.89583333333326">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="70" weight="0.0019448128834229752">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="230.13750000000002">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="120.00474166870117"/>
+							<Node score="292.3649999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.995256423950195"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="267.43783783783783">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="71" weight="0.0017773911878741456">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="220.66666666666666">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="271.7652173913044">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-103.64525985717773"/>
+								</Node>
+							</Node>
+							<Node score="237.39999999999998">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="71.9997444152832"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="72" weight="0.0015423577715173464">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="263.62926829268287">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="284.2477272727273">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+								</Node>
+							</Node>
+							<Node score="217.07142857142864">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="73" weight="0.0017782090730390108">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="244.78750000000002">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="130.45474243164062"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="275.12966101694917">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="74" weight="0.002021239996908169">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="257.6432432432432">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="290.5052631578948">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-22.39525604248047"/>
+								<Node score="272.1533333333333">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.54525566101074"/>
+								</Node>
+							</Node>
+							<Node score="151.7">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.14525604248047"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="75" weight="0.0016833656165193536">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="230.6">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="306.7">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+								<Node score="284.90000000000003">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.54525566101074"/>
+								</Node>
+							</Node>
+							<Node score="263.31666666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="38.20474433898926"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="76" weight="0.001847294745579629">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.8">
+						<True/>
+						<Node score="228.51818181818183">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="274.26444444444434">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.54974365234375"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-103.64525985717773"/>
+								</Node>
+							</Node>
+							<Node score="247.97222222222217">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="49.04974365234375"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="77" weight="0.0015366641279568442">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="253.86363636363637">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="101.55974197387695"/>
+							<Node score="289.2807692307692">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="223.2636363636364">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.445256233215332"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="78" weight="0.0017382934736368376">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="231.84999999999997">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="105.65473937988281"/>
+							<Node score="268.7780487804878">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="18.094743728637695"/>
+								<Node score="283.9847826086956">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								</Node>
+							</Node>
+							<Node score="256.0375">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="79" weight="0.0015398327570040422">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="289.03333333333336">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+							<Node score="316.3999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								<Node score="302.09999999999997">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-58.84525489807129"/>
+								</Node>
+							</Node>
+							<Node score="256.28333333333325">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-50.89525604248047"/>
+							</Node>
+						</Node>
+						<Node score="255.1558139534883">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="224.21111111111114">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="80" weight="0.001955460785496005">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="232.30000000000004">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="99.40974044799805"/>
+							<Node score="282.6944444444444">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-2.3952563405036926"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="259.14642857142854">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="38.20474433898926"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="81" weight="0.0017509589534933031">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="217.53333333333333">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="264.1348837209302">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+								<Node score="286.2736842105263">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								</Node>
+							</Node>
+							<Node score="228.85000000000002">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="80.29974365234375"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="82" weight="0.0017446772155718592">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="218.3">
+						<True/>
+						<Node score="279.8705882352941">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-8.445256471633911"/>
+							<Node score="289.24999999999994">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-38.34525680541992"/>
+								<Node score="300.77692307692314">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.89525604248047"/>
+								</Node>
+							</Node>
+							<Node score="247.66666666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.09525680541992"/>
+							</Node>
+						</Node>
+						<Node score="262.77777777777777">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="57.65474319458008"/>
+							<Node score="237.79999999999995">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-5.495256423950195"/>
+							</Node>
+						</Node>
+						<Node score="229.82857142857145">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="82.80474472045898"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="83" weight="0.0013901880125617087">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="262.5522727272727">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="120.00474166870117"/>
+							<Node score="296.86">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.240256309509277"/>
+								<Node score="266.8066666666666">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="226.26666666666668">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-14.695256233215332"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="84" weight="0.0014422250248099216">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="259.6499999999999">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="105.65473937988281"/>
+							<Node score="299.7833333333334">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+								<Node score="274.9125">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.54525566101074"/>
+								</Node>
+							</Node>
+							<Node score="230.65555555555557">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="85" weight="0.0017412999374090115">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="257.3647058823529">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="296.8666666666667">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.05025577545166"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="191.76666666666665">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.14525604248047"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="86" weight="0.0018186238733562687">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="253.69210526315788">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="311.5666666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-55.14525604248047"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-99.69525909423828"/>
+								</Node>
+							</Node>
+							<Node score="274.6499999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="0.1997435875236988"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="87" weight="0.001912287655846003">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="278.78571428571433">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.54974365234375"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-103.64525985717773"/>
+							</Node>
+							<Node score="291.15555555555545">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.05025577545166"/>
+							</Node>
+						</Node>
+						<Node score="260.81">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							<Node score="250.73333333333335">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="9.854743480682373"/>
+							</Node>
+						</Node>
+						<Node score="224.875">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="109.8597412109375"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="88" weight="0.0015753474340725214">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="310.9900000000001">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+							</Node>
+							<Node score="280.79999999999995">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+							</Node>
+						</Node>
+						<Node score="254.49999999999994">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="219.60000000000002">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-19.095255851745605"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="151.7097396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="89" weight="0.0016483157941576797">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="217.53333333333333">
+						<True/>
+						<Node score="276.3267857142857">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="29.154743194580078"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-108.59526062011719"/>
+							</Node>
+							<Node score="254.82">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-50.89525604248047"/>
+							</Node>
+						</Node>
+						<Node score="242.7">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="74.50474548339844"/>
+							<Node score="254.98333333333335">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="56.054744720458984"/>
+							</Node>
+						</Node>
+						<Node score="235.0">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="82.80474472045898"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="90" weight="0.0016439665949678028">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="302.0866666666667">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+							</Node>
+							<Node score="278.4409090909091">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.54525566101074"/>
+							</Node>
+						</Node>
+						<Node score="270.686111111111">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="52.59974479675293"/>
+							<Node score="222.45000000000007">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+						<Node score="229.9375">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="91" weight="0.0019204360128168422">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="267.9857142857143">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							<Node score="290.69687499999986">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-2.350256323814392"/>
+								<Node score="273.4111111111111">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-49.14525604248047"/>
+								</Node>
+							</Node>
+							<Node score="258.425">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="15.504743576049805"/>
+							</Node>
+						</Node>
+						<Node score="219.0666666666667">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="130.45474243164062"/>
+							<Node score="231.11999999999998">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="76.20474624633789"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="92" weight="0.001400942144897118">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="260.61956521739125">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="285.35714285714283">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="231.96250000000006">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-18.745256423950195"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="93" weight="0.001768675876158857">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="229.94444444444446">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="294.31388888888887">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-34.80025672912598"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="262.2066666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="94" weight="0.0016758391768027675">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="228.87499999999997">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="130.45474243164062"/>
+							<Node score="307.43750000000006">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-28.35525608062744"/>
+								<Node score="282.55333333333334">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="261.86304347826086">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="95" weight="0.0017463398953852735">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="250.1206896551724">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="121.70474243164062"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-99.69525909423828"/>
+							</Node>
+							<Node score="271.50000000000006">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.654743671417236"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="96" weight="0.0018102303147686624">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="228.19999999999996">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="291.72391304347815">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-32.59025573730469"/>
+								<Node score="370.8999999999999">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-110.14525985717773"/>
+								</Node>
+							</Node>
+							<Node score="266.57250000000005">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							</Node>
+						</Node>
+						<Node score="149.55">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="147.0597381591797"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="97" weight="0.001875569858023593">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="269.6133333333334">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="54.19974327087402"/>
+							<Node score="279.94761904761896">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="5.654743671417236"/>
+								<Node score="295.05499999999995">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-35.295257568359375"/>
+								</Node>
+							</Node>
+							<Node score="249.25000000000003">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="15.504743576049805"/>
+							</Node>
+						</Node>
+						<Node score="219.45">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="231.16666666666666">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="82.80474472045898"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="98" weight="0.0016529263698493856">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="108.79999999999998">
+						<True/>
+						<Node score="227.8">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="313.5555555555556">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-25.650256156921387"/>
+								<Node score="285.1804347826086">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="266.91951219512185">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="64.80474472045898"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="99" weight="0.0014781211809870042">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="149.55">
+						<True/>
+						<Node score="269.65">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="29.154743194580078"/>
+							<Node score="309.73333333333335">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-31.000255584716797"/>
+								<Node score="277.5138888888889">
+									<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-36.59025764465332"/>
+								</Node>
+							</Node>
+							<Node score="241.22000000000008">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-14.295256614685059"/>
+							</Node>
+						</Node>
+						<Node score="224.66666666666666">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="113.9597396850586"/>
+							<Node score="246.9692307692308">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="71.9997444152832"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="100" weight="0.00152880010082413">
+				<True/>
+				<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(pca(best-possible-score)[0]))"/>
+					</MiningSchema>
+					<Node score="103.0">
+						<True/>
+						<Node score="254.23454545454535">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="125.80474090576172"/>
+							<Node score="370.8999999999999">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-103.64525985717773"/>
+							</Node>
+							<Node score="280.05294117647054">
+								<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="-37.745256423950195"/>
+							</Node>
+						</Node>
+						<Node score="108.79999999999998">
+							<SimplePredicate field="double(float(pca(best-possible-score)[0]))" operator="lessOrEqual" value="163.55474090576172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+		</Segmentation>
+	</MiningModel>
+</PMML>

@@ -1,6 +1,6 @@
 from math import sqrt
 import os
-import tempfile
+# import tempfile
 from typing import Optional, Literal
 import re
 import pickle
@@ -29,7 +29,8 @@ LOGGER = logging.getLogger("automl")
 
 Frameworks = Literal['skautoml', 'tpot']
 
-UNSUPPORTED_TPOT_MODELS = [
+
+ONNX_UNSUPPORTED_TPOT_MODELS = [
     'sklearn.decomposition.FastICA', 
     'tpot.builtins.ZeroCount',
     'tpot.builtins.OneHotEncoder',
@@ -42,7 +43,7 @@ def get_tpot_config(output_type):
     if output_type == 'pmml':
         return make_tpot_pmml_config(tpot_config)
     elif output_type == 'onnx':
-        for model in UNSUPPORTED_TPOT_MODELS:
+        for model in ONNX_UNSUPPORTED_TPOT_MODELS:
             del tpot_config[model]
         return tpot_config
     raise NotImplementedError(f"output_type '{output_type}' not supported")
@@ -52,7 +53,6 @@ def get_tpot_config(output_type):
 PMMLFileFramework = Literal[
     'jpmml-Py4J', 
     'jpmml-PyJNIus', 
-    'jpmml-file',
     'pypmml',
 ]
 
@@ -67,35 +67,19 @@ class JpmmlModel:
         self.framework = framework
 
     def predict(self, X: pd.DataFrame) -> pd.DataFrame:
-        if self.framework in ['jpmml-Py4J', 'jpmml-PyJNIus']:
-            if self.framework == 'jpmml-Py4J':
-                gateway = launch_gateway()
-                backend = Py4JBackend(gateway)
-            else:
-                jnius_configure_classpath()
-                backend = PyJNIusBackend()
-            evaluator = make_evaluator(backend, self.pmml_filepath) \
-                .verify()
-            results_df = evaluator.evaluate(X)
-            if self.framework == 'jpmml-Py4J':
-                gateway.shutdown()            
-        elif self.framework == 'jpmml-file':
-            data_file = tempfile.NamedTemporaryFile()
-            LOGGER.info("exporting dataframe tpot serialize csv export to '%s'", data_file.name)
-
-            # X.columns = [
-            #     re.sub(r'[^a-zA-Z0-9]', '_', name)
-            #     for name in X.columns
-            # ]
-            X.to_csv("/tmp/tmp.csv", index=False, sep="\t")
-
-            raise NotImplementedError("call it like... 'java -cp pmml-evaluator-example/target/pmml-evaluator-example-executable-1.6-SNAPSHOT.jar org.jpmml.evaluator.example.EvaluationExample --model /fantasy-experiments/df-hist/eval_results/nfl-fanduel-CLASSIC-GPP-top-score-tpot.pmml.failed --input /tmp/tmp.csv'")
-            raise NotImplementedError("Load the results from the output file. the last column should be the predictions")
-            raise NotImplementedError("")
-            X.to_csv(data_file, index=False)
-        else:
+        if self.framework not in ['jpmml-Py4J', 'jpmml-PyJNIus']:
             raise ValueError(f"Unsupported framework {self.framework}")
-            
+        if self.framework == 'jpmml-Py4J':
+            gateway = launch_gateway()
+            backend = Py4JBackend(gateway)
+        else:
+            jnius_configure_classpath()
+            backend = PyJNIusBackend()
+        evaluator = make_evaluator(backend, self.pmml_filepath) \
+            .verify()
+        results_df = evaluator.evaluate(X)
+        if self.framework == 'jpmml-Py4J':
+            gateway.shutdown()            
         return results_df
 
 
@@ -203,7 +187,8 @@ def create_automl_model(
 
 def error_report(
     model: sklearn.base.BaseEstimator | onnx.ModelProto | JpmmlModel,
-    X_test, y_test, y_fallback: None = None,
+    X_test, y_test, 
+    y_fallback: None = None,
     desc: str = None, show_results=True
 ) -> dict:
     """ 
@@ -228,7 +213,9 @@ def error_report(
     else:
         raise NotImplementedError(f"Model type {type(model)} not supported", model)
 
-    if y_fallback and (nans := pd.isna(predictions[predictions.columns[0]])).any():
+    if isinstance(predictions, pd.DataFrame):
+        predictions = predictions[predictions.columns[0]]
+    if y_fallback is not None and (nans := pd.isna(predictions)).any():
         nan_count = np.count_nonzero(nans)
         LOGGER.warning("Predictions for %s contain NaN. Filling %i of %i predictions with fallback value %f.",
                        desc, nan_count, len(predictions), y_fallback)
@@ -237,7 +224,7 @@ def error_report(
     try:
         r2 = round(sklearn.metrics.r2_score(y_test, predictions), 4)
         rmse = round(sqrt(sklearn.metrics.mean_squared_error(y_test, predictions)), 4)
-        mae = round(sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)), 4)    
+        mae = round(sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)), 4)
     except ValueError as e:
         LOGGER.error(f"Error calculating error metrics for %s: {e}", desc)
         return None, predictions
@@ -248,13 +235,22 @@ def error_report(
         'MAE': mae,
     }
     if show_results:
-        LOGGER.info("**** Error Report for %s ****: %s", desc, result)   
+        LOGGER.info("**** Error Report for %s ****: %s", desc, result)
+        assert isinstance(predictions, pd.Series) or isinstance(predictions, np.ndarray)
+        assert isinstance(y_test, pd.Series) or isinstance(y_test, np.ndarray)
 
-        plot_data = pd.DataFrame({
-            'truth': y_test,
-            'prediction': predictions
-        })
+        truth = pd.Series(y_test) if isinstance(y_test, np.ndarray) else y_test
+        truth = y_test.reset_index(drop=True)
+        pred = pd.Series(predictions) if isinstance(predictions, np.ndarray) else predictions
+        pred = pred.reset_index(drop=True)
+
+        plot_data = pd.concat(
+            [truth, pred], 
+            axis=1
+        )
+        plot_data.columns = ['truth', 'prediction']
         plot_data['error'] = plot_data.prediction - plot_data.truth
+        print(plot_data)
 
         fig, axs = plt.subplots(1,2, figsize=(10, 5))
         fig.suptitle(f"{desc or 'unknown model'} : {r2=} {rmse=} {mae=}")

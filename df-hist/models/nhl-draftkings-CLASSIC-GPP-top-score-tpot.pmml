@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T02:07:32Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', 'C')"],
+                           Continuou...
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'C')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'D')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'G')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'W')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'))])),
+       ('selectpercentile', SelectorProxy(selector=SelectPercentile(percentile=85,
+                                        score_func=&lt;function f_regression at 0x7f4a5f835d80&gt;))),
+       ('polynomialfeatures', PolynomialFeatures(include_bias=False)),
+       ('elasticnetcv', ElasticNetCV(l1_ratio=0.35000000000000003, tol=0.01))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="top_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="183.3" rightMargin="306.29999999999995"/>
+		</DataField>
+		<DataField name="team_count" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="4.0" rightMargin="26.0"/>
+		</DataField>
+		<DataField name="('med-dfs', 'G')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="4.2" rightMargin="19.700000000000003"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'W')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="6.0" rightMargin="11.559999999999995"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.linear_model._coordinate_descent.ElasticNetCV">
+		<MiningSchema>
+			<MiningField name="top_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team_count" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'G')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'W')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="67" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="183.3" maximum="306.29999999999995" mean="235.74776119402986" standardDeviation="29.825429189385208" median="235.0" interQuartileRange="44.0"/>
+			</UnivariateStats>
+			<UnivariateStats field="team_count">
+				<Counts totalFreq="67" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="4.0" maximum="26.0" mean="14.537313432835822" standardDeviation="6.732253305796036" median="14.0" interQuartileRange="14.0"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'G')">
+				<Counts totalFreq="67" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="4.2" maximum="19.700000000000003" mean="12.175373134328357" standardDeviation="3.738488531821626" median="12.3" interQuartileRange="5.024999999999999"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'W')">
+				<Counts totalFreq="67" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="6.0" maximum="11.559999999999995" mean="8.78567164179104" standardDeviation="1.3138041198425339" median="9.1" interQuartileRange="2.079999999999999"/>
+			</UnivariateStats>
+		</ModelStats>
+		<RegressionTable intercept="91.97713138696099">
+			<NumericPredictor name="best-possible-score" exponent="2" coefficient="0.0014928934633645053"/>
+			<PredictorTerm name="best-possible-score:team_count" coefficient="-0.006888400168704631">
+				<FieldRef field="best-possible-score"/>
+				<FieldRef field="team_count"/>
+			</PredictorTerm>
+			<PredictorTerm name="best-possible-score:('med-dfs', 'G')" coefficient="-0.002338269233106305">
+				<FieldRef field="best-possible-score"/>
+				<FieldRef field="('med-dfs', 'G')"/>
+			</PredictorTerm>
+			<PredictorTerm name="best-possible-score:('70.0th-pctl-dfs', 'W')" coefficient="0.017018633972508808">
+				<FieldRef field="best-possible-score"/>
+				<FieldRef field="('70.0th-pctl-dfs', 'W')"/>
+			</PredictorTerm>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>

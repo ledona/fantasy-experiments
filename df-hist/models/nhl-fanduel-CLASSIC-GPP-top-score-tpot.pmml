@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T01:25:37Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (["('med-dfs', 'C')...
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (["('70.0th-pctl-dfs', 'C')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (["('70.0th-pctl-dfs', 'D')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (["('70.0th-pctl-dfs', 'G')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {}),
+                          (["('70.0th-pctl-dfs', 'W')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'),
+                           {})])),
+       ('selectpercentile', SelectorProxy(selector=SelectPercentile(score_func=&lt;function f_regression at 0x7f4a5f835d80&gt;))),
+       ('polynomialfeatures', PolynomialFeatures(include_bias=False)),
+       ('linearsvr', LinearSVR(C=0.001, dual=False, epsilon=1.0, loss='squared_epsilon_insensitive',
+          tol=1e-05))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="top_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="200.9" rightMargin="380.4"/>
+		</DataField>
+		<DataField name="team_count" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="4.0" rightMargin="26.0"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.svm._classes.LinearSVR">
+		<MiningSchema>
+			<MiningField name="top_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team_count" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="101" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="200.9" maximum="380.4" mean="295.1039603960396" standardDeviation="43.59025897358915" median="291.00000000000006" interQuartileRange="63.60000000000002"/>
+			</UnivariateStats>
+			<UnivariateStats field="team_count">
+				<Counts totalFreq="101" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="4.0" maximum="26.0" mean="13.663366336633663" standardDeviation="6.576702396364907" median="12.0" interQuartileRange="12.0"/>
+			</UnivariateStats>
+		</ModelStats>
+		<RegressionTable intercept="0.005996897558536689">
+			<NumericPredictor name="best-possible-score" coefficient="0.8817370785569356"/>
+			<NumericPredictor name="team_count" coefficient="0.03848598125152423"/>
+			<NumericPredictor name="best-possible-score" exponent="2" coefficient="1.731151165496977E-4"/>
+			<NumericPredictor name="team_count" exponent="2" coefficient="0.14435648826702419"/>
+			<PredictorTerm name="best-possible-score:team_count" coefficient="-0.020166401796547766">
+				<FieldRef field="best-possible-score"/>
+				<FieldRef field="team_count"/>
+			</PredictorTerm>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>
