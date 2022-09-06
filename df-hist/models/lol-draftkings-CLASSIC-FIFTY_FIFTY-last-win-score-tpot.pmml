@@ -1,0 +1,2478 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T12:18:59Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', 'ADCB')"],
+                           Contin...
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'JNG')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'MID')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SUP')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'TOP')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'))])),
+       ('variancethreshold', SelectorProxy(selector=VarianceThreshold(threshold=0.0001))),
+       ('maxabsscaler', MaxAbsScaler()),
+       ('randomforestregressor', RandomForestRegressor(max_features=0.6500000000000001, min_samples_leaf=2,
+                      min_samples_split=13))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="last_winning_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="229.99" rightMargin="1075.8802970000002"/>
+		</DataField>
+		<DataField name="team-med" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="0.5" rightMargin="2.5"/>
+		</DataField>
+		<DataField name="team-70.0th_pctl" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="1.0" rightMargin="3.0"/>
+		</DataField>
+		<DataField name="('med-dfs', 'ADCB')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="10.28" rightMargin="147.37015100000002"/>
+		</DataField>
+		<DataField name="('med-dfs', 'JNG')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="10.98" rightMargin="126.09"/>
+		</DataField>
+		<DataField name="('med-dfs', 'MID')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="16.59" rightMargin="140.04"/>
+		</DataField>
+		<DataField name="('med-dfs', 'SUP')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="7.689999999999999" rightMargin="92.09"/>
+		</DataField>
+		<DataField name="('med-dfs', 'TOP')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="12.98" rightMargin="114.56"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'ADCB')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="23.536" rightMargin="153.79027180000003"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'JNG')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="17.49999999999999" rightMargin="141.74613799999997"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'MID')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="18.728" rightMargin="153.31399"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'SUP')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="14.311999999999998" rightMargin="103.01819799999998"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'TOP')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="14.502" rightMargin="117.878"/>
+		</DataField>
+	</DataDictionary>
+	<MiningModel functionName="regression" algorithmName="sklearn.ensemble._forest.RandomForestRegressor">
+		<MiningSchema>
+			<MiningField name="last_winning_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'SUP')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'ADCB')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'JNG')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'ADCB')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'TOP')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'SUP')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'TOP')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'JNG')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team-med" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'MID')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'MID')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team-70.0th_pctl" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="229.99" maximum="1075.8802970000002" mean="623.1150218636363" standardDeviation="250.9641823477082" median="661.2699775000001" interQuartileRange="405.7799754999999"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'SUP')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="7.689999999999999" maximum="92.09" mean="42.36134429545455" standardDeviation="23.08943973783243" median="42.650025" interQuartileRange="35.04764925"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'ADCB')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="23.536" maximum="153.79027180000003" mean="79.44420607272725" standardDeviation="37.472952779175294" median="81.767" interQuartileRange="65.14249265"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'JNG')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="17.49999999999999" maximum="141.74613799999997" mean="69.61969296818181" standardDeviation="34.69863150888401" median="70.10499999999999" interQuartileRange="55.29779629999998"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'ADCB')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="10.28" maximum="147.37015100000002" mean="65.48630661363636" standardDeviation="35.74319423905057" median="65.85487549999999" interQuartileRange="53.8948865"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'TOP')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="14.502" maximum="117.878" mean="65.25023127272728" standardDeviation="30.682738934712187" median="68.11813" interQuartileRange="52.377030000000005"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'SUP')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="14.311999999999998" maximum="103.01819799999998" mean="56.133723109090916" standardDeviation="26.202647325591066" median="58.647000000000006" interQuartileRange="48.34179159999999"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'TOP')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="12.98" maximum="114.56" mean="54.40271936363638" standardDeviation="29.13515727908499" median="55.7998755" interQuartileRange="50.71265"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'JNG')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="10.98" maximum="126.09" mean="55.81752156818181" standardDeviation="32.047129453441144" median="56.994924499999996" interQuartileRange="48.11251225"/>
+			</UnivariateStats>
+			<UnivariateStats field="team-med">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="0.5" maximum="2.5" mean="1.3295454545454546" standardDeviation="0.6301441196823533" median="1.5" interQuartileRange="1.0"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'MID')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="16.59" maximum="140.04" mean="65.75747736363635" standardDeviation="35.24736086173738" median="67.8552005" interQuartileRange="51.37262475"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'MID')">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="18.728" maximum="153.31399" mean="76.27249786363636" standardDeviation="37.16328556384926" median="75.9752731" interQuartileRange="64.22515734999999"/>
+			</UnivariateStats>
+			<UnivariateStats field="team-70.0th_pctl">
+				<Counts totalFreq="44" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="1.0" maximum="3.0" mean="1.8681818181818182" standardDeviation="0.6553183568009754" median="2.0" interQuartileRange="1.0"/>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="maxAbsScaler(best-possible-score)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="best-possible-score"/>
+					<Constant dataType="double">1075.8802970000002</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(team-med)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="team-med"/>
+					<Constant dataType="double">2.5</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(team-70.0th_pctl)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="team-70.0th_pctl"/>
+					<Constant dataType="double">3.0</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('med-dfs', 'ADCB'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('med-dfs', 'ADCB')"/>
+					<Constant dataType="double">147.37015100000002</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('med-dfs', 'JNG'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('med-dfs', 'JNG')"/>
+					<Constant dataType="double">126.09</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('med-dfs', 'MID'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('med-dfs', 'MID')"/>
+					<Constant dataType="double">140.04</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('med-dfs', 'SUP'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('med-dfs', 'SUP')"/>
+					<Constant dataType="double">92.09</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('med-dfs', 'TOP'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('med-dfs', 'TOP')"/>
+					<Constant dataType="double">114.56</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('70.0th-pctl-dfs', 'ADCB')"/>
+					<Constant dataType="double">153.79027180000003</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('70.0th-pctl-dfs', 'JNG')"/>
+					<Constant dataType="double">141.74613799999997</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('70.0th-pctl-dfs', 'MID'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('70.0th-pctl-dfs', 'MID')"/>
+					<Constant dataType="double">153.31399</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('70.0th-pctl-dfs', 'SUP')"/>
+					<Constant dataType="double">103.01819799999998</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<FieldRef field="('70.0th-pctl-dfs', 'TOP')"/>
+					<Constant dataType="double">117.878</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(best-possible-score))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(best-possible-score)"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(team-med))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(team-med)"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(team-70.0th_pctl))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(team-70.0th_pctl)"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('med-dfs', 'ADCB')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('med-dfs', 'ADCB'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('med-dfs', 'JNG')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('med-dfs', 'JNG'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('med-dfs', 'MID')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('med-dfs', 'MID'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('med-dfs', 'SUP')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('med-dfs', 'SUP'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('med-dfs', 'TOP')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('med-dfs', 'TOP'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('70.0th-pctl-dfs', 'MID')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('70.0th-pctl-dfs', 'MID'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))"/>
+			</DerivedField>
+			<DerivedField name="float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP')))" optype="continuous" dataType="float">
+				<FieldRef field="maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(best-possible-score)))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(best-possible-score))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('med-dfs', 'SUP')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('med-dfs', 'ADCB')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('med-dfs', 'TOP')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('med-dfs', 'JNG')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(team-med)))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(team-med))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('med-dfs', 'MID')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(('70.0th-pctl-dfs', 'MID')))"/>
+			</DerivedField>
+			<DerivedField name="double(float(maxAbsScaler(team-70.0th_pctl)))" optype="continuous" dataType="double">
+				<FieldRef field="float(maxAbsScaler(team-70.0th_pctl))"/>
+			</DerivedField>
+		</LocalTransformations>
+		<Segmentation multipleModelMethod="average">
+			<Segment id="1">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="759.1300000000001">
+						<True/>
+						<Node score="181.10307692307694">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.42404337227344513"/>
+						</Node>
+						<Node score="596.1722222222222">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.6754818856716156"/>
+							<Node score="506.9228571428571">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.5209857821464539"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="2">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="819.0353846153847">
+						<True/>
+						<Node score="176.28538461538463">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.29643135517835617"/>
+						</Node>
+						<Node score="536.7755555555556">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6621759831905365"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="3">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="650.6527272727272">
+						<True/>
+						<Node score="182.17411764705884">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3667267858982086"/>
+						</Node>
+						<Node score="496.12874999999997">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="4">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+					</MiningSchema>
+					<Node score="805.5255555555555">
+						<True/>
+						<Node score="174.5625">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3555971831083298"/>
+						</Node>
+						<Node score="512.5765217391305">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.7504911720752716"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="5">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="844.9933333333333">
+						<True/>
+						<Node score="204.41733333333335">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3056027442216873"/>
+						</Node>
+						<Node score="563.8758823529412">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="486.97666666666674">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.409630224108696"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="6">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="721.5407692307692">
+						<True/>
+						<Node score="188.47909090909096">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.3447429984807968"/>
+						</Node>
+						<Node score="574.9788888888888">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6189849078655243"/>
+							<Node score="484.9827272727273">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.494411900639534"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="7">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="833.69">
+						<True/>
+						<Node score="174.1869230769231">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3555971831083298"/>
+						</Node>
+						<Node score="417.19999999999993">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="641.2416666666668">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6069395542144775"/>
+								<Node score="551.1906666666666">
+									<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6560256779193878"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="8">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="875.1560000000002">
+						<True/>
+						<Node score="224.8311111111111">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.27603431046009064"/>
+						</Node>
+						<Node score="622.3149999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6535578966140747"/>
+							<Node score="546.3115789473684">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="9">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="782.1750000000001">
+						<True/>
+						<Node score="184.35500000000002">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.25106847286224365"/>
+						</Node>
+						<Node score="571.1807142857143">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.800000011920929"/>
+							<Node score="498.90357142857147">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.5316786170005798"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="10">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="759.7471428571428">
+						<True/>
+						<Node score="176.55642857142857">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3056027442216873"/>
+						</Node>
+						<Node score="556.461">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6659987568855286"/>
+							<Node score="489.1407692307693">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6441153883934021"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="11">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="769.2962500000001">
+						<True/>
+						<Node score="207.87142857142862">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.32347971200942993"/>
+						</Node>
+						<Node score="520.3994117647059">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6659987568855286"/>
+							<Node score="589.1940000000001">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.46097905933856964"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="12">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="739.7880000000001">
+						<True/>
+						<Node score="211.98">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.29643135517835617"/>
+						</Node>
+						<Node score="561.5194736842105">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6621759831905365"/>
+							<Node score="479.4833333333334">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.35078220069408417"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="13">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="805.4216666666667">
+						<True/>
+						<Node score="209.50499999999997">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.29643135517835617"/>
+						</Node>
+						<Node score="581.6052631578947">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.6865908205509186"/>
+							<Node score="476.846">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.41591617465019226"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="14">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="794.2525">
+						<True/>
+						<Node score="188.48857142857145">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.30000000447034836"/>
+						</Node>
+						<Node score="598.8584615384615">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.72698113322258"/>
+							<Node score="458.68000000000006">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.47077737748622894"/>
+							</Node>
+							<Node score="517.9155555555556">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.5017676502466202"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="15">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="842.2466666666666">
+						<True/>
+						<Node score="158.854375">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.25327107310295105"/>
+						</Node>
+						<Node score="555.6428571428571">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.7000000178813934"/>
+							<Node score="440.15">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5301753878593445"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="16">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="813.94875">
+						<True/>
+						<Node score="188.87100000000004">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3667267858982086"/>
+						</Node>
+						<Node score="483.78333333333325">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7167423367500305"/>
+							<Node score="465.57000000000005">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.34118497371673584"/>
+							</Node>
+							<Node score="562.3684210526317">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6069395542144775"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="17">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="688.1566666666668">
+						<True/>
+						<Node score="194.68384615384613">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.29347869753837585"/>
+						</Node>
+						<Node score="517.0878947368421">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6519689559936523"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="18">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="809.2460000000001">
+						<True/>
+						<Node score="174.7190909090909">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.27603431046009064"/>
+						</Node>
+						<Node score="521.1352173913042">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6870620250701904"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="19">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="827.0428571428573">
+						<True/>
+						<Node score="188.48285714285717">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.31455155462026596"/>
+						</Node>
+						<Node score="612.6625">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="428.726">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4816054552793503"/>
+							</Node>
+							<Node score="456.08500000000004">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.5316786170005798"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="20">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="790.2325000000001">
+						<True/>
+						<Node score="169.50785714285718">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.2764691933989525"/>
+						</Node>
+						<Node score="567.1063157894737">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="440.1614285714286">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.48223938047885895"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="21">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="824.765">
+						<True/>
+						<Node score="180.428">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.34654974937438965"/>
+						</Node>
+						<Node score="573.441">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.7211088836193085"/>
+							<Node score="511.13624999999996">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.4922868460416794"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="22">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="795.9730000000002">
+						<True/>
+						<Node score="199.1825">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.2879818230867386"/>
+						</Node>
+						<Node score="560.3091304347824">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="439.01">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5301753878593445"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="23">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="799.6591666666667">
+						<True/>
+						<Node score="170.68083333333334">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3555971831083298"/>
+						</Node>
+						<Node score="561.0910000000001">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.7129750549793243"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="24">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="838.466">
+						<True/>
+						<Node score="175.54214285714286">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.32347971200942993"/>
+						</Node>
+						<Node score="606.03">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6621759831905365"/>
+							<Node score="441.86">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5329755246639252"/>
+							</Node>
+							<Node score="546.4564705882353">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="25">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="792.0835714285715">
+						<True/>
+						<Node score="247.786">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.4689706265926361"/>
+						</Node>
+						<Node score="564.3573333333333">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.7129750549793243"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="26">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+					</MiningSchema>
+					<Node score="758.8344444444444">
+						<True/>
+						<Node score="182.98227272727274">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.45423723757267"/>
+						</Node>
+						<Node score="550.4576923076922">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7461420595645905"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="27">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="842.0920000000002">
+						<True/>
+						<Node score="194.55058823529416">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.3328399807214737"/>
+						</Node>
+						<Node score="605.6155555555556">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="489.60153846153844">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4816054552793503"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="28">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="793.5811111111111">
+						<True/>
+						<Node score="188.29999999999998">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.31069695204496384"/>
+						</Node>
+						<Node score="580.031111111111">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.6865908205509186"/>
+							<Node score="511.3391666666667">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.509059488773346"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="29">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="815.3855555555555">
+						<True/>
+						<Node score="190.05166666666665">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3667267858982086"/>
+						</Node>
+						<Node score="579.170625">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.6865908205509186"/>
+							<Node score="452.2928571428571">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4816054552793503"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="30">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="788.5236363636363">
+						<True/>
+						<Node score="178.84357142857147">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3649434894323349"/>
+						</Node>
+						<Node score="542.704">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="632.125">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.44686712324619293"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="31">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="768.2788888888888">
+						<True/>
+						<Node score="188.56066666666672">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.27603431046009064"/>
+						</Node>
+						<Node score="556.7443750000001">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6659987568855286"/>
+							<Node score="479.32750000000004">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.35078220069408417"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="32">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+					</MiningSchema>
+					<Node score="728.509">
+						<True/>
+						<Node score="187.69411764705882">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.34804412722587585"/>
+						</Node>
+						<Node score="530.0141176470588">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7436566352844238"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="33">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="812.2000000000002">
+						<True/>
+						<Node score="161.65750000000003">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.2879818230867386"/>
+						</Node>
+						<Node score="537.1631818181818">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7510041892528534"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="34">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="870.0766666666667">
+						<True/>
+						<Node score="193.70461538461538">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3555971831083298"/>
+						</Node>
+						<Node score="601.86">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.8042269349098206"/>
+							<Node score="526.9453333333333">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.5926424264907837"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="35">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="793.042">
+						<True/>
+						<Node score="193.9455555555556">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3056027442216873"/>
+						</Node>
+						<Node score="624.2">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6621759831905365"/>
+							<Node score="544.3281249999999">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6519689559936523"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="36">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="841.12125">
+						<True/>
+						<Node score="240.93266666666665">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.4581700712442398"/>
+						</Node>
+						<Node score="639.2257142857143">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.6865908205509186"/>
+							<Node score="542.7421428571428">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6746382713317871"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="37">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="860.9799999999999">
+						<True/>
+						<Node score="200.48384615384614">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.28313009440898895"/>
+						</Node>
+						<Node score="589.855">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.7000000178813934"/>
+							<Node score="479.0869999999999">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.509059488773346"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="38">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="788.0699999999999">
+						<True/>
+						<Node score="176.5207142857143">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.27603431046009064"/>
+						</Node>
+						<Node score="547.5314285714286">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.7000000178813934"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="39">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="759.2012500000001">
+						<True/>
+						<Node score="183.19666666666666">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.3447429984807968"/>
+						</Node>
+						<Node score="623.6733333333333">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.7211088836193085"/>
+							<Node score="510.47466666666656">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6184497177600861"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="40">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="790.5933333333334">
+						<True/>
+						<Node score="184.47357142857143">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.288303017616272"/>
+						</Node>
+						<Node score="604.1919999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7167423367500305"/>
+							<Node score="541.2700000000001">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="41">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="701.8966666666666">
+						<True/>
+						<Node score="180.7888235294118">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.32347971200942993"/>
+						</Node>
+						<Node score="531.3866666666668">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6128489673137665"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="42">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+					</MiningSchema>
+					<Node score="792.5669999999999">
+						<True/>
+						<Node score="185.161">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.45423723757267"/>
+						</Node>
+						<Node score="523.5075">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6659987568855286"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="43">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-70.0th_pctl)))"/>
+					</MiningSchema>
+					<Node score="813.6244444444444">
+						<True/>
+						<Node score="194.67142857142855">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.2559202015399933"/>
+						</Node>
+						<Node score="648.9533333333334">
+							<SimplePredicate field="double(float(maxAbsScaler(team-70.0th_pctl)))" operator="lessOrEqual" value="0.6833333373069763"/>
+							<Node score="523.9361111111111">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="44">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="810.8550000000001">
+						<True/>
+						<Node score="183.68333333333334">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.31978897750377655"/>
+						</Node>
+						<Node score="587.891875">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7811627089977264"/>
+							<Node score="462.9944444444444">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4955000728368759"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="45">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+					</MiningSchema>
+					<Node score="758.293">
+						<True/>
+						<Node score="185.67789473684212">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3435022309422493"/>
+						</Node>
+						<Node score="519.428">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6184497177600861"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="46">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="851.2974999999999">
+						<True/>
+						<Node score="158.96461538461537">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3667267858982086"/>
+						</Node>
+						<Node score="589.9536363636363">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6621759831905365"/>
+							<Node score="512.6875">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.4892647862434387"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="47">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="808.5825000000001">
+						<True/>
+						<Node score="194.0981818181818">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.31069695204496384"/>
+						</Node>
+						<Node score="442.7833333333333">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="594.4172727272727">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.6326433420181274"/>
+								<Node score="535.1318181818182">
+									<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.612629622220993"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="48">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="762.7850000000001">
+						<True/>
+						<Node score="206.156">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.2860933169722557"/>
+						</Node>
+						<Node score="563.6666666666666">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="492.2022222222222">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4816054552793503"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="49">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="855.8275000000001">
+						<True/>
+						<Node score="189.21200000000002">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.38324369490146637"/>
+						</Node>
+						<Node score="660.1119999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.800000011920929"/>
+							<Node score="532.5404999999998">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.663447380065918"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="50">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="737.3614285714286">
+						<True/>
+						<Node score="161.92277777777775">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.2865009158849716"/>
+						</Node>
+						<Node score="570.3026666666666">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.6754818856716156"/>
+							<Node score="467.94000000000005">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.4437112957239151"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="51">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="803.82">
+						<True/>
+						<Node score="184.69000000000005">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.3209957703948021"/>
+						</Node>
+						<Node score="616.7075">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.7726229429244995"/>
+							<Node score="495.9882352941177">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6838090121746063"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="52">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="700.8566666666667">
+						<True/>
+						<Node score="186.2389473684211">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.31978897750377655"/>
+						</Node>
+						<Node score="493.7587499999999">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6838090121746063"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="53">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="678.1257142857143">
+						<True/>
+						<Node score="169.4075">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.26387229561805725"/>
+						</Node>
+						<Node score="403.12">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6815275549888611"/>
+							<Node score="531.3688235294118">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.580516517162323"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="54">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="813.54">
+						<True/>
+						<Node score="244.27499999999998">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.31978897750377655"/>
+							<Node score="163.06727272727272">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.1480688378214836"/>
+							</Node>
+						</Node>
+						<Node score="650.14">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6621759831905365"/>
+							<Node score="537.1909523809524">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6166741251945496"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="55">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="781.9290000000002">
+						<True/>
+						<Node score="178.4855555555556">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.28313009440898895"/>
+						</Node>
+						<Node score="574.274375">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="472.75499999999994">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4816054552793503"/>
+							</Node>
+							<Node score="502.23">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.4434061050415039"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="56">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="713.86375">
+						<True/>
+						<Node score="183.12333333333336">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.28313009440898895"/>
+						</Node>
+						<Node score="540.9050000000001">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6519689559936523"/>
+							<Node score="444.71000000000004">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5301753878593445"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="57">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-70.0th_pctl)))"/>
+					</MiningSchema>
+					<Node score="790.6316666666667">
+						<True/>
+						<Node score="190.47133333333338">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.2764691933989525"/>
+						</Node>
+						<Node score="564.8513333333335">
+							<SimplePredicate field="double(float(maxAbsScaler(team-70.0th_pctl)))" operator="lessOrEqual" value="0.7333333492279053"/>
+							<Node score="499.21374999999995">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.509059488773346"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="58">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+					</MiningSchema>
+					<Node score="825.0325">
+						<True/>
+						<Node score="185.9946666666667">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.34548336267471313"/>
+						</Node>
+						<Node score="625.2475">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7859167754650116"/>
+							<Node score="475.11428571428576">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7461420595645905"/>
+								<Node score="532.5807142857142">
+									<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6286152899265289"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="59">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="704.7477777777779">
+						<True/>
+						<Node score="182.54">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.36139924824237823"/>
+						</Node>
+						<Node score="445.3883333333333">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+							<Node score="546.34875">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6283454298973083"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="60">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="761.0780000000001">
+						<True/>
+						<Node score="208.47">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3667267858982086"/>
+						</Node>
+						<Node score="480.73600000000005">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6184497177600861"/>
+							<Node score="556.4264285714287">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6286152899265289"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="61">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="825.3824999999999">
+						<True/>
+						<Node score="170.28117647058824">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.25106847286224365"/>
+						</Node>
+						<Node score="579.3505263157895">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6535578966140747"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="62">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="783.29375">
+						<True/>
+						<Node score="190.46222222222224">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.3447429984807968"/>
+						</Node>
+						<Node score="589.4128571428572">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7167423367500305"/>
+							<Node score="523.05">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.509059488773346"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="63">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="821.5033333333334">
+						<True/>
+						<Node score="194.40923076923076">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.4550972431898117"/>
+						</Node>
+						<Node score="672.29">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="530.5274999999999">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.72698113322258"/>
+								<Node score="599.0533333333334">
+									<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.44631239771842957"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="64">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="689.3041666666667">
+						<True/>
+						<Node score="189.60399999999998">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.26387229561805725"/>
+						</Node>
+						<Node score="501.81454545454557">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6838090121746063"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="65">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="827.39375">
+						<True/>
+						<Node score="190.34555555555556">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.45423723757267"/>
+						</Node>
+						<Node score="587.1314285714286">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.8473289012908936"/>
+							<Node score="446.28999999999996">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4816054552793503"/>
+							</Node>
+							<Node score="500.15142857142865">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.5316786170005798"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="66">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="888.832">
+						<True/>
+						<Node score="179.27">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.3328399807214737"/>
+						</Node>
+						<Node score="644.2833333333334">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="526.79625">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6838090121746063"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="67">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="830.2280000000001">
+						<True/>
+						<Node score="168.48526315789476">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.4550972431898117"/>
+						</Node>
+						<Node score="640.9628571428572">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="520.336923076923">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6838090121746063"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="68">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="848.4125000000001">
+						<True/>
+						<Node score="188.48533333333333">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.34609952569007874"/>
+						</Node>
+						<Node score="649.5466666666667">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.7129750549793243"/>
+							<Node score="546.4693333333332">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+								<Node score="460.82750000000004">
+									<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.4472735822200775"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="69">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="873.344">
+						<True/>
+						<Node score="169.27222222222224">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.3001999482512474"/>
+						</Node>
+						<Node score="565.1747619047619">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7608665823936462"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="70">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="863.241111111111">
+						<True/>
+						<Node score="181.88352941176473">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.2973797619342804"/>
+						</Node>
+						<Node score="579.8416666666666">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6870620250701904"/>
+							<Node score="491.0683333333333">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.4816054552793503"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="71">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="751.6260000000001">
+						<True/>
+						<Node score="168.7475">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.3371577486395836"/>
+						</Node>
+						<Node score="457.1499999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="564.4033333333332">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.5969655215740204"/>
+								<Node score="520.2928571428573">
+									<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.47077737748622894"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="72">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="806.8528571428571">
+						<True/>
+						<Node score="188.14999999999998">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3649434894323349"/>
+						</Node>
+						<Node score="570.294">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.7000000178813934"/>
+							<Node score="485.8644444444443">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.509059488773346"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="73">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-70.0th_pctl)))"/>
+					</MiningSchema>
+					<Node score="817.735">
+						<True/>
+						<Node score="186.31266666666667">
+							<SimplePredicate field="double(float(maxAbsScaler(team-70.0th_pctl)))" operator="lessOrEqual" value="0.5000000149011612"/>
+						</Node>
+						<Node score="650.14">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.6031605005264282"/>
+							<Node score="555.3968749999999">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.650644063949585"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="74">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="705.7922222222221">
+						<True/>
+						<Node score="194.56176470588235">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.45423723757267"/>
+						</Node>
+						<Node score="525.1705555555556">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6166741251945496"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="75">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="813.3118181818182">
+						<True/>
+						<Node score="192.3925">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.26604408025741577"/>
+						</Node>
+						<Node score="644.208">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.6865908205509186"/>
+							<Node score="527.463">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="76">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="817.3066666666667">
+						<True/>
+						<Node score="182.73833333333337">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.45423723757267"/>
+						</Node>
+						<Node score="552.0874999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.684025228023529"/>
+							<Node score="447.1457142857143">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5627849400043488"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="77">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="763.0375000000001">
+						<True/>
+						<Node score="166.22153846153847">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.3328399807214737"/>
+						</Node>
+						<Node score="479.9824999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6870620250701904"/>
+							<Node score="436.73">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5301753878593445"/>
+							</Node>
+							<Node score="575.1855555555555">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.580516517162323"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="78">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+						<MiningField name="double(float(maxAbsScaler(team-70.0th_pctl)))"/>
+					</MiningSchema>
+					<Node score="780.4457142857144">
+						<True/>
+						<Node score="168.81312500000004">
+							<SimplePredicate field="double(float(maxAbsScaler(team-70.0th_pctl)))" operator="lessOrEqual" value="0.5000000149011612"/>
+						</Node>
+						<Node score="652.6633333333334">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.7000000178813934"/>
+							<Node score="544.1933333333333">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6694734394550323"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="79">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="898.23">
+						<True/>
+						<Node score="183.82538461538465">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.4000000134110451"/>
+						</Node>
+						<Node score="677.161111111111">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.9448806345462799"/>
+							<Node score="537.9038888888888">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6690817177295685"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="80">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="822.7940000000001">
+						<True/>
+						<Node score="162.61000000000004">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.2640334963798523"/>
+						</Node>
+						<Node score="650.14">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.8633346557617188"/>
+							<Node score="535.9645833333333">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6184497177600861"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="81">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+					</MiningSchema>
+					<Node score="817.0575000000001">
+						<True/>
+						<Node score="161.32777777777775">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3435022309422493"/>
+						</Node>
+						<Node score="651.8000000000001">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.7417133152484894"/>
+							<Node score="459.9825">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6560256779193878"/>
+								<Node score="563.4064705882352">
+									<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6286152899265289"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="82">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+					</MiningSchema>
+					<Node score="692.0066666666668">
+						<True/>
+						<Node score="179.93699999999998">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.24699709564447403"/>
+						</Node>
+						<Node score="536.1831818181818">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7436566352844238"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="83">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="826.8633333333333">
+						<True/>
+						<Node score="157.56800000000004">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.3447429984807968"/>
+						</Node>
+						<Node score="514.2266666666666">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6535578966140747"/>
+							<Node score="437.58500000000004">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5301753878593445"/>
+							</Node>
+							<Node score="564.5084210526314">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.580516517162323"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="84">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+					</MiningSchema>
+					<Node score="735.2966666666666">
+						<True/>
+						<Node score="187.01">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.3436766117811203"/>
+						</Node>
+						<Node score="441.43666666666667">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6563137173652649"/>
+							<Node score="545.9156249999999">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6283454298973083"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="85">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="779.1333333333333">
+						<True/>
+						<Node score="195.46300000000002">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.4053344428539276"/>
+						</Node>
+						<Node score="457.1499999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.7000000178813934"/>
+							<Node score="635.3649999999999">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.592313826084137"/>
+								<Node score="552.6816666666666">
+									<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7183809876441956"/>
+								</Node>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="86">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-70.0th_pctl)))"/>
+					</MiningSchema>
+					<Node score="764.6675">
+						<True/>
+						<Node score="197.83666666666667">
+							<SimplePredicate field="double(float(maxAbsScaler(team-70.0th_pctl)))" operator="lessOrEqual" value="0.5000000149011612"/>
+						</Node>
+						<Node score="565.0754999999998">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="505.552">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.4434061050415039"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="87">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+					</MiningSchema>
+					<Node score="789.3700000000001">
+						<True/>
+						<Node score="191.1">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.3056027442216873"/>
+						</Node>
+						<Node score="621.8674999999998">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.684025228023529"/>
+							<Node score="494.2900000000001">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.409630224108696"/>
+							</Node>
+							<Node score="567.5414285714286">
+								<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.6631593406200409"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="88">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="748.1666666666666">
+						<True/>
+						<Node score="184.015625">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.30027955025434494"/>
+						</Node>
+						<Node score="553.9383333333332">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.7048040330410004"/>
+							<Node score="473.15000000000003">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3713182806968689"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="89">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="794.8877777777778">
+						<True/>
+						<Node score="165.87928571428574">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.25106847286224365"/>
+						</Node>
+						<Node score="563.913">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.7461420595645905"/>
+							<Node score="464.17999999999995">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.5143754482269287"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="90">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="773.6320000000002">
+						<True/>
+						<Node score="186.46437500000002">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.30000000447034836"/>
+						</Node>
+						<Node score="593.98875">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6870620250701904"/>
+							<Node score="510.06800000000004">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6441153883934021"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="91">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(best-possible-score)))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="799.8355555555556">
+						<True/>
+						<Node score="168.48307692307694">
+							<SimplePredicate field="double(float(maxAbsScaler(best-possible-score)))" operator="lessOrEqual" value="0.4550972431898117"/>
+						</Node>
+						<Node score="556.1913333333333">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="488.97400000000005">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.43130259215831757"/>
+							</Node>
+							<Node score="613.0900000000001">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.4375031143426895"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="92">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="844.3925">
+						<True/>
+						<Node score="189.45684210526312">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3649434894323349"/>
+						</Node>
+						<Node score="574.0941666666666">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7167423367500305"/>
+							<Node score="463.55777777777774">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6004431545734406"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="93">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="845.6444444444444">
+						<True/>
+						<Node score="164.72615384615386">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'MID'))))" operator="lessOrEqual" value="0.2751374617218971"/>
+						</Node>
+						<Node score="566.453125">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7167423367500305"/>
+							<Node score="464.9466666666667">
+								<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'JNG'))))" operator="lessOrEqual" value="0.409630224108696"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="94">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+					</MiningSchema>
+					<Node score="699.3622222222222">
+						<True/>
+						<Node score="173.41416666666666">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.2943422719836235"/>
+						</Node>
+						<Node score="522.1413043478261">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6184497177600861"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="95">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-70.0th_pctl)))"/>
+					</MiningSchema>
+					<Node score="611.0235714285715">
+						<True/>
+						<Node score="175.193125">
+							<SimplePredicate field="double(float(maxAbsScaler(team-70.0th_pctl)))" operator="lessOrEqual" value="0.5000000149011612"/>
+						</Node>
+						<Node score="478.9285714285714">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6004431545734406"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="96">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(team-med)))"/>
+					</MiningSchema>
+					<Node score="745.8960000000001">
+						<True/>
+						<Node score="160.67473684210526">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.36130085587501526"/>
+						</Node>
+						<Node score="623.6733333333333">
+							<SimplePredicate field="double(float(maxAbsScaler(team-med)))" operator="lessOrEqual" value="0.9000000059604645"/>
+							<Node score="555.0594117647059">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.6166741251945496"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="97">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="809.8990000000001">
+						<True/>
+						<Node score="172.47600000000003">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'SUP'))))" operator="lessOrEqual" value="0.3435022309422493"/>
+						</Node>
+						<Node score="561.6049999999999">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="481.41285714285715">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.5143754482269287"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="98">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="748.1666666666666">
+						<True/>
+						<Node score="175.58176470588236">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.32347971200942993"/>
+						</Node>
+						<Node score="587.965">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'ADCB'))))" operator="lessOrEqual" value="0.6535578966140747"/>
+							<Node score="441.86">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'TOP'))))" operator="lessOrEqual" value="0.5301753878593445"/>
+							</Node>
+							<Node score="541.5481818181817">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.5038750469684601"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="99">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="821.1557142857143">
+						<True/>
+						<Node score="179.88000000000002">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'JNG'))))" operator="lessOrEqual" value="0.32347971200942993"/>
+						</Node>
+						<Node score="575.2327272727271">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.7073581516742706"/>
+							<Node score="499.4657142857142">
+								<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.49344602227211"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="100">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(float(maxAbsScaler(('med-dfs', 'TOP'))))"/>
+						<MiningField name="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))"/>
+					</MiningSchema>
+					<Node score="755.5656250000001">
+						<True/>
+						<Node score="181.37461538461537">
+							<SimplePredicate field="double(float(maxAbsScaler(('70.0th-pctl-dfs', 'MID'))))" operator="lessOrEqual" value="0.33355730026960373"/>
+						</Node>
+						<Node score="548.256">
+							<SimplePredicate field="double(float(maxAbsScaler(('med-dfs', 'TOP'))))" operator="lessOrEqual" value="0.6870620250701904"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+		</Segmentation>
+	</MiningModel>
+</PMML>

@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T04:28:25Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', '1B')"],
+                           Continuo...
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', '3B')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'C')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'OF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SS')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'))])),
+       ('selectpercentile', SelectorProxy(selector=SelectPercentile(percentile=66,
+                                        score_func=&lt;function f_regression at 0x7f0aa8c5dd80&gt;))),
+       ('pca', PCA(iterated_power=2, svd_solver='randomized')),
+       ('elasticnetcv', ElasticNetCV(l1_ratio=0.75, tol=0.1))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="top_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="40.5" rightMargin="276.1"/>
+		</DataField>
+		<DataField name="team-med" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="1.0" rightMargin="12.5"/>
+		</DataField>
+		<DataField name="team-70.0th_pctl" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="1.4" rightMargin="14.3"/>
+		</DataField>
+		<DataField name="('med-dfs', '3B')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="0.0" rightMargin="21.950000000000003"/>
+		</DataField>
+		<DataField name="('med-dfs', 'OF')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="0.0" rightMargin="23.2"/>
+		</DataField>
+		<DataField name="('med-dfs', 'SS')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="0.0" rightMargin="36.05"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', '1B')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="0.0" rightMargin="31.19"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', '3B')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="2.3999999999999995" rightMargin="27.78"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'OF')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="3.0" rightMargin="27.88"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'SS')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="0.0" rightMargin="36.39"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.linear_model._coordinate_descent.ElasticNetCV">
+		<MiningSchema>
+			<MiningField name="top_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team-med" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team-70.0th_pctl" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', '3B')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'OF')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'SS')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', '1B')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', '3B')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'OF')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'SS')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="40.5" maximum="276.1" mean="142.4777777777778" standardDeviation="51.20873900631887" median="141.4" interQuartileRange="73.4"/>
+			</UnivariateStats>
+			<UnivariateStats field="team-med">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="1.0" maximum="12.5" mean="4.622222222222222" standardDeviation="2.68774080172995" median="4.0" interQuartileRange="4.0"/>
+			</UnivariateStats>
+			<UnivariateStats field="team-70.0th_pctl">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="1.4" maximum="14.3" mean="5.644444444444445" standardDeviation="3.0150404865942466" median="4.8" interQuartileRange="4.0"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', '3B')">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="0.0" maximum="21.950000000000003" mean="8.43888888888889" standardDeviation="6.02965715709432" median="6.2" interQuartileRange="7.5"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'OF')">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="0.0" maximum="23.2" mean="6.372222222222222" standardDeviation="4.6866068696464485" median="6.0" interQuartileRange="4.699999999999999"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'SS')">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="0.0" maximum="36.05" mean="8.900000000000002" standardDeviation="7.721197374040434" median="6.25" interQuartileRange="8.1"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', '1B')">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="0.0" maximum="31.19" mean="9.744888888888886" standardDeviation="7.884018327455506" median="7.6" interQuartileRange="9.449999999999998"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', '3B')">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="2.3999999999999995" maximum="27.78" mean="11.29511111111111" standardDeviation="7.2428842082640665" median="9.23" interQuartileRange="9.54"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'OF')">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="3.0" maximum="27.88" mean="10.946444444444442" standardDeviation="5.92309872187994" median="9.26" interQuartileRange="7.09999999999999"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'SS')">
+				<Counts totalFreq="45" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="0.0" maximum="36.39" mean="11.429555555555554" standardDeviation="8.9406862663657" median="8.479999999999999" interQuartileRange="10.44"/>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[0]" optype="continuous" dataType="double">
+				<Apply function="sum">
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="best-possible-score"/>
+							<Constant dataType="double">142.4777777777778</Constant>
+						</Apply>
+						<Constant dataType="double">0.979784647822866</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-med"/>
+							<Constant dataType="double">4.622222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">0.04213445012246908</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-70.0th_pctl"/>
+							<Constant dataType="double">5.644444444444445</Constant>
+						</Apply>
+						<Constant dataType="double">0.04765184264913074</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', '3B')"/>
+							<Constant dataType="double">8.43888888888889</Constant>
+						</Apply>
+						<Constant dataType="double">0.05113874560772424</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'OF')"/>
+							<Constant dataType="double">6.372222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">0.057981433256985</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'SS')"/>
+							<Constant dataType="double">8.900000000000002</Constant>
+						</Apply>
+						<Constant dataType="double">0.0874273787181192</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '1B')"/>
+							<Constant dataType="double">9.744888888888886</Constant>
+						</Apply>
+						<Constant dataType="double">0.05787897741027184</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '3B')"/>
+							<Constant dataType="double">11.29511111111111</Constant>
+						</Apply>
+						<Constant dataType="double">0.056869899397338525</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'OF')"/>
+							<Constant dataType="double">10.946444444444442</Constant>
+						</Apply>
+						<Constant dataType="double">0.07299650894056608</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'SS')"/>
+							<Constant dataType="double">11.429555555555554</Constant>
+						</Apply>
+						<Constant dataType="double">0.10219010539295101</Constant>
+					</Apply>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[2]" optype="continuous" dataType="double">
+				<Apply function="sum">
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="best-possible-score"/>
+							<Constant dataType="double">142.4777777777778</Constant>
+						</Apply>
+						<Constant dataType="double">0.06857931608648139</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-med"/>
+							<Constant dataType="double">4.622222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">-0.0012890699141864803</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-70.0th_pctl"/>
+							<Constant dataType="double">5.644444444444445</Constant>
+						</Apply>
+						<Constant dataType="double">0.010263320707124865</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', '3B')"/>
+							<Constant dataType="double">8.43888888888889</Constant>
+						</Apply>
+						<Constant dataType="double">-0.41303747874279867</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'OF')"/>
+							<Constant dataType="double">6.372222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">0.12334222762042397</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'SS')"/>
+							<Constant dataType="double">8.900000000000002</Constant>
+						</Apply>
+						<Constant dataType="double">-0.3059747601958913</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '1B')"/>
+							<Constant dataType="double">9.744888888888886</Constant>
+						</Apply>
+						<Constant dataType="double">0.4874734529182778</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '3B')"/>
+							<Constant dataType="double">11.29511111111111</Constant>
+						</Apply>
+						<Constant dataType="double">-0.5356432720358019</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'OF')"/>
+							<Constant dataType="double">10.946444444444442</Constant>
+						</Apply>
+						<Constant dataType="double">0.20379871324932283</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'SS')"/>
+							<Constant dataType="double">11.429555555555554</Constant>
+						</Apply>
+						<Constant dataType="double">-0.38688249432489485</Constant>
+					</Apply>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[3]" optype="continuous" dataType="double">
+				<Apply function="sum">
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="best-possible-score"/>
+							<Constant dataType="double">142.4777777777778</Constant>
+						</Apply>
+						<Constant dataType="double">-0.14253717422069018</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-med"/>
+							<Constant dataType="double">4.622222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">0.12564400789181507</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-70.0th_pctl"/>
+							<Constant dataType="double">5.644444444444445</Constant>
+						</Apply>
+						<Constant dataType="double">0.1561588933943541</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', '3B')"/>
+							<Constant dataType="double">8.43888888888889</Constant>
+						</Apply>
+						<Constant dataType="double">0.3556129828901405</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'OF')"/>
+							<Constant dataType="double">6.372222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">0.20162740376266364</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'SS')"/>
+							<Constant dataType="double">8.900000000000002</Constant>
+						</Apply>
+						<Constant dataType="double">0.07244925902030874</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '1B')"/>
+							<Constant dataType="double">9.744888888888886</Constant>
+						</Apply>
+						<Constant dataType="double">0.73775353711608</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '3B')"/>
+							<Constant dataType="double">11.29511111111111</Constant>
+						</Apply>
+						<Constant dataType="double">0.4089338649063161</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'OF')"/>
+							<Constant dataType="double">10.946444444444442</Constant>
+						</Apply>
+						<Constant dataType="double">0.22000587706977792</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'SS')"/>
+							<Constant dataType="double">11.429555555555554</Constant>
+						</Apply>
+						<Constant dataType="double">0.08507799503678587</Constant>
+					</Apply>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[4]" optype="continuous" dataType="double">
+				<Apply function="sum">
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="best-possible-score"/>
+							<Constant dataType="double">142.4777777777778</Constant>
+						</Apply>
+						<Constant dataType="double">0.06248324271715812</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-med"/>
+							<Constant dataType="double">4.622222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">-0.08461639430613738</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="team-70.0th_pctl"/>
+							<Constant dataType="double">5.644444444444445</Constant>
+						</Apply>
+						<Constant dataType="double">-0.09884195658614066</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', '3B')"/>
+							<Constant dataType="double">8.43888888888889</Constant>
+						</Apply>
+						<Constant dataType="double">0.01467273658791915</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'OF')"/>
+							<Constant dataType="double">6.372222222222222</Constant>
+						</Apply>
+						<Constant dataType="double">-0.5173991824145513</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('med-dfs', 'SS')"/>
+							<Constant dataType="double">8.900000000000002</Constant>
+						</Apply>
+						<Constant dataType="double">0.07389241032449739</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '1B')"/>
+							<Constant dataType="double">9.744888888888886</Constant>
+						</Apply>
+						<Constant dataType="double">0.424668015457926</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', '3B')"/>
+							<Constant dataType="double">11.29511111111111</Constant>
+						</Apply>
+						<Constant dataType="double">-0.06666143920946296</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'OF')"/>
+							<Constant dataType="double">10.946444444444442</Constant>
+						</Apply>
+						<Constant dataType="double">-0.7216061526053299</Constant>
+					</Apply>
+					<Apply function="*">
+						<Apply function="-">
+							<FieldRef field="('70.0th-pctl-dfs', 'SS')"/>
+							<Constant dataType="double">11.429555555555554</Constant>
+						</Apply>
+						<Constant dataType="double">0.016934463035350095</Constant>
+					</Apply>
+				</Apply>
+			</DerivedField>
+		</LocalTransformations>
+		<RegressionTable intercept="114.10888888888822">
+			<NumericPredictor name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[0]" coefficient="0.7139911987250167"/>
+			<NumericPredictor name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[2]" coefficient="0.31270938109075797"/>
+			<NumericPredictor name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[3]" coefficient="1.3866801639794848"/>
+			<NumericPredictor name="pca(best-possible-score, team-med, .., ('70.0th-pctl-dfs', 'OF'), ('70.0th-pctl-dfs', 'SS'))[4]" coefficient="-0.9400710927027378"/>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>

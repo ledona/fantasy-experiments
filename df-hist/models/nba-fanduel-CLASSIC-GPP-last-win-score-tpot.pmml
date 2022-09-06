@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T06:15:09Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', 'C')"],
+                           Continuou...
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'PF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'PG')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SG')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'))])),
+       ('selectfwe', SelectorProxy(selector=SelectFwe(alpha=0.036000000000000004,
+                                 score_func=&lt;function f_regression at 0x7f0aa8c5dd80&gt;))),
+       ('robustscaler', RobustScaler()),
+       ('linearsvr', LinearSVR(C=10.0, epsilon=0.01, loss='squared_epsilon_insensitive', tol=0.1))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="last_winning_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="292.2" rightMargin="492.9"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.svm._classes.LinearSVR">
+		<MiningSchema>
+			<MiningField name="last_winning_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="96" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="292.2" maximum="492.9" mean="415.19166666666666" standardDeviation="41.3143050958812" median="425.95" interQuartileRange="51.25000000000006"/>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="robustScaler(best-possible-score)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="best-possible-score"/>
+						<Constant dataType="double">425.95</Constant>
+					</Apply>
+					<Constant dataType="double">51.25000000000006</Constant>
+				</Apply>
+			</DerivedField>
+		</LocalTransformations>
+		<RegressionTable intercept="300.0511288399008">
+			<NumericPredictor name="robustScaler(best-possible-score)" coefficient="18.693382598853695"/>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>
