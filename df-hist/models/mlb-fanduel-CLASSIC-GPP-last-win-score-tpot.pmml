@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T04:20:59Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', '1B')"],
+                           Continuo...
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'C')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'OF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'P')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SS')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'))])),
+       ('selectfrommodel', SelectorProxy(selector=SelectFromModel(estimator=ExtraTreesRegressor(max_features=0.55),
+                                       threshold=0.1))),
+       ('polynomialfeatures', PolynomialFeatures(include_bias=False)),
+       ('decisiontreeregressor', DecisionTreeRegressor(max_depth=2, min_samples_split=8))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="last_winning_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="173.59999999999997" rightMargin="482.19999999999993"/>
+		</DataField>
+	</DataDictionary>
+	<TreeModel functionName="regression" algorithmName="sklearn.tree._classes.DecisionTreeRegressor" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+		<MiningSchema>
+			<MiningField name="last_winning_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="78" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="173.59999999999997" maximum="482.19999999999993" mean="341.8047435897436" standardDeviation="52.70957047639498" median="345.94999999999993" interQuartileRange="63.77750000000003"/>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="best-possible-score^2" optype="continuous" dataType="double">
+				<Apply function="pow">
+					<FieldRef field="best-possible-score"/>
+					<Constant dataType="integer">2</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="float(best-possible-score^2)" optype="continuous" dataType="float">
+				<FieldRef field="best-possible-score^2"/>
+			</DerivedField>
+			<DerivedField name="double(float(best-possible-score^2))" optype="continuous" dataType="double">
+				<FieldRef field="float(best-possible-score^2)"/>
+			</DerivedField>
+		</LocalTransformations>
+		<Node score="149.73731343283592">
+			<True/>
+			<Node score="68.3">
+				<SimplePredicate field="double(float(best-possible-score^2))" operator="lessOrEqual" value="52365.119140625"/>
+			</Node>
+			<Node score="130.275">
+				<SimplePredicate field="double(float(best-possible-score^2))" operator="lessOrEqual" value="82722.859375"/>
+			</Node>
+		</Node>
+	</TreeModel>
+</PMML>

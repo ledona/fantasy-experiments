@@ -1,5 +1,9 @@
 .envrc
 chrome-profile
 cache
-*.csv
-*.json
+
+# folder with post transformed data
+data
+
+# model evaluation results
+eval_results

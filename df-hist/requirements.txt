@@ -9,3 +9,8 @@ jupyterlab
 skl2onnx
 auto-sklearn
 tpot
+onnxruntime
+onnxmltools
+jpmml_evaluator
+sklearn2pmml
+pypmml

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.10"/>
+		<Timestamp>2022-09-04T06:38:24Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', 'C')"],
+                           Continuou...
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'PF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'PG')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SG')"],
+                           ContinuousDomain(invalid_value_treatment='as_is'))])),
+       ('selectpercentile', SelectorProxy(selector=SelectPercentile(percentile=11,
+                                        score_func=&lt;function f_regression at 0x7f0aa8c5dd80&gt;))),
+       ('standardscaler', StandardScaler()),
+       ('linearsvr', LinearSVR(C=15.0, epsilon=0.01, tol=0.1))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="top_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="272.75" rightMargin="474.5"/>
+		</DataField>
+		<DataField name="team_count" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="4.0" rightMargin="28.0"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.svm._classes.LinearSVR">
+		<MiningSchema>
+			<MiningField name="top_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team_count" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="92" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="272.75" maximum="474.5" mean="396.3016304347826" standardDeviation="35.571604493679025" median="401.375" interQuartileRange="33.75"/>
+			</UnivariateStats>
+			<UnivariateStats field="team_count">
+				<Counts totalFreq="92" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="4.0" maximum="28.0" mean="13.826086956521738" standardDeviation="5.6848553491064875" median="14.0" interQuartileRange="8.0"/>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="standardScaler(best-possible-score)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="best-possible-score"/>
+						<Constant dataType="double">396.3016304347826</Constant>
+					</Apply>
+					<Constant dataType="double">35.571604493679025</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(team_count)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="team_count"/>
+						<Constant dataType="double">13.826086956521738</Constant>
+					</Apply>
+					<Constant dataType="double">5.6848553491064875</Constant>
+				</Apply>
+			</DerivedField>
+		</LocalTransformations>
+		<RegressionTable intercept="359.1965123259538">
+			<NumericPredictor name="standardScaler(best-possible-score)" coefficient="26.054648485072217"/>
+			<NumericPredictor name="standardScaler(team_count)" coefficient="-9.148152802118425"/>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>
