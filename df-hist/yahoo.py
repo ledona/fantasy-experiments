@@ -1,4 +1,4 @@
-import functools
+from collections import defaultdict
 import glob
 import logging
 import math
@@ -46,9 +46,22 @@ class Yahoo(ServiceDataRetriever):
 
         if len(history_filenames) == 0:
             raise FileNotFoundError(f"No history files found for '{glob_pattern}'")
-        history_filename = sorted(history_filenames)[-1]
-        LOGGER.info("Loading history data from '%s'", history_filename)
-        entries_df = pd.read_csv(history_filename)
+        
+        retrieval_date_filenames = defaultdict(list)
+        for filename in history_filenames:
+            retrieval_date_filenames[filename.rsplit('.', 1)[1][:8]].append(filename)
+        most_recent_date = sorted(retrieval_date_filenames.keys())[-1]
+        LOGGER.info("Loading history data from '%s'", retrieval_date_filenames[most_recent_date])
+        dfs = (
+            pd.read_csv(filename, index_col=False)
+            for filename in sorted(retrieval_date_filenames[most_recent_date])
+        )
+        entries_df = pd.concat(dfs)
+        dropped_dup_df = entries_df.drop_duplicates()
+        if (dup_rows := len(entries_df) - len(dropped_dup_df)) > 0:
+            LOGGER.info("%i duplicate rows dropped", dup_rows)
+            entries_df = dropped_dup_df
+        
         entries_df["date"] = pd.to_datetime(entries_df['Start Date'])
         entries_df.Sport = entries_df.Sport.str.lower()
         entries_df = entries_df.rename(columns=cls._COLUMN_RENAMES) \

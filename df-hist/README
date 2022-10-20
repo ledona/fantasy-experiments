@@ -1,5 +1,5 @@
-Historic betting and contest data. Used to generate
-models that can be used in backtesting
+Historic betting and contest data. Used to generate backtest
+models that predict for dfs contest winning scores
 
 # To pull data...
 cp dot_envrc .envrc
@@ -13,3 +13,9 @@ perl -pi -e 's/cdc/dog/g' /path/to/chromedriver
 sudo apt-get install libprotobuf-dev protobuf-compiler swig
 export CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON"
 pip install -r requirements
+
+
+# To retrieve historic betting data
+1. download betting history from services and save in the history file directory (e.g. /
+   fantasy-archive/betting). Make sure that the file names match the format of the previous
+   files for the service

@@ -9,7 +9,7 @@ import log
 from service_data_retriever import get_service_data_retriever, EXPECTED_HISTORIC_ENTRIES_DF_COLS, WebLimitReached, ServiceDataRetriever
 
 LOGGER = logging.getLogger(__name__)
-DEFAULT_HISTORY_FILE_DIR = "~/Google Drive/fantasy/betting"
+DEFAULT_HISTORY_FILE_DIR = "/fantasy-archive/betting"
 
 
 def retrieve_history(
