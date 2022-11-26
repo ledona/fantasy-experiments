@@ -200,9 +200,8 @@ def best_possible_lineup_score(
             season,
             slate=slate_name,
             slate_info=starters.slates[slate_name],
-            use_pts=True,
-            use_pts_stat_names=pts_stats,
-            skip_predictions=True,
+            score_data_type="historic",
+            hist_stat_names=pts_stats,
             slate_date=game_date,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
         )[0]
