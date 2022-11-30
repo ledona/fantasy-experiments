@@ -5,19 +5,19 @@ from pprint import pformat
 from typing import Literal
 
 from xgboost import XGBRegressor
-from onnxmltools.convert.xgboost.operator_converters.XGBoost import convert_xgboost
-from skl2onnx.common.shape_calculator import calculate_linear_regressor_output_shapes
-from skl2onnx import update_registered_converter, to_onnx
-from skl2onnx.common.data_types import FloatTensorType
+# from onnxmltools.convert.xgboost.operator_converters.XGBoost import convert_xgboost
+# from skl2onnx.common.shape_calculator import calculate_linear_regressor_output_shapes
+# from skl2onnx import update_registered_converter, to_onnx
+# from skl2onnx.common.data_types import FloatTensorType
 from sklearn2pmml import sklearn2pmml
 import pandas as pd
 
 
-update_registered_converter(
-    XGBRegressor, 'XgBoostRegression', 
-    calculate_linear_regressor_output_shapes,
-    convert_xgboost
-)
+# update_registered_converter(
+#     XGBRegressor, 'XgBoostRegression', 
+#     calculate_linear_regressor_output_shapes,
+#     convert_xgboost
+# )
 
 COL_SEP = '\t'
 SUPPORTED_EXPORT_MODELS = ['tpot'] # , 'skautoml']

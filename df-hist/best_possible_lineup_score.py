@@ -42,7 +42,7 @@ def get_stat_names(
 @contextmanager
 def best_score_cache(
     sport: str, top_score_cache_mode: TopScoreCacheMode, cache_dir="."
-) -> dict[int, Optional[float]]:
+) -> dict[int, None | float]:
     top_score_cache_filename = sport + "-slate.top_score.json"
     top_score_cache_filepath = os.path.join(cache_dir, top_score_cache_filename)
     top_score_dict: dict[int, float]
