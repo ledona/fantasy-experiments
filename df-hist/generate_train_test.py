@@ -1,12 +1,11 @@
-from typing import Optional
 import os
+import logging
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from fantasy_py.lineup.strategy import Contest
 from fantasy_py.fantasy_types import ContestStyle
-import logging
 
 
 LOGGER = logging.getLogger("generate_train_test")
@@ -34,19 +33,32 @@ def load_csv(
         contest_type if isinstance(contest_type, str) else contest_type.NAME
     )
     style_name = style if isinstance(style, str) else style.name
-    services = [service_] if service_ is not None else ["fanduel", "draftkings", "yahoo"]
+    services = (
+        [service_] if service_ is not None else ["fanduel", "draftkings", "yahoo"]
+    )
 
     dfs: list[pd.DataFrame] = []
+    failed_filenames: list[str] = []
     for service in services:
         filename = f"{sport}-{service}-{style_name}-{contest_type_name}.csv"
         filepath = os.path.join(data_folder, filename)
         LOGGER.info("loading '%s'", filepath)
-        service_df = pd.read_csv(filepath)
-        if len(services) > 1:
-            service_df['service'] = service
-        LOGGER.info("for %s, %i rows of data loaded", filepath, len(service_df))
-        dfs.append(service_df)
-        
+        try:
+            service_df = pd.read_csv(filepath)
+            if len(services) > 1:
+                service_df["service"] = service
+            LOGGER.info("for %s, %i rows of data loaded", filepath, len(service_df))
+            dfs.append(service_df)
+        except FileNotFoundError:
+            failed_filenames.append(filepath)
+    if len(dfs) == 0:
+        raise FileNotFoundError(f"Failed to find {failed_filenames}")
+    elif len(failed_filenames) > 0:
+        LOGGER.info(
+            "Failed to find following data files %s. Using what data was found for modeling.",
+            failed_filenames,
+        )
+
     df = pd.concat(dfs)
     nan_slate_rows = len(df.query("slate_id.isnull()"))
     nan_best_score_rows = len(df.query("`best-possible-score`.isnull()"))
@@ -59,16 +71,17 @@ def load_csv(
             f"dropped {orig_rows-len(df)} rows. {nan_slate_rows=} {nan_best_score_rows=}. Remaining cases {len(df)=}"
         )
         LOGGER.info(f"Remaining cases after drop {len(df)=}")
-            
-    return 
+
+    return df
 
 
 def generate_train_test(
     df: pd.DataFrame,
     train_size: float = 0.5,
-    random_state: Optional[int] = None,
-    model_cols: Optional[set[str]] = None,
-) -> Optional[tuple]:
+    random_state: None | int = None,
+    model_cols: None | set[str] = None,
+    service_as_feature: bool = False,
+) -> None | tuple:
     """
     create regression train test data
     model_cols - if none then use all available columns
@@ -84,13 +97,17 @@ def generate_train_test(
         if col in COLS_TO_IGNORE:
             continue
         assert (
-            col[0] == "(" or col.startswith("team") or col == "best-possible-score"
+            col[0] == "("
+            or col.startswith("team")
+            or col in ["service", "best-possible-score"]
         ), f"Unexpected data column named '{col}'"
 
         if (model_cols is None) or col in model_cols:
             x_cols.append(col)
 
     len_pre_na_drop = len(df)
+    if not service_as_feature:
+        df = df.drop(columns=["service"])
     df = df[df["top_score"].notna()]
     df = df[df["last_winning_score"].notna()]
     if len(df) < len_pre_na_drop:

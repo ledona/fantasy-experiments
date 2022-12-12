@@ -1,10 +1,8 @@
 Historic betting and contest data. Used to generate backtest
 models that predict for dfs contest winning scores
 
-# To pull data...
-cp dot_envrc .envrc
-# EDIT .envrc
-direnv allow
+# EDIT dot_envrc then
+source dot_envrc
 # RUN THE FOLLOWING ON THE CHROMEDRIVER BINARY...
 perl -pi -e 's/cdc/dog/g' /path/to/chromedriver
 

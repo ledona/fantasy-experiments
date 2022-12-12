@@ -15,6 +15,10 @@ nhl	yahoo	FIFTY_FIFTY	CLASSIC	top
 nhl	yahoo	FIFTY_FIFTY	CLASSIC	last
 nhl	yahoo	GPP	CLASSIC	last-win-score	0.1112	10.7996	3.0508	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 nhl	yahoo	GPP	CLASSIC	top-score	0.2807	15.0631	3.6864	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.4841	18.0615	3.734	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	FIFTY_FIFTY	CLASSIC	top-score	0.6219	22.2274	4.1873	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	GPP	CLASSIC	top-score	0.8042	17.22	3.5663	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	GPP	SHOWDOWN	top-score	0.7972	8.5041	2.6009	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 
 mlb	draftkings	FIFTY_FIFTY	SHOWDOWN	last-win-score	0.0598	13.8098	3.3216	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 mlb	draftkings	FIFTY_FIFTY	SHOWDOWN	top-score	0.1968	16.4609	3.2195	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
@@ -40,6 +44,12 @@ mlb	yahoo	GPP	SHOWDOWN	last
 mlb	yahoo	GPP	SHOWDOWN	top
 mlb	yahoo	GPP	CLASSIC	last
 mlb	yahoo	GPP	CLASSIC	top
+mlb	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.0899	25.5944	4.6268	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	FIFTY_FIFTY	CLASSIC	top-score	0.1983	31.7868	4.9517	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	CLASSIC	top-score	0.6538	29.7386	4.2943	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	CLASSIC	last-win-score	0.085	27.3382	4.3073	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	SHOWDOWN	last-win-score	0.091	27.5936	4.2484	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	SHOWDOWN	top-score	0.6657	12.9761	2.8648	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 
 nba	draftkings	GPP	CLASSIC	last
 nba	draftkings	GPP	CLASSIC	top-score	0.0673	56.0389	4.7039	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
@@ -53,6 +63,10 @@ nba	yahoo	GPP	CLASSIC	top
 nba	yahoo	GPP	CLASSIC	last
 nba	yahoo	FIFTY_FIFTY	CLASSIC	top
 nba	yahoo	FIFTY_FIFTY	CLASSIC	last
+nba	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.3249	20.8315	4.1891	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	FIFTY_FIFTY	CLASSIC	top-score	0.3875	20.2593	4.1164	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	GPP	CLASSIC	last-win-score	0.0498	50.7852	5.253	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	GPP	CLASSIC	top-score	0.1739	48.1824	4.5245	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 
 lol	draftkings	FIFTY_FIFTY	CLASSIC	last-win-score	0.8949	79.8063	7.3944	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 lol	draftkings	FIFTY_FIFTY	CLASSIC	top-score	0.9768	42.0453	5.3918	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
@@ -75,6 +89,9 @@ nfl	yahoo	GPP	CLASSIC	top
 nfl	yahoo	GPP	CLASSIC	last
 nfl	yahoo	FIFTY_FIFTY	CLASSIC	top
 nfl	yahoo	FIFTY_FIFTY	CLASSIC	last
+nfl	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.3797	13.4358	3.1449	tpot	20221212	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nfl	multi	FIFTY_FIFTY	CLASSIC	top-score	0.037	17.2831	3.5492	tpot	20221212	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nfl	multi	GPP	CLASSIC	top-score	0.4775	18.2616	3.6024	tpot	20221212	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 
 ************************************************************************************
 mlb	draftkings	GPP	classic	top	.408	19.04	3.84	skautoml	20210807	{"max_train_time": 600, "per_run_time_limit": 120, "model_cols": "best-possible-score", 'random_state': 0}
@@ -971,3 +988,34 @@ nhl	yahoo	FIFTY_FIFTY	CLASSIC	last-win-score	-1.0412	18.412	4.0731	tpot	20220906
 nhl	yahoo	FIFTY_FIFTY	CLASSIC	top-score	-0.8656	27.0848	4.6168	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 nhl	yahoo	GPP	CLASSIC	last-win-score	0.1112	10.7996	3.0508	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
 nhl	yahoo	GPP	CLASSIC	top-score	0.2807	15.0631	3.6864	tpot	20220904	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+
+lol	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.8288	89.2215	8.1141	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+lol	multi	FIFTY_FIFTY	CLASSIC	top-score	0.9705	43.0899	5.6289	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+lol	multi	GPP	CLASSIC	last-win-score	0.8081	102.5542	8.0256	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+lol	multi	GPP	CLASSIC	top-score	0.9374	60.3118	4.5543	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.0899	25.5944	4.6268	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	FIFTY_FIFTY	CLASSIC	top-score	0.1983	31.7868	4.9517	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	FIFTY_FIFTY	SHOWDOWN	last-win-score	-0.0498	14.5929	3.4378	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	FIFTY_FIFTY	SHOWDOWN	top-score	0.1968	16.4609	3.2195	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	CLASSIC	last-win-score	0.085	27.3382	4.3073	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	CLASSIC	top-score	0.6538	29.7386	4.2943	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	SHOWDOWN	last-win-score	0.091	27.5936	4.2484	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+mlb	multi	GPP	SHOWDOWN	top-score	0.6657	12.9761	2.8648	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.3249	20.8315	4.1891	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	FIFTY_FIFTY	CLASSIC	top-score	0.3875	20.2593	4.1164	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	GPP	CLASSIC	last-win-score	0.0498	50.7852	5.253	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	GPP	CLASSIC	top-score	0.1739	48.1824	4.5245	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	GPP	SHOWDOWN	last-win-score	-0.3736	23.2913	4.4113	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nba	multi	GPP	SHOWDOWN	top-score	-1.1795	22.0991	3.714	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nfl	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.3797	13.4358	3.1449	tpot	20221212	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nfl	multi	FIFTY_FIFTY	CLASSIC	top-score	0.037	17.2831	3.5492	tpot	20221212	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nfl	multi	GPP	CLASSIC	last-win-score	-0.5988	54.9645	6.0331	tpot	20221212	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nfl	multi	GPP	CLASSIC	top-score	0.4775	18.2616	3.6024	tpot	20221212	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	FIFTY_FIFTY	CLASSIC	last-win-score	0.4841	18.0615	3.734	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	FIFTY_FIFTY	CLASSIC	top-score	0.6219	22.2274	4.1873	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	FIFTY_FIFTY	SHOWDOWN	last-win-score	-0.1466	15.3018	3.3494	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	FIFTY_FIFTY	SHOWDOWN	top-score	0.3558	15.4871	3.4516	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	GPP	CLASSIC	last-win-score	0.48	37.0934	5.4634	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	GPP	CLASSIC	top-score	0.8042	17.22	3.5663	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	GPP	SHOWDOWN	last-win-score	-0.7789	20.7838	4.1132	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
+nhl	multi	GPP	SHOWDOWN	top-score	0.7972	8.5041	2.6009	tpot	20221213	{'population_size': 100, 'n_jobs': 6, 'verbosity': 2, 'max_train_time': 1200, 'generations': 100, 'early_stop': 15, 'template': 'Selector-Transformer-Regressor', 'random_state': 0}
