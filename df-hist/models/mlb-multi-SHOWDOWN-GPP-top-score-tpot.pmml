@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="SkLearn2PMML package" version="0.88.1"/>
+		<Timestamp>2022-12-13T02:17:56Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', '1B')"],
+                           Continuo...
+                          (["('70.0th-pctl-dfs', 'C')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'OF')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'P')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'SS')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['service'],
+                           [CategoricalDomain(), OneHotEncoder()])])),
+       ('selectfrommodel', SelectorProxy(selector=SelectFromModel(estimator=ExtraTreesRegressor(max_features=0.6500000000000001),
+                                       threshold=0.05))),
+       ('standardscaler', StandardScaler()),
+       ('sgdregressor', SGDRegressor(alpha=0.0, eta0=1.0, l1_ratio=0.75, learning_rate='constant',
+             loss='epsilon_insensitive', penalty='elasticnet', power_t=100.0))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="top_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="80.0" rightMargin="178.0"/>
+		</DataField>
+		<DataField name="team-med" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="1.0" rightMargin="15.0"/>
+		</DataField>
+		<DataField name="team-70.0th_pctl" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="1.7" rightMargin="15.8"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.linear_model._stochastic_gradient.SGDRegressor">
+		<MiningSchema>
+			<MiningField name="top_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team-med" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team-70.0th_pctl" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="70" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="80.0" maximum="178.0" mean="114.67825" standardDeviation="22.92067576162716" median="112.59625" interQuartileRange="26.374750000000006"/>
+			</UnivariateStats>
+			<UnivariateStats field="team-med">
+				<Counts totalFreq="70" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="1.0" maximum="15.0" mean="4.65" standardDeviation="2.6435230821224702" median="4.25" interQuartileRange="2.875"/>
+			</UnivariateStats>
+			<UnivariateStats field="team-70.0th_pctl">
+				<Counts totalFreq="70" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="1.7" maximum="15.8" mean="5.578571428571428" standardDeviation="2.7676133533189544" median="5.05" interQuartileRange="3.3749999999999996"/>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="standardScaler(best-possible-score)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="best-possible-score"/>
+						<Constant dataType="double">114.67825</Constant>
+					</Apply>
+					<Constant dataType="double">22.92067576162716</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(team-med)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="team-med"/>
+						<Constant dataType="double">4.65</Constant>
+					</Apply>
+					<Constant dataType="double">2.6435230821224702</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(team-70.0th_pctl)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="team-70.0th_pctl"/>
+						<Constant dataType="double">5.578571428571428</Constant>
+					</Apply>
+					<Constant dataType="double">2.7676133533189544</Constant>
+				</Apply>
+			</DerivedField>
+		</LocalTransformations>
+		<RegressionTable intercept="113.0">
+			<NumericPredictor name="standardScaler(best-possible-score)" coefficient="21.691474333944498"/>
+			<NumericPredictor name="standardScaler(team-med)" coefficient="-3.1964918548074843"/>
+			<NumericPredictor name="standardScaler(team-70.0th_pctl)" coefficient="4.05455066834814"/>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>

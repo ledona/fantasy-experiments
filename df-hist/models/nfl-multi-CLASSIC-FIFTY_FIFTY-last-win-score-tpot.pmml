@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="SkLearn2PMML package" version="0.88.1"/>
+		<Timestamp>2022-12-12T23:46:27Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', 'QB')"],
+                           Continuo...
+                          (["('70.0th-pctl-dfs', 'QB')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'RB')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'TE')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'WR')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['service'],
+                           [CategoricalDomain(), OneHotEncoder()])])),
+       ('selectpercentile', SelectorProxy(selector=SelectPercentile(percentile=21,
+                                        score_func=&lt;function f_regression at 0x7efd58d865f0&gt;))),
+       ('polynomialfeatures', PolynomialFeatures(include_bias=False)),
+       ('elasticnetcv', ElasticNetCV(tol=1e-05))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="last_winning_score" optype="continuous" dataType="double"/>
+		<DataField name="('70.0th-pctl-dfs', 'WR')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="6.0" rightMargin="12.599999999999994"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.linear_model._coordinate_descent.ElasticNetCV">
+		<MiningSchema>
+			<MiningField name="last_winning_score" usageType="target"/>
+			<MiningField name="('70.0th-pctl-dfs', 'WR')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'WR')">
+				<Counts totalFreq="18" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="6.0" maximum="12.599999999999994" mean="8.827222222222222" standardDeviation="1.6172363448369957" median="8.965" interQuartileRange="2.3174999999999963"/>
+			</UnivariateStats>
+		</ModelStats>
+		<RegressionTable intercept="100.58522507087412">
+			<NumericPredictor name="('70.0th-pctl-dfs', 'WR')" exponent="2" coefficient="0.5142023279122692"/>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>

@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="SkLearn2PMML package" version="0.88.1"/>
+		<Timestamp>2022-12-13T00:52:33Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension name="repr">PMMLPipeline(steps=[('mapper', DataFrameMapper(drop_cols=[],
+                features=[(['best-possible-score'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team_count'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-med'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['team-70.0th_pctl'],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('med-dfs', 'C')"],
+                           Continuou...
+                          (["('70.0th-pctl-dfs', 'C')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'D')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'G')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (["('70.0th-pctl-dfs', 'W')"],
+                           ContinuousDomain(invalid_value_treatment='as_is')),
+                          (['service'],
+                           [CategoricalDomain(), OneHotEncoder()])])),
+       ('selectfwe', SelectorProxy(selector=SelectFwe(alpha=0.022,
+                                 score_func=&lt;function f_regression at 0x7fe82df8e290&gt;))),
+       ('standardscaler', StandardScaler()),
+       ('linearsvr', LinearSVR(C=25.0, epsilon=0.001, loss='squared_epsilon_insensitive', tol=0.01))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="top_score" optype="continuous" dataType="double"/>
+		<DataField name="best-possible-score" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="132.8" rightMargin="402.8"/>
+		</DataField>
+		<DataField name="team_count" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="4.0" rightMargin="26.0"/>
+		</DataField>
+		<DataField name="team-70.0th_pctl" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="2.0" rightMargin="5.0"/>
+		</DataField>
+		<DataField name="('med-dfs', 'C')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="1.9" rightMargin="12.8"/>
+		</DataField>
+		<DataField name="('med-dfs', 'D')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="2.4" rightMargin="9.8"/>
+		</DataField>
+		<DataField name="('med-dfs', 'W')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="1.9" rightMargin="9.6"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'C')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="3.479999999999998" rightMargin="20.16"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'D')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="3.97" rightMargin="13.449999999999998"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'G')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="8.959999999999999" rightMargin="32.0"/>
+		</DataField>
+		<DataField name="('70.0th-pctl-dfs', 'W')" optype="continuous" dataType="double">
+			<Interval closure="closedClosed" leftMargin="3.66" rightMargin="15.679999999999994"/>
+		</DataField>
+		<DataField name="service" optype="categorical" dataType="string">
+			<Value value="draftkings"/>
+			<Value value="fanduel"/>
+			<Value value="yahoo"/>
+		</DataField>
+	</DataDictionary>
+	<RegressionModel functionName="regression" algorithmName="sklearn.svm._classes.LinearSVR">
+		<MiningSchema>
+			<MiningField name="top_score" usageType="target"/>
+			<MiningField name="best-possible-score" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team_count" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="team-70.0th_pctl" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'C')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'D')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('med-dfs', 'W')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'C')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'D')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'G')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="('70.0th-pctl-dfs', 'W')" missingValueTreatment="asIs" invalidValueTreatment="asIs"/>
+			<MiningField name="service" missingValueTreatment="asIs"/>
+		</MiningSchema>
+		<ModelStats>
+			<UnivariateStats field="best-possible-score">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="132.8" maximum="402.8" mean="245.39924242424243" standardDeviation="62.295903722782604" median="250.05" interQuartileRange="83.5"/>
+			</UnivariateStats>
+			<UnivariateStats field="team_count">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="4.0" maximum="26.0" mean="13.530303030303031" standardDeviation="6.927590199252457" median="12.0" interQuartileRange="12.5"/>
+			</UnivariateStats>
+			<UnivariateStats field="team-70.0th_pctl">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="2.0" maximum="5.0" mean="3.691666666666667" standardDeviation="0.539084755615825" median="4.0" interQuartileRange="0.9249999999999998"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'C')">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="1.9" maximum="12.8" mean="5.089015151515151" standardDeviation="1.8046164957519724" median="4.8" interQuartileRange="1.7000000000000002"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'D')">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="2.4" maximum="9.8" mean="5.0806818181818185" standardDeviation="1.2776583654327671" median="4.8" interQuartileRange="1.7000000000000002"/>
+			</UnivariateStats>
+			<UnivariateStats field="('med-dfs', 'W')">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="1.9" maximum="9.6" mean="4.640909090909091" standardDeviation="1.214477350204515" median="4.625" interQuartileRange="0.5"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'C')">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="3.479999999999998" maximum="20.16" mean="9.380530303030303" standardDeviation="2.97125835866392" median="9.515" interQuartileRange="3.7500000000000027"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'D')">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="3.97" maximum="13.449999999999998" mean="8.365681818181818" standardDeviation="1.9201519799310307" median="8.059999999999999" interQuartileRange="2.0850000000000035"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'G')">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="8.959999999999999" maximum="32.0" mean="19.14462121212121" standardDeviation="4.905066089398616" median="18.645" interQuartileRange="7.377500000000001"/>
+			</UnivariateStats>
+			<UnivariateStats field="('70.0th-pctl-dfs', 'W')">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<NumericInfo minimum="3.66" maximum="15.679999999999994" mean="9.173181818181817" standardDeviation="2.28089739057593" median="9.5" interQuartileRange="3.2"/>
+			</UnivariateStats>
+			<UnivariateStats field="service">
+				<Counts totalFreq="132" missingFreq="0" invalidFreq="0"/>
+				<DiscrStats>
+					<Array type="string">draftkings fanduel yahoo</Array>
+					<Array type="int">65 46 21</Array>
+				</DiscrStats>
+			</UnivariateStats>
+		</ModelStats>
+		<LocalTransformations>
+			<DerivedField name="standardScaler(best-possible-score)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="best-possible-score"/>
+						<Constant dataType="double">245.39924242424243</Constant>
+					</Apply>
+					<Constant dataType="double">62.295903722782604</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(team_count)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="team_count"/>
+						<Constant dataType="double">13.530303030303031</Constant>
+					</Apply>
+					<Constant dataType="double">6.927590199252457</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(team-70.0th_pctl)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="team-70.0th_pctl"/>
+						<Constant dataType="double">3.691666666666667</Constant>
+					</Apply>
+					<Constant dataType="double">0.539084755615825</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(('med-dfs', 'C'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="('med-dfs', 'C')"/>
+						<Constant dataType="double">5.089015151515151</Constant>
+					</Apply>
+					<Constant dataType="double">1.8046164957519724</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(('med-dfs', 'D'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="('med-dfs', 'D')"/>
+						<Constant dataType="double">5.0806818181818185</Constant>
+					</Apply>
+					<Constant dataType="double">1.2776583654327671</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(('med-dfs', 'W'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="('med-dfs', 'W')"/>
+						<Constant dataType="double">4.640909090909091</Constant>
+					</Apply>
+					<Constant dataType="double">1.214477350204515</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(('70.0th-pctl-dfs', 'C'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="('70.0th-pctl-dfs', 'C')"/>
+						<Constant dataType="double">9.380530303030303</Constant>
+					</Apply>
+					<Constant dataType="double">2.97125835866392</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(('70.0th-pctl-dfs', 'D'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="('70.0th-pctl-dfs', 'D')"/>
+						<Constant dataType="double">8.365681818181818</Constant>
+					</Apply>
+					<Constant dataType="double">1.9201519799310307</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(('70.0th-pctl-dfs', 'G'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="('70.0th-pctl-dfs', 'G')"/>
+						<Constant dataType="double">19.14462121212121</Constant>
+					</Apply>
+					<Constant dataType="double">4.905066089398616</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="standardScaler(('70.0th-pctl-dfs', 'W'))" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="('70.0th-pctl-dfs', 'W')"/>
+						<Constant dataType="double">9.173181818181817</Constant>
+					</Apply>
+					<Constant dataType="double">2.28089739057593</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="service=fanduel" optype="continuous" dataType="double">
+				<NormDiscrete field="service" value="fanduel"/>
+			</DerivedField>
+			<DerivedField name="standardScaler(service=fanduel)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="service=fanduel"/>
+						<Constant dataType="double">0.3484848484848485</Constant>
+					</Apply>
+					<Constant dataType="double">0.4764904604095875</Constant>
+				</Apply>
+			</DerivedField>
+			<DerivedField name="service=yahoo" optype="continuous" dataType="double">
+				<NormDiscrete field="service" value="yahoo"/>
+			</DerivedField>
+			<DerivedField name="standardScaler(service=yahoo)" optype="continuous" dataType="double">
+				<Apply function="/">
+					<Apply function="-">
+						<FieldRef field="service=yahoo"/>
+						<Constant dataType="double">0.1590909090909091</Constant>
+					</Apply>
+					<Constant dataType="double">0.36576083953252464</Constant>
+				</Apply>
+			</DerivedField>
+		</LocalTransformations>
+		<RegressionTable intercept="161.48728686391416">
+			<NumericPredictor name="standardScaler(best-possible-score)" coefficient="29.870408670634873"/>
+			<NumericPredictor name="standardScaler(team_count)" coefficient="-7.297296211694588"/>
+			<NumericPredictor name="standardScaler(team-70.0th_pctl)" coefficient="-0.09207319691465776"/>
+			<NumericPredictor name="standardScaler(('med-dfs', 'C'))" coefficient="-1.0880511042991583"/>
+			<NumericPredictor name="standardScaler(('med-dfs', 'D'))" coefficient="-1.6873612098340307"/>
+			<NumericPredictor name="standardScaler(('med-dfs', 'W'))" coefficient="-2.4562543574739015"/>
+			<NumericPredictor name="standardScaler(('70.0th-pctl-dfs', 'C'))" coefficient="2.3009970529405024"/>
+			<NumericPredictor name="standardScaler(('70.0th-pctl-dfs', 'D'))" coefficient="-9.521090923421019"/>
+			<NumericPredictor name="standardScaler(('70.0th-pctl-dfs', 'G'))" coefficient="0.8400505128079899"/>
+			<NumericPredictor name="standardScaler(('70.0th-pctl-dfs', 'W'))" coefficient="2.4808099147097518"/>
+			<NumericPredictor name="standardScaler(service=fanduel)" coefficient="-4.092604429356703"/>
+			<NumericPredictor name="standardScaler(service=yahoo)" coefficient="-6.909184082176549"/>
+		</RegressionTable>
+	</RegressionModel>
+</PMML>
