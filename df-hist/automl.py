@@ -2,11 +2,12 @@ from math import sqrt
 import os
 
 # import tempfile
-from typing import Optional, Literal
+from typing import Literal
 import re
 import pickle
 
 from sklearn2pmml.tpot import make_pmml_config as make_tpot_pmml_config
+
 # import autosklearn.regression
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -198,6 +199,7 @@ def create_automl_model(
 # ModelTypes = sklearn.base.BaseEstimator | onnx.ModelProto | JpmmlModel
 ModelTypes = sklearn.base.BaseEstimator | JpmmlModel
 
+
 def error_report(
     model: ModelTypes,
     X_test,
@@ -293,7 +295,7 @@ def error_report(
     return result, predictions
 
 
-def get_df_types(df, drop: Optional[list[str]] = None) -> list:
+def get_df_types(df, drop: None | list[str] = None) -> list:
     """
     identify the input types for the model, based on function found at
     https://docs.microsoft.com/en-us/azure/azure-sql-edge/deploy-onnx
