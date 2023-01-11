@@ -1,6 +1,0 @@
-{'est': 'ols', 'hist_agg': 'mean', 'n_cases': 1591, 'n_features': 11, 'n_games': 7}
-('Feature selection failure on fit! This could be due to running feature selection on players without valid score for output stat. For example draftkings does not score Kickers.', LinAlgError('SVD did not converge',))
-<function format_stack at 0x1101f8598>
-----------------------------------------
-
-

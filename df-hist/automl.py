@@ -3,7 +3,7 @@ import os
 
 # import tempfile
 from typing import Literal
-import re
+# import re
 import pickle
 
 from sklearn2pmml.tpot import make_pmml_config as make_tpot_pmml_config
