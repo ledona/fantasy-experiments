@@ -3,7 +3,7 @@ beautifulsoup4==4.11.1
 jpmml_evaluator==0.6.2
 matplotlib==3.5.1
 numpy==1.22.3
-onnx==1.11.0
+onnx==1.13.0
 onnxmltools==1.11.1
 onnxruntime==1.12.1
 pandas==1.4.2
