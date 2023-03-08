@@ -1,0 +1,9 @@
+## Setup
+
+# for autosklearn
+pip install auto-sklearn
+sudo apt-get install swig
+
+# for tpot (as of 2023.3.8)
+pip3 install torch torchvision torchaudio
+pip install tpot "numpy<1.24"
