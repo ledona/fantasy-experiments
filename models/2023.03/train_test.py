@@ -226,9 +226,19 @@ def create_fantasy_model(
         if col.startswith("pos_"):
             include_pos = True
             continue
-        type_, stat_name = col.split(":", 2)[:2]
-        assert type_ in ["calc", "stat", "extra"]
-        features[type_].add(stat_name)
+        col_split = col.split(":")
+        assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"]
+        if col_split[0] in ["calc", "stat"]:
+            features[col_split[0]].add(col_split[1])
+            continue
+        if col_split[0] == "extra":
+            extra_type = "extra" if len(col_split) > 2 else "current_extra"
+            features[extra_type].add(col_split[1])
+            continue
+
+        raise UnexpectedValueError(
+            f"Unknown feature type for data column named '{col}'"
+        )
     features_list_dict = {name: list(stats) for name, stats in features.items()}
     data_def = {
         "recent_games": recent_games,
