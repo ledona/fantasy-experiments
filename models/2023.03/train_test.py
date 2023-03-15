@@ -232,7 +232,7 @@ def create_fantasy_model(
             features[col_split[0]].add(col_split[1])
             continue
         if col_split[0] == "extra":
-            extra_type = "extra" if len(col_split) > 2 else "current_extra"
+            extra_type = "hist_extra" if len(col_split) > 2 else "current_extra"
             features[extra_type].add(col_split[1])
             continue
 
