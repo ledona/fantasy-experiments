@@ -74,7 +74,8 @@ def load_data(
 
     print(f"One-hot encoding features: {one_hots}")
     df = pd.get_dummies(df, columns=one_hots)
-    df["extra:is_home"] = df["extra:is_home"].astype(int)
+    if "extra:is_home" in df:
+        df["extra:is_home"] = df["extra:is_home"].astype(int)
 
     feature_cols = [
         col
