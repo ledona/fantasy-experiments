@@ -11,15 +11,13 @@ import sklearn.metrics
 from tpot import TPOTRegressor
 import pandas as pd
 
-from fantasy_py.inference import SKLModel, TargetType, Model, Performance
-from fantasy_py import db, FantasyException, UnexpectedValueError
+from fantasy_py.inference import SKLModel, StatInfo, Model, Performance
+from fantasy_py import FantasyException, UnexpectedValueError, PlayerOrTeam
 
 
 TrainTestData = tuple[
     pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series
 ]
-
-_TargetType = tuple[Literal["stat", "calc"], str]
 
 
 class WildcardFilterFoundNothing(FantasyException):
@@ -28,7 +26,7 @@ class WildcardFilterFoundNothing(FantasyException):
 
 def load_data(
     filename: str,
-    target: _TargetType,
+    target: StatInfo,
     validation_season: int,
     include_position: None | bool = None,
     seed=None,
@@ -144,7 +142,7 @@ _AutomlType = Literal["tpot", "autosk"]
 def train_test(
     type_: _AutomlType,
     model_name: str,
-    target: _TargetType,
+    target: StatInfo,
     tt_data: TrainTestData,
     seed: None | int,
     training_time: int,
@@ -207,9 +205,9 @@ def create_fantasy_model(
     model_path: str,
     dt_trained: datetime,
     columns: Iterable[str],
-    target: _TargetType,
+    target: StatInfo,
     training_time,
-    p_or_t: db.model.P_OR_T,
+    p_or_t: PlayerOrTeam,
     recent_games: int,
     automl_type: _AutomlType,
     performance: Performance,
@@ -217,10 +215,12 @@ def create_fantasy_model(
     recent_mean: bool = True,
     recent_explode: bool = True,
     only_starters: bool | None = None,
+    target_pos: None | list[str] = None,
+    training_pos: None | list[str] = None,
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
-    target_info = TargetType(target[0], p_or_t, target[1])
+    target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features: dict[str, set] = defaultdict(set)
     for col in columns:
@@ -249,6 +249,8 @@ def create_fantasy_model(
     }
     if only_starters is not None:
         data_def["only_starters"] = only_starters
+    if training_pos is not None:
+        data_def["training_pos"] = training_pos
     model = SKLModel(
         name,
         target_info,
@@ -262,5 +264,6 @@ def create_fantasy_model(
         },
         trained_parameters={"regressor_path": model_path},
         performance=performance,
+        player_positions=target_pos,
     )
     return model
