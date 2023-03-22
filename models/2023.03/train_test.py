@@ -211,6 +211,7 @@ def create_fantasy_model(
     recent_games: int,
     automl_type: _AutomlType,
     performance: Performance,
+    training_seasons: list[int],
     seed=None,
     recent_mean: bool = True,
     recent_explode: bool = True,
@@ -241,11 +242,12 @@ def create_fantasy_model(
             f"Unknown feature type for data column named '{col}'"
         )
     features_list_dict = {name: list(stats) for name, stats in features.items()}
-    data_def = {
+    data_def: dict = {
         "recent_games": recent_games,
         "recent_mean": recent_mean,
         "recent_explode": recent_explode,
         "include_pos": include_pos,
+        "seasons": training_seasons,
     }
     if only_starters is not None:
         data_def["only_starters"] = only_starters
