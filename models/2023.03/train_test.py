@@ -24,6 +24,46 @@ class WildcardFilterFoundNothing(FantasyException):
     """raised if a wildcard feature filter did not match any columns"""
 
 
+def load_csv(filename: str, include_position: bool):
+    print(f"Loading data from '{filename}'")
+    df_raw = pd.read_csv(filename)
+
+    if include_position is not None and "pos" not in df_raw:
+        raise UnexpectedValueError(
+            "Column 'pos' not found in data, 'include_position' must be None!"
+        )
+    elif include_position is None and "pos" in df_raw:
+        raise UnexpectedValueError(
+            "Column 'pos' found in data, 'include_position' kwarg is required!"
+        )
+
+    print(f"Include player position set to {include_position}")
+    one_hots = []
+    if "extra:venue" in df_raw:
+        one_hots.append("extra:venue")
+    if "pos" in df_raw and include_position:
+        one_hots.append("pos")
+        df_raw.pos = df_raw.pos.astype(str)
+
+    print(f"One-hot encoding features: {one_hots}")
+    df = pd.get_dummies(df_raw, columns=one_hots)
+    if "extra:is_home" in df:
+        df["extra:is_home"] = df["extra:is_home"].astype(int)
+
+    return df
+
+def infer_feature_cols(df: pd.DataFrame, include_position: bool):
+    """figure out what the feature columns for training/inference will be based on the columns in df"""
+    return [
+        col
+        for col in df
+        if (col.startswith("pos_") and include_position is True and col != "pos_id")
+        or col.startswith("extra")
+        or ":recent" in col
+        or ":std" in col
+    ]
+
+
 def load_data(
     filename: str,
     target: StatInfo,
@@ -45,36 +85,12 @@ def load_data(
     filtering_query - query to execute (using dataframe.query) to filter
         for rows in the input data. Executed before one-hot and column drops
     """
-    print(f"Loading data from '{filename}'")
-    df_raw = pd.read_csv(filename)
-
-    if include_position is not None and "pos" not in df_raw:
-        raise UnexpectedValueError(
-            "Column 'pos' not found in data, 'include_position' must be None!"
-        )
-    elif include_position is None and "pos" in df_raw:
-        raise UnexpectedValueError(
-            "Column 'pos' found in data, 'include_position' kwarg is required!"
-        )
-
-    print(f"Include player position set to {include_position}")
-    one_hots = []
-    if "extra:venue" in df_raw:
-        one_hots.append("extra:venue")
-    if "pos" in df_raw and include_position:
-        one_hots.append("pos")
-        df_raw.pos = df_raw.pos.astype(str)
-
-    df = df_raw
+    df_raw = load_csv(filename, include_position)
     if filtering_query:
-        df = df.query(filtering_query)
+        df = df_raw.query(filtering_query)
         print(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
-
-    print(f"One-hot encoding features: {one_hots}")
-    df = pd.get_dummies(df, columns=one_hots)
-    if "extra:is_home" in df:
-        df["extra:is_home"] = df["extra:is_home"].astype(int)
-
+    else:
+        df = df_raw
     feature_cols = [
         col
         for col in df
@@ -248,6 +264,7 @@ def create_fantasy_model(
         "recent_explode": recent_explode,
         "include_pos": include_pos,
         "seasons": training_seasons,
+        "input_cols": columns,
     }
     if only_starters is not None:
         data_def["only_starters"] = only_starters
