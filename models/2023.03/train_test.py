@@ -53,7 +53,10 @@ def load_csv(filename: str, include_position: bool):
     return df
 
 def infer_feature_cols(df: pd.DataFrame, include_position: bool):
-    """figure out what the feature columns for training/inference will be based on the columns in df"""
+    """
+    figure out what the feature columns for training/inference will be based 
+    on the columns in df
+    """
     return [
         col
         for col in df
@@ -152,6 +155,16 @@ def load_data(
     return df_raw, (X_train, y_train, X_test, y_test, X_val, y_val)
 
 
+def infer_imputes(train_df: pd.DataFrame):
+    """
+    returns - a dict mapping column names to impute value to use, None if no 
+        imputation needed (i.e. no missing values)
+    """
+    impute_values = {
+        col: round(train_df[col].median(), 5) for col in train_df if train_df[col].isna().any()
+    }
+    return impute_values if len(impute_values) > 0 else None
+
 _AutomlType = Literal["tpot", "autosk"]
 
 
@@ -220,7 +233,7 @@ def create_fantasy_model(
     name: str,
     model_path: str,
     dt_trained: datetime,
-    columns: Iterable[str],
+    train_df: pd.DataFrame,
     target: StatInfo,
     training_time,
     p_or_t: PlayerOrTeam,
@@ -234,12 +247,14 @@ def create_fantasy_model(
     only_starters: bool | None = None,
     target_pos: None | list[str] = None,
     training_pos: None | list[str] = None,
+    pre_cleaned_data: pd.DataFrame | None = None
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features: dict[str, set] = defaultdict(set)
+    columns = train_df.columns
     for col in columns:
         if col.startswith("pos_"):
             include_pos = True
@@ -264,7 +279,6 @@ def create_fantasy_model(
         "recent_explode": recent_explode,
         "include_pos": include_pos,
         "seasons": training_seasons,
-        "input_cols": columns,
     }
     if only_starters is not None:
         data_def["only_starters"] = only_starters
@@ -284,5 +298,11 @@ def create_fantasy_model(
         trained_parameters={"regressor_path": model_path},
         performance=performance,
         player_positions=target_pos,
+        input_cols=columns.to_list(),
+        impute_values=infer_imputes(train_df)
     )
+
+    if pre_cleaned_data is not None:
+        print("testing model predict...")
+        model.predict(pre_cleaned_data.sample(100))
     return model
