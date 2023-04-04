@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Literal, Iterable
+from typing import Literal
+import traceback
 from pprint import pprint
 from datetime import datetime
 import re
@@ -50,7 +51,7 @@ def load_csv(filename: str, include_position: bool):
     if "extra:is_home" in df:
         df["extra:is_home"] = df["extra:is_home"].astype(int)
 
-    return df
+    return df_raw, df
 
 def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     """
@@ -88,12 +89,10 @@ def load_data(
     filtering_query - query to execute (using dataframe.query) to filter
         for rows in the input data. Executed before one-hot and column drops
     """
-    df_raw = load_csv(filename, include_position)
+    df_raw, df = load_csv(filename, include_position)
     if filtering_query:
-        df = df_raw.query(filtering_query)
+        df = df.query(filtering_query)
         print(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
-    else:
-        df = df_raw
     feature_cols = [
         col
         for col in df
@@ -247,7 +246,7 @@ def create_fantasy_model(
     only_starters: bool | None = None,
     target_pos: None | list[str] = None,
     training_pos: None | list[str] = None,
-    pre_cleaned_data: pd.DataFrame | None = None
+    raw_df: pd.DataFrame | None = None
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
@@ -302,7 +301,13 @@ def create_fantasy_model(
         impute_values=infer_imputes(train_df)
     )
 
-    if pre_cleaned_data is not None:
-        print("testing model predict...")
-        model.predict(pre_cleaned_data.sample(100))
+    if raw_df is not None:
+        try:
+            model.predict(raw_df.sample(10))
+            print("post testing model predict successful...")
+        except Exception as ex:
+            print(f"post prediction testing failed! '{type(ex).__name__}':")
+            print(traceback.format_exc())
+    else:
+        print("not post testing model ...")
     return model
