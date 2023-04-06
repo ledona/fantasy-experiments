@@ -25,7 +25,7 @@ class WildcardFilterFoundNothing(FantasyException):
     """raised if a wildcard feature filter did not match any columns"""
 
 
-def load_csv(filename: str, include_position: bool):
+def load_csv(filename: str, include_position: bool | None):
     print(f"Loading data from '{filename}'")
     df_raw = pd.read_csv(filename)
 
@@ -53,9 +53,10 @@ def load_csv(filename: str, include_position: bool):
 
     return df_raw, df
 
+
 def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     """
-    figure out what the feature columns for training/inference will be based 
+    figure out what the feature columns for training/inference will be based
     on the columns in df
     """
     return [
@@ -76,7 +77,7 @@ def load_data(
     seed=None,
     col_drop_filters: None | list[str] = None,
     filtering_query: None | str = None,
-) -> tuple[pd.DataFrame, TrainTestData]:
+):
     """
     Create train, test and validation data
 
@@ -151,18 +152,21 @@ def load_data(
         f"{len(X_test)} test cases, {len(X_val)} validation test cases from {validation_season=}",
     )
 
-    return df_raw, (X_train, y_train, X_test, y_test, X_val, y_val)
+    return df_raw, (X_train, y_train, X_test, y_test, X_val, y_val), one_hots
 
 
 def infer_imputes(train_df: pd.DataFrame):
     """
-    returns - a dict mapping column names to impute value to use, None if no 
+    returns - a dict mapping column names to impute value to use, None if no
         imputation needed (i.e. no missing values)
     """
     impute_values = {
-        col: round(train_df[col].median(), 5) for col in train_df if train_df[col].isna().any()
+        col: round(train_df[col].median(), 5)
+        for col in train_df
+        if train_df[col].isna().any()
     }
     return impute_values if len(impute_values) > 0 else None
+
 
 _AutomlType = Literal["tpot", "autosk"]
 
@@ -246,7 +250,7 @@ def create_fantasy_model(
     only_starters: bool | None = None,
     target_pos: None | list[str] = None,
     training_pos: None | list[str] = None,
-    raw_df: pd.DataFrame | None = None
+    raw_df: pd.DataFrame | None = None,
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
@@ -264,7 +268,11 @@ def create_fantasy_model(
             features[col_split[0]].add(col_split[1])
             continue
         if col_split[0] == "extra":
-            extra_type = "hist_extra" if len(col_split) > 2 else "current_extra"
+            if col_split[1] == "venue":
+                assert len(col_split) == 2
+                extra_type = "current_extra"
+            else:
+                extra_type = "hist_extra" if len(col_split) > 2 else "current_extra"
             features[extra_type].add(col_split[1])
             continue
 
@@ -298,7 +306,7 @@ def create_fantasy_model(
         performance=performance,
         player_positions=target_pos,
         input_cols=columns.to_list(),
-        impute_values=infer_imputes(train_df)
+        impute_values=infer_imputes(train_df),
     )
 
     if raw_df is not None:
