@@ -48,10 +48,17 @@ def load_csv(filename: str, include_position: bool | None):
 
     print(f"One-hot encoding features: {one_hots}")
     df = pd.get_dummies(df_raw, columns=one_hots)
+
+    one_hot_stats = (
+        {"extra:venue": [col for col in df if col.startswith("extra:venue_")]}
+        if "extra:venue" in df_raw
+        else None
+    )
+
     if "extra:is_home" in df:
         df["extra:is_home"] = df["extra:is_home"].astype(int)
 
-    return df_raw, df
+    return df_raw, df, one_hot_stats
 
 
 def infer_feature_cols(df: pd.DataFrame, include_position: bool):
@@ -90,7 +97,7 @@ def load_data(
     filtering_query - query to execute (using dataframe.query) to filter
         for rows in the input data. Executed before one-hot and column drops
     """
-    df_raw, df = load_csv(filename, include_position)
+    df_raw, df, one_hot_stats = load_csv(filename, include_position)
     if filtering_query:
         df = df.query(filtering_query)
         print(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
@@ -152,7 +159,7 @@ def load_data(
         f"{len(X_test)} test cases, {len(X_val)} validation test cases from {validation_season=}",
     )
 
-    return df_raw, (X_train, y_train, X_test, y_test, X_val, y_val), one_hots
+    return df_raw, (X_train, y_train, X_test, y_test, X_val, y_val), one_hot_stats
 
 
 def infer_imputes(train_df: pd.DataFrame):
@@ -244,6 +251,7 @@ def create_fantasy_model(
     automl_type: _AutomlType,
     performance: Performance,
     training_seasons: list[int],
+    one_hot_stats: dict[str, list[str]] | None = None,
     seed=None,
     recent_mean: bool = True,
     recent_explode: bool = True,
@@ -254,6 +262,7 @@ def create_fantasy_model(
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
+    assert one_hot_stats is None
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features: dict[str, set] = defaultdict(set)
