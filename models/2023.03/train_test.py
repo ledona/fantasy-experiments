@@ -267,11 +267,15 @@ def create_fantasy_model(
     include_pos = False
     features: dict[str, set] = defaultdict(set)
     columns = train_df.columns
+    target_feature_exclusion = None
     for col in columns:
         if col.startswith("pos_"):
             include_pos = True
             continue
         col_split = col.split(":")
+        if col_split[0] == target_info.type and col_split[1] == target_info.name:
+            target_feature_exclusion = col
+            continue
         assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"]
         if col_split[0] in ["calc", "stat"]:
             features[col_split[0]].add(col_split[1])
@@ -287,6 +291,15 @@ def create_fantasy_model(
 
         raise UnexpectedValueError(
             f"Unknown feature type for data column named '{col}'"
+        )
+
+    if target_feature_exclusion is None:
+        print(
+            f"Column for target feature {target_info} not found or excluded from model features!!!"
+        )
+    else:
+        print(
+            f"Model target {target_info} found in col='{target_feature_exclusion}' and excluded from model features!"
         )
     features_list_dict = {name: list(stats) for name, stats in features.items()}
     data_def: dict = {
