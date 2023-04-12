@@ -9,6 +9,7 @@ import joblib
 import autosklearn.regression
 import sklearn.model_selection
 import sklearn.metrics
+from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
 import pandas as pd
 
@@ -42,9 +43,11 @@ def load_csv(filename: str, include_position: bool | None):
     one_hots = []
     if "extra:venue" in df_raw:
         one_hots.append("extra:venue")
-    if "pos" in df_raw and include_position:
-        one_hots.append("pos")
-        df_raw.pos = df_raw.pos.astype(str)
+    if "pos" in df_raw:
+        df_raw.drop(columns="pos_id", inplace=True)
+        if include_position:
+            one_hots.append("pos")
+            df_raw.pos = df_raw.pos.astype(str)
 
     print(f"One-hot encoding features: {one_hots}")
     df = pd.get_dummies(df_raw, columns=one_hots)
@@ -175,7 +178,7 @@ def infer_imputes(train_df: pd.DataFrame):
     return impute_values if len(impute_values) > 0 else None
 
 
-_AutomlType = Literal["tpot", "autosk"]
+_AutomlType = Literal["tpot", "autosk", "dummy"]
 
 
 def train_test(
@@ -205,6 +208,8 @@ def train_test(
             max_time_mins=training_time / 60,
             verbosity=3,
         )
+    elif type_ == "dummy":
+        automl = DummyRegressor()
     else:
         raise NotImplementedError(f"automl type {type_} not recognized")
 
@@ -214,8 +219,10 @@ def train_test(
     if type_ == "autosk":
         print(automl.leaderboard())
         pprint(automl.show_models(), indent=4)
-    else:
+    elif type == "tpot":
         pprint(automl.fitted_pipeline_)
+    else:
+        print("Dummy fitted")
 
     y_hat = automl.predict(X_test)
     r2_test = round(sklearn.metrics.r2_score(y_test, y_hat), 3)
@@ -229,7 +236,7 @@ def train_test(
 
     filename = f"{model_name}-{type_}-{target[0]}:{target[1]}.{dt_trained.isoformat().rsplit('.', 1)[0]}.pkl"
     print(f"Exporting model to '{filename}'")
-    if type_ == "autosk":
+    if type_ in ("autosk", "dummy"):
         joblib.dump(automl, filename)
     elif type_ == "tpot":
         joblib.dump(automl.fitted_pipeline_, filename)
