@@ -81,7 +81,7 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
 
 def load_data(
     filename: str,
-    target: StatInfo,
+    target: tuple[str, str],
     validation_season: int,
     include_position: None | bool = None,
     seed=None,
@@ -91,6 +91,7 @@ def load_data(
     """
     Create train, test and validation data
 
+    target - tuple[stat type, stat name]
     include_position - If not None a 'pos' column is required in the loaded
         data and will be included/excluded based on this argument. If None
         and 'pos' is in the loaded data, an exception is raised
@@ -100,6 +101,9 @@ def load_data(
     filtering_query - query to execute (using dataframe.query) to filter
         for rows in the input data. Executed before one-hot and column drops
     """
+    target_col_name = ":".join(target)
+    print(f"Target column name set to '{target_col_name}'")
+
     df_raw, df, one_hot_stats = load_csv(filename, include_position)
     if filtering_query:
         df = df.query(filtering_query)
@@ -107,16 +111,18 @@ def load_data(
     feature_cols = [
         col
         for col in df
-        if (col.startswith("pos_") and include_position is True)
-        or col.startswith("extra")
-        or ":recent" in col
-        or ":std" in col
+        if col != target_col_name
+        and (
+            (col.startswith("pos_") and include_position is True)
+            or col.startswith("extra")
+            or ":recent" in col
+            or ":std" in col
+        )
     ]
 
     train_test_df = df[df.season != validation_season]
     if len(train_test_df) == 0:
         raise ValueError("No training data!")
-    target_col_name = ":".join(target)
     X = train_test_df[feature_cols]
     y = train_test_df[target_col_name]
 
@@ -269,45 +275,35 @@ def create_fantasy_model(
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
-    assert one_hot_stats is None
+    assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features: dict[str, set] = defaultdict(set)
     columns = train_df.columns
-    target_feature_exclusion = None
     for col in columns:
         if col.startswith("pos_"):
             include_pos = True
             continue
         col_split = col.split(":")
-        if col_split[0] == target_info.type and col_split[1] == target_info.name:
-            target_feature_exclusion = col
-            continue
         assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"]
         if col_split[0] in ["calc", "stat"]:
             features[col_split[0]].add(col_split[1])
             continue
         if col_split[0] == "extra":
-            if col_split[1] == "venue":
+            if col_split[1].startswith("venue_"):
                 assert len(col_split) == 2
                 extra_type = "current_extra"
+                extra_name = "venue"
             else:
                 extra_type = "hist_extra" if len(col_split) > 2 else "current_extra"
-            features[extra_type].add(col_split[1])
+                extra_name = col_split[1]
+            features[extra_type].add(extra_name)
             continue
 
         raise UnexpectedValueError(
             f"Unknown feature type for data column named '{col}'"
         )
 
-    if target_feature_exclusion is None:
-        print(
-            f"Column for target feature {target_info} not found or excluded from model features!!!"
-        )
-    else:
-        print(
-            f"Model target {target_info} found in col='{target_feature_exclusion}' and excluded from model features!"
-        )
     features_list_dict = {name: list(stats) for name, stats in features.items()}
     data_def: dict = {
         "recent_games": recent_games,
