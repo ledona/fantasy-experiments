@@ -177,9 +177,9 @@ def infer_imputes(train_df: pd.DataFrame):
         imputation needed (i.e. no missing values)
     """
     impute_values = {
-        col: round(train_df[col].median(), 5)
+        col.rsplit(":", 1)[0]: round(train_df[col].median(), 2)
         for col in train_df
-        if train_df[col].isna().any()
+        if col.endswith("std-mean")
     }
     return impute_values if len(impute_values) > 0 else None
 
