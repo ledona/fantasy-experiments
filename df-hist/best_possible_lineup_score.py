@@ -186,9 +186,6 @@ def best_possible_lineup_score(
         fill_all_positions=constraints.fill_all_positions,
     )
 
-    season = db_obj.db_manager.season_for_date(game_date)
-    pts_stats = get_stat_names(sport, service_abbr)
-
     try:
         lineups = gen_lineups(
             db_obj,
@@ -197,11 +194,9 @@ def best_possible_lineup_score(
             solver,
             service_cls,
             1,  # of lineups
-            season,
             slate=slate_name,
             slate_info=starters.slates[slate_name],
             score_data_type="historic",
-            hist_stat_names=pts_stats,
             slate_date=game_date,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
         )[0]
