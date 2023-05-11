@@ -18,9 +18,7 @@ from fantasy_py.lineup import gen_lineups
 TopScoreCacheMode = Literal["default", "overwrite", "missing"]
 
 
-def get_stat_names(
-    sport, service_abbr: Literal["dk", "fd", "y"], as_str=False
-) -> str | list[str]:
+def get_stat_names(sport, service_abbr: Literal["dk", "fd", "y"], as_str=False) -> str | list[str]:
     """
     returns stat names for the requested sport and service as either a comma seperated string that
     can be used in an sql query, or as a list of strings
@@ -57,9 +55,7 @@ def best_score_cache(
                     continue
                 orig_top_score_dict[int(slate_id)] = score
         elif top_score_cache_mode == "overwrite":
-            print(
-                f"Overwriting existing best score cache data at '{top_score_cache_filepath}'"
-            )
+            print(f"Overwriting existing best score cache data at '{top_score_cache_filepath}'")
         else:
             raise ValueError("Unexpected top score cache mode", top_score_cache_mode)
     else:
@@ -75,9 +71,7 @@ def best_score_cache(
     finally:
         if orig_top_score_dict != top_score_dict:
             # TODO: should save the cache as new scores are added
-            print(
-                f"Writing updated best score values to cache '{top_score_cache_filepath}'"
-            )
+            print(f"Writing updated best score values to cache '{top_score_cache_filepath}'")
             with open(top_score_cache_filepath, "w") as f:
                 json.dump(top_score_dict, f)
         print("Exiting best_score_cache")
@@ -133,9 +127,7 @@ def best_possible_lineup_score(
         slate_name = slate.name
         service = slate.service
 
-    print(
-        f"Generating best historic lineup for {game_date} slate '{slate_name}' ({slate_id})"
-    )
+    print(f"Generating best historic lineup for {game_date} slate '{slate_name}' ({slate_id})")
 
     # TODO: the following should also take slate_id
     # get the starters
@@ -186,7 +178,7 @@ def best_possible_lineup_score(
         fill_all_positions=constraints.fill_all_positions,
     )
 
-    season = db_obj.db_manager.season_for_date(game_date)
+    epoch = db_obj.db_manager.epoch_for_date(game_date)
     pts_stats = get_stat_names(sport, service_abbr)
 
     try:
@@ -197,12 +189,11 @@ def best_possible_lineup_score(
             solver,
             service_cls,
             1,  # of lineups
-            season,
             slate=slate_name,
             slate_info=starters.slates[slate_name],
             score_data_type="historic",
             hist_stat_names=pts_stats,
-            slate_date=game_date,
+            slate_epoch=epoch,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
         )[0]
         hist_score = lineups[0].historic_fpts
@@ -226,7 +217,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    best_score = best_possible_lineup_score(
-        args.db_filename, args.service, args.slate_id
-    )
+    best_score = best_possible_lineup_score(args.db_filename, args.service, args.slate_id)
     print(f"{best_score=}")
