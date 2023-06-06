@@ -179,7 +179,6 @@ def best_possible_lineup_score(
     )
 
     epoch = db_obj.db_manager.epoch_for_date(game_date)
-    pts_stats = get_stat_names(sport, service_abbr)
 
     try:
         lineups = gen_lineups(
@@ -192,7 +191,6 @@ def best_possible_lineup_score(
             slate=slate_name,
             slate_info=starters.slates[slate_name],
             score_data_type="historic",
-            hist_stat_names=pts_stats,
             slate_epoch=epoch,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
         )[0]
