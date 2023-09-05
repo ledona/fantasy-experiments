@@ -6,7 +6,7 @@ from datetime import datetime
 import re
 
 import joblib
-import autosklearn.regression
+# import autosklearn.regression
 import sklearn.model_selection
 import sklearn.metrics
 from sklearn.dummy import DummyRegressor

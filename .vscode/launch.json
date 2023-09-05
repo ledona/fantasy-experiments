@@ -1,0 +1,32 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Y Real Full (web-limit 10 + existing browser + no-interactive)",
+            "type": "python",
+            "request": "launch",
+            "program": "retrieve_hist.py",
+            "console": "integratedTerminal",
+            "args": [
+                "yahoo",
+                // "draftkings", 
+                // "fanduel". 
+                "--address", "127.0.0.1:9222",
+                "--web-limit", "10",
+                "--cache", "cache",
+                // "--end-date", "2018-10-27",
+            ]
+        },
+    ]
+}

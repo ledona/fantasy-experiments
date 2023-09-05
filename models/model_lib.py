@@ -60,21 +60,21 @@ def train_and_log(
         assert set(tracker_settings.keys()) <= {
             "mlf_tracking_uri"
         }, "mlf_tracking_url is the only supported tracker setting"
-        mlf_tracking_url = tracker_settings.get("mlf_tracking_url", "local")
+        mlf_tracking_uri = tracker_settings.get("mlf_tracking_url", "local")
         _LOGGER.debug("archiving to mlflow URI %s", mlf_tracking_uri)
         mlflow.set_tracking_uri(mlf_tracking_uri)
 
     assert not (
-        experiment_descrition and not experiment_name
+        experiment_description and not experiment_name
     ), "experiment description without an experiment name"
     if experiment_name:
         _LOGGER.debug("Setting mlflow experiment to '%s'", experiment_name)
         mlflow.set_experiment(experiment_name)
+        if experiment_description:
+            mlflow.set_experiment_tag("description", experiment_description)
 
     final_run_tags = (
-        run_tags
-        if "fantasy-sha" in run_tags
-        else {"fantasy-sha": get_git_desc(), **run_tags}
+        run_tags if "fantasy-sha" in run_tags else {"fantasy-sha": get_git_desc(), **run_tags}
     )
 
     _LOGGER.debug(
@@ -83,15 +83,14 @@ def train_and_log(
         run_description,
         run_tags,
     )
-    with mlflow.start_run(
-        run_name=run_name, tags=final_run_tags, description=run_description
-    ):
+    with mlflow.start_run(run_name=run_name, tags=final_run_tags, description=run_description):
         _LOGGER.debug("running train func")
         train_ret = train_func(*(train_args or []), **(train_kwargs or {}))
         model_name, metrics, artifact_paths, addl_tags = train_ret[1:]
 
         mlflow.log_metrics(metrics)
-        mlflow.log_artifacts(artifact_paths)
+        for artifact_path in artifact_paths:
+            mlflow.log_artifact(artifact_path)
         if addl_tags:
             mlflow.set_tags(addl_tags)
 
