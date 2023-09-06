@@ -16,7 +16,7 @@ def test():
     run_tags = {
         "framework": "tpot",
     }
-    tracker_settings = {"mlf_tracking_uri": "http://localhost:5000"}
+    tracker_settings = {"mlf_tracking_uri": "sqlite:///:memory:"}
 
     archive_model(
         model_filepath,

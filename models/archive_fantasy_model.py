@@ -66,9 +66,15 @@ def archive_model(
         **(run_tags or {}),
     }
 
+    model_dir = os.path.dirname(model_filepath)
+    model_artifacts = [
+        art_path if os.path.isabs(art_path) else os.path.join(model_dir, art_path)
+        for art_path in model.artifacts
+    ]
+
     return train_and_log(
         experiment_name,
-        (lambda: (model, model.name, metrics, model.artifacts, None)),
+        (lambda: (model, model.name, metrics, model_artifacts, None)),
         experiment_description=experiment_description,
         run_name=run_name,
         run_description=run_description,
