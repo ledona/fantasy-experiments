@@ -9,6 +9,8 @@ from fantasy_py import (
     CLSRegistry,
     UnexpectedValueError,
 )
+
+# register services
 from fantasy_py.lineup import FantasyService
 
 # from fantasy_py.sport import SportDBManager
@@ -58,9 +60,9 @@ def archive_model(
     final_run_tags = {
         "sport": sport,
         "service": service_abbr,
-        "player-team": model.target.p_or_t,
-        "target": model.target,
-        "metrics-seasons": [metrics_season],
+        "player-team": model.target.p_or_t.name,
+        "target": f"{model.target.type}:{model.target.name}",
+        "metrics-seasons": metrics_season,
         "framework": framework,
         **model.parameters,
         **(run_tags or {}),
@@ -70,7 +72,7 @@ def archive_model(
     model_artifacts = [
         art_path if os.path.isabs(art_path) else os.path.join(model_dir, art_path)
         for art_path in model.artifacts
-    ]
+    ] + [model_filepath]
 
     return train_and_log(
         experiment_name,
