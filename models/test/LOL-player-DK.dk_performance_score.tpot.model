@@ -33,7 +33,7 @@
 			"stat:xpdat15": 9.55556,
 			"stat:asst": 5.6667
 		},
-		"regressor_path": "LOL-player-DK-tpot-calc:dk_performance_score.2023-04-12T23:36:44.pkl"
+		"regressor_path": "LOL-player-DK-tpot-calc.dk_performance_score.2023-04-12T233644.pkl"
 	},
 	"training_data_def": {
 		"features": {

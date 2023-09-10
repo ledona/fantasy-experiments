@@ -6,6 +6,7 @@ from datetime import datetime
 import re
 
 import joblib
+
 # import autosklearn.regression
 import sklearn.model_selection
 import sklearn.metrics
@@ -17,9 +18,7 @@ from fantasy_py.inference import SKLModel, StatInfo, Model, Performance
 from fantasy_py import FantasyException, UnexpectedValueError, PlayerOrTeam
 
 
-TrainTestData = tuple[
-    pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series
-]
+TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
 
 class WildcardFilterFoundNothing(FantasyException):
@@ -142,9 +141,7 @@ def load_data(
                         f"Filter '{regexp}' did not match any columns: {feature_cols}"
                     )
                 cols_to_drop += re_cols_to_drop
-        assert (
-            len(cols_to_drop) > 0
-        ), f"No columns to drop from {col_drop_filters=} {regexps=}"
+        assert len(cols_to_drop) > 0, f"No columns to drop from {col_drop_filters=} {regexps=}"
         print(f"Dropping the following {len(cols_to_drop)} columns: ", cols_to_drop)
         X = X.drop(columns=cols_to_drop)
     else:
@@ -205,7 +202,9 @@ def train_test(
     """
     print(f"Commencing training for {model_name=} {type_} fit with {training_time=}...")
     if type_ == "autosk":
-        raise NotImplementedError("disabled until autosk uses more up to date version of sklearn 2023.08.06")
+        raise NotImplementedError(
+            "disabled until autosk uses more up to date version of sklearn 2023.08.06"
+        )
         automl = autosklearn.regression.AutoSklearnRegressor(
             seed=seed, time_left_for_this_task=training_time, memory_limit=-1
         )
@@ -241,7 +240,7 @@ def train_test(
     mae_val = round(sklearn.metrics.mean_absolute_error(y_val, y_hat_val), 3)
     print(f"Validation {r2_val=} {mae_val=}")
 
-    filename = f"{model_name}-{type_}-{target[0]}:{target[1]}.{dt_trained.isoformat().rsplit('.', 1)[0]}.pkl"
+    filename = f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_trained.isoformat().replace(':', '').rsplit('.', 1)[0]}.pkl"
     print(f"Exporting model to '{filename}'")
     if type_ in ("autosk", "dummy"):
         joblib.dump(automl, filename)
@@ -301,9 +300,7 @@ def create_fantasy_model(
             features[extra_type].add(extra_name)
             continue
 
-        raise UnexpectedValueError(
-            f"Unknown feature type for data column named '{col}'"
-        )
+        raise UnexpectedValueError(f"Unknown feature type for data column named '{col}'")
 
     features_list_dict = {name: list(stats) for name, stats in features.items()}
     data_def: dict = {

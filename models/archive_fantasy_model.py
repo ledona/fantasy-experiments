@@ -1,10 +1,11 @@
 import logging
 import os
 from typing import cast
+from argparse import ArgumentParser
 
 from fantasy_py import (
     log,
-    # SPORT_DB_MANAGER_DOMAIN,
+    SPORT_DB_MANAGER_DOMAIN,
     FANTASY_SERVICE_DOMAIN,
     CLSRegistry,
     UnexpectedValueError,
@@ -16,7 +17,7 @@ from fantasy_py.lineup import FantasyService
 # from fantasy_py.sport import SportDBManager
 from fantasy_py.inference import Model
 
-from .model_lib import train_and_log
+from model_lib import train_and_log
 
 _LOGGER = log.get_logger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
@@ -45,7 +46,8 @@ def archive_model(
     assert model.target.name == target_stat, "expecting the target to match"
 
     sport = model_name.split("-", 1)[0].lower()
-    # db_manager: SportDBManager = CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport)
+    if sport not in CLSRegistry.get_names(SPORT_DB_MANAGER_DOMAIN):
+        UnexpectedValueError(f"Unknown sport '{sport}'")
 
     service_abbr = model_name.rsplit("-", 1)[-1]
     for cls in CLSRegistry.get_classes(FANTASY_SERVICE_DOMAIN):
@@ -83,3 +85,34 @@ def archive_model(
         tracker_settings=tracker_settings,
         run_tags=final_run_tags,
     )
+
+
+def get_model(args):
+    raise NotImplementedError()
+
+
+def put_model(args):
+    raise NotImplementedError()
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser(
+        description="Retrieve and archive models from model archive",
+    )
+    subparsers = parser.add_subparsers(help="Operation to perform")
+    put_parser = subparsers.add_parser("put", help="Archive a model")
+    put_parser.set_defaults(func=put_model)
+    put_parser.add_argument("model-filepath", help="path to .model file")
+    put_parser.add_argument("--exp-name", help="experiment name")
+    put_parser.add_argument("--exp-desc", help="experiment description")
+
+    get_parser = subparsers.add_parser("get", help="Retrieve active models")
+    get_parser.set_defaults(func=get_model)
+    get_arg_group = get_parser.add_mutually_exclusive_group()
+    get_arg_group.add_argument("--name", help="Model name")
+    get_arg_group.add_argument("--sport", help="Retrieve all models for this sport")
+
+    args = parser.parse_args()
+    if not hasattr(args, "func"):
+        parser.error("No operation requested.")
+    args.func(args)
