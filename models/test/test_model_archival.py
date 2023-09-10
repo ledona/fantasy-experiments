@@ -1,7 +1,7 @@
 import os
 
-from ..archive_fantasy_model import archive_model
-from .. import model_lib
+from ..model_lib.archive_fantasy_model import archive_model
+from ..model_lib.model_lib import retrieve
 
 
 def test(tmpdir):
@@ -25,7 +25,7 @@ def test(tmpdir):
         run_tags=run_tags,
     )
 
-    models = model_lib.retrieve(
+    models = retrieve(
         run_id=run_id,
         tracker_settings=tracker_settings,
     )

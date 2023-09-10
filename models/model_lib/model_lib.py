@@ -67,7 +67,7 @@ def train_and_log(
     if tracker_settings:
         assert set(tracker_settings.keys()) <= {
             "mlf_tracking_uri"
-        }, "mlf_tracking_url is the only supported tracker setting"
+        }, "mlf_tracking_uri is the only supported tracker setting"
         mlf_tracking_uri = tracker_settings.get("mlf_tracking_uri", "local-fantasy-mlrun")
         _LOGGER.debug("archiving to mlflow URI %s", mlf_tracking_uri)
         mlflow.set_tracking_uri(mlf_tracking_uri)

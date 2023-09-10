@@ -17,7 +17,7 @@ from fantasy_py.lineup import FantasyService
 # from fantasy_py.sport import SportDBManager
 from fantasy_py.inference import Model
 
-from model_lib import train_and_log
+from .model_lib import train_and_log
 
 _LOGGER = log.get_logger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
@@ -87,11 +87,11 @@ def archive_model(
     )
 
 
-def get_model(args):
+def cli_get_model(args):
     raise NotImplementedError()
 
 
-def put_model(args):
+def cli_put_model(args):
     raise NotImplementedError()
 
 
@@ -99,15 +99,20 @@ if __name__ == "__main__":
     parser = ArgumentParser(
         description="Retrieve and archive models from model archive",
     )
+    parser.add_argument(
+        "--mlflow-uri",
+        help=f"MLFlow tracking URI. default={os.environ.get('FANTASY_MLFLOW_TRACKING_URI')}",
+        default=os.environ.get("FANTASY_MLFLOW_TRACKING_URI"),
+    )
     subparsers = parser.add_subparsers(help="Operation to perform")
     put_parser = subparsers.add_parser("put", help="Archive a model")
-    put_parser.set_defaults(func=put_model)
+    put_parser.set_defaults(func=cli_put_model)
     put_parser.add_argument("model-filepath", help="path to .model file")
     put_parser.add_argument("--exp-name", help="experiment name")
     put_parser.add_argument("--exp-desc", help="experiment description")
 
     get_parser = subparsers.add_parser("get", help="Retrieve active models")
-    get_parser.set_defaults(func=get_model)
+    get_parser.set_defaults(func=cli_get_model)
     get_arg_group = get_parser.add_mutually_exclusive_group()
     get_arg_group.add_argument("--name", help="Model name")
     get_arg_group.add_argument("--sport", help="Retrieve all models for this sport")
@@ -115,4 +120,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if not hasattr(args, "func"):
         parser.error("No operation requested.")
+    if not args.mlflow_uri:
+        parser.error(
+            "MLFlow URI must be set either on command line or in the envvar 'FANTASY_MLFLOW_TRACKING_URI'"
+        )
     args.func(args)
