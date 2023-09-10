@@ -17,7 +17,7 @@ def test(tmpdir):
     }
     tracker_settings = {"mlf_tracking_uri": f"file://{tmpdir}"}
 
-    run_id, _ = archive_model(
+    run_id = archive_model(
         model_filepath,
         exp_name,
         experiment_description=exp_desc,
@@ -25,10 +25,7 @@ def test(tmpdir):
         run_tags=run_tags,
     )
 
-    models = retrieve(
-        run_id=run_id,
-        tracker_settings=tracker_settings,
-    )
+    models = retrieve(run_id=run_id, tracker_settings=tracker_settings, mode="download")
 
     assert len(models) == 1
     assert models[0].name == model_name

@@ -3,7 +3,7 @@ helpful code for logging models to mlflow
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Literal
 import logging
 import os
 
@@ -115,27 +115,39 @@ def train_and_log(
     return (run_.info.run_id, train_ret)
 
 
+def _parse_tracking_settings(tracker_settings: dict | None):
+    if not tracker_settings:
+        return None
+
+    assert set(tracker_settings.keys()) <= {
+        "mlf_tracking_uri"
+    }, "mlf_tracking_url is the only supported tracker setting"
+    mlf_tracking_uri = tracker_settings.get("mlf_tracking_uri", "local-fantasy-mlrun")
+    mlflow.set_tracking_uri(mlf_tracking_uri)
+    _LOGGER.debug("retriving from mlflow URI %s", mlf_tracking_uri)
+    return mlf_tracking_uri
+
+
 def retrieve(
-    run_id=None, model_name=None, active_only=True, tracker_settings: dict | None = None, **run_tags
-) -> list[ModelObj]:
+    experiment_name=None,
+    run_id=None,
+    model_name=None,
+    active_only=True,
+    tracker_settings: dict | None = None,
+    mode: Literal["info", "download"] = "info",
+    **run_tags,
+) -> None | list[ModelObj]:
     """
     Retrieve the active model for the requested parameters, either provide the model name XOR
     other arguments
 
     active_only - ignored if run_id provided
     """
-    if tracker_settings:
-        assert set(tracker_settings.keys()) <= {
-            "mlf_tracking_uri"
-        }, "mlf_tracking_url is the only supported tracker setting"
-        mlf_tracking_uri = tracker_settings.get("mlf_tracking_uri", "local-fantasy-mlrun")
-        _LOGGER.debug("retriving from mlflow URI %s", mlf_tracking_uri)
-    else:
-        mlf_tracking_uri = None
-
+    mlf_tracking_uri = _parse_tracking_settings(tracker_settings)
     if run_id is not None:
-        assert len(run_tags) == 0 and model_name is None
-        run_ids = [run_id]
+        assert len(run_tags) == 0 and model_name is None and experiment_name is None
+        run = mlflow.get_run(run_id)
+        runs = [run]
     else:
         filter_strings = [
             f"tags.{tag_name} = '{tag_value}'" for tag_name, tag_value in run_tags.items()
@@ -146,18 +158,30 @@ def retrieve(
             filter_strings.append(f"tags.active = '{True}'")
         if len(filter_strings) == 0:
             raise InvalidArgumentsException(
-                "No run query specified. active_only as True or run_id, model_name or kwargs for run tag filters must be provided."
+                "No run query specified. active_only as True or run_id, model_name or "
+                "kwargs for run tag filters must be provided."
             )
         filter_string = " and ".join(filter_strings)
-        run_ids = [
-            run.info.run_id
-            for run in mlflow.search_runs(search_all_experiments=True, filter_string=filter_string)
-        ]
+        _LOGGER.info(
+            "Searching for mlflow runs: exp-name='%s' filter_string=\"%s\"",
+            experiment_name,
+            filter_string,
+        )
+        runs = mlflow.search_runs(
+            search_all_experiments=(experiment_name is None),
+            experiment_names=[experiment_name] if experiment_name is not None else None,
+            filter_string=filter_string,
+            output_format="list",
+        )
+        _LOGGER.info("%i runs found", len(runs))
 
     models = []
-    for ri in run_ids:
+    for run in runs:
+        print(f"run-id={run.id} run-tags={run.data.tags}")
+        if mode == "info":
+            continue
         artifact_path = mlflow.artifacts.download_artifacts(
-            run_id=ri, tracking_uri=mlf_tracking_uri
+            run_id=run.info.run_id, tracking_uri=mlf_tracking_uri
         )
         if os.path.isfile(artifact_path):
             if not artifact_path.endswith(".model"):
@@ -173,4 +197,16 @@ def retrieve(
         else:
             raise UnexpectedValueError("Model file not found in downloaded artifacts")
 
-    return models
+    return models if mode == "download" else None
+
+
+def set_as_active(run_id, tracker_settings: dict | None = None):
+    """set the model associated with this run_id to be the active for its type of model"""
+    _parse_tracking_settings(tracker_settings)
+    run = mlflow.get_run(run_id)
+    _LOGGER.info(
+        "Settings any active model that matches run-id '%s' tags. Tags=%s", run_id, run.data.tags
+    )
+    raise NotImplementedError(
+        "parse tags into a search for other runs, then update all returned runs to not active"
+    )
