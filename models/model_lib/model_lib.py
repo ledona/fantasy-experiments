@@ -3,14 +3,14 @@ helpful code for logging models to mlflow
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable, Literal
+from typing import Callable
 import logging
 import os
 
 import mlflow
 import pandas as pd
 
-from fantasy_py import log, get_git_desc, UnexpectedValueError, InvalidArgumentsException
+from fantasy_py import log, get_git_desc, UnexpectedValueError
 from fantasy_py.inference import Model
 
 
@@ -94,9 +94,10 @@ def train_and_log(
     with mlflow.start_run(
         run_name=run_name, tags=final_run_tags, description=run_description
     ) as run_:
-        _LOGGER.debug("running train func")
         train_ret = train_func(*(train_args or []), **(train_kwargs or {}))
         model_name, metrics, artifact_paths, addl_tags = train_ret[1:]
+        _LOGGER.info("Model '%s' successfully trained", model_name)
+        mlflow.set_tag("model_name", model_name)
 
         mlflow.log_metrics(metrics)
         for artifact_path in artifact_paths:
@@ -124,7 +125,7 @@ def _parse_tracking_settings(tracker_settings: dict | None):
     }, "mlf_tracking_url is the only supported tracker setting"
     mlf_tracking_uri = tracker_settings.get("mlf_tracking_uri", "local-fantasy-mlrun")
     mlflow.set_tracking_uri(mlf_tracking_uri)
-    _LOGGER.debug("retriving from mlflow URI %s", mlf_tracking_uri)
+    _LOGGER.debug("retrieving from mlflow URI %s", mlf_tracking_uri)
     return mlf_tracking_uri
 
 
@@ -164,10 +165,6 @@ def retrieve(
                 filter_string,
             )
         else:
-            # raise InvalidArgumentsException(
-            #     "No run query specified. active_only as True or run_id, model_name or "
-            #     "kwargs for run tag filters must be provided."
-            # )
             _LOGGER.warning(
                 "No run query specified. active_only as True or run_id, model_name or "
                 "kwargs for run tag filters must be provided."
@@ -189,7 +186,11 @@ def retrieve(
             run_exp_name = exp.name
         else:
             run_exp_name = experiment_name
-        print(f"run #{i}\nexp-name='{run_exp_name}' run-id={run.info.run_id}\n{run.data.tags}\n")
+        print(
+            f"\nrun #{i}\nexp-name='{run_exp_name}' "
+            f"model-name={run.data.tags['model_name']} "
+            f"run-id={run.info.run_id}\n{run.data.tags}"
+        )
         if dest_path is None:
             continue
         artifact_path = mlflow.artifacts.download_artifacts(
@@ -212,13 +213,45 @@ def retrieve(
     return models if dest_path else None
 
 
-def set_as_active(run_id, tracker_settings: dict | None = None):
-    """set the model associated with this run_id to be the active for its type of model"""
+def activate_model(run_id, tracker_settings: dict | None = None):
+    """activate the model"""
     _parse_tracking_settings(tracker_settings)
-    run = mlflow.get_run(run_id)
-    _LOGGER.info(
-        "Settings any active model that matches run-id '%s' tags. Tags=%s", run_id, run.data.tags
-    )
-    raise NotImplementedError(
-        "parse tags into a search for other runs, then update all returned runs to not active"
-    )
+    with mlflow.start_run(run_id=run_id):
+        mlflow.set_tag("active", f"{True}")
+
+
+def deactivate_models(
+    run_id=None, model_name=None, tags=None, tracker_settings: dict | None = None
+):
+    """
+    deactive the requested model(s)
+    """
+    _parse_tracking_settings(tracker_settings)
+    if run_id:
+        assert model_name is None and tags is None
+        run_ids = [run_id]
+    else:
+        if model_name:
+            assert tags is None
+            filter_strings = [f"tags.model_name = '{model_name}'"]
+        else:
+            assert tags is not None
+            filter_strings = [
+                f"tags.{tag_name} = '{tag_value}'" for tag_name, tag_value in tags.items()
+            ]
+
+        filter_strings.append(f"tags.active = '{True}'")
+        filter_string = " and ".join(filter_strings)
+        run_ids = [
+            run.info.run_id
+            for run in mlflow.search_runs(
+                search_all_experiments=True,
+                filter_string=filter_string,
+                output_format="list",
+            )
+        ]
+
+    _LOGGER.info("Deactivating %i models", len(run_ids))
+    for ri in run_ids:
+        with mlflow.start_run(run_id=ri):
+            mlflow.set_tag("active", f"{False}")

@@ -17,7 +17,7 @@ from fantasy_py.lineup import FantasyService
 # from fantasy_py.sport import SportDBManager
 from fantasy_py.inference import Model
 
-from .model_lib import train_and_log, set_as_active, retrieve
+from .model_lib import train_and_log, deactivate_models, activate_model, retrieve
 
 _LOGGER = log.get_logger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
@@ -90,7 +90,11 @@ def archive_model(
         run_tags=final_run_tags,
     )
     if set_active:
-        set_as_active(run_id, tracker_settings=tracker_settings)
+        _LOGGER.info(
+            "Activating this model and deactivating all other models with name '%s'", model_name
+        )
+        deactivate_models(model_name=model_name, tracker_settings=tracker_settings)
+        activate_model(run_id, tracker_settings=tracker_settings)
     return run_id
 
 
