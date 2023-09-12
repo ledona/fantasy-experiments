@@ -98,11 +98,9 @@ def cli_get_model(parser, args, tracker_settings: dict):
     if args.exp_name and args.run_id:
         parser.error("run-id and exp-name should not be used together")
     if not (args.exp_name or args.run_id or args.model_name or args.sport):
-        args.exp_name = "Default"
-        print(f"No search criteria requested. Getting runs under experiment name '{args.exp_name}'")
+        print("No search criteria requested. Getting runs across all experiments")
 
     run_tags = {"sport": args.sport} if args.sport else {}
-    get_mode = "download" if args.download else "info"
 
     retrieve(
         experiment_name=args.exp_name,
@@ -110,7 +108,7 @@ def cli_get_model(parser, args, tracker_settings: dict):
         model_name=args.model_name,
         active_only=not args.all,
         tracker_settings=tracker_settings,
-        mode=get_mode,
+        dest_path=args.dest,
         **run_tags,
     )
 
@@ -159,10 +157,8 @@ if __name__ == "__main__":
         "If no other criteria is provided then look in the default experiment",
     )
     get_parser.add_argument(
-        "--download",
-        default=False,
-        action="store_true",
-        help="Default is to print run information, use this to download run models",
+        "--dest",
+        help="Where models should be downloaded to. Default is to just list available models",
     )
     get_arg_group = get_parser.add_mutually_exclusive_group()
     get_arg_group.add_argument("--model-name", "--name", help="Model name")
@@ -180,7 +176,7 @@ if __name__ == "__main__":
         parser.error("No operation requested.")
     if not args.mlflow_uri:
         parser.error(
-            "MLFlow URI must be set either on command line or in the envvar "
-            "'FANTASY_MLFLOW_TRACKING_URI'"
+            "MLFlow URI must be set either on command line "
+            "or in the envvar 'FANTASY_MLFLOW_TRACKING_URI'"
         )
     args.func(parser, args, tracker_settings={"mlf_tracking_uri": args.mlflow_uri})

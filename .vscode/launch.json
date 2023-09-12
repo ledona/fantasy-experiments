@@ -13,6 +13,20 @@
             "justMyCode": true
         },
         {
+            "name": "archive fantasy_model",
+            "type": "python",
+            "request": "launch",
+            "module": "model_lib.archive_fantasy_model",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                "--mlflow-uri", "file:///tmp/mlflow-test",
+                "get",
+                "--all",
+                "--dest", "/tmp/model-folder",
+            ]
+        },
+        {
             "name": "Y Real Full (web-limit 10 + existing browser + no-interactive)",
             "type": "python",
             "request": "launch",
@@ -22,9 +36,12 @@
                 "yahoo",
                 // "draftkings", 
                 // "fanduel". 
-                "--address", "127.0.0.1:9222",
-                "--web-limit", "10",
-                "--cache", "cache",
+                "--address",
+                "127.0.0.1:9222",
+                "--web-limit",
+                "10",
+                "--cache",
+                "cache",
                 // "--end-date", "2018-10-27",
             ]
         },

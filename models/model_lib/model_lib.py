@@ -129,12 +129,12 @@ def _parse_tracking_settings(tracker_settings: dict | None):
 
 
 def retrieve(
-    experiment_name=None,
+    experiment_name: str | None = None,
     run_id=None,
     model_name=None,
     active_only=True,
     tracker_settings: dict | None = None,
-    mode: Literal["info", "download"] = "info",
+    dest_path: str | None = None,
     **run_tags,
 ) -> None | list[ModelObj]:
     """
@@ -156,17 +156,24 @@ def retrieve(
             filter_strings.append(f"tags.model_name = '{model_name}'")
         if active_only:
             filter_strings.append(f"tags.active = '{True}'")
-        if len(filter_strings) == 0:
-            raise InvalidArgumentsException(
+        if len(filter_strings) > 0:
+            filter_string = " and ".join(filter_strings)
+            _LOGGER.info(
+                "Searching for mlflow runs: exp-name='%s' filter_string=\"%s\"",
+                experiment_name,
+                filter_string,
+            )
+        else:
+            # raise InvalidArgumentsException(
+            #     "No run query specified. active_only as True or run_id, model_name or "
+            #     "kwargs for run tag filters must be provided."
+            # )
+            _LOGGER.warning(
                 "No run query specified. active_only as True or run_id, model_name or "
                 "kwargs for run tag filters must be provided."
             )
-        filter_string = " and ".join(filter_strings)
-        _LOGGER.info(
-            "Searching for mlflow runs: exp-name='%s' filter_string=\"%s\"",
-            experiment_name,
-            filter_string,
-        )
+            filter_string = None
+
         runs = mlflow.search_runs(
             search_all_experiments=(experiment_name is None),
             experiment_names=[experiment_name] if experiment_name is not None else None,
@@ -176,12 +183,17 @@ def retrieve(
         _LOGGER.info("%i runs found", len(runs))
 
     models = []
-    for run in runs:
-        print(f"run-id={run.id} run-tags={run.data.tags}")
-        if mode == "info":
+    for i, run in enumerate(runs, 1):
+        if experiment_name is None:
+            exp = mlflow.get_experiment(run.info.experiment_id)
+            run_exp_name = exp.name
+        else:
+            run_exp_name = experiment_name
+        print(f"run #{i}\nexp-name='{run_exp_name}' run-id={run.info.run_id}\n{run.data.tags}\n")
+        if dest_path is None:
             continue
         artifact_path = mlflow.artifacts.download_artifacts(
-            run_id=run.info.run_id, tracking_uri=mlf_tracking_uri
+            run_id=run.info.run_id, tracking_uri=mlf_tracking_uri, dst_path=dest_path
         )
         if os.path.isfile(artifact_path):
             if not artifact_path.endswith(".model"):
@@ -197,7 +209,7 @@ def retrieve(
         else:
             raise UnexpectedValueError("Model file not found in downloaded artifacts")
 
-    return models if mode == "download" else None
+    return models if dest_path else None
 
 
 def set_as_active(run_id, tracker_settings: dict | None = None):
