@@ -91,7 +91,9 @@ def archive_model(
     )
     if set_active:
         _LOGGER.info(
-            "Activating this model and deactivating all other models with name '%s'", model_name
+            "Activating this model at run_id='%s' and deactivating all other models named '%s'",
+            run_id,
+            model_name,
         )
         deactivate_models(model_name=model_name, tracker_settings=tracker_settings)
         activate_model(run_id, tracker_settings=tracker_settings)
@@ -138,6 +140,7 @@ if __name__ == "__main__":
         help=f"MLFlow tracking URI. default={os.environ.get('FANTASY_MLFLOW_TRACKING_URI')}",
         default=os.environ.get("FANTASY_MLFLOW_TRACKING_URI"),
     )
+    parser.add_argument("--verbose", default=False, action="store_true")
     subparsers = parser.add_subparsers(help="Operation to perform")
     put_parser = subparsers.add_parser("put", help="Archive a model")
     put_parser.set_defaults(func=cli_put_model)
@@ -176,6 +179,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    if args.verbose:
+        log.set_debug_log_level(only_fantasy=False)
+        _LOGGER.info("Verbose mode enabled")
     if not hasattr(args, "func"):
         parser.error("No operation requested.")
     if not args.mlflow_uri:

@@ -15,7 +15,6 @@ from fantasy_py.inference import Model
 
 
 _LOGGER = log.get_logger(__name__)
-_LOGGER.setLevel(logging.DEBUG)
 
 
 class ModelObj(ABC):
@@ -94,10 +93,21 @@ def train_and_log(
     with mlflow.start_run(
         run_name=run_name, tags=final_run_tags, description=run_description
     ) as run_:
+        _LOGGER.info(
+            "Training exp='%s' run='%s' tags=%s",
+            experiment_name,
+            run_name or run_.info.run_id,
+            run_tags,
+        )
         train_ret = train_func(*(train_args or []), **(train_kwargs or {}))
         model_name, metrics, artifact_paths, addl_tags = train_ret[1:]
-        _LOGGER.info("Model '%s' successfully trained", model_name)
         mlflow.set_tag("model_name", model_name)
+        _LOGGER.info(
+            "Trained exp='%s' run='%s' model='%s'",
+            experiment_name,
+            run_name or run_.info.run_id,
+            model_name,
+        )
 
         mlflow.log_metrics(metrics)
         for artifact_path in artifact_paths:
@@ -106,10 +116,9 @@ def train_and_log(
             mlflow.set_tags(addl_tags)
 
         _LOGGER.info(
-            "Logging training run results for model-name='%s', metrics=%s, addl_tags=%s, artifact_paths=%s",
+            "Logging training run results for model-name='%s', metrics=%s, artifact_paths=%s",
             model_name,
             metrics,
-            addl_tags,
             artifact_paths,
         )
 
@@ -188,9 +197,11 @@ def retrieve(
             run_exp_name = experiment_name
         print(
             f"\nrun #{i}\nexp-name='{run_exp_name}' "
-            f"model-name={run.data.tags['model_name']} "
-            f"run-id={run.info.run_id}\n{run.data.tags}"
+            f"model-name='{run.data.tags['model_name']}' "
+            f"run-id={run.info.run_id}"
         )
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            print(f"{run.data.tags}")
         if dest_path is None:
             continue
         artifact_path = mlflow.artifacts.download_artifacts(

@@ -5,14 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
             "name": "archive fantasy_model",
             "type": "python",
             "request": "launch",
@@ -21,10 +13,10 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "--mlflow-uri", "file:///tmp/mlflow-test",
-                // "get",
-                // "--all",
-                // "--dest", "/tmp/model-folder",
-                "put", "2023.03/LOL-team-win.match_win.tpot.model", "--active"
+                "--verbose",
+                "get", "--all", 
+                "--dest", "/tmp/model-folder",
+                // "put", "2023.03/LOL-team-win.match_win.tpot.model", "--active"
             ]
         },
         {
