@@ -42,6 +42,15 @@ type of training func arg sent to train_and_log
 """
 
 
+def _run_name_exists(exp_name, run_name):
+    """returns true if the run_name is already in use for the experiment"""
+    runs = mlflow.search_runs(
+        experiment_names=[exp_name],
+        filter_string=f"run_name = '{run_name}'",
+    )
+    return len(runs) > 0
+
+
 def train_and_log(
     experiment_name: str,
     train_func: TrainFuncType,
@@ -80,9 +89,12 @@ def train_and_log(
         if experiment_description:
             mlflow.set_experiment_tag("description", experiment_description)
 
-    final_run_tags = (
-        run_tags if "fantasy-sha" in run_tags else {"fantasy-sha": get_git_desc(), **run_tags}
-    )
+    if experiment_name and run_name and _run_name_exists(experiment_name, run_name):
+        raise ValueError(f"run_name '{run_name}' already exists for experiment '{experiment_name}'")
+
+    final_run_tags = {key: str(value) for key, value in run_tags.items()}
+    if "fantasy-sha" not in final_run_tags:
+        final_run_tags["fantasy-sha"] = get_git_desc()
 
     _LOGGER.debug(
         "starting run name='%s' description='%s' tags=%s",

@@ -12,11 +12,14 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "--mlflow-uri", "file:///tmp/mlflow-test",
-                "--verbose",
-                "get", "--all", 
-                "--dest", "/tmp/model-folder",
-                // "put", "2023.03/LOL-team-win.match_win.tpot.model", "--active"
+                // "--mlflow-uri", "file:///tmp/mlflow-test",
+                // "--verbose",
+                // "get", "--all", 
+                // "--dest", "/tmp/model-folder",
+                "put", "2023.03/LOL-team-win.match_win.tpot.model", 
+                "--exp-name", "2023.03",
+                "--exp-desc", "test experiment",
+                // "--active"
             ]
         },
         {

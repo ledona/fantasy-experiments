@@ -46,6 +46,8 @@ def archive_model(
     assert model.name == model_name, "expecting the filepath to include the model name"
     assert model.target.name == target_stat, "expecting the target to match"
 
+    final_run_name = run_name or f"{model.name} {model.dt_trained.strftime('%Y%m%d %H:%M:%S')}"
+
     sport = model_name.split("-", 1)[0].lower()
     if sport not in CLSRegistry.get_names(SPORT_DB_MANAGER_DOMAIN):
         UnexpectedValueError(
@@ -58,7 +60,7 @@ def archive_model(
             break
     else:
         service_abbr = None
-        _LOGGER.warning("Failed to parse a known service name from model-name '%s'", model_name)
+        _LOGGER.warning("Failed to parse service name from model-name '%s'", model_name)
 
     assert model.performance, "model performance not found"
     metrics = cast(dict[str, float], model.performance.copy())
@@ -84,7 +86,7 @@ def archive_model(
         experiment_name,
         (lambda: (model, model.name, metrics, model_artifacts, None)),
         experiment_description=experiment_description,
-        run_name=run_name,
+        run_name=final_run_name,
         run_description=run_description,
         tracker_settings=tracker_settings,
         run_tags=final_run_tags,
