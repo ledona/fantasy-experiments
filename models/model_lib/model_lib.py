@@ -201,6 +201,8 @@ def retrieve(
         _LOGGER.info("%i runs found", len(runs))
 
     models = []
+    if len(runs) == 0:
+        return models
     for i, run in enumerate(runs, 1):
         if experiment_name is None:
             exp = mlflow.get_experiment(run.info.experiment_id)

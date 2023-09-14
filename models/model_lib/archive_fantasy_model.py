@@ -20,7 +20,6 @@ from fantasy_py.inference import Model
 from .model_lib import train_and_log, deactivate_models, activate_model, retrieve
 
 _LOGGER = log.get_logger(__name__)
-_LOGGER.setLevel(logging.DEBUG)
 
 
 def archive_model(
@@ -184,6 +183,8 @@ if __name__ == "__main__":
     if args.verbose:
         log.set_debug_log_level(only_fantasy=False)
         _LOGGER.info("Verbose mode enabled")
+    else:
+        log.set_default_log_level(only_fantasy=False)
     if not hasattr(args, "func"):
         parser.error("No operation requested.")
     if not args.mlflow_uri:

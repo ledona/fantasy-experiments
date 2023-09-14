@@ -25,7 +25,8 @@ def test(tmpdir):
         run_tags=run_tags,
     )
 
-    models = retrieve(run_id=run_id, tracker_settings=tracker_settings, mode="download")
+    models = retrieve(run_id=run_id, tracker_settings=tracker_settings, dest_path=tmpdir)
 
+    assert models is not None
     assert len(models) == 1
     assert models[0].name == model_name
