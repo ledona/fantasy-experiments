@@ -53,20 +53,11 @@ def archive_model(
             f"Failed to parse a known sport name from model-name of '{model_name}'"
         )
 
-    service_abbr = model_name.rsplit("-", 1)[-1]
-    for cls in CLSRegistry.get_classes(FANTASY_SERVICE_DOMAIN):
-        if cls.ABBR == service_abbr:
-            break
-    else:
-        service_abbr = None
-        _LOGGER.warning("Failed to parse service name from model-name '%s'", model_name)
-
     assert model.performance, "model performance not found"
     metrics = cast(dict[str, float], model.performance.copy())
     metrics_season = metrics.pop("season")
     final_run_tags = {
         "sport": sport,
-        "service": service_abbr,
         "player-team": model.target.p_or_t.name,
         "target": f"{model.target.type}:{model.target.name}",
         "metrics-seasons": metrics_season,
@@ -75,13 +66,21 @@ def archive_model(
         **(run_tags or {}),
     }
 
+    service_abbr = model_name.rsplit("-", 1)[-1]
+    for cls in CLSRegistry.get_classes(FANTASY_SERVICE_DOMAIN):
+        if cls.ABBR == service_abbr:
+            final_run_tags["service"] = service_abbr
+            break
+    else:
+        _LOGGER.debug("No service name from model-name '%s'", model_name)
+
     model_dir = os.path.dirname(model_filepath)
     model_artifacts = [
         art_path if os.path.isabs(art_path) else os.path.join(model_dir, art_path)
         for art_path in model.artifacts
     ] + [model_filepath]
 
-    run_id, _ = train_and_log(
+    result = train_and_log(
         experiment_name,
         (lambda: (model, model.name, metrics, model_artifacts, None)),
         experiment_description=experiment_description,
@@ -90,6 +89,9 @@ def archive_model(
         tracker_settings=tracker_settings,
         run_tags=final_run_tags,
     )
+    if result is None:
+        return None
+    run_id = result[0]
     if set_active:
         _LOGGER.info(
             "Activating this model at run_id='%s' and deactivating all other models named '%s'",
@@ -98,6 +100,7 @@ def archive_model(
         )
         deactivate_models(model_name=model_name, tracker_settings=tracker_settings)
         activate_model(run_id, tracker_settings=tracker_settings)
+    _LOGGER.info("archived model at '%s' to run-id '%s'", model_filepath, run_id)
     return run_id
 
 

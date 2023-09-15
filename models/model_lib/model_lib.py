@@ -61,7 +61,7 @@ def train_and_log(
     run_name: None | str = None,
     run_description: None | str = None,
     run_tags=None,
-) -> tuple[str, TrainFuncRetType]:
+) -> None | tuple[str, TrainFuncRetType]:
     """
     execute a training run using the train_func and log the results and artifacts
 
@@ -90,7 +90,10 @@ def train_and_log(
             mlflow.set_experiment_tag("description", experiment_description)
 
     if experiment_name and run_name and _run_name_exists(experiment_name, run_name):
-        raise ValueError(f"run_name '{run_name}' already exists for experiment '{experiment_name}'")
+        _LOGGER.error(
+            "run_name '%s' already exists for experiment '%s'. skipping", run_name, experiment_name
+        )
+        return None
 
     final_run_tags = {key: str(value) for key, value in run_tags.items()}
     if "fantasy-sha" not in final_run_tags:
@@ -200,7 +203,7 @@ def retrieve(
         )
         _LOGGER.info("%i runs found", len(runs))
 
-    models = []
+    models: list[Model] = []
     if len(runs) == 0:
         return models
     for i, run in enumerate(runs, 1):
