@@ -168,17 +168,23 @@ def load_data(
     return df_raw, (X_train, y_train, X_test, y_test, X_val, y_val), one_hot_stats
 
 
-def infer_imputes(train_df: pd.DataFrame):
+def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     """
     returns - a dict mapping column names to impute value to use, None if no
         imputation needed (i.e. no missing values)
     """
     impute_values = {
-        col.rsplit(":", 1)[0]: round(train_df[col].median(), 2)
+        Model.impute_key_for_feature_name(col, team_target): round(train_df[col].median(), 2)
         for col in train_df
-        if col.endswith("std-mean")
+        if ":std-mean" in col
     }
-    return impute_values if len(impute_values) > 0 else None
+    if len(impute_values) == 0:
+        print(
+            "No season to date features found in data. "
+            "Impute data will not be included in model."
+        )
+        return None
+    return impute_values
 
 
 _AutomlType = Literal["tpot", "autosk", "dummy"]
@@ -225,7 +231,7 @@ def train_test(
     if type_ == "autosk":
         print(automl.leaderboard())
         pprint(automl.show_models(), indent=4)
-    elif type == "tpot":
+    elif type_ == "tpot":
         pprint(automl.fitted_pipeline_)
     else:
         print("Dummy fitted")
@@ -329,7 +335,7 @@ def create_fantasy_model(
         performance=performance,
         player_positions=target_pos,
         input_cols=columns.to_list(),
-        impute_values=infer_imputes(train_df),
+        impute_values=_infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM),
     )
 
     if raw_df is not None:
