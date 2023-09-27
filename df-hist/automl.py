@@ -3,6 +3,7 @@ import os
 
 # import tempfile
 from typing import Literal
+
 # import re
 import pickle
 
@@ -98,7 +99,7 @@ def create_automl_model(
     X_test=None,
     y_test=None,
     model_desc=None,
-    target_output: None | Literal["pmml", "onnx"] = None,
+    target_output: Literal[None | "pmml", "onnx"] = None,
     pre_process_model=None,
     post_process_model=None,
     pickle_cache_dir=None,
@@ -131,9 +132,7 @@ def create_automl_model(
                 using_pickled_model = True
 
     if framework == "skautoml":
-        raise NotImplementedError(
-            "skautoml export to onnx not yet supported 2022-08-25"
-        )
+        raise NotImplementedError("skautoml export to onnx not yet supported 2022-08-25")
         if max_train_time is None:
             raise ValueError("max_train_time must not be None for skautoml")
         if not model:
@@ -175,9 +174,7 @@ def create_automl_model(
                 model, Xtr, Xte = pre_process_model(model)
             model.fit(Xtr, y_train, **fit_params)
         if X_test is not None and y_test is not None:
-            eval_results, predictions = error_report(
-                model, Xte, y_test, desc=model_desc
-            )
+            eval_results, predictions = error_report(model, Xte, y_test, desc=model_desc)
 
     if not using_pickled_model and post_process_model:
         LOGGER.info("Applying post process model function to model '%s'", model_desc)
@@ -265,11 +262,7 @@ def error_report(
 
         truth = pd.Series(y_test) if isinstance(y_test, np.ndarray) else y_test
         truth = y_test.reset_index(drop=True)
-        pred = (
-            pd.Series(predictions)
-            if isinstance(predictions, np.ndarray)
-            else predictions
-        )
+        pred = pd.Series(predictions) if isinstance(predictions, np.ndarray) else predictions
         pred = pred.reset_index(drop=True)
 
         plot_data = pd.concat([truth, pred], axis=1)
