@@ -25,15 +25,22 @@ class WildcardFilterFoundNothing(FantasyException):
     """raised if a wildcard feature filter did not match any columns"""
 
 
-def load_csv(filename: str, include_position: bool | None):
+def _load_data(filename: str, include_position: bool | None):
     print(f"Loading data from '{filename}'")
-    df_raw = pd.read_csv(filename)
+    if filename.endswith(".csv"):
+        df_raw = pd.read_csv(filename)
+    elif filename.endswith(".pq") or filename.endswith(".parquet"):
+        df_raw = pd.read_parquet(filename)
+    else:
+        raise NotImplementedError(
+            f"Don't know how to load data files with extension {filename.rsplit('.', 1)[-1]}"
+        )
 
     if include_position is not None and "pos" not in df_raw:
         raise UnexpectedValueError(
             "Column 'pos' not found in data, 'include_position' must be None!"
         )
-    elif include_position is None and "pos" in df_raw:
+    if include_position is None and "pos" in df_raw:
         raise UnexpectedValueError(
             "Column 'pos' found in data, 'include_position' kwarg is required!"
         )
@@ -78,6 +85,21 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     ]
 
 
+def _missing_feature_data_report(df: pd.DataFrame):
+    counts = df.count().loc[lambda x: x < len(df)].sort_values()
+    if len(counts) == 0:
+        print("No missing feature data")
+        return
+
+    print(
+        f"Missing data in {len(counts)} of {len(df.columns)} features of dataframe with length {len(df)}"
+    )
+    print("feature\tna\t%-filled")
+    for col, count in zip(counts.index, counts):
+        print(f"{col}\t{count}\t{(100 * count / len(df)):.2f}%")
+    print("------------------------")
+
+
 def load_data(
     filename: str,
     target: tuple[str, str],
@@ -103,7 +125,7 @@ def load_data(
     target_col_name = ":".join(target)
     print(f"Target column name set to '{target_col_name}'")
 
-    df_raw, df, one_hot_stats = load_csv(filename, include_position)
+    df_raw, df, one_hot_stats = _load_data(filename, include_position)
     if filtering_query:
         df = df.query(filtering_query)
         print(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
@@ -147,6 +169,7 @@ def load_data(
     else:
         cols_to_drop = None
 
+    _missing_feature_data_report(X)
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
         X, y, random_state=seed
     )
