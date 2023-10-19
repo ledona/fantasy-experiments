@@ -46,9 +46,7 @@ def _load_data(filename: str, include_position: bool | None):
         )
 
     print(f"Include player position set to {include_position}")
-    one_hots = []
-    if "extra:venue" in df_raw:
-        one_hots.append("extra:venue")
+    one_hots = [col for col in df_raw if ":" in col and isinstance(df_raw[col].iloc[0], str)]
     if "pos" in df_raw:
         df_raw.drop(columns="pos_id", inplace=True)
         if include_position:
