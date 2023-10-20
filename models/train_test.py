@@ -1,4 +1,7 @@
+"""use this module's functions to train and evaluate models"""
+
 from collections import defaultdict
+import os
 from typing import Literal
 import traceback
 from pprint import pprint
@@ -14,8 +17,8 @@ from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
 import pandas as pd
 
+from fantasy_py import FantasyException, UnexpectedValueError, PlayerOrTeam, FeatureDict
 from fantasy_py.inference import SKLModel, StatInfo, Model, Performance
-from fantasy_py import FantasyException, UnexpectedValueError, PlayerOrTeam
 
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
@@ -83,19 +86,30 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     ]
 
 
-def _missing_feature_data_report(df: pd.DataFrame):
-    counts = df.count().loc[lambda x: x < len(df)].sort_values()
+def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
+    counts = df.count().loc[lambda x: len(df) * (1 - warning_threshold) < x].sort_values()
+    print(f"\nMISSING-DATA-REPORT case={len(df)} warning_threshold={warning_threshold * 100:.02f}%")
     if len(counts) == 0:
-        print("No missing feature data")
+        print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
         return
 
     print(
-        f"Missing data in {len(counts)} of {len(df.columns)} features of dataframe with length {len(df)}"
+        f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100}% missing values."
     )
-    print("feature\tna\t%-filled")
-    for col, count in zip(counts.index, counts):
-        print(f"{col}\t{count}\t{(100 * count / len(df)):.2f}%")
-    print("------------------------")
+
+    counts.name = "valid-data"
+    counts.index.name = "feature-name"
+    missing_data_df = pd.DataFrame(counts).reset_index()
+    missing_data_df["%-valid"] = missing_data_df["valid-data"].map(
+        lambda x: f"{100 * x / len(df):.2f}%"
+    )
+    missing_data_df["%-NA"] = missing_data_df["valid-data"].map(
+        lambda x: f"{100 * (1 - x / len(df)):.2f}%"
+    )
+    with pd.option_context(
+        "display.max_rows", None, "display.max_columns", None, "display.max_colwidth", None
+    ):
+        print(missing_data_df.to_string(index=False))
 
 
 def load_data(
@@ -106,6 +120,7 @@ def load_data(
     seed=None,
     col_drop_filters: None | list[str] = None,
     filtering_query: None | str = None,
+    missing_data_threshold=0,
 ):
     """
     Create train, test and validation data
@@ -119,6 +134,9 @@ def load_data(
         is applied and one-hot encoding is performed
     filtering_query - query to execute (using dataframe.query) to filter
         for rows in the input data. Executed before one-hot and column drops
+    missing_data_threshold - warn about feature columns where data is not
+        found for more than this percentage of cases.E.g. 0 = warn in any data is missing
+        .25 = warn if > 25% of data is missing
     """
     target_col_name = ":".join(target)
     print(f"Target column name set to '{target_col_name}'")
@@ -167,7 +185,7 @@ def load_data(
     else:
         cols_to_drop = None
 
-    _missing_feature_data_report(X)
+    _missing_feature_data_report(X, missing_data_threshold)
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
         X, y, random_state=seed
     )
@@ -218,15 +236,15 @@ def train_test(
     tt_data: TrainTestData,
     seed: None | int,
     training_time: int,
-    dt_trained: datetime,
-) -> tuple[str, Performance]:
+) -> tuple[str, Performance, datetime]:
     """
-    train test and save a model
+    train test and save a model ti a pickle
 
     training_time - max time to train in seconds
 
     returns the filepath to the model
     """
+    dt_trained = datetime.now()
     print(f"Commencing training for {model_name=} {type_} fit with {training_time=}...")
     if type_ == "autosk":
         raise NotImplementedError(
@@ -268,7 +286,7 @@ def train_test(
     print(f"Validation {r2_val=} {mae_val=}")
 
     filename = f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_trained.isoformat().replace(':', '').rsplit('.', 1)[0]}.pkl"
-    print(f"Exporting model to '{filename}'")
+    print(f"Exporting model artifact to '{filename}'")
     if type_ in ("autosk", "dummy"):
         joblib.dump(automl, filename)
     elif type_ == "tpot":
@@ -276,20 +294,20 @@ def train_test(
     else:
         raise NotImplementedError(f"automl type {type_} not recognized")
 
-    return filename, {"r2": r2_val, "mae": mae_val}
+    return filename, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
 def create_fantasy_model(
     name: str,
-    model_path: str,
+    model_artifact_path: str,
     dt_trained: datetime,
     train_df: pd.DataFrame,
     target: StatInfo,
     training_time,
-    p_or_t: PlayerOrTeam,
-    recent_games: int,
     automl_type: _AutomlType,
     performance: Performance,
+    p_or_t: PlayerOrTeam,
+    recent_games: int,
     training_seasons: list[int],
     one_hot_stats: dict[str, list[str]] | None = None,
     seed=None,
@@ -298,24 +316,22 @@ def create_fantasy_model(
     only_starters: bool | None = None,
     target_pos: None | list[str] = None,
     training_pos: None | list[str] = None,
-    raw_df: pd.DataFrame | None = None,
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
     assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
-    features: dict[str, set] = defaultdict(set)
+    features: FeatureDict = defaultdict(set)
     columns = train_df.columns
     for col in columns:
         if col.startswith("pos_"):
             include_pos = True
             continue
         col_split = col.split(":")
+
         assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"]
-        if col_split[0] in ["calc", "stat"]:
-            features[col_split[0]].add(col_split[1])
-            continue
+
         if col_split[0] == "extra":
             if col_split[1].startswith("venue_"):
                 assert len(col_split) == 2
@@ -327,9 +343,20 @@ def create_fantasy_model(
             features[extra_type].add(extra_name)
             continue
 
-        raise UnexpectedValueError(f"Unknown feature type for data column named '{col}'")
+        assert col_split[0] in ["calc", "stat"]
+        if len(col_split) == 4:
+            if col_split[-1] == "player-team":
+                features["player_team_" + col_split[0]].add(col_split[1])
+                continue
+            if col_split[-1] == "opp-team":
+                features["opp_team_" + col_split[0]].add(col_split[1])
+                continue
+        if len(col_split) == 3:
+            features[col_split[0]].add(col_split[1])
+            continue
 
-    features_list_dict = {name: list(stats) for name, stats in features.items()}
+        raise UnexpectedValueError(f"Unknown feature type for data column named col='{col}'")
+
     data_def: dict = {
         "recent_games": recent_games,
         "recent_mean": recent_mean,
@@ -344,7 +371,7 @@ def create_fantasy_model(
     model = SKLModel(
         name,
         target_info,
-        features_list_dict,
+        features,
         dt_trained=dt_trained,
         data_def=data_def,
         parameters={
@@ -352,20 +379,68 @@ def create_fantasy_model(
             "seed": seed,
             "automl_type": automl_type,
         },
-        trained_parameters={"regressor_path": model_path},
+        trained_parameters={"regressor_path": model_artifact_path},
         performance=performance,
         player_positions=target_pos,
         input_cols=columns.to_list(),
         impute_values=_infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM),
     )
 
+    return model
+
+
+def model_and_test(
+    name,
+    validation_season,
+    tt_data,
+    target,
+    training_time,
+    automl_type,
+    *args,
+    reuse_existing=False,
+    raw_df=None,
+    **kwargs,
+):
+    """create or load a model and test it"""
+    model_filename = ".".join([name, target[1], automl_type, "model"])
+    print(f"Model filename = '{model_filename}'")
+    if not reuse_existing or not os.path.exists(model_filename):
+        if reuse_existing:
+            print("Reuse failed, existing model not found")
+        model_artifact_path, performance, dt_trained = train_test(
+            automl_type, name, target, tt_data, kwargs["seed"], training_time
+        )
+        performance["season"] = validation_season
+
+        model = create_fantasy_model(
+            name,
+            model_artifact_path,
+            dt_trained,
+            tt_data[0],
+            target,
+            training_time,
+            automl_type,
+            performance,
+            *args,
+            **kwargs,
+        )
+        model_filepath = model.dump(
+            ".".join([name, target[1], automl_type, "model"]),
+            validate_reg_filepath=False,
+        )
+        print(f"Model file saved to '{model_filepath}'")
+    else:
+        print("Reusing existing model...")
+        model = Model.load(model_filename)
+
     if raw_df is not None:
         try:
             model.predict(raw_df.sample(10))
-            print("post testing model predict successful...")
+            print("model post testing model successful...")
         except Exception as ex:
             print(f"post prediction testing failed! '{type(ex).__name__}':")
             print(traceback.format_exc())
     else:
         print("not post testing model ...")
+
     return model
