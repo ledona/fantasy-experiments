@@ -87,29 +87,31 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
 
 
 def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
-    counts = df.count().loc[lambda x: len(df) * (1 - warning_threshold) < x].sort_values()
-    print(f"\nMISSING-DATA-REPORT case={len(df)} warning_threshold={warning_threshold * 100:.02f}%")
-    if len(counts) == 0:
-        print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
-        return
-
-    print(
-        f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100}% missing values."
-    )
-
+    counts = df.count()
     counts.name = "valid-data"
     counts.index.name = "feature-name"
     missing_data_df = pd.DataFrame(counts).reset_index()
-    missing_data_df["%-valid"] = missing_data_df["valid-data"].map(
-        lambda x: f"{100 * x / len(df):.2f}%"
+    missing_data_df["%-NA"] = missing_data_df["valid-data"].map(lambda x: 100 * (1 - x / len(df)))
+    warning_df = missing_data_df.query("`%-NA` > (@warning_threshold * 100)")
+
+    print(f"\nMISSING-DATA-REPORT case={len(df)} warning_threshold={warning_threshold * 100:.02f}%")
+    if len(warning_df) == 0:
+        print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
+        return
+
+    warning_df["%-valid"] = warning_df["valid-data"].map(lambda x: 100 * x / len(df))
+    print(
+        f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100:.02f}% missing values."
     )
-    missing_data_df["%-NA"] = missing_data_df["valid-data"].map(
-        lambda x: f"{100 * (1 - x / len(df)):.2f}%"
-    )
+
     with pd.option_context(
         "display.max_rows", None, "display.max_columns", None, "display.max_colwidth", None
     ):
-        print(missing_data_df.to_string(index=False))
+        print(
+            warning_df.to_string(
+                index=False, formatters={"%-NA": "{:.02f}%".format, "%-valid": "{:.02f}%".format}
+            )
+        )
 
 
 def load_data(
