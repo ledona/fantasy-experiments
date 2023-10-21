@@ -21,6 +21,8 @@ from fantasy_py import FantasyException, UnexpectedValueError, PlayerOrTeam, Fea
 from fantasy_py.inference import SKLModel, StatInfo, Model, Performance
 
 
+_TPOT_JOBS = 2
+
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
 
@@ -92,6 +94,7 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
     counts.index.name = "feature-name"
     missing_data_df = pd.DataFrame(counts).reset_index()
     missing_data_df["%-NA"] = missing_data_df["valid-data"].map(lambda x: 100 * (1 - x / len(df)))
+    missing_data_df["%-valid"] = missing_data_df["valid-data"].map(lambda x: 100 * x / len(df))
     warning_df = missing_data_df.query("`%-NA` > (@warning_threshold * 100)")
 
     print(f"\nMISSING-DATA-REPORT case={len(df)} warning_threshold={warning_threshold * 100:.02f}%")
@@ -99,7 +102,6 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
         print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
         return
 
-    warning_df["%-valid"] = warning_df["valid-data"].map(lambda x: 100 * x / len(df))
     print(
         f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100:.02f}% missing values."
     )
@@ -257,9 +259,7 @@ def train_test(
         )
     elif type_ == "tpot":
         automl = TPOTRegressor(
-            random_state=seed,
-            max_time_mins=training_time / 60,
-            verbosity=3,
+            random_state=seed, max_time_mins=training_time / 60, verbosity=3, n_jobs=_TPOT_JOBS
         )
     elif type_ == "dummy":
         automl = DummyRegressor()
