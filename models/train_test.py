@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 import os
-from typing import Literal
+from typing import Literal, cast
 import traceback
 from pprint import pprint
 from datetime import datetime
@@ -17,7 +17,15 @@ from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
 import pandas as pd
 
-from fantasy_py import FantasyException, UnexpectedValueError, PlayerOrTeam, FeatureDict
+from fantasy_py import (
+    FantasyException,
+    UnexpectedValueError,
+    PlayerOrTeam,
+    FeatureDict,
+    CLSRegistry,
+    SPORT_DB_MANAGER_DOMAIN,
+)
+from fantasy_py.sport import SportDBManager
 from fantasy_py.inference import SKLModel, StatInfo, Model, Performance
 
 
@@ -219,7 +227,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     impute_values = {
         Model.impute_key_for_feature_name(col, team_target): round(train_df[col].median(), 2)
         for col in train_df
-        if ":std-mean" in col
+        if (":std-mean" in col or col.startswith("extra:"))
     }
     if len(impute_values) == 0:
         print(
@@ -326,6 +334,10 @@ def create_fantasy_model(
     include_pos = False
     features: FeatureDict = defaultdict(set)
     columns = train_df.columns
+    sport_abbr = name.split("-", 1)[0]
+    db_manager = cast(
+        SportDBManager, CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport_abbr.lower())
+    )
     for col in columns:
         if col.startswith("pos_"):
             include_pos = True
@@ -342,6 +354,25 @@ def create_fantasy_model(
             else:
                 extra_type = "hist_extra" if len(col_split) > 2 else "current_extra"
                 extra_name = col_split[1]
+            if extra_name not in db_manager.EXTRA_STATS:
+                possible_1_hot_extras = [
+                    name for name in db_manager.EXTRA_STATS if extra_name.startswith(name)
+                ]
+                if len(possible_1_hot_extras) == 0:
+                    raise ValueError(
+                        f"Unrecognized extra stat '{extra_name}'. For sport={sport_abbr}, "
+                        f"valid extra stats are {db_manager.EXTRA_STATS}"
+                    )
+                if len(possible_1_hot_extras) > 1:
+                    raise ValueError(
+                        f"Extra stat '{extra_name}' could be a one hot of multiple {sport_abbr} extra stats. "
+                        f"Can't figure out which of the following extra stats to use: {possible_1_hot_extras}"
+                    )
+                print(
+                    f"One hotted extra stat '{extra_name}' assigned to original extra stat '{possible_1_hot_extras[0]}'"
+                )
+                extra_name = possible_1_hot_extras[0]
+
             features[extra_type].add(extra_name)
             continue
 
@@ -370,6 +401,7 @@ def create_fantasy_model(
         data_def["only_starters"] = only_starters
     if training_pos is not None:
         data_def["training_pos"] = training_pos
+    imputes = _infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM)
     model = SKLModel(
         name,
         target_info,
@@ -385,7 +417,7 @@ def create_fantasy_model(
         performance=performance,
         player_positions=target_pos,
         input_cols=columns.to_list(),
-        impute_values=_infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM),
+        impute_values=imputes,
     )
 
     return model
