@@ -172,7 +172,16 @@ def load_data(
     train_test_df = df[df.season != validation_season]
     if len(train_test_df) == 0:
         raise ValueError("No training data!")
+    if len(features_not_found := set(feature_cols) - set(train_test_df.columns)) > 0:
+        raise ValueError(
+            f"Following requested feature models not found in data: {features_not_found}"
+        )
     X = train_test_df[feature_cols]
+    if target_col_name not in train_test_df:
+        available_targets = [col for col in train_test_df if len(col.split(":")) == 2]
+        raise ValueError(
+            f"Target feature '{target_col_name}' not found in data. Available targets are {available_targets}"
+        )
     y = train_test_df[target_col_name]
 
     if col_drop_filters:
