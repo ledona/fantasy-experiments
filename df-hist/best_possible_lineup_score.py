@@ -156,12 +156,10 @@ def best_possible_lineup_score(
         slate=slate_name,
         no_default_lineup_plans=False,
         lineup_plan_paths=None,
-        model_ids=None,
     )
     args, fca = db_obj.db_manager.gen_lineups_preprocess(
         db_obj, args, None, game_date, starters=starters
     )
-    # print("fca: ", fca)
 
     service_cls = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service)
 
@@ -184,7 +182,7 @@ def best_possible_lineup_score(
         lineups = gen_lineups(
             db_obj,
             fca,
-            args.model_ids,
+            args.model_names,
             solver,
             service_cls,
             1,  # of lineups
@@ -197,7 +195,8 @@ def best_possible_lineup_score(
         hist_score = lineups[0].historic_fpts
     except Exception as ex:
         print(
-            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. {type(ex).__name__}"
+            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. "
+            f"{type(ex).__name__}"
         )
         traceback.print_exc()
         return None
