@@ -416,7 +416,7 @@ def create_fantasy_model(
         target_info,
         features,
         dt_trained=dt_trained,
-        data_def=data_def,
+        training_data_def=data_def,
         parameters={
             "train_time": training_time,
             "seed": seed,
