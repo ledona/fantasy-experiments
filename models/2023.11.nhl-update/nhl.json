@@ -1,0 +1,55 @@
+RANDOM_SEED = 1
+VALIDATION_SEASON = 20212022
+RECENT_GAMES = 5
+TRAINING_SEASONS = [
+    20152016,
+    20162017,
+    20172018,
+    20182019,
+    20192020,
+    20202021,
+]
+COLS_TO_DROP = None
+REUSE_EXISTING = True
+MISSING_DATA_THRESHOLD = .07
+
+# TARGET = ("stat", "goal")
+# MODEL_NAME = "NHL-team-goal"
+# TARGET = ("stat", "win")
+# MODEL_NAME = "NHL-team-win"
+
+# DATA_FILENAME = "nhl_team.pq"
+# P_OR_T = PlayerOrTeam.TEAM
+# INCLUDE_POS = None
+# TARGET_POS = None
+# TRAINING_TIME = 600
+
+
+# TARGET = ("calc", "dk_score")
+# MODEL_NAME = "NHL-skater-DK"
+# TARGET = ("stat", "shot")
+# MODEL_NAME = "NHL-skater-shot"
+# TARGET = ("stat", "assist")
+# MODEL_NAME = "NHL-skater-assist"
+# TARGET = ("stat", "goal")
+# MODEL_NAME = "NHL-skater-goal"
+
+# DATA_FILENAME = "nhl_skater.pq"
+# INCLUDE_POS = True
+# P_OR_T = PlayerOrTeam.PLAYER
+# TARGET_POS = ["LW", "RW", "W", "C", "D"]
+# TRAINING_TIME = 1200
+
+
+# TARGET = ("calc", "dk_score")
+# MODEL_NAME = "NHL-goalie-DK"
+# TARGET = ("stat", "save")
+# MODEL_NAME = "NHL-goalie-save"
+# TARGET = ("stat", "goal_ag")
+# MODEL_NAME = "NHL-goalie-ag"
+
+# DATA_FILENAME = "nhl_goalie.pq"
+# P_OR_T = PlayerOrTeam.PLAYER
+# INCLUDE_POS = False
+# TARGET_POS = ["G"]
+# TRAINING_TIME = 600
