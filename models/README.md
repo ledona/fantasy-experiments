@@ -4,12 +4,31 @@ To create, archive and use new predictive models perform the following steps
 1. Make sure that the fantasy environment is successfully installed and usable, and the 
 database files containing raw and calculated stats are in $FANTASY_HOME.
 1. Create a new model folder. Easiest to copy the most recent model folder and rename.
-1. Update the contents (notebooks) in the folder to reflect the updated data, stats and
-code required to extract data and train/evaluate the new models.
-1. Run the inference data export program (as defined in the notebook) to export the training
-and evaluation data to parquet and/or csv files.
-1. Run the notebooks to create the new models. Each model will likely output 2 files,
-a pickle file with the model artifact and a .model file with json that describes the model.
+1. Create/update the data export scripts and model training json files. The training files are json dicts with the following structure (refer to previous files for concrete examples):
+```
+{
+  "global_defaults": {
+    # dict with default training parameters for all models
+    # defined in this configuration file
+  },
+  "model_groups": [
+    {
+      "models": {
+        "model-name-1": {
+          "target": ["stat-type": "stat-name"], # stat-type=stat|calc|extra
+          # additional parameters just for this model
+        },
+        ...
+      }
+      # other parameters (key/value) that override and add to global 
+      # defaults and pertain just to this model group
+    },
+    ...
+  ]
+}
+```
+4. Run the data export scripts to generate the parquet data files used for training.
+1. Create the models using _model_create.py_. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle).
 1. (Optional) Load the models into the sport database and run some tests. Load modules using 
 model_manager.py from the fantasy repository. Generate lineups or run backtesting using one
 of the debug configurations or lineup.sc or backtest.sc
