@@ -1,35 +1,32 @@
 """use this module's functions to train and evaluate models"""
 
-from collections import defaultdict
 import os
-from typing import Literal, cast
-import traceback
-from pprint import pprint
-from datetime import datetime
 import re
-
-import joblib
+import traceback
+from collections import defaultdict
+from datetime import datetime
+from pprint import pprint
+from typing import Literal, cast
 
 # import autosklearn.regression
-import sklearn.model_selection
+import joblib
+import pandas as pd
 import sklearn.metrics
+import sklearn.model_selection
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
-import pandas as pd
 
 from fantasy_py import (
-    FantasyException,
-    UnexpectedValueError,
-    PlayerOrTeam,
-    FeatureDict,
-    CLSRegistry,
     SPORT_DB_MANAGER_DOMAIN,
+    CLSRegistry,
+    FantasyException,
+    FeatureDict,
+    PlayerOrTeam,
+    UnexpectedValueError,
+    secs_to_time,
 )
+from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
-from fantasy_py.inference import SKLModel, StatInfo, Model, Performance
-
-
-_TPOT_JOBS = 2
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -257,16 +254,20 @@ def train_test(
     tt_data: TrainTestData,
     seed: None | int,
     training_time: int,
+    **auto_ml_kwargs,
 ) -> tuple[str, Performance, datetime]:
     """
     train test and save a model ti a pickle
 
-    training_time - max time to train in seconds
+    training_time: max time to train in seconds
 
     returns the filepath to the model
     """
     dt_trained = datetime.now()
-    print(f"Commencing training for {model_name=} {type_} fit with {training_time=}...")
+    print(
+        f"Commencing training for {model_name=} {type_} fit "
+        f"with training_time={secs_to_time(training_time)} {auto_ml_kwargs=}"
+    )
     if type_ == "autosk":
         raise NotImplementedError(
             "disabled until autosk uses more up to date version of sklearn 2023.08.06"
@@ -276,7 +277,7 @@ def train_test(
         )
     elif type_ == "tpot":
         automl = TPOTRegressor(
-            random_state=seed, max_time_mins=training_time / 60, verbosity=3, n_jobs=_TPOT_JOBS
+            random_state=seed, max_time_mins=training_time / 60, verbosity=3, **auto_ml_kwargs
         )
     elif type_ == "dummy":
         automl = DummyRegressor()
@@ -433,8 +434,8 @@ def create_fantasy_model(
 
 
 def model_and_test(
-    name,
-    validation_season,
+    name: str,
+    validation_season: int,
     tt_data,
     target,
     training_time,
@@ -442,6 +443,7 @@ def model_and_test(
     *args,
     reuse_existing=False,
     raw_df=None,
+    automl_kwargs=None,
     **kwargs,
 ):
     """create or load a model and test it"""
@@ -451,7 +453,13 @@ def model_and_test(
         if reuse_existing:
             print("Reuse failed, existing model not found")
         model_artifact_path, performance, dt_trained = train_test(
-            automl_type, name, target, tt_data, kwargs["seed"], training_time
+            automl_type,
+            name,
+            target,
+            tt_data,
+            kwargs["seed"],
+            training_time,
+            **(automl_kwargs or {}),
         )
         performance["season"] = validation_season
 
@@ -467,10 +475,7 @@ def model_and_test(
             *args,
             **kwargs,
         )
-        model_filepath = model.dump(
-            ".".join([name, target[1], automl_type, "model"]),
-            validate_reg_filepath=False,
-        )
+        model_filepath = model.dump(".".join([name, target[1], automl_type, "model"]))
         print(f"Model file saved to '{model_filepath}'")
     else:
         print("Reusing existing model...")

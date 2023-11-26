@@ -5,21 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "archive fantasy_model",
+            "name": "train_test CLI",
             "type": "python",
             "request": "launch",
-            "module": "model_lib.archive_fantasy_model",
+            "program": "../cli.py",
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/models",
+            "cwd": "${workspaceFolder}/models/2023.11.nhl-update",
             "args": [
-                // "--mlflow-uri", "file:///tmp/mlflow-test",
-                // "--verbose",
-                "get", // "--all", 
-                // "--dest", "/tmp/model-folder",
-                // "put", "2023.03/LOL-team-win.match_win.tpot.model", 
-                // "--exp-name", "2023.03",
-                // "--exp-desc", "test experiment",
-                // "--active"
+                // "--info",
+                "--tpot_jobs", "4",
+                "--time", "2",
+                "nhl.json",
+                "NHL-skater-shot"
             ]
         },
         {

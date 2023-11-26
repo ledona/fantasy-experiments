@@ -12,7 +12,6 @@
             20202021,
             20222023
         ],
-        "reuse_existing": true,
         "missing_data_threshold": 0.07,
         "training_time": 600
     },
@@ -46,22 +45,29 @@
                 "C",
                 "D"
             ],
+            "training_pos": [
+                "LW",
+                "RW",
+                "W",
+                "C",
+                "D"
+            ],
             "training_time": 1200,
             "models": {
                 "NHL-skater-DK": {
-                    "TARGET": [
+                    "target": [
                         "calc",
                         "dk_score"
                     ]
                 },
                 "NHL-skater-shot": {
-                    "TARGET": [
+                    "target": [
                         "stat",
                         "shot"
                     ]
                 },
                 "NHL-skater-assist": {
-                    "TARGET": [
+                    "target": [
                         "stat",
                         "assist"
                     ]
@@ -78,25 +84,25 @@
             "starters_only": true,
             "models": {
                 "NHL-skater-goal": {
-                    "TARGET": [
+                    "target": [
                         "stat",
                         "goal"
                     ]
                 },
                 "NHL-goalie-DK": {
-                    "TARGET": [
+                    "target": [
                         "calc",
                         "dk_score"
                     ]
                 },
                 "NHL-goalie-save": {
-                    "TARGET": [
+                    "target": [
                         "stat",
                         "save"
                     ]
                 },
                 "NHL-goalie-ag": {
-                    "TARGET": [
+                    "target": [
                         "stat",
                         "goal_ag"
                     ]
