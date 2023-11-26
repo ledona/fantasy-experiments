@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DB_FILE=${FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db
+# line stat is only available for skaters after 20152016
 SEASONS='20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023'
 SKATER_STATS=("assist*" "fo*" "*away" "goal" "goal_pp" "goal_sh" 
     "goal_t" "goal_w" "hit" line "p*" "shot*" "toi_ev" "toi_pp" "toi_sh")
@@ -19,8 +20,8 @@ dumpdata.sc --seasons $SEASONS --progress \
 # goalie data
 dumpdata.sc --seasons $SEASONS --progress \
     $DB_FILE --no_teams \
-    --pos G \
-    --stats $GOALIE_STATS --current_extra is_home \
+    --pos G --starters \
+    --stats $GOALIE_STATS --current_extra is_home "opp*" \
     --target_calc_stats "*" --target_stats goal_ag save \
     --player_team_stats "*" --opp_team_stats "*" \
     --hist_recent_games 5 --hist_recent_mode ma \
