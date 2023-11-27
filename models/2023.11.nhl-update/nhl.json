@@ -85,6 +85,7 @@
             "data_filename": "nhl_goalie.pq",
             "p_or_t": "P",
             "include_pos": false,
+            "training_time": 1200,
             "target_pos": [
                 "G"
             ],

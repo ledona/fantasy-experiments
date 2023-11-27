@@ -87,6 +87,11 @@ class TrainingDefinitionFile:
         tpot_jobs: int,
     ):
         params = self.get_params(model_name)
+
+        print("Training will proceed with the following parameters:")
+        pprint(params)
+        print()
+
         raw_df, tt_data, one_hot_stats = load_data(
             params["data_filename"],
             params["target"],
@@ -150,7 +155,7 @@ if __name__ == "__main__":
 
     tdf = TrainingDefinitionFile(args.train_file)
     if not args.model:
-        print(f"Following models are defined: {tdf.model_names}")
+        print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
         sys.exit(0)
 
     if args.model not in tdf.model_names:
