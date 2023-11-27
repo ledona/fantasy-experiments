@@ -52,7 +52,7 @@
                 "C",
                 "D"
             ],
-            "training_time": 1200,
+            "training_time": 1800,
             "models": {
                 "NHL-skater-DK": {
                     "target": [
@@ -64,12 +64,19 @@
                     "target": [
                         "stat",
                         "shot"
-                    ]
+                    ],
+                    "training_time": 2400
                 },
                 "NHL-skater-assist": {
                     "target": [
                         "stat",
                         "assist"
+                    ]
+                },
+                "NHL-skater-goal": {
+                    "target": [
+                        "stat",
+                        "goal"
                     ]
                 }
             }
@@ -81,14 +88,7 @@
             "target_pos": [
                 "G"
             ],
-            "starters_only": true,
             "models": {
-                "NHL-skater-goal": {
-                    "target": [
-                        "stat",
-                        "goal"
-                    ]
-                },
                 "NHL-goalie-DK": {
                     "target": [
                         "calc",

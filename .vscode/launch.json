@@ -13,8 +13,9 @@
             "cwd": "${workspaceFolder}/models/2023.11.nhl-update",
             "args": [
                 // "--info",
-                "--tpot_jobs", "4",
+                "--tpot_jobs", "2",
                 "--time", "2",
+                "--automl", "tpot",
                 "nhl.json",
                 "NHL-skater-shot"
             ]

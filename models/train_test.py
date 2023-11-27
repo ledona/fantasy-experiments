@@ -2,6 +2,7 @@
 
 import os
 import re
+import tempfile
 import traceback
 from collections import defaultdict
 from datetime import datetime
@@ -13,9 +14,6 @@ import joblib
 import pandas as pd
 import sklearn.metrics
 import sklearn.model_selection
-from sklearn.dummy import DummyRegressor
-from tpot import TPOTRegressor
-
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
@@ -27,6 +25,8 @@ from fantasy_py import (
 )
 from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
+from sklearn.dummy import DummyRegressor
+from tpot import TPOTRegressor
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -257,10 +257,9 @@ def train_test(
     **auto_ml_kwargs,
 ) -> tuple[str, Performance, datetime]:
     """
-    train test and save a model ti a pickle
+    train, test and save a model to a pickle
 
     training_time: max time to train in seconds
-
     returns the filepath to the model
     """
     dt_trained = datetime.now()
@@ -305,16 +304,16 @@ def train_test(
     mae_val = round(sklearn.metrics.mean_absolute_error(y_val, y_hat_val), 3)
     print(f"Validation {r2_val=} {mae_val=}")
 
-    filename = f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_trained.isoformat().replace(':', '').rsplit('.', 1)[0]}.pkl"
-    print(f"Exporting model artifact to '{filename}'")
+    filepath = f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_trained.isoformat().replace(':', '').rsplit('.', 1)[0]}.pkl"
+    print(f"Exporting model artifact to '{filepath}'")
     if type_ in ("autosk", "dummy"):
-        joblib.dump(automl, filename)
+        joblib.dump(automl, filepath)
     elif type_ == "tpot":
-        joblib.dump(automl.fitted_pipeline_, filename)
+        joblib.dump(automl.fitted_pipeline_, filepath)
     else:
         raise NotImplementedError(f"automl type {type_} not recognized")
 
-    return filename, {"r2": r2_val, "mae": mae_val}, dt_trained
+    return filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
 def create_fantasy_model(
@@ -475,8 +474,21 @@ def model_and_test(
             *args,
             **kwargs,
         )
-        model_filepath = model.dump(".".join([name, target[1], automl_type, "model"]))
-        print(f"Model file saved to '{model_filepath}'")
+        model_filename = ".".join([name, target[1], automl_type, "model"])
+        try:
+            model_filepath = model.dump(model_filename)
+            print(f"Model file saved to '{model_filepath}'")
+        except FileExistsError:
+            print(
+                "Failed to dump model due to FileExistsError... attempting to save to temp folder..."
+            )
+            tmp_model_filepath = model.dump(
+                os.path.join(tempfile.gettempdir(), model_filename), overwrite=True
+            )
+            print(
+                f"Destination model file(s) existed. Writing to tmp folder at '{tmp_model_filepath}'"
+            )
+            raise
     else:
         print("Reusing existing model...")
         model = Model.load(model_filename)

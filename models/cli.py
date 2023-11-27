@@ -1,10 +1,11 @@
+#! /venv/bin/python
 import argparse
+import json
 import os
 import pathlib
-import json
 import sys
-from typing import cast, TypedDict, Literal
 from pprint import pprint
+from typing import Literal, TypedDict, cast
 
 from fantasy_py import PlayerOrTeam, typed_dict_validate
 
@@ -136,7 +137,7 @@ if __name__ == "__main__":
         help="If an existing model exists at the destination then load and "
         "evalute that instead of training a fresh model",
     )
-    parser.add_argument("--automl_type", default="tpot", choices=["tpot"])
+    parser.add_argument("--automl_type", default="tpot", choices=["tpot", "dummy"])
     parser.add_argument("--tpot_jobs", type=int, default=2)
     parser.add_argument(
         "--training_mins",
