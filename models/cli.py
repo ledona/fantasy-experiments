@@ -21,6 +21,7 @@ class _Params(TypedDict):
     target: tuple[Literal["stat", "calc"], str]
     validation_season: int
     training_time: int
+    """maximum time (seconds) for full training"""
     p_or_t: PlayerOrTeam
     recent_games: int
     training_seasons: list[int]
@@ -32,6 +33,8 @@ class _Params(TypedDict):
     filtering_query: str | None
     target_pos: list[str] | None
     training_pos: list[str] | None
+    iteration_time: int | None
+    """maximum time (seconds) for a single iteration of training"""
 
 
 class TrainingDefinitionFile:
@@ -84,6 +87,7 @@ class TrainingDefinitionFile:
         self,
         model_name: str,
         train_secs_override: int | None,
+        train_iter_secs_override: int | None,
         reuse_existing: bool,
         automl_type: str,
         tpot_jobs: int,
@@ -122,7 +126,10 @@ class TrainingDefinitionFile:
             training_pos=params["target_pos"],
             raw_df=raw_df,
             reuse_existing=reuse_existing,
-            automl_kwargs={"n_jobs": tpot_jobs},
+            automl_kwargs={
+                "n_jobs": tpot_jobs,
+                "max_eval_time_mins": train_iter_secs_override or params["iteration_time"],
+            },
         )
 
         return model
@@ -153,6 +160,13 @@ if __name__ == "__main__":
         type=int,
         help="override the training time defined in the train_file",
     )
+    parser.add_argument(
+        "--training_iter_mins",
+        "--iter_mins",
+        "--iter_time",
+        type=int,
+        help="override the training iteration time defined in the train_file",
+    )
     args = parser.parse_args()
 
     tdf = TrainingDefinitionFile(args.train_file)
@@ -174,6 +188,7 @@ if __name__ == "__main__":
     tdf.train_and_test(
         args.model,
         args.training_mins * 60 if args.training_mins else None,
+        args.training_iter_mins * 60 if args.training_iter_mins else None,
         args.reuse_existing,
         args.automl_type,
         args.tpot_jobs,
