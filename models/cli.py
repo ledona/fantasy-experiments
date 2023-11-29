@@ -8,6 +8,7 @@ from pprint import pprint
 from typing import Literal, TypedDict, cast
 
 from fantasy_py import PlayerOrTeam, typed_dict_validate
+from ledona import process_timer
 
 sys.path.append("..")
 from train_test import load_data, model_and_test
@@ -78,6 +79,7 @@ class TrainingDefinitionFile:
             )
         return cast(_Params, param_dict)
 
+    @process_timer
     def train_and_test(
         self,
         model_name: str,
