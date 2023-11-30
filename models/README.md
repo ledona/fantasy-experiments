@@ -28,7 +28,8 @@ database files containing raw and calculated stats are in $FANTASY_HOME.
 }
 ```
 4. Run the data export scripts to generate the parquet data files used for training.
-1. Create the models using _model_create.py_. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle).
+1. Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle).
+```python -m lib.cli```
 1. (Optional) Load the models into the sport database and run some tests. Load modules using 
 model_manager.py from the fantasy repository. Generate lineups or run backtesting using one
 of the debug configurations or lineup.sc or backtest.sc

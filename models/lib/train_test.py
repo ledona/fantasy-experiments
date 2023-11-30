@@ -254,7 +254,7 @@ def train_test(
     target: StatInfo,
     tt_data: TrainTestData,
     seed: None | int,
-    **auto_ml_kwargs,
+    **model_init_kwargs,
 ) -> tuple[str, Performance, datetime]:
     """
     train, test and save a model to a pickle
@@ -263,22 +263,22 @@ def train_test(
     returns the filepath to the model
     """
     dt_trained = datetime.now()
-    print(f"Commencing training for {model_name=} using {type_} fit " f"with {auto_ml_kwargs=}")
+    print(f"Commencing training for {model_name=} using {type_} fit " f"with {model_init_kwargs=}")
     if type_ == "tpot":
         automl = TPOTRegressor(
             random_state=seed,
             verbosity=3,
-            **auto_ml_kwargs,
+            **model_init_kwargs,
         )
     elif type_ == "tpot-light":
         automl = TPOTRegressor(
             random_state=seed,
             verbosity=3,
             config_dict=regressor_config_dict_light,
-            **auto_ml_kwargs,
+            **model_init_kwargs,
         )
     elif type_ == "dummy":
-        automl = DummyRegressor()
+        automl = DummyRegressor(**model_init_kwargs)
     # elif type_ == "autosk":
     #     automl = autosklearn.regression.AutoSklearnRegressor(
     #         seed=seed, time_left_for_this_task=training_time, memory_limit=-1
@@ -443,7 +443,6 @@ def model_and_test(
     training_pos,
     reuse_existing=False,
     raw_df=None,
-    seed=None,
     overwrite=False,
 ):
     """create or load a model and test it"""
@@ -457,7 +456,6 @@ def model_and_test(
             name,
             target,
             tt_data,
-            seed,
             **automl_kwargs,
         )
         performance["season"] = validation_season
