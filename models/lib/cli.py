@@ -10,8 +10,7 @@ from typing import Literal, TypedDict, cast
 from fantasy_py import PlayerOrTeam, typed_dict_validate
 from ledona import process_timer
 
-sys.path.append("..")
-from train_test import load_data, model_and_test, AutomlType
+from .train_test import load_data, model_and_test, AutomlType
 
 
 class _Params(TypedDict):
@@ -93,6 +92,7 @@ class TrainingDefinitionFile:
         **train_params,
     ):
         params = self.get_params(model_name)
+        train_params['seed'] = params['seed']
 
         print("Training will proceed with the following parameters:")
         pprint(params)
@@ -123,7 +123,6 @@ class TrainingDefinitionFile:
             train_params,
             params["target_pos"],
             params["training_pos"] or params["target_pos"],
-            seed=train_params["seed"],
             raw_df=raw_df,
             reuse_existing=reuse_existing,
             overwrite=overwrite,
