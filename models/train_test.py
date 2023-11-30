@@ -27,6 +27,7 @@ from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
+from tpot.config import regressor_config_dict_light
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -244,11 +245,11 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-_AutomlType = Literal["tpot", "autosk", "dummy"]
+AutomlType = Literal["tpot", "tpot-light", "autosk", "dummy"]
 
 
 def train_test(
-    type_: _AutomlType,
+    type_: AutomlType,
     model_name: str,
     target: StatInfo,
     tt_data: TrainTestData,
@@ -264,22 +265,27 @@ def train_test(
     """
     dt_trained = datetime.now()
     print(
-        f"Commencing training for {model_name=} {type_} fit "
+        f"Commencing training for {model_name=} using {type_} fit "
         f"with training_time={secs_to_time(training_time)} {auto_ml_kwargs=}"
     )
-    if type_ == "autosk":
-        raise NotImplementedError(
-            "disabled until autosk uses more up to date version of sklearn 2023.08.06"
-        )
-        automl = autosklearn.regression.AutoSklearnRegressor(
-            seed=seed, time_left_for_this_task=training_time, memory_limit=-1
-        )
-    elif type_ == "tpot":
+    if type_ == "tpot":
         automl = TPOTRegressor(
             random_state=seed, max_time_mins=training_time / 60, verbosity=3, **auto_ml_kwargs
         )
+    elif type_ == "tpot-light":
+        automl = TPOTRegressor(
+            random_state=seed,
+            max_time_mins=training_time / 60,
+            verbosity=3,
+            config_dict=regressor_config_dict_light,
+            **auto_ml_kwargs,
+        )
     elif type_ == "dummy":
         automl = DummyRegressor()
+    # elif type_ == "autosk":
+    #     automl = autosklearn.regression.AutoSklearnRegressor(
+    #         seed=seed, time_left_for_this_task=training_time, memory_limit=-1
+    #     )
     else:
         raise NotImplementedError(f"automl type {type_} not recognized")
 
@@ -289,7 +295,7 @@ def train_test(
     if type_ == "autosk":
         print(automl.leaderboard())
         pprint(automl.show_models(), indent=4)
-    elif type_ == "tpot":
+    elif type_.startswith("tpot"):
         pprint(automl.fitted_pipeline_)
     else:
         print("Dummy fitted")
@@ -323,7 +329,7 @@ def create_fantasy_model(
     train_df: pd.DataFrame,
     target: StatInfo,
     training_time,
-    automl_type: _AutomlType,
+    automl_type: AutomlType,
     performance: Performance,
     p_or_t: PlayerOrTeam,
     recent_games: int,

@@ -11,7 +11,7 @@ from fantasy_py import PlayerOrTeam, typed_dict_validate
 from ledona import process_timer
 
 sys.path.append("..")
-from train_test import load_data, model_and_test
+from train_test import load_data, model_and_test, AutomlType
 
 
 class _Params(TypedDict):
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         help="If an existing model exists at the destination then load and "
         "evalute that instead of training a fresh model",
     )
-    parser.add_argument("--automl_type", default="tpot", choices=["tpot", "dummy"])
+    parser.add_argument("--automl_type", default="tpot", choices=AutomlType.__args__)
     parser.add_argument("--tpot_jobs", type=int, default=2)
     parser.add_argument(
         "--training_mins",
