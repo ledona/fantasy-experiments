@@ -13,7 +13,7 @@
             20222023
         ],
         "missing_data_threshold": 0.07,
-        "training_time": 600
+        "max_train_mins": 600
     },
     "model_groups": [
         {
@@ -52,7 +52,7 @@
                 "C",
                 "D"
             ],
-            "training_time": 1800,
+            "max_train_mins": 1800,
             "models": {
                 "NHL-skater-DK": {
                     "target": [
@@ -65,7 +65,7 @@
                         "stat",
                         "shot"
                     ],
-                    "training_time": 2400
+                    "max_train_mins": 2400
                 },
                 "NHL-skater-assist": {
                     "target": [
@@ -85,7 +85,7 @@
             "data_filename": "nhl_goalie.pq",
             "p_or_t": "P",
             "include_pos": false,
-            "training_time": 1200,
+            "max_train_mins": 1200,
             "target_pos": [
                 "G"
             ],

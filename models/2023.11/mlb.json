@@ -14,7 +14,7 @@
             2023
         ],
         "missing_data_threshold": 0.1,
-        "training_time": 1200
+        "max_train_mins": 1200
     },
     "model_groups": [
         {
@@ -26,7 +26,7 @@
                         "stat",
                         "off_runs"
                     ],
-                    "training_time": 3000
+                    "max_train_mins": 2400
                 },
                 "MLB-team-win": {
                     "target": [

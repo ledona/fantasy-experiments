@@ -254,7 +254,6 @@ def train_test(
     target: StatInfo,
     tt_data: TrainTestData,
     seed: None | int,
-    training_time: int,
     **auto_ml_kwargs,
 ) -> tuple[str, Performance, datetime]:
     """
@@ -264,18 +263,16 @@ def train_test(
     returns the filepath to the model
     """
     dt_trained = datetime.now()
-    print(
-        f"Commencing training for {model_name=} using {type_} fit "
-        f"with training_time={secs_to_time(training_time)} {auto_ml_kwargs=}"
-    )
+    print(f"Commencing training for {model_name=} using {type_} fit " f"with {auto_ml_kwargs=}")
     if type_ == "tpot":
         automl = TPOTRegressor(
-            random_state=seed, max_time_mins=training_time / 60, verbosity=3, **auto_ml_kwargs
+            random_state=seed,
+            verbosity=3,
+            **auto_ml_kwargs,
         )
     elif type_ == "tpot-light":
         automl = TPOTRegressor(
             random_state=seed,
-            max_time_mins=training_time / 60,
             verbosity=3,
             config_dict=regressor_config_dict_light,
             **auto_ml_kwargs,
@@ -292,11 +289,11 @@ def train_test(
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
     automl.fit(X_train, y_train)
 
-    if type_ == "autosk":
-        print(automl.leaderboard())
-        pprint(automl.show_models(), indent=4)
-    elif type_.startswith("tpot"):
+    if type_.startswith("tpot"):
         pprint(automl.fitted_pipeline_)
+    # elif type_ == "autosk":
+    #     print(automl.leaderboard())
+    #     pprint(automl.show_models(), indent=4)
     else:
         print("Dummy fitted")
 
@@ -314,7 +311,7 @@ def train_test(
     print(f"Exporting model artifact to '{filepath}'")
     if type_ in ("autosk", "dummy"):
         joblib.dump(automl, filepath)
-    elif type_ == "tpot":
+    elif type_.startswith("tpot"):
         joblib.dump(automl.fitted_pipeline_, filepath)
     else:
         raise NotImplementedError(f"automl type {type_} not recognized")
@@ -328,19 +325,17 @@ def create_fantasy_model(
     dt_trained: datetime,
     train_df: pd.DataFrame,
     target: StatInfo,
-    training_time,
-    automl_type: AutomlType,
     performance: Performance,
     p_or_t: PlayerOrTeam,
     recent_games: int,
     training_seasons: list[int],
+    target_pos: None | list[str],
+    training_pos: None | list[str],
+    model_params: dict[str, str | int],
     one_hot_stats: dict[str, list[str]] | None = None,
-    seed=None,
     recent_mean: bool = True,
     recent_explode: bool = True,
     only_starters: bool | None = None,
-    target_pos: None | list[str] = None,
-    training_pos: None | list[str] = None,
 ) -> Model:
     """Create a model object based"""
     print(f"Creating fantasy model for {name=}")
@@ -423,11 +418,7 @@ def create_fantasy_model(
         features,
         dt_trained=dt_trained,
         training_data_def=data_def,
-        parameters={
-            "train_time": training_time,
-            "seed": seed,
-            "automl_type": automl_type,
-        },
+        parameters=model_params,
         trained_parameters={"regressor_path": model_artifact_path},
         performance=performance,
         player_positions=target_pos,
@@ -443,13 +434,17 @@ def model_and_test(
     validation_season: int,
     tt_data,
     target,
-    training_time,
     automl_type,
-    *args,
+    p_or_t,
+    recent_games,
+    training_seasons,
+    automl_kwargs,
+    target_pos,
+    training_pos,
     reuse_existing=False,
     raw_df=None,
-    automl_kwargs=None,
-    **kwargs,
+    seed=None,
+    overwrite=False,
 ):
     """create or load a model and test it"""
     model_filename = ".".join([name, target[1], automl_type, "model"])
@@ -462,9 +457,8 @@ def model_and_test(
             name,
             target,
             tt_data,
-            kwargs["seed"],
-            training_time,
-            **(automl_kwargs or {}),
+            seed,
+            **automl_kwargs,
         )
         performance["season"] = validation_season
 
@@ -474,25 +468,29 @@ def model_and_test(
             dt_trained,
             tt_data[0],
             target,
-            training_time,
-            automl_type,
             performance,
-            *args,
-            **kwargs,
+            p_or_t,
+            recent_games,
+            training_seasons,
+            target_pos,
+            training_pos,
+            automl_kwargs,
         )
         model_filename = ".".join([name, target[1], automl_type, "model"])
         try:
-            model_filepath = model.dump(model_filename)
+            model_filepath = model.dump(model_filename, overwrite=overwrite)
             print(f"Model file saved to '{model_filepath}'")
         except FileExistsError:
             print(
-                "Failed to dump model due to FileExistsError... attempting to save to temp folder..."
+                "Failed to dump model due to FileExistsError... "
+                "attempting to save to temp folder..."
             )
             tmp_model_filepath = model.dump(
                 os.path.join(tempfile.gettempdir(), model_filename), overwrite=True
             )
             print(
-                f"Destination model file(s) existed. Writing to tmp folder at '{tmp_model_filepath}'"
+                "Destination model file(s) existed. Writing to tmp "
+                f"folder at '{tmp_model_filepath}'"
             )
             raise
     else:

@@ -20,21 +20,18 @@ class _Params(TypedDict):
     data_filename: str
     target: tuple[Literal["stat", "calc"], str]
     validation_season: int
-    training_time: int
-    """maximum time (seconds) for full training"""
     p_or_t: PlayerOrTeam
     recent_games: int
     training_seasons: list[int]
+    train_params: dict
+    seed: None | int
 
     include_pos: bool | None
     cols_to_drop: list[str] | None
-    seed: int | None
     missing_data_threshold: float | None
     filtering_query: str | None
     target_pos: list[str] | None
     training_pos: list[str] | None
-    iteration_time: int | None
-    """maximum time (seconds) for a single iteration of training"""
 
 
 class TrainingDefinitionFile:
@@ -75,6 +72,10 @@ class TrainingDefinitionFile:
         param_dict["data_filename"] = os.path.join(
             pathlib.Path(self._file_path).parent.as_posix(), param_dict["data_filename"]
         )
+        param_dict["train_params"] = {
+            "max_train_mins": param_dict["max_train_mins"],
+            "max_iter_mins": param_dict["max_iter_mins"],
+        }
 
         if validation_failure_reason := typed_dict_validate(_Params, param_dict):
             raise ValueError(
@@ -86,11 +87,10 @@ class TrainingDefinitionFile:
     def train_and_test(
         self,
         model_name: str,
-        train_secs_override: int | None,
-        train_iter_secs_override: int | None,
-        reuse_existing: bool,
         automl_type: str,
-        tpot_jobs: int,
+        reuse_existing: bool,
+        overwrite: bool,
+        **train_params,
     ):
         params = self.get_params(model_name)
 
@@ -116,20 +116,17 @@ class TrainingDefinitionFile:
             params["validation_season"],
             tt_data,
             params["target"],
-            train_secs_override or params["training_time"],
             automl_type,
             params["p_or_t"],
             params["recent_games"],
             params["training_seasons"],
-            seed=params["seed"],
-            target_pos=params["target_pos"],
-            training_pos=params["target_pos"],
+            train_params,
+            params["target_pos"],
+            params["training_pos"] or params["target_pos"],
+            seed=train_params["seed"],
             raw_df=raw_df,
             reuse_existing=reuse_existing,
-            automl_kwargs={
-                "n_jobs": tpot_jobs,
-                "max_eval_time_mins": train_iter_secs_override or params["iteration_time"],
-            },
+            overwrite=overwrite,
         )
 
         return model
@@ -167,6 +164,7 @@ if __name__ == "__main__":
         type=int,
         help="override the training iteration time defined in the train_file",
     )
+    parser.add_argument("--overwrite", default=False, action="store_true")
     args = parser.parse_args()
 
     tdf = TrainingDefinitionFile(args.train_file)
@@ -187,9 +185,10 @@ if __name__ == "__main__":
 
     tdf.train_and_test(
         args.model,
-        args.training_mins * 60 if args.training_mins else None,
-        args.training_iter_mins * 60 if args.training_iter_mins else None,
-        args.reuse_existing,
         args.automl_type,
-        args.tpot_jobs,
+        args.reuse_existing,
+        args.overwrite,
+        tpot_jobs=args.tpot_jobs,
+        max_rain_mins=args.training_mins,
+        max_iter_mins=args.training_iter_mins,
     )
