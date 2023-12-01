@@ -439,7 +439,7 @@ def model_and_test(
     recent_games,
     training_seasons,
     automl_kwargs,
-    target_pos,
+    target_pos: None | list[str],
     training_pos,
     reuse_existing=False,
     raw_df=None,

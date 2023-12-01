@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 import pathlib
+import shlex
 import sys
 from pprint import pprint
 from typing import Literal, TypedDict, cast
@@ -19,18 +20,20 @@ class _Params(TypedDict):
     data_filename: str
     target: tuple[Literal["stat", "calc"], str]
     validation_season: int
-    p_or_t: PlayerOrTeam
     recent_games: int
     training_seasons: list[int]
-    train_params: dict
-    seed: None | int
 
+    # nullable/optional
+    seed: None | int
+    p_or_t: PlayerOrTeam | None
     include_pos: bool | None
     cols_to_drop: list[str] | None
     missing_data_threshold: float | None
     filtering_query: str | None
     target_pos: list[str] | None
     training_pos: list[str] | None
+    train_params: dict | None
+    """params passed to the training algorithm (likely as kwargs)"""
 
 
 class TrainingDefinitionFile:
@@ -59,22 +62,36 @@ class TrainingDefinitionFile:
             if hasattr(value_type, "__args__") and type(None) in value_type.__args__
         }
 
-        param_dict.update(self._json["global_defaults"].copy())
+        assert (
+            param_dict["train_params"] is None
+        ), "If the default for train params is not None then a dict update is needed"
+
+        param_dict.update(self._json["global_default"].copy())
         if model_name not in self.model_names:
             raise ValueError(f"'{model_name}' is not defined")
 
         model_group = self._json["model_groups"][self._model_names_to_group_idx[model_name]]
-        param_dict.update({k_: v_ for k_, v_ in model_group.items() if k_ != "models"})
-        param_dict.update(model_group["models"][model_name])
+        param_dict.update(
+            {k_: v_ for k_, v_ in model_group.items() if k_ not in ("train_params", "models")}
+        )
+        if model_group.get("train_params"):
+            if not param_dict["train_params"]:
+                param_dict["train_params"] = {}
+            param_dict["train_params"].update(model_group["train_params"])
+
+        param_dict.update(
+            {k_: v_ for k_, v_ in model_group["models"][model_name].items() if k_ != "train_params"}
+        )
+
+        if model_train_params := model_group["models"][model_name].get("train_params"):
+            if not param_dict["train_params"]:
+                param_dict["train_params"] = {}
+            param_dict["train_params"].update(model_train_params)
         param_dict["target"] = tuple(param_dict["target"])
-        param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"])
+        param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"]) if param_dict["p_or_t"] else None
         param_dict["data_filename"] = os.path.join(
             pathlib.Path(self._file_path).parent.as_posix(), param_dict["data_filename"]
         )
-        param_dict["train_params"] = {
-            "max_train_mins": param_dict["max_train_mins"],
-            "max_iter_mins": param_dict["max_iter_mins"],
-        }
 
         if validation_failure_reason := typed_dict_validate(_Params, param_dict):
             raise ValueError(
@@ -92,7 +109,7 @@ class TrainingDefinitionFile:
         **train_params,
     ):
         params = self.get_params(model_name)
-        train_params['seed'] = params['seed']
+        train_params["seed"] = params["seed"]
 
         print("Training will proceed with the following parameters:")
         pprint(params)
@@ -131,7 +148,7 @@ class TrainingDefinitionFile:
         return model
 
 
-if __name__ == "__main__":
+def main(cmd_line_str=None):
     parser = argparse.ArgumentParser(description="Train and Test CLI")
     parser.add_argument("train_file", help="Json file containing training parameters")
     parser.add_argument(
@@ -164,7 +181,9 @@ if __name__ == "__main__":
         help="override the training iteration time defined in the train_file",
     )
     parser.add_argument("--overwrite", default=False, action="store_true")
-    args = parser.parse_args()
+
+    arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
+    args = parser.parse_args(arg_strings)
 
     tdf = TrainingDefinitionFile(args.train_file)
     if not args.model:
@@ -188,6 +207,10 @@ if __name__ == "__main__":
         args.reuse_existing,
         args.overwrite,
         tpot_jobs=args.tpot_jobs,
-        max_rain_mins=args.training_mins,
+        max_train_mins=args.training_mins,
         max_iter_mins=args.training_iter_mins,
     )
+
+
+if __name__ == "__main__":
+    main()

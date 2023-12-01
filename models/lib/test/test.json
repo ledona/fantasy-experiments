@@ -8,13 +8,15 @@
             2023
         ],
         "missing_data_threshold": 0.07,
-        "max_train_mins": 10,
-        "max_iter_mins": 2,
+        "train_params": {
+            "max_train_mins": 10,
+            "max_iter_mins": 2
+        },
         "data_filename": "all-data.pq"
     },
-    "model_group": [
+    "model_groups": [
         {
-            "model": {
+            "models": {
                 "win": {
                     "target": [
                         "stat",
@@ -55,7 +57,9 @@
                 "P4",
                 "P5"
             ],
-            "max_train_mins": 25,
+            "train_params": {
+                "max_train_mins": 25
+            },
             "models": {
                 "player-score": {
                     "target": [
@@ -68,8 +72,10 @@
                         "stat",
                         "stop"
                     ],
-                    "max_train_mins": 5,
-                    "target_pos": "P1",
+                    "train_params": {
+                        "max_iter_mins": 5
+                    },
+                    "target_pos": ["P1"],
                     "include_pos": false
                 }
             }
