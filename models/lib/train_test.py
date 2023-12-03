@@ -178,7 +178,8 @@ def load_data(
     if target_col_name not in train_test_df:
         available_targets = [col for col in train_test_df if len(col.split(":")) == 2]
         raise ValueError(
-            f"Target feature '{target_col_name}' not found in data. Available targets are {available_targets}"
+            f"Target feature '{target_col_name}' not found in data. "
+            f"Available targets are {available_targets}"
         )
     y = train_test_df[target_col_name]
 
@@ -444,6 +445,7 @@ def model_and_test(
     reuse_existing=False,
     raw_df=None,
     overwrite=False,
+    dest_dir=None
 ):
     """create or load a model and test it"""
     model_filename = ".".join([name, target[1], automl_type, "model"])
@@ -475,6 +477,8 @@ def model_and_test(
             automl_kwargs,
         )
         model_filename = ".".join([name, target[1], automl_type, "model"])
+        if dest_dir:
+            model_filename = os.path.join(dest_dir, model_filename)
         try:
             model_filepath = model.dump(model_filename, overwrite=overwrite)
             print(f"Model file saved to '{model_filepath}'")

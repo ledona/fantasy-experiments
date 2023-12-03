@@ -106,6 +106,7 @@ class TrainingDefinitionFile:
         automl_type: str,
         reuse_existing: bool,
         overwrite: bool,
+        dest_dir: str | None,
         **train_params,
     ):
         params = self.get_params(model_name)
@@ -143,9 +144,14 @@ class TrainingDefinitionFile:
             raw_df=raw_df,
             reuse_existing=reuse_existing,
             overwrite=overwrite,
+            dest_dir=dest_dir,
         )
 
         return model
+
+
+_DEFAULT_AUTOML_TYPE: AutomlType = "tpot"
+_DEFAULT_TPOT_JOBS = 2
 
 
 def main(cmd_line_str=None):
@@ -164,23 +170,26 @@ def main(cmd_line_str=None):
         help="If an existing model exists at the destination then load and "
         "evalute that instead of training a fresh model",
     )
-    parser.add_argument("--automl_type", default="tpot", choices=AutomlType.__args__)
-    parser.add_argument("--tpot_jobs", type=int, default=2)
+    parser.add_argument("--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AutomlType.__args__)
+    parser.add_argument("--tpot_jobs", type=int, default=_DEFAULT_TPOT_JOBS)
     parser.add_argument(
         "--training_mins",
         "--mins",
+        "--max_train_mins",
         "--time",
         type=int,
         help="override the training time defined in the train_file",
     )
     parser.add_argument(
         "--training_iter_mins",
+        "--max_iter_mins",
         "--iter_mins",
         "--iter_time",
         type=int,
         help="override the training iteration time defined in the train_file",
     )
     parser.add_argument("--overwrite", default=False, action="store_true")
+    parser.add_argument("--dest_dir")
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
@@ -206,6 +215,7 @@ def main(cmd_line_str=None):
         args.automl_type,
         args.reuse_existing,
         args.overwrite,
+        args.dest_dir,
         tpot_jobs=args.tpot_jobs,
         max_train_mins=args.training_mins,
         max_iter_mins=args.training_iter_mins,
