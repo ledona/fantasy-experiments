@@ -21,7 +21,6 @@ from fantasy_py import (
     FeatureDict,
     PlayerOrTeam,
     UnexpectedValueError,
-    secs_to_time,
 )
 from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
@@ -126,8 +125,8 @@ def load_data(
     filename: str,
     target: tuple[str, str],
     validation_season: int,
+    seed: int | None,
     include_position: None | bool = None,
-    seed=None,
     col_drop_filters: None | list[str] = None,
     filtering_query: None | str = None,
     missing_data_threshold=0,
@@ -249,12 +248,17 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
 AutomlType = Literal["tpot", "tpot-light", "autosk", "dummy"]
 
 
+def _trained_dt_to_str(dt: datetime):
+    return dt.isoformat().replace(":", "").rsplit(".", 1)[0]
+
+
 def train_test(
     type_: AutomlType,
     model_name: str,
     target: StatInfo,
     tt_data: TrainTestData,
     seed: None | int,
+    dest_dir: str,
     **model_init_kwargs,
 ) -> tuple[str, Performance, datetime]:
     """
@@ -308,7 +312,10 @@ def train_test(
     mae_val = round(sklearn.metrics.mean_absolute_error(y_val, y_hat_val), 3)
     print(f"Validation {r2_val=} {mae_val=}")
 
-    filepath = f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_trained.isoformat().replace(':', '').rsplit('.', 1)[0]}.pkl"
+    filepath = os.path.join(
+        dest_dir,
+        f"{model_name}-{type_}-{target[0]}.{target[1]}.{_trained_dt_to_str(dt_trained)}.pkl",
+    )
     print(f"Exporting model artifact to '{filepath}'")
     if type_ in ("autosk", "dummy"):
         joblib.dump(automl, filepath)
@@ -442,10 +449,11 @@ def model_and_test(
     automl_kwargs,
     target_pos: None | list[str],
     training_pos,
+    dest_dir,
+    seed,
     reuse_existing=False,
     raw_df=None,
     overwrite=False,
-    dest_dir=None
 ):
     """create or load a model and test it"""
     model_filename = ".".join([name, target[1], automl_type, "model"])
@@ -458,6 +466,8 @@ def model_and_test(
             name,
             target,
             tt_data,
+            seed,
+            dest_dir,
             **automl_kwargs,
         )
         performance["season"] = validation_season
@@ -476,9 +486,7 @@ def model_and_test(
             training_pos,
             automl_kwargs,
         )
-        model_filename = ".".join([name, target[1], automl_type, "model"])
-        if dest_dir:
-            model_filename = os.path.join(dest_dir, model_filename)
+        model_filename = os.path.join(dest_dir, ".".join([name, target[1], automl_type, "model"]))
         try:
             model_filepath = model.dump(model_filename, overwrite=overwrite)
             print(f"Model file saved to '{model_filepath}'")

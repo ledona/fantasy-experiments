@@ -103,14 +103,16 @@ class TrainingDefinitionFile:
     def train_and_test(
         self,
         model_name: str,
-        automl_type: str,
+        automl_type: AutomlType,
         reuse_existing: bool,
         overwrite: bool,
         dest_dir: str | None,
-        **train_params,
+        **regresser_kwargs,
     ):
         params = self.get_params(model_name)
-        train_params["seed"] = params["seed"]
+
+        if automl_type.startswith("tpot"):
+            regresser_kwargs["seed"] = params["seed"]
 
         print("Training will proceed with the following parameters:")
         pprint(params)
@@ -120,9 +122,9 @@ class TrainingDefinitionFile:
             params["data_filename"],
             params["target"],
             params["validation_season"],
+            params["seed"],
             include_position=params["include_pos"],
             col_drop_filters=params["cols_to_drop"],
-            seed=params["seed"],
             missing_data_threshold=params["missing_data_threshold"],
             filtering_query=params["filtering_query"],
         )
@@ -138,13 +140,14 @@ class TrainingDefinitionFile:
             params["p_or_t"],
             params["recent_games"],
             params["training_seasons"],
-            train_params,
+            regresser_kwargs,
             params["target_pos"],
             params["training_pos"] or params["target_pos"],
+            dest_dir,
+            params["seed"],
             raw_df=raw_df,
             reuse_existing=reuse_existing,
             overwrite=overwrite,
-            dest_dir=dest_dir,
         )
 
         return model
@@ -152,6 +155,7 @@ class TrainingDefinitionFile:
 
 _DEFAULT_AUTOML_TYPE: AutomlType = "tpot"
 _DEFAULT_TPOT_JOBS = 2
+_DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 
 def main(cmd_line_str=None):
@@ -189,7 +193,7 @@ def main(cmd_line_str=None):
         help="override the training iteration time defined in the train_file",
     )
     parser.add_argument("--overwrite", default=False, action="store_true")
-    parser.add_argument("--dest_dir")
+    parser.add_argument("--dest_dir", default=".")
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
@@ -210,15 +214,25 @@ def main(cmd_line_str=None):
         pprint(tdf.get_params(args.model))
         sys.exit(0)
 
+    if args.automl_type.startswith("tpot"):
+        modeler_init_kwargs = {
+            "tpot_jobs": args.tpot_jobs,
+            "max_train_mins": args.training_mins,
+            "max_iter_mins": args.training_iter_mins,
+        }
+
+    elif args.automl_type == "dummy":
+        modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
+    else:
+        raise NotImplementedError()
+
     tdf.train_and_test(
         args.model,
         args.automl_type,
         args.reuse_existing,
         args.overwrite,
         args.dest_dir,
-        tpot_jobs=args.tpot_jobs,
-        max_train_mins=args.training_mins,
-        max_iter_mins=args.training_iter_mins,
+        **modeler_init_kwargs,
     )
 
 
