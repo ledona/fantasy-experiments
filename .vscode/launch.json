@@ -17,25 +17,24 @@
                 "SQLALCHEMY_WARN_20": "1",
                 "PYDEVD_DISABLE_FILE_VALIDATION": "1"
             },
-            "justMyCode": false
+            "justMyCode": true
         },
         {
             "name": "train_test CLI",
             "type": "python",
             "request": "launch",
-            "program": "../cli.py",
+            "module": "lib.cli",
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/models/2023.11.nhl-update",
+            "cwd": "${workspaceFolder}/models",
             "args": [
                 // "--info",
-                "--tpot_jobs",
-                "2",
-                "--time",
-                "2",
-                "--automl",
-                "tpot",
-                "nhl.json",
-                "NHL-skater-shot"
+                "--tpot_jobs", "2",
+                // "--time", "2",
+                "--automl", "tpot",
+                "--dest", "2023.12",
+                "2023.12/nhl.json",
+                // "--info",
+                "NHL-goalie-DK"
             ]
         },
         {

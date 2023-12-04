@@ -107,12 +107,12 @@ class TrainingDefinitionFile:
         reuse_existing: bool,
         overwrite: bool,
         dest_dir: str | None,
-        **regresser_kwargs,
+        **regressor_kwargs,
     ):
         params = self.get_params(model_name)
 
         if automl_type.startswith("tpot"):
-            regresser_kwargs["seed"] = params["seed"]
+            regressor_kwargs["random_state"] = params["seed"]
 
         print("Training will proceed with the following parameters:")
         pprint(params)
@@ -140,11 +140,10 @@ class TrainingDefinitionFile:
             params["p_or_t"],
             params["recent_games"],
             params["training_seasons"],
-            regresser_kwargs,
+            regressor_kwargs,
             params["target_pos"],
             params["training_pos"] or params["target_pos"],
             dest_dir,
-            params["seed"],
             raw_df=raw_df,
             reuse_existing=reuse_existing,
             overwrite=overwrite,
@@ -216,9 +215,9 @@ def main(cmd_line_str=None):
 
     if args.automl_type.startswith("tpot"):
         modeler_init_kwargs = {
-            "tpot_jobs": args.tpot_jobs,
-            "max_train_mins": args.training_mins,
-            "max_iter_mins": args.training_iter_mins,
+            "n_jobs": args.tpot_jobs,
+            "max_time_mins": args.training_mins,
+            "max_eval_time_mins": args.training_iter_mins,
         }
 
     elif args.automl_type == "dummy":

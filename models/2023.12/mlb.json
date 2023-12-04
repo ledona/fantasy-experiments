@@ -1,5 +1,5 @@
 {
-    "global_defaults": {
+    "global_default": {
         "seed": 1,
         "validation_season": 2022,
         "recent_games": 5,
@@ -14,7 +14,9 @@
             2023
         ],
         "missing_data_threshold": 0.1,
-        "max_train_mins": 1200
+        "train_params": {
+            "max_train_mins": 20
+        }
     },
     "model_groups": [
         {
@@ -26,7 +28,9 @@
                         "stat",
                         "off_runs"
                     ],
-                    "max_train_mins": 2400
+                    "train_params": {
+                        "max_train_mins": 40
+                    }
                 },
                 "MLB-team-win": {
                     "target": [

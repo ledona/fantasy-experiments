@@ -257,7 +257,6 @@ def train_test(
     model_name: str,
     target: StatInfo,
     tt_data: TrainTestData,
-    seed: None | int,
     dest_dir: str,
     **model_init_kwargs,
 ) -> tuple[str, Performance, datetime]:
@@ -271,13 +270,11 @@ def train_test(
     print(f"Commencing training for {model_name=} using {type_} fit " f"with {model_init_kwargs=}")
     if type_ == "tpot":
         automl = TPOTRegressor(
-            random_state=seed,
             verbosity=3,
             **model_init_kwargs,
         )
     elif type_ == "tpot-light":
         automl = TPOTRegressor(
-            random_state=seed,
             verbosity=3,
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
@@ -450,7 +447,6 @@ def model_and_test(
     target_pos: None | list[str],
     training_pos,
     dest_dir,
-    seed,
     reuse_existing=False,
     raw_df=None,
     overwrite=False,
@@ -466,7 +462,6 @@ def model_and_test(
             name,
             target,
             tt_data,
-            seed,
             dest_dir,
             **automl_kwargs,
         )

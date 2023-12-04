@@ -145,23 +145,21 @@ def test_training_def_file_train_test(
     model_name = "p1-stop"
     params = tdf.get_params(model_name)
 
-    expected_train_params = {
-        "seed": params["seed"],
-        "tpot_jobs": _DEFAULT_TPOT_JOBS,
-        "max_iter_mins": None,
-        "max_train_mins": None,
+    expected_tpot_train_params = {
+        "random_state": params["seed"],
+        "n_jobs": _DEFAULT_TPOT_JOBS,
+        "max_time_mins": None,
+        "max_eval_time_mins": None,
     }
 
     if "--tpot_jobs" in cmdline_strs:
-        expected_train_params["tpot_jobs"] = int(
-            cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1]
-        )
+        expected_tpot_train_params["n_jobs"] = int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
     if "--max_iter_mins" in cmdline_strs:
-        expected_train_params["max_iter_mins"] = int(
+        expected_tpot_train_params["max_eval_time_mins"] = int(
             cmdline_strs[cmdline_strs.index("--max_iter_mins") + 1]
         )
     if "--max_train_mins" in cmdline_strs:
-        expected_train_params["max_train_mins"] = int(
+        expected_tpot_train_params["max_time_mins"] = int(
             cmdline_strs[cmdline_strs.index("--max_train_mins") + 1]
         )
     if "--automl_type" in cmdline_strs:
@@ -198,11 +196,10 @@ def test_training_def_file_train_test(
         params["p_or_t"],
         params["recent_games"],
         params["training_seasons"],
-        expected_train_params,
+        expected_tpot_train_params,
         params["target_pos"],
         params["training_pos"] or params["target_pos"],
         ".",
-        params["seed"],
         raw_df=fake_raw_df,
         reuse_existing=reuse_existing,
         overwrite=overwrite,

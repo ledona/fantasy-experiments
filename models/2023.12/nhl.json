@@ -1,5 +1,5 @@
 {
-    "global_defaults": {
+    "global_default": {
         "seed": 1,
         "validation_season": 20212022,
         "recent_games": 5,
@@ -13,7 +13,9 @@
             20222023
         ],
         "missing_data_threshold": 0.07,
-        "max_train_mins": 600
+        "train_params": {
+            "max_train_mins": 10
+        }
     },
     "model_groups": [
         {
@@ -52,7 +54,9 @@
                 "C",
                 "D"
             ],
-            "max_train_mins": 1800,
+            "train_params": {
+                "max_train_mins": 30
+            },
             "models": {
                 "NHL-skater-DK": {
                     "target": [
@@ -65,7 +69,9 @@
                         "stat",
                         "shot"
                     ],
-                    "max_train_mins": 2400
+                    "train_params": {
+                        "max_train_mins": 40
+                    }
                 },
                 "NHL-skater-assist": {
                     "target": [
@@ -85,7 +91,9 @@
             "data_filename": "nhl_goalie.pq",
             "p_or_t": "P",
             "include_pos": false,
-            "max_train_mins": 1200,
+            "train_params": {
+                "max_train_mins": 20
+            },
             "target_pos": [
                 "G"
             ],
