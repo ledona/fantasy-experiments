@@ -1,6 +1,7 @@
 """use this module's functions to train and evaluate models"""
 
 import os
+import platform
 import re
 import tempfile
 import traceback
@@ -417,11 +418,13 @@ def create_fantasy_model(
     if training_pos is not None:
         data_def["training_pos"] = training_pos
     imputes = _infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM)
+    uname = platform.uname()
     model = SKLModel(
         name,
         target_info,
         features,
         dt_trained=dt_trained,
+        trained_on_uname=uname._asdict(),
         training_data_def=data_def,
         parameters=model_params,
         trained_parameters={"regressor_path": model_artifact_path},

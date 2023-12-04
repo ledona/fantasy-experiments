@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+import platform
 
 import joblib
 import pandas as pd
@@ -249,6 +250,7 @@ def _create_expected_model_dict(model_name, feature_stat, feature_col, dt, pkl_f
             },
             "player_positions": _EXPECTED_PARAMS[model_name]["target_pos"],
             "type": "sklearn",
+            "trained_on_uname": platform.uname()._asdict(),
         },
     }
 
