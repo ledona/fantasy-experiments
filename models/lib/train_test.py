@@ -481,10 +481,11 @@ def model_and_test(
             training_pos,
             automl_kwargs,
         )
-        model_filename = os.path.join(dest_dir, ".".join([name, target[1], automl_type, "model"]))
+        model_filename = ".".join([name, target[1], automl_type, "model"])
+        requested_model_filepath = os.path.join(dest_dir, model_filename)
         try:
-            model_filepath = model.dump(model_filename, overwrite=overwrite)
-            print(f"Model file saved to '{model_filepath}'")
+            final_model_filepath = model.dump(requested_model_filepath, overwrite=overwrite)
+            print(f"Model file saved to '{final_model_filepath}'")
         except FileExistsError:
             print(
                 "Failed to dump model due to FileExistsError... "

@@ -188,6 +188,7 @@ def main(cmd_line_str=None):
         "--mins",
         "--max_train_mins",
         "--time",
+        "--max_time",
         type=int,
         help="override the training time defined in the train_file",
     )
