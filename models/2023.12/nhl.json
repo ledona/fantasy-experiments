@@ -12,7 +12,7 @@
             20202021,
             20222023
         ],
-        "missing_data_threshold": 0.07,
+        "missing_data_threshold": 0.085,
         "train_params": {
             "max_train_mins": 10
         }

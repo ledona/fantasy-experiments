@@ -43,6 +43,8 @@
         {
             "data_filename": "mlb_pitcher.pq",
             "p_or_t": "P",
+            "include_pos": false,
+            "missing_data_threshold": 0.28,
             "target_pos": [
                 "P"
             ],
@@ -93,21 +95,21 @@
                         "calc",
                         "dk_score"
                     ],
-                    "query_filter": "`calc:dk_score`.notna()"
+                    "filtering_query": "`calc:dk_score`.notna()"
                 },
                 "MLB-H-hit": {
                     "target": [
                         "stat",
-                        "hit"
+                        "off_hit"
                     ],
-                    "query_filter": "`stat:off_hit`.notna()"
+                    "filtering_query": "`stat:off_hit`.notna()"
                 },
                 "MLB-H-runs": {
                     "target": [
                         "stat",
-                        "runs"
+                        "off_runs"
                     ],
-                    "query_filter": "`stat:off_runs`.notna()"
+                    "filtering_query": "`stat:off_runs`.notna()"
                 }
             }
         }
