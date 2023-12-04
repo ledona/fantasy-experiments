@@ -15,7 +15,6 @@ from fantasy_py import PlayerOrTeam, FeatureType
 
 from ..cli import (
     _DEFAULT_AUTOML_TYPE,
-    _DEFAULT_TPOT_JOBS,
     _DUMMY_REGRESSOR_KWARGS,
     TrainingDefinitionFile,
     _Params,
@@ -147,13 +146,14 @@ def test_training_def_file_train_test(
 
     expected_tpot_train_params = {
         "random_state": params["seed"],
-        "n_jobs": _DEFAULT_TPOT_JOBS,
-        "max_time_mins": None,
-        "max_eval_time_mins": None,
+        "max_time_mins": params["train_params"]["max_train_mins"],
+        "max_eval_time_mins": params["train_params"]["max_iter_mins"],
     }
 
     if "--tpot_jobs" in cmdline_strs:
-        expected_tpot_train_params["n_jobs"] = int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
+        expected_tpot_train_params["n_jobs"] = int(
+            cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1]
+        )
     if "--max_iter_mins" in cmdline_strs:
         expected_tpot_train_params["max_eval_time_mins"] = int(
             cmdline_strs[cmdline_strs.index("--max_iter_mins") + 1]

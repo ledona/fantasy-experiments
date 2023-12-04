@@ -112,7 +112,16 @@ class TrainingDefinitionFile:
         params = self.get_params(model_name)
 
         if automl_type.startswith("tpot"):
-            regressor_kwargs["random_state"] = params["seed"]
+            if params["seed"]:
+                regressor_kwargs["random_state"] = params["seed"]
+            if params["train_params"].get("max_train_mins") and not regressor_kwargs.get(
+                "max_time_mins"
+            ):
+                regressor_kwargs["max_time_mins"] = params["train_params"]["max_train_mins"]
+            if params["train_params"].get("max_iter_mins") and not regressor_kwargs.get(
+                "max_eval_time_mins"
+            ):
+                regressor_kwargs["max_eval_time_mins"] = params["train_params"]["max_iter_mins"]
 
         print("Training will proceed with the following parameters:")
         pprint(params)
@@ -153,7 +162,6 @@ class TrainingDefinitionFile:
 
 
 _DEFAULT_AUTOML_TYPE: AutomlType = "tpot"
-_DEFAULT_TPOT_JOBS = 2
 _DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 
@@ -174,7 +182,7 @@ def main(cmd_line_str=None):
         "evalute that instead of training a fresh model",
     )
     parser.add_argument("--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AutomlType.__args__)
-    parser.add_argument("--tpot_jobs", type=int, default=_DEFAULT_TPOT_JOBS)
+    parser.add_argument("--tpot_jobs", type=int)
     parser.add_argument(
         "--training_mins",
         "--mins",
@@ -214,11 +222,13 @@ def main(cmd_line_str=None):
         sys.exit(0)
 
     if args.automl_type.startswith("tpot"):
-        modeler_init_kwargs = {
-            "n_jobs": args.tpot_jobs,
-            "max_time_mins": args.training_mins,
-            "max_eval_time_mins": args.training_iter_mins,
-        }
+        modeler_init_kwargs = {}
+        if args.tpot_jobs:
+            modeler_init_kwargs["n_jobs"] = args.tpot_jobs
+        if args.training_mins:
+            modeler_init_kwargs["max_time_mins"] = args.training_mins
+        if args.training_iter_mins:
+            modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
 
     elif args.automl_type == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
