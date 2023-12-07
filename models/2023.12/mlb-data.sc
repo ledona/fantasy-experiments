@@ -16,7 +16,7 @@ p_ip p_k p_loss p_pc p_qs p_runs p_strikes p_win p_wp"
 dumpdata.sc --seasons $SEASONS --only_starters \
    --pos LF CF RF 1B 2B 3B SS C OF DH PH --no_team \
    --stats $HITTER_STATS \
-   --current_extra venue is_home hitting_side $OPP_P_EXTRAS \
+   --current_extra venue is_home hitting_side bo $OPP_P_EXTRAS \
    --opp_team_stats errors "p_*" --player_team_stats "off_*" \
    --target_calc_stats $FANTASY_TARGETS --target_stats off_hit off_runs \
    --hist_recent_games 5 --hist_recent_mode ma \
