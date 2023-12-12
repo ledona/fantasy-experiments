@@ -249,7 +249,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
 AutomlType = Literal["tpot", "tpot-light", "autosk", "dummy"]
 
 
-def _trained_dt_to_str(dt: datetime):
+def _dt_to_filename_str(dt: datetime):
     return dt.isoformat().replace(":", "").rsplit(".", 1)[0]
 
 
@@ -312,7 +312,7 @@ def train_test(
 
     filepath = os.path.join(
         dest_dir,
-        f"{model_name}-{type_}-{target[0]}.{target[1]}.{_trained_dt_to_str(dt_trained)}.pkl",
+        f"{model_name}-{type_}-{target[0]}.{target[1]}.{_dt_to_filename_str(dt_trained)}.pkl",
     )
     print(f"Exporting model artifact to '{filepath}'")
     if type_ in ("autosk", "dummy"):
@@ -494,11 +494,14 @@ def model_and_test(
                 "Failed to dump model due to FileExistsError... "
                 "attempting to save to temp folder..."
             )
+            model_filename = ".".join(
+                [name, target[1], automl_type, _dt_to_filename_str(datetime.now()), "model"]
+            )
             tmp_model_filepath = model.dump(
                 os.path.join(tempfile.gettempdir(), model_filename), overwrite=True
             )
             print(
-                "Destination model file(s) existed. Writing to tmp "
+                "Destination model file(s) existed. Model written to tmp "
                 f"folder at '{tmp_model_filepath}'"
             )
             raise
