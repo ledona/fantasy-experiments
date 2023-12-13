@@ -68,7 +68,10 @@
                     "target": [
                         "stat",
                         "shot"
-                    ]
+                    ],
+                    "train_params": {
+                        "max_iter_mins": 10
+                    }
                 },
                 "NHL-skater-assist": {
                     "target": [

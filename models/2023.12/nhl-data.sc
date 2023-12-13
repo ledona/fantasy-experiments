@@ -11,7 +11,7 @@ GOALIE_STATS='goal_ag loss save toi_g win'
 dumpdata.sc --seasons $SEASONS --progress \
     $DB_FILE --no_teams \
     --pos LW RW W C D \
-    --stats "${SKATER_STATS[@]}" --current_extra is_home "opp*" \
+    --stats "${SKATER_STATS[@]}" --current_extra is_home "opp*" "game_pos_*_rank" \
     --target_stats shot assist goal --target_calc_stats "*" \
     --player_team_stats "*" --opp_team_stats "*" \
     --hist_recent_games 5 --hist_recent_mode ma \
