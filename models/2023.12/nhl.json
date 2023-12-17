@@ -83,7 +83,10 @@
                     "target": [
                         "stat",
                         "goal"
-                    ]
+                    ],
+                    "train_params": {
+                        "max_iter_mins": 15
+                    }
                 }
             }
         },

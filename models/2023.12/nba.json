@@ -12,7 +12,7 @@
             20202021,
             20222023
         ],
-        "missing_data_threshold": 0.07,
+        "missing_data_threshold": 0.09,
         "train_params": {
             "max_train_mins": 10
         }
@@ -25,7 +25,7 @@
                 "NBA-team-pts": {
                     "target": [
                         "stat",
-                        "pta"
+                        "pts"
                     ]
                 },
                 "NBA-team-win": {
@@ -40,6 +40,10 @@
             "data_filename": "nba_player.pq",
             "p_or_t": "P",
             "include_pos": true,
+            "cols_to_drop": [
+                "extra:game_pos_recent_rank",
+                "extra:game_pos_season_rank"
+            ],
             "models": {
                 "NBA-DK": {
                     "target": [

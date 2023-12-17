@@ -484,7 +484,6 @@ def model_and_test(
             training_pos,
             automl_kwargs,
         )
-        model_filename = ".".join([name, target[1], automl_type, "model"])
         requested_model_filepath = os.path.join(dest_dir, model_filename)
         try:
             final_model_filepath = model.dump(requested_model_filepath, overwrite=overwrite)
@@ -512,7 +511,7 @@ def model_and_test(
     if raw_df is not None:
         try:
             model.predict(raw_df.sample(10))
-            print("model post testing model successful...")
+            print("model post testing successful...")
         except Exception as ex:
             print(f"post prediction testing failed! '{type(ex).__name__}':")
             print(traceback.format_exc())

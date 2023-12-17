@@ -30,6 +30,7 @@ class _Params(TypedDict):
     cols_to_drop: list[str] | None
     missing_data_threshold: float | None
     filtering_query: str | None
+    """pandas compatible query string that will be run on the loaded data"""
     target_pos: list[str] | None
     training_pos: list[str] | None
     train_params: dict | None
@@ -214,7 +215,7 @@ def main(cmd_line_str=None):
     if args.model not in tdf.model_names:
         parser.error(
             f"Model '{args.model}' not defined. Try again with one "
-            "of the following: {tdf.model_names}"
+            f"of the following: {tdf.model_names}"
         )
 
     if args.info:
