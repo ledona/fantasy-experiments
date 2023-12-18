@@ -1,0 +1,84 @@
+{
+    "global_default": {
+        "seed": 1,
+        "validation_season": 2021,
+        "recent_games": 5,
+        "training_seasons": [
+            2022,
+            2023
+        ],
+        "missing_data_threshold": 0.07,
+        "train_params": {
+            "max_train_mins": 10,
+            "max_iter_mins": 2
+        },
+        "data_filename": "all-data.pq"
+    },
+    "model_groups": [
+        {
+            "models": {
+                "win": {
+                    "target": [
+                        "stat",
+                        "win"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "team.pq",
+            "p_or_t": "T",
+            "models": {
+                "team-pts": {
+                    "target": [
+                        "stat",
+                        "pts"
+                    ]
+                },
+                "team-pts-allowed": {
+                    "target": [
+                        "stat",
+                        "pts-allowed"
+                    ],
+                    "recent_games": 3
+                }
+            }
+        },
+        {
+            "data_filename": "player.pq",
+            "include_pos": true,
+            "p_or_t": "P",
+            "target_pos": [
+                "P1",
+                "P2"
+            ],
+            "training_pos": [
+                "P3",
+                "P4",
+                "P5"
+            ],
+            "train_params": {
+                "max_train_mins": 25
+            },
+            "models": {
+                "player-score": {
+                    "target": [
+                        "stat",
+                        "score"
+                    ]
+                },
+                "p1-stop": {
+                    "target": [
+                        "stat",
+                        "stop"
+                    ],
+                    "train_params": {
+                        "max_iter_mins": 5
+                    },
+                    "target_pos": ["P1"],
+                    "include_pos": false
+                }
+            }
+        }
+    ]
+}

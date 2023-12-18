@@ -5,21 +5,36 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "archive fantasy_model",
+            "name": "Python: Debug Tests",
             "type": "python",
             "request": "launch",
-            "module": "model_lib.archive_fantasy_model",
+            "program": "${file}",
+            "purpose": [
+                "debug-test"
+            ],
+            "console": "integratedTerminal",
+            "env": {
+                "SQLALCHEMY_WARN_20": "1",
+                "PYDEVD_DISABLE_FILE_VALIDATION": "1"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "train_test CLI",
+            "type": "python",
+            "request": "launch",
+            "module": "lib.cli",
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                // "--mlflow-uri", "file:///tmp/mlflow-test",
-                // "--verbose",
-                "get", // "--all", 
-                // "--dest", "/tmp/model-folder",
-                // "put", "2023.03/LOL-team-win.match_win.tpot.model", 
-                // "--exp-name", "2023.03",
-                // "--exp-desc", "test experiment",
-                // "--active"
+                // "--info",
+                "--tpot_jobs", "2",
+                // "--time", "2",
+                "--automl", "dummy",
+                "--dest", "/tmp",
+                "2023.12/nhl.json",
+                // "--info",
+                "NHL-goalie-DK"
             ]
         },
         {
