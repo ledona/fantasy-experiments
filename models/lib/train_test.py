@@ -15,6 +15,10 @@ import joblib
 import pandas as pd
 import sklearn.metrics
 import sklearn.model_selection
+from sklearn.dummy import DummyRegressor
+from tpot import TPOTRegressor
+from tpot.config import regressor_config_dict_light
+
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
@@ -25,9 +29,6 @@ from fantasy_py import (
 )
 from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
-from sklearn.dummy import DummyRegressor
-from tpot import TPOTRegressor
-from tpot.config import regressor_config_dict_light
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -457,7 +458,8 @@ def model_and_test(
     """create or load a model and test it"""
     model_filename = ".".join([name, target[1], automl_type, "model"])
     print(f"Model filename = '{model_filename}'")
-    if not reuse_existing or not os.path.exists(model_filename):
+    requested_model_filepath = os.path.join(dest_dir, model_filename)
+    if not reuse_existing or not os.path.exists(requested_model_filepath):
         if reuse_existing:
             print("Reuse failed, existing model not found")
         model_artifact_path, performance, dt_trained = train_test(
@@ -484,26 +486,20 @@ def model_and_test(
             training_pos,
             automl_kwargs,
         )
-        requested_model_filepath = os.path.join(dest_dir, model_filename)
-        try:
-            final_model_filepath = model.dump(requested_model_filepath, overwrite=overwrite)
-            print(f"Model file saved to '{final_model_filepath}'")
-        except FileExistsError:
-            print(
-                "Failed to dump model due to FileExistsError... "
-                "attempting to save to temp folder..."
-            )
+
+        if os.path.isfile(requested_model_filepath):
             model_filename = ".".join(
-                [name, target[1], automl_type, _dt_to_filename_str(datetime.now()), "model"]
+                [name, target[1], automl_type, _dt_to_filename_str(dt_trained), "model"]
             )
-            tmp_model_filepath = model.dump(
-                os.path.join(tempfile.gettempdir(), model_filename), overwrite=True
-            )
+            old_path = requested_model_filepath
+            requested_model_filepath = os.path.join(dest_dir, model_filename)
             print(
-                "Destination model file(s) existed. Model written to tmp "
-                f"folder at '{tmp_model_filepath}'"
+                f"File exists at model filepath '{old_path}' switching to timestamped "
+                f"filepath at '{requested_model_filepath}'"
             )
-            raise
+
+        final_model_filepath = model.dump(requested_model_filepath, overwrite=overwrite)
+        print(f"Model file saved to '{final_model_filepath}'")
     else:
         print("Reusing existing model...")
         model = Model.load(model_filename)

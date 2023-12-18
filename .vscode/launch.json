@@ -30,8 +30,8 @@
                 // "--info",
                 "--tpot_jobs", "2",
                 // "--time", "2",
-                "--automl", "tpot",
-                "--dest", "2023.12",
+                "--automl", "dummy",
+                "--dest", "/tmp",
                 "2023.12/nhl.json",
                 // "--info",
                 "NHL-goalie-DK"
