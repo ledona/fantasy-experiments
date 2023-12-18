@@ -207,7 +207,9 @@ def test_training_def_file_train_test(
     )
 
 
-def _create_expected_model_dict(model_name, feature_stat, feature_col, dt, pkl_filepath):
+def _create_expected_model_dict(
+    model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath
+):
     expected_training_data_def = {
         k_: v_
         for k_, v_ in _EXPECTED_PARAMS[model_name].items()
@@ -236,11 +238,16 @@ def _create_expected_model_dict(model_name, feature_stat, feature_col, dt, pkl_f
             "target": [target[0], expected_training_data_def.pop("p_or_t").value, target[1]],
         }
     )
+    artifact_parent_dir, artifact_filename = os.path.split(pkl_filepath)
+    model_parent_dir = os.path.dirname(model_filepath)
+    final_artifact_filepath = (
+        pkl_filepath if model_parent_dir != artifact_parent_dir else artifact_filename
+    )
     return {
         "name": model_name,
         "dt_trained": dt.isoformat(),
         "parameters": _DUMMY_REGRESSOR_KWARGS,
-        "trained_parameters": {"regressor_path": pkl_filepath},
+        "trained_parameters": {"regressor_path": final_artifact_filepath},
         "training_data_def": expected_training_data_def,
         "meta_extra": {
             "performance": {
@@ -300,6 +307,6 @@ def test_model_gen(tmpdir, mocker):
 
     del model_dict["model_file_version"]
     expected_model_dict = _create_expected_model_dict(
-        model_name, feature_stat, feature_col, dt, pkl_filepath
+        model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath
     )
     deep_compare_dicts(model_dict, expected_model_dict)
