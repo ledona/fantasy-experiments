@@ -14,7 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from service_data_retriever import ServiceDataRetriever
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class Yahoo(ServiceDataRetriever):
@@ -51,7 +51,7 @@ class Yahoo(ServiceDataRetriever):
         for filename in history_filenames:
             retrieval_date_filenames[filename.rsplit('.', 1)[1][:8]].append(filename)
         most_recent_date = sorted(retrieval_date_filenames.keys())[-1]
-        LOGGER.info("Loading history data from '%s'", retrieval_date_filenames[most_recent_date])
+        _LOGGER.info("Loading history data from '%s'", retrieval_date_filenames[most_recent_date])
         dfs = (
             pd.read_csv(filename, index_col=False)
             for filename in sorted(retrieval_date_filenames[most_recent_date])
@@ -59,7 +59,7 @@ class Yahoo(ServiceDataRetriever):
         entries_df = pd.concat(dfs)
         dropped_dup_df = entries_df.drop_duplicates()
         if (dup_rows := len(entries_df) - len(dropped_dup_df)) > 0:
-            LOGGER.info("%i duplicate rows dropped", dup_rows)
+            _LOGGER.info("%i duplicate rows dropped", dup_rows)
             entries_df = dropped_dup_df
         
         entries_df["date"] = pd.to_datetime(entries_df['Start Date'])
@@ -90,7 +90,7 @@ class Yahoo(ServiceDataRetriever):
             data_type='html',
             func_args=(link, None)
         )
-        LOGGER.info(
+        _LOGGER.info(
             "Opponent entry lineup for '%s' retrieved from %s, cached from/to '%s'",
             entry_info.title, src, cache_filepath
         )
@@ -193,7 +193,7 @@ class Yahoo(ServiceDataRetriever):
                 f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement}']/.."
             )
         except NoSuchElementException:
-            LOGGER.warning(
+            _LOGGER.warning(
                 "Failed to find contestant with ranking %s. Likely a tie. Using last contestant on page instead",
                 last_winner_placement
             )
@@ -207,7 +207,7 @@ class Yahoo(ServiceDataRetriever):
         last_winner_score = float(last_winner_row.find_elements_by_tag_name('td')[2].text)
         if 'highlight' in last_winner_row.get_attribute('class'):
             # I am the last winner, so lets get the lineup for the next contestant
-            LOGGER.warning("I am the last winner, retrieving the lineup draft %%s for the first loser instead")
+            _LOGGER.warning("I am the last winner, retrieving the lineup draft %%s for the first loser instead")
             try:
                 first_loser_row = self.browser.find_element_by_xpath(
                     f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement + 1}']/.."
@@ -216,7 +216,7 @@ class Yahoo(ServiceDataRetriever):
                     first_loser_row, last_winner_placement + 1, reset_when_done=False
                 )
             except NoSuchElementException:
-                LOGGER.warning(
+                _LOGGER.warning(
                     "First loser row not found on this page. Not worth it. No additional lineup data will be retrieved",
                 )
                 lineup_data = None
@@ -260,7 +260,7 @@ class Yahoo(ServiceDataRetriever):
                 data_type='html',
                 func_args=(row_ele, rank)
             )
-            LOGGER.info(
+            _LOGGER.info(
                 "Opponent lineup for '%s' lineup at rank #%i retrieved from %s, cached from/to '%s'",
                 entry_info.title, rank, src, cache_filepath
             )
@@ -275,7 +275,7 @@ class Yahoo(ServiceDataRetriever):
             )
             if lineup_data is not None:
                 lineups_data.append(lineup_data)
-            LOGGER.info(
+            _LOGGER.info(
                 "Last winning lineup for '%s' retrieved from %s, cached from/to '%s'",
                 entry_info.title, src, cache_filepath
             )
@@ -309,7 +309,7 @@ class Yahoo(ServiceDataRetriever):
         if link is not None:
             self.browse_to(link)
 
-        LOGGER.info("waiting for lineup")
+        _LOGGER.info("waiting for lineup")
         my_lineup_element = WebDriverWait(self.browser, self.WAIT_TIMEOUT).until(
             EC.presence_of_element_located((By.XPATH, self._CONTEST_GRID_XPATH)),
             "Waiting for my lineup"
@@ -323,7 +323,7 @@ class Yahoo(ServiceDataRetriever):
                                        positions_ele.div.table.tbody.contents):
             drafted_pct_ele = player_row.find("span", **{'title': 'Percentage rostered'})
             if drafted_pct_ele is None:
-                LOGGER.warning("Draft %% not available for player: %s", player_row.text)
+                _LOGGER.warning("Draft %% not available for player: %s", player_row.text)
                 drafted_pct = None
             else:
                 drafted_pct = float(drafted_pct_ele.text.split('%')[0])
@@ -348,7 +348,7 @@ class Yahoo(ServiceDataRetriever):
             elif 'Fw-b' in teams_ele.contents[-1]['class']:
                 team_ele = teams_ele.contents[-1]
             else:
-                LOGGER.debug("Unable to determine team for player '%s'", name)
+                _LOGGER.debug("Unable to determine team for player '%s'", name)
                 team_ele = None
 
             if team_ele is not None:
