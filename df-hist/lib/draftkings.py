@@ -1,14 +1,14 @@
 import glob
 import logging
 import os
-from typing import Optional
 
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from service_data_retriever import ServiceDataRetriever
+
+from .service_data_retriever import ServiceDataRetriever
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,13 +57,11 @@ class Draftkings(ServiceDataRetriever):
         return entries_df
 
     @staticmethod
-    def _draft_percentages(
-        player_row, lineup_position
-    ) -> Optional[list[tuple[float, Optional[str]]]]:
+    def _draft_percentages(player_row, lineup_position) -> None | list[tuple[float, None | str]]:
         """
         parse the soup coutents of a player row, return percentages and associated lineup position
-        lineup_position - the position of the player in the lineup, use this for single position percentage data
-            ignored for multiple pct data
+        lineup_position - the position of the player in the lineup, use this for single
+            position percentage data ignored for multiple pct data
         return - list of tuples of (draft percentage, lineup position)
         """
         drafted_pct_text = player_row.contents[2].text
@@ -281,7 +279,7 @@ class Draftkings(ServiceDataRetriever):
         lineup_data = self._get_lineup_data()
         return lineup_data[1].get_attribute("innerHTML")
 
-    def is_entry_supported(self, entry_info) -> Optional[str]:
+    def is_entry_supported(self, entry_info):
         if entry_info.entries == 2:
             return "H2H contests with only 2 entries is not supported"
         return None

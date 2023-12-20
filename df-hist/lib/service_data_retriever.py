@@ -1,21 +1,21 @@
-from abc import ABC, abstractmethod, abstractclassmethod, abstractstaticmethod
-from importlib import import_module
 import functools
+import gzip
 import json
-import time
-import random
-from typing import Literal, Optional, Union
 import logging
 import os
+import random
+import time
+from abc import ABC, abstractclassmethod, abstractmethod, abstractstaticmethod
+from importlib import import_module
+from typing import Literal
 
 import pandas as pd
+import tqdm
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
-import tqdm
-
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 LOGGER = logging.getLogger(__name__)
 
@@ -79,9 +79,7 @@ EXPECTED_CONTEST_DATA_KEYS = {
 
 
 # the return type for get_data. tuple(data, retrieved from, cache filename)
-GetDataResult = tuple[
-    Union[dict, list, pd.DataFrame, str], Literal["cache", "web"], Optional[str]
-]
+GetDataResult = tuple[dict | list | pd.DataFrame, str, Literal["cache", "web"], None | str]
 
 
 class WebLimitReached(Exception):
@@ -109,10 +107,10 @@ class ServiceDataRetriever(ABC):
 
     def __init__(
         self,
-        browser_address: Optional[str] = None,
-        browser_debug_port: Optional[bool] = None,
-        browser_profile_path: Optional[str] = None,
-        cache_path: Optional[str] = None,
+        browser_address: None | str = None,
+        browser_debug_port: None | bool = None,
+        browser_profile_path: None | str = None,
+        cache_path: None | str = None,
         cache_overwrite=False,
         cache_only=False,
         interactive=False,
@@ -151,32 +149,20 @@ class ServiceDataRetriever(ABC):
             assert self.browser_debug_port is None
             assert self.browser_profile_path is None
 
-            LOGGER.info(
-                "try and connect to an existing browser at %s", self.browser_address
-            )
-            chrome_options.add_experimental_option(
-                "debuggerAddress", self.browser_address
-            )
+            LOGGER.info("try and connect to an existing browser at %s", self.browser_address)
+            chrome_options.add_experimental_option("debuggerAddress", self.browser_address)
         else:
             # try and create a new browser to run the retrieval from
             LOGGER.info("Opening new browser")
-            chrome_options.add_experimental_option(
-                "excludeSwitches", ["enable-automation"]
-            )
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option("useAutomationExtension", False)
             chrome_options.add_argument("start-maximized")
             if self.browser_debug_port is not None:
-                LOGGER.info(
-                    "Exposing chrome debugging on port '%s'", self.browser_debug_port
-                )
-                chrome_options.add_argument(
-                    f"--remote-debugging-port={self.browser_debug_port}"
-                )
+                LOGGER.info("Exposing chrome debugging on port '%s'", self.browser_debug_port)
+                chrome_options.add_argument(f"--remote-debugging-port={self.browser_debug_port}")
             if self.browser_profile_path is not None:
                 LOGGER.info("Using chrome profile at '%s'", self.browser_profile_path)
-                chrome_options.add_argument(
-                    f"--user-data-dir={self.browser_profile_path}"
-                )
+                chrome_options.add_argument(f"--user-data-dir={self.browser_profile_path}")
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-software-rasterizer")
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
@@ -196,9 +182,7 @@ class ServiceDataRetriever(ABC):
         """
         returns - dataframe with columns in EXPECTED_DRAFT_PLAYER_COLS
         """
-        df = pd.concat(self._player_draft_dfs, ignore_index=True).drop_duplicates(
-            ignore_index=True
-        )
+        df = pd.concat(self._player_draft_dfs, ignore_index=True).drop_duplicates(ignore_index=True)
         assert (len(df) == 0) or (
             len(missing := EXPECTED_DRAFT_PLAYER_COLS - set(df.columns)) == 0
         ), f"Missing columns: {missing}"
@@ -227,9 +211,7 @@ class ServiceDataRetriever(ABC):
         return df
 
     def wait_on_login(self):
-        LOGGER.info(
-            "Running login flow... going to '%s' if not already there", self.SERVICE_URL
-        )
+        LOGGER.info("Running login flow... going to '%s' if not already there", self.SERVICE_URL)
         if self.browser.current_url != self.SERVICE_URL:
             if self.interactive:
                 input(f"About to retrieve {self.SERVICE_URL}. <Enter> to continue:")
@@ -282,7 +264,7 @@ class ServiceDataRetriever(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_entry_lineup_df(self, lineup_data) -> Optional[pd.DataFrame]:
+    def get_entry_lineup_df(self, lineup_data) -> None | pd.DataFrame:
         """
         process the entry data returned by get_entry_data, return a dataframe
         returned dataframe should have columns position, name, team_abbr, team_name, drafted_pct
@@ -299,7 +281,7 @@ class ServiceDataRetriever(ABC):
         """
         raise NotImplementedError()
 
-    def is_entry_supported(self, entry_info) -> Optional[str]:
+    def is_entry_supported(self, entry_info) -> None | str:
         """
         test to see if the data retriever supports this type of entry
         returns - None if supported or a string describing the rejection reason if rejected
@@ -325,7 +307,9 @@ class ServiceDataRetriever(ABC):
 
         self._entry_dicts.append(entry_dict)
 
-        contest_key = f"{self.SERVICE_ABBR}-{entry_info.sport}-{entry_info.date:%Y%m%d}-{entry_info.title}"
+        contest_key = (
+            f"{self.SERVICE_ABBR}-{entry_info.sport}-{entry_info.date:%Y%m%d}-{entry_info.title}"
+        )
         contest_id = (entry_info.sport, entry_info.date, entry_info.title)
         entry_key = f"{contest_key}-entry-{entry_info.entry_id}"
 
@@ -372,10 +356,7 @@ class ServiceDataRetriever(ABC):
         src = "web" if "web" in (contest_src, entry_src) else "cache"
         self.processed_counts_by_src[src] += 1
         LOGGER.info("Contest data for '%s' from %s", contest_key, contest_src)
-        if (
-            len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys()))
-            > 0
-        ):
+        if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
             # see if the required data is in entry_info
             still_missing = []
             for key in missing_keys:
@@ -383,9 +364,7 @@ class ServiceDataRetriever(ABC):
                     contest_data[key] = entry_info[key]
                 else:
                     still_missing.append(key)
-            assert (
-                len(still_missing) == 0
-            ), f"Could not find contest data for {still_missing}"
+            assert len(still_missing) == 0, f"Could not find contest data for {still_missing}"
 
         contest_dict = {
             "contest_id": entry_info.contest_id,
@@ -419,9 +398,7 @@ class ServiceDataRetriever(ABC):
     def get_entry_link(entry_info) -> str:
         raise NotImplementedError()
 
-    def pause(
-        self, msg=None, pause_min=PAUSE_MIN, pause_max=PAUSE_MAX, progress_bar=True
-    ):
+    def pause(self, msg=None, pause_min=PAUSE_MIN, pause_max=PAUSE_MAX, progress_bar=True):
         """
         Pause for a random amount of time
 
@@ -439,9 +416,7 @@ class ServiceDataRetriever(ABC):
         if msg is None:
             msg = "?"
         if pause_for > 2 and progress_bar:
-            for _ in tqdm.trange(
-                pause_for, unit="", desc=f"pause for '{msg}'", leave=False
-            ):
+            for _ in tqdm.trange(pause_for, unit="", desc=f"pause for '{msg}'", leave=False):
                 time.sleep(0.995)
         else:
             time.sleep(pause_for)
@@ -479,8 +454,8 @@ class ServiceDataRetriever(ABC):
         cache_key: str,
         func: callable,
         data_type: str = "csv",
-        func_args: Optional[tuple] = None,
-        func_kwargs: Optional[dict] = None,
+        func_args: None | tuple = None,
+        func_kwargs: None | dict = None,
     ) -> GetDataResult:
         """
         get data related to the key, first try the cache, if that fails call func
@@ -488,7 +463,8 @@ class ServiceDataRetriever(ABC):
 
         type - the type of data to be loaded. csv -> dataframe, json -> dict/list, txt|html -> str.
             This should be the same as the data type returned by func
-        func - a function that when executed returns the required data, takes as arguments, (link, title)
+        func - a function that when executed returns the required data, takes as arguments,
+            (link, title)
         func_args - positional arguments to pass to func
         func_kwargs - kwargs to pass to func
         """
@@ -497,32 +473,31 @@ class ServiceDataRetriever(ABC):
         # see if it in the cache
         if os.sep in cache_key:
             cache_key = cache_key.replace(os.sep, "|")
-        if (
-            self.cache_path is not None
-            and os.path.isfile(
-                cache_filepath := os.path.join(
-                    self.cache_path, f"{cache_key}.{data_type}"
-                )
-            )
-            and not self.cache_overwrite
-        ):
-            if data_type == "csv":
-                return pd.read_csv(cache_filepath), "cache", cache_filepath
-            elif data_type == "json":
-                with open(cache_filepath, "r") as f_:
-                    return json.load(f_), "cache", cache_filepath
-            elif data_type in {"html", "txt"}:
-                with open(cache_filepath, "r") as f_:
-                    return f_.read(), "cache", cache_filepath
 
-            raise ValueError(f"Don't know how to load '{cache_filepath}' from cache")
+        if self.cache_path is not None and not self.cache_overwrite:
+            cache_filepath = os.path.join(self.cache_path, f"{cache_key}.{data_type}")
+            gz_cache_filepath = cache_filepath + ".gz"
+
+            for filepath in [cache_filepath, gz_cache_filepath]:
+                if not os.path.isfile(filepath):
+                    continue
+
+                if data_type == "csv":
+                    return pd.read_csv(filepath), "cache", filepath
+
+                open_ = gzip.open if filepath.endswith(".gz") else open
+                if data_type == "json":
+                    with open_(filepath, "r") as f_:
+                        return json.load(f_), "cache", filepath
+                if data_type in {"html", "txt"}:
+                    with open_(filepath, "r") as f_:
+                        return f_.read(), "cache", filepath
+
+                raise ValueError(f"Don't know how to load '{filepath}' from cache")
 
         if self.cache_only:
-            raise DataUnavailableInCache(cache_key)
-        if (
-            self.web_limit is not None
-            and self.web_limit <= self.processed_counts_by_src["web"]
-        ):
+            raise DataUnavailableInCache(cache_key, [cache_filepath, gz_cache_filepath])
+        if self.web_limit is not None and self.web_limit <= self.processed_counts_by_src["web"]:
             LOGGER.info(
                 "Data not in cache and web retrieval limit reached. Processing stopped on %s",
                 cache_key,
@@ -536,32 +511,32 @@ class ServiceDataRetriever(ABC):
 
         if self.cache_path is not None:
             if data_type == "csv":
-                data.to_csv(cache_filepath)
+                data.to_csv(gz_cache_filepath)
             elif data_type == "json":
-                with open(cache_filepath, "w") as f_:
+                with gzip.open(gz_cache_filepath, "w") as f_:
                     json.dump(data, f_)
             elif data_type in {"html", "txt"}:
-                with open(cache_filepath, "w") as f_:
+                with gzip.open(gz_cache_filepath, "w") as f_:
                     f_.write(data)
             else:
                 raise ValueError(f"Don't know how to write '{cache_filepath}' to cache")
 
-        return data, "web", cache_filepath
+        return data, "web", gz_cache_filepath
 
 
 def get_service_data_retriever(
     service: str,
-    cache_path: Optional[str] = None,
+    cache_path: None | str = None,
     cache_overwrite=False,
     cache_only=False,
-    browser_address: Optional[str] = None,
-    browser_debug_port: Optional[str] = None,
-    browser_profile_path: Optional[str] = None,
+    browser_address: None | str = None,
+    browser_debug_port: None | str = None,
+    browser_profile_path: None | str = None,
     interactive: bool = False,
-    web_limit: Optional[int] = None,
+    web_limit: None | str = None,
 ) -> ServiceDataRetriever:
     """attempt to import the data retriever for the requested service"""
-    module = import_module(service)
+    module = import_module("." + service, "lib")
     class_ = getattr(module, service.capitalize())
     if cache_path is not None and not os.path.isdir(cache_path):
         raise FileNotFoundError(f"cache path '{cache_path}' does not exist!")

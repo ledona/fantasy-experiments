@@ -38,22 +38,23 @@
             ]
         },
         {
-            "name": "Y Real Full (web-limit 10 + existing browser + no-interactive)",
+            "name": "df hist retrieval",
             "type": "python",
             "request": "launch",
-            "program": "retrieve_hist.py",
-            "console": "integratedTerminal",
+            "module": "lib.retrieve_hist",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/df-hist",
             "args": [
-                "yahoo",
-                // "draftkings", 
+                // "yahoo",
+                "draftkings", 
                 // "fanduel". 
-                "--address",
-                "127.0.0.1:9222",
-                "--web-limit",
-                "10",
-                "--cache",
-                "cache",
-                // "--end-date", "2018-10-27",
+                // "--address", "127.0.0.1:9222",
+                // "--web-limit", "10",
+                "--cache", "/fantasy-archive/betting/df-hist-cache",
+                "--cache-only", 
+
+                "--sports", "nfl",
+                "--start-date", "20201001", "--end-date", "2021-01-01",
             ]
         },
     ]

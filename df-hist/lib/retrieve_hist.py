@@ -1,16 +1,17 @@
-from argparse import ArgumentParser
 import logging
 import shlex
+from argparse import ArgumentParser
 
 import pandas as pd
 from tqdm import tqdm
 
-import log
-from service_data_retriever import (
-    get_service_data_retriever,
+from . import log
+from .service_data_retriever import (
     EXPECTED_HISTORIC_ENTRIES_DF_COLS,
-    WebLimitReached,
+    DataUnavailableInCache,
     ServiceDataRetriever,
+    WebLimitReached,
+    get_service_data_retriever,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -58,10 +59,7 @@ def retrieve_history(
     }, "all sports must be in lower case"
     contest_entries_df = service_obj.get_historic_entries_df_from_file(history_file_dir)
     assert (
-        len(
-            missing_cols := EXPECTED_HISTORIC_ENTRIES_DF_COLS
-            - set(contest_entries_df.columns)
-        )
+        len(missing_cols := EXPECTED_HISTORIC_ENTRIES_DF_COLS - set(contest_entries_df.columns))
         == 0
     ), f"dataframe does not have the following required columns: {missing_cols}"
     entry_count = len(contest_entries_df)
@@ -88,14 +86,19 @@ def retrieve_history(
 
         def func(entry_info):
             pbar.update()
-            result = service_obj.process_entry(entry_info)
+            try:
+                result = service_obj.process_entry(entry_info)
+            except DataUnavailableInCache:
+                LOGGER.warning(
+                    "Skipping entry missing from cache: %s-'%s'", entry_info.sport, entry_info.title
+                )
+                service_obj.processed_counts_by_src["skipped"] += 1
+                result = None
             pbar.set_postfix(**service_obj.processed_counts_by_src)
             return result
 
         try:
-            contest_entries_df.sort_values(["date", "title"], ascending=False).apply(
-                func, axis=1
-            )
+            contest_entries_df.sort_values(["date", "title"], ascending=False).apply(func, axis=1)
         except WebLimitReached as limit_reached_ex:
             LOGGER.info(
                 "Web retrieval limit was reached before retrieval attempt for %s",
@@ -183,9 +186,7 @@ def process_cmd_line(cmd_line_str=None):
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
-    if (args.chrome_debug_address is not None) and (
-        args.chrome_profile_path is not None
-    ):
+    if (args.chrome_debug_address is not None) and (args.chrome_profile_path is not None):
         parser.error("--chrome-profile-path cannot be used with --chrome-debug-address")
     if (args.cache_only is True) and (args.cache_path is None):
         parser.error("--cache_path is required if --cache_only is used")
@@ -208,12 +209,8 @@ def process_cmd_line(cmd_line_str=None):
 
     if args.filename_prefix:
         LOGGER.info("Writing CSV files")
-        service_obj.contest_df.to_csv(
-            args.filename_prefix + ".contest.csv", index=False
-        )
-        service_obj.player_draft_df.to_csv(
-            args.filename_prefix + ".draft.csv", index=False
-        )
+        service_obj.contest_df.to_csv(args.filename_prefix + ".contest.csv", index=False)
+        service_obj.player_draft_df.to_csv(args.filename_prefix + ".draft.csv", index=False)
         service_obj.entry_df.to_csv(args.filename_prefix + ".betting.csv", index=False)
     else:
         with pd.option_context(

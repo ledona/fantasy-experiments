@@ -3,14 +3,14 @@ import logging
 import os
 import time
 from collections import defaultdict
-from typing import Optional
 
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from service_data_retriever import ServiceDataRetriever
+
+from .service_data_retriever import ServiceDataRetriever
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class Fanduel(ServiceDataRetriever):
         entries_df.entries = entries_df.entries.astype(int)
         return entries_df
 
-    def is_entry_supported(self, entry_info) -> Optional[str]:
+    def is_entry_supported(self, entry_info) -> None | str:
         if entry_info.entries == 2:
             return "H2H contests with only 2 entries is not supported"
         return None
