@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 import pandas as pd
 from tqdm import tqdm
 
-from . import log
+from .. import log
 from .service_data_retriever import (
     EXPECTED_HISTORIC_ENTRIES_DF_COLS,
     DataUnavailableInCache,
@@ -14,8 +14,8 @@ from .service_data_retriever import (
     get_service_data_retriever,
 )
 
-LOGGER = logging.getLogger(__name__)
-DEFAULT_HISTORY_FILE_DIR = "/fantasy-archive/betting"
+_LOGGER = logging.getLogger(__name__)
+_DEFAULT_HISTORY_FILE_DIR = "/fantasy-archive/betting"
 
 
 def retrieve_history(
@@ -75,9 +75,9 @@ def retrieve_history(
     if len(filters) > 0:
         contest_entries_df = contest_entries_df.query(" and ".join(filters))
         if (removed_entries := entry_count - len(contest_entries_df)) > 0:
-            LOGGER.info("%i rows filtered out", removed_entries)
+            _LOGGER.info("%i rows filtered out", removed_entries)
             entry_count -= removed_entries
-    LOGGER.info("%i entries to process", entry_count)
+    _LOGGER.info("%i entries to process", entry_count)
     if entry_count == 0:
         raise ValueError("No entries to process!")
 
@@ -89,7 +89,7 @@ def retrieve_history(
             try:
                 result = service_obj.process_entry(entry_info)
             except DataUnavailableInCache:
-                LOGGER.warning(
+                _LOGGER.warning(
                     "Skipping entry missing from cache: %s-'%s'", entry_info.sport, entry_info.title
                 )
                 service_obj.processed_counts_by_src["skipped"] += 1
@@ -100,12 +100,12 @@ def retrieve_history(
         try:
             contest_entries_df.sort_values(["date", "title"], ascending=False).apply(func, axis=1)
         except WebLimitReached as limit_reached_ex:
-            LOGGER.info(
+            _LOGGER.info(
                 "Web retrieval limit was reached before retrieval attempt for %s",
                 limit_reached_ex.args[0],
             )
         finally:
-            LOGGER.info(
+            _LOGGER.info(
                 "Entry processing done. %i entries processed. Entries processed by data source: %s",
                 sum(service_obj.processed_counts_by_src.values()),
                 service_obj.processed_counts_by_src,
@@ -151,10 +151,10 @@ def process_cmd_line(cmd_line_str=None):
     )
     parser.add_argument(
         "--history-file-dir",
-        default=DEFAULT_HISTORY_FILE_DIR,
+        default=_DEFAULT_HISTORY_FILE_DIR,
         help=(
             "Path to directory containing downloaded contest history files. "
-            f"Default={DEFAULT_HISTORY_FILE_DIR}"
+            f"Default={_DEFAULT_HISTORY_FILE_DIR}"
         ),
     )
     parser.add_argument(
@@ -162,8 +162,9 @@ def process_cmd_line(cmd_line_str=None):
         "-o",
         metavar="filename-prefix",
         help=(
-            "Output filename prefix. Create 2 csv files containing results, "
-            "one for contest history the other for player draft history). "
+            "Output filename prefix. Create 3 csv files containing results. "
+            "One for contest history, one with player draft history, "
+            "and one with betting results. "
             "Filenames will be prefixed with this value."
         ),
     )
@@ -190,7 +191,7 @@ def process_cmd_line(cmd_line_str=None):
         parser.error("--chrome-profile-path cannot be used with --chrome-debug-address")
     if (args.cache_only is True) and (args.cache_path is None):
         parser.error("--cache_path is required if --cache_only is used")
-    LOGGER.info("starting data retrieval")
+    _LOGGER.info("starting data retrieval")
     service_obj, entry_count = retrieve_history(
         args.service,
         args.history_file_dir,
@@ -208,7 +209,7 @@ def process_cmd_line(cmd_line_str=None):
     )
 
     if args.filename_prefix:
-        LOGGER.info("Writing CSV files")
+        _LOGGER.info("Writing CSV files")
         service_obj.contest_df.to_csv(args.filename_prefix + ".contest.csv", index=False)
         service_obj.player_draft_df.to_csv(args.filename_prefix + ".draft.csv", index=False)
         service_obj.entry_df.to_csv(args.filename_prefix + ".betting.csv", index=False)
@@ -228,7 +229,7 @@ def process_cmd_line(cmd_line_str=None):
             print("\nDraft History")
             print(service_obj.player_draft_df)
 
-    LOGGER.info(
+    _LOGGER.info(
         "Done! %i / %i entries processed. %s",
         sum(service_obj.processed_counts_by_src.values()),
         entry_count,

@@ -1,13 +1,27 @@
 # Historic Daily Fantasy Results Processing
 Historic betting and contest data. Used to generate backtest
-models that predict for dfs contest winning scores
+models that predict for dfs contest winning scores. To generate/refresh
+models do the following.
 
-## Data Retrieval
+1. retrieve the data using _retrieve_hist_
+1. transform data into a training dataset using _data_xform_
+1. train new models
+
+## Data Retrieval (__retrieve_hist__)
 Use _retrieve_hist_ to retrieve contest data from dfs websites.
 ```
-python -m lib.retrieve_hist --cache-path /fantasy-archive/betting df-hist-cache/ draftkings \
+python -m lib.retrieve.retrieve_hist --cache-path /fantasy-archive/betting df-hist-cache/ draftkings \
    [--sports nfl] [--cache-only] [--start-date 20201001] [--end-date 20210101]
 ```
+
+## Create model training data (__data_xform__)
+First make sure that _data_cfg.py_ is up to date, then run _data_xform_. The following example
+call to _data_xform_ will create datasets for nfl and mlb using defaults for all settings.
+```
+python -m lib.xform.cli nfl mlb
+```
+
+
 
 
 ## OUTDATED!!!
