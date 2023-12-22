@@ -2,18 +2,28 @@ import logging
 import os
 import re
 import sqlite3
+from datetime import date
 from functools import partial
 from typing import Any, Callable, cast
 
 import numpy as np
 import pandas as pd
-from fantasy_py import (FANTASY_SERVICE_DOMAIN, SPORT_DB_MANAGER_DOMAIN,
-                        CLSRegistry, ContestStyle)
+from fantasy_py import (
+    FANTASY_SERVICE_DOMAIN,
+    SPORT_DB_MANAGER_DOMAIN,
+    CLSRegistry,
+    ContestStyle,
+    DataNotAvailableException,
+)
 from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
+from tqdm import tqdm
 
-from .best_possible_lineup_score import (TopScoreCacheMode,
-                                         best_possible_lineup_score,
-                                         best_score_cache, get_stat_names)
+from .best_possible_lineup_score import (
+    TopScoreCacheMode,
+    best_possible_lineup_score,
+    best_score_cache,
+    get_stat_names,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -345,6 +355,8 @@ def _create_teams_contest_df(tc_df):
 
 
 def _get_slate_df(db_filename, service, style, min_date, max_date) -> None | pd.DataFrame:
+    if not os.path.isfile(db_filename):
+        raise FileNotFoundError(f"DB file '{db_filename}' does not exist")
     conn = sqlite3.connect(f"file:{db_filename}?mode=ro", uri=True)
     sql = f"""
     select distinct daily_fantasy_slate.id as slate_id, date, 
@@ -441,11 +453,10 @@ def _create_predict_df(
         top_lineup_scores,
         slate_ids_df,
     ]
-    predict_df = (
-        pd.concat(dfs, axis="columns")
-        .join(team_score_df, on="slate_id")
-        .join(db_pos_scores_df, on="slate_id")
-    )
+    concatted_df = pd.concat(dfs, axis="columns")
+    w_team_score = concatted_df.join(team_score_df, on="slate_id")
+    db_pos_scores_df.columns = db_pos_scores_df.columns.map(lambda names: names[1] + "|" + names[0])
+    predict_df = w_team_score.join(db_pos_scores_df, on="slate_id")
     return predict_df
 
 
@@ -457,8 +468,8 @@ def _generate_dataset(
     contest_type,
     contest_data_path,
     top_player_percentile,
-    min_date=None,
-    max_date=None,
+    min_date: date,
+    max_date: date,
     max_count: None | int = None,
     top_score_cache_mode: TopScoreCacheMode = "default",
     datapath: str = "data",
@@ -466,22 +477,13 @@ def _generate_dataset(
 ) -> pd.DataFrame:
     """
     max_count - maximum number of slates to process
-    min_date - includsive
+    min_date - inclusive
     max_date - not inclusive
     top_score_cache_mode -
         'default'=load and use the cache,
         'overwrite'=overwrite all existing cache data if any exists
         'missing'=use all existing valid cache data, any cached failures will be rerun
     """
-    assert (
-        (min_date is None) or (max_date is None) or min_date < max_date
-    ), "invalid date range. max_date must be greater than min_date. Or one must be None"
-
-    if min_date is None:
-        min_date = cfg["min_date"]
-    if max_date is None:
-        max_date = cfg["max_date"]
-
     contest_df = _get_contest_df(
         service, sport, style, contest_type, min_date, max_date, contest_data_path
     )
@@ -496,24 +498,25 @@ def _generate_dataset(
 
     slate_db_df = _get_slate_df(cfg["db_filename"], service, style, min_date, max_date)
     if slate_db_df is None:
-        raise ValueError("No slates found for", service, style, min_date, max_date)
+        raise DataNotAvailableException("No slates found for", service, style, min_date, max_date)
 
     slate_ids_df = teams_contest_df.apply(_get_slate_id, axis=1, args=(slate_db_df,))
 
     if len(slate_ids_df) == 0:
-        raise ValueError("No slates ids found (based on teams contest df)")
+        raise DataNotAvailableException("No slates ids found (based on teams contest df)")
 
-    try:
-        # need this for subsequent sql queries
-        slate_ids_str = ",".join(map(str, slate_ids_df.slate_id.dropna().astype(int)))
-    except Exception as ex:
-        raise ValueError("Something wrong with slate_ids_df", slate_ids_df) from ex
+    # try:
+    # need this for subsequent sql queries
+    slate_ids_str = ",".join(map(str, slate_ids_df.slate_id.dropna().astype(int)))
+    # except Exception as ex:
+    #     raise ValueError("Something wrong with slate_ids_df", slate_ids_df) from ex
 
     if len(slate_ids_str) == 0:
-        raise ValueError("No slate ids found after removing Nones")
+        raise DataNotAvailableException("No slate ids found after removing Nones")
+
     team_score_df = _create_team_score_df(cfg["db_filename"], slate_ids_str, top_player_percentile)
     if team_score_df is None:
-        raise ValueError("Empty team score df")
+        raise DataNotAvailableException("Empty team score df")
 
     db_exploded_pos_df = _get_exploded_pos_df(
         cfg["db_filename"],
@@ -525,7 +528,7 @@ def _generate_dataset(
     )
 
     if db_exploded_pos_df is None:
-        raise ValueError("No exploded positional data returned!")
+        raise DataNotAvailableException("No exploded positional data returned!")
 
     db_pos_scores_df = _get_position_scores(db_exploded_pos_df, top_player_percentile)
 
@@ -539,8 +542,8 @@ def _generate_dataset(
             best_score_cache=top_score_dict,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
         )
-
-        top_lineup_scores = slate_ids_df.slate_id.map(best_possible_lineup_score_part)
+        tqdm.pandas(desc="slates")
+        top_lineup_scores = slate_ids_df.slate_id.progress_map(best_possible_lineup_score_part)
 
     top_lineup_scores.name = "best-possible-score"
     predict_df = _create_predict_df(
@@ -557,6 +560,22 @@ def _generate_dataset(
     return predict_df
 
 
+def _get_date_range(cfg: dict, service: str):
+    min_date_by_service = cast(dict, cfg["min_date"])
+    max_date_by_service = cast(dict, cfg["max_date"])
+    min_date = (
+        min_date_by_service.get(service, min_date_by_service.get(None))
+        if isinstance(min_date_by_service, dict)
+        else min_date_by_service
+    )
+    max_date = (
+        max_date_by_service.get(service, max_date_by_service.get(None))
+        if isinstance(max_date_by_service, dict)
+        else max_date_by_service
+    )
+    return min_date, max_date
+
+
 def xform(
     sport,
     cfg: dict[str, Any],
@@ -567,27 +586,30 @@ def xform(
     data_path,
     contest_data_path,
     top_player_percentile,
+    date_override: tuple[date, date] | None,
 ):
     """
     returns a dict mapping tuples describing the data generated to dataframes with the data
     """
-    cfg_min_date = cast(dict, cfg["min_date"])
-    cfg_max_date = cast(dict, cfg["max_date"])
-
     dfs: dict[tuple, pd.DataFrame] = {}
-    for service in services:
-        min_date = (
-            cfg_min_date.get(service, cfg_min_date.get(None))
-            if isinstance(cfg_min_date, dict)
-            else cfg_min_date
-        )
-        max_date = (
-            cfg_max_date.get(service, cfg_max_date.get(None))
-            if isinstance(cfg_max_date, dict)
-            else cfg_max_date
-        )
-        for style in styles:
-            for contest_type in contest_types:
+    if date_override:
+        min_date, max_date = date_override
+    for service in (service_iter := tqdm(services, desc="dfs-service", disable=len(services) == 1)):
+        service_iter.set_postfix_str(service)
+        if date_override is None:
+            min_date, max_date = _get_date_range(cfg, service)
+        assert (
+            (min_date is None) or (max_date is None) or min_date < max_date
+        ), "invalid date range. max_date must be greater than min_date. Or one must be None"
+
+        for style in (style_iter := tqdm(styles, desc="contest-style", disable=len(styles) == 1)):
+            style_iter.set_postfix_str(style.name)
+            for contest_type in (
+                contest_type_iter := tqdm(
+                    contest_types, desc="contest-type", disable=len(contest_types) == 1
+                )
+            ):
+                contest_type_iter.set_postfix_str(contest_type.NAME)
                 _LOGGER.info(
                     "Processing sport=%s service=%s style=%s contest-type=%s",
                     sport,
@@ -614,14 +636,15 @@ def xform(
                         datapath=data_path,
                     )
                     _LOGGER.info(
-                        "Finished processing sport=%s service=%s style=%s contest-type=%s. %i rows in dataset",
+                        "Finished processing sport=%s service=%s style=%s contest-type=%s. "
+                        "%i rows in dataset",
                         sport,
                         service,
                         style,
                         contest_type.NAME,
                         len(dfs[(sport, service, style, contest_type.NAME)]),
                     )
-                except ValueError as ex:
+                except DataNotAvailableException as ex:
                     _LOGGER.error(
                         "Error processing sport=%s service=%s style=%s contest-type=%s",
                         sport,

@@ -3,6 +3,7 @@ import shlex
 from argparse import ArgumentParser
 from functools import partial
 
+import dateutil
 import pandas as pd
 from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle
 from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
@@ -29,17 +30,10 @@ def _process_cmd_line(cmd_line_str=None):
 
     parser.add_argument(
         "--services",
+        help="default='draftkings'",
         nargs="+",
-        choices=[
-            "draftkings",
-            "fanduel",
-            "yahoo",
-        ],
-        default=[
-            "draftkings",
-            "fanduel",
-            "yahoo",
-        ],
+        choices=["draftkings", "fanduel", "yahoo"],
+        default=["draftkings"],
     )
 
     parser.add_argument(
@@ -47,14 +41,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--styles",
         nargs="+",
         type=ContestStyle,
-        choices=[
-            ContestStyle.CLASSIC,
-            ContestStyle.SHOWDOWN,
-        ],
-        default=[
-            ContestStyle.CLASSIC,
-            ContestStyle.SHOWDOWN,
-        ],
+        choices=[ContestStyle.CLASSIC.name, ContestStyle.SHOWDOWN.name],
+        default=[ContestStyle.CLASSIC, ContestStyle.SHOWDOWN],
     )
 
     parser.add_argument(
@@ -62,14 +50,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--types",
         nargs="+",
         type=partial(CLSRegistry, CONTEST_DOMAIN),
-        choices=[
-            FiftyFifty.NAME,
-            GeneralPrizePool.NAME,
-        ],
-        default=[
-            FiftyFifty.NAME,
-            GeneralPrizePool.NAME,
-        ],
+        choices=[FiftyFifty.NAME, GeneralPrizePool.NAME],
+        default=[FiftyFifty, GeneralPrizePool],
     )
 
     parser.add_argument(
@@ -93,31 +75,53 @@ def _process_cmd_line(cmd_line_str=None):
         help=f"default='{default_contest_data_path}'",
     )
 
+    parser.add_argument(
+        "--date_range",
+        "--dates",
+        nargs=2,
+        metavar=("start-date", "end-date"),
+        type=lambda date_str: dateutil.parser.parse(date_str).date(),
+        help="Start and end date to process. Start is inclusive, end exclusive. "
+        "Default is the dates in the config for the sport",
+    )
+
     parser.add_argument("sports", nargs="+", choices=SPORT_CFGS.keys())
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
+    print(f"{args=}")
+
     dfs: dict[tuple, pd.DataFrame] = {}
-    for sport in args.sports:
+    for sport in set(args.sports):
         dfs.update(
             xform(
                 sport,
                 SPORT_CFGS[sport],
-                args.services,
-                args.contest_styles,
-                args.contest_types,
+                set(args.services),
+                set(args.contest_styles),
+                set(args.contest_types),
                 args.top_score_cache_mode,
                 args.data_path,
                 args.contest_data_path,
                 args.top_percentile,
+                args.date_range,
             )
         )
 
     if args.show_df:
-        for desc, df in dfs.items():
-            print(f"data descriptor: {desc}")
-            with pd.option_context("display.max_rows", 1000, "display.max_columns", 100):
+        with pd.option_context(
+            "display.max_rows",
+            None,
+            "display.max_columns",
+            None,
+            "display.max_colwidth",
+            None,
+            "expand_frame_repr",
+            False,
+        ):
+            for desc, df in dfs.items():
+                print(f"data descriptor: {desc}")
                 print(df)
 
 

@@ -38,7 +38,7 @@
             ]
         },
         {
-            "name": "df hist retrieval",
+            "name": "df-hist retrieval",
             "type": "python",
             "request": "launch",
             "module": "lib.retrieve_hist",
@@ -55,6 +55,19 @@
 
                 "--sports", "nfl",
                 "--start-date", "20201001", "--end-date", "2021-01-01",
+            ]
+        },
+        {
+            "name": "df-hist xform",
+            "type": "python",
+            "request": "launch",
+            "module": "lib.xform.cli",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/df-hist",
+            "args": [
+                "--services", "draftkings",
+                "--dates", "20200901", "20201101",
+                "nfl",
             ]
         },
     ]

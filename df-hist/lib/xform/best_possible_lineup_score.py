@@ -1,18 +1,18 @@
-from argparse import Namespace
 import argparse
-import traceback
-import os
-from typing import Literal
-from contextlib import contextmanager
 import json
 import math
+import os
+from argparse import Namespace
+from contextlib import contextmanager
+from typing import Literal, cast
 
-from fantasy_py import db, FANTASY_SERVICE_DOMAIN
-from fantasy_py.sport import Starters
-from fantasy_py.util import CLSRegistry
-from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
+from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, db, log
+from fantasy_py.lineup import FantasyService, gen_lineups
 from fantasy_py.lineup.do_gen_lineup import lineup_plan_helper
-from fantasy_py.lineup import gen_lineups
+from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
+from fantasy_py.sport import Starters
+
+_LOGGER = log.get_logger(__name__)
 
 
 TopScoreCacheMode = Literal["default", "overwrite", "missing"]
@@ -41,6 +41,8 @@ def get_stat_names(sport, service_abbr: Literal["dk", "fd", "y"], as_str=False) 
 def best_score_cache(
     sport: str, top_score_cache_mode: TopScoreCacheMode, cache_dir="."
 ) -> dict[int, None | float]:
+    if not os.path.isdir(cache_dir):
+        raise FileNotFoundError(f"Cache directory '{cache_dir}' does not exist")
     top_score_cache_filename = sport + "-slate.top_score.json"
     top_score_cache_filepath = os.path.join(cache_dir, top_score_cache_filename)
     top_score_dict: dict[int, float]
@@ -55,11 +57,13 @@ def best_score_cache(
                     continue
                 orig_top_score_dict[int(slate_id)] = score
         elif top_score_cache_mode == "overwrite":
-            print(f"Overwriting existing best score cache data at '{top_score_cache_filepath}'")
+            _LOGGER.info(
+                "Overwriting existing best score cache data at '%s'", top_score_cache_filepath
+            )
         else:
             raise ValueError("Unexpected top score cache mode", top_score_cache_mode)
     else:
-        print(f"Best score cache data not found! '{top_score_cache_filepath}'")
+        _LOGGER.info("Best score cache data not found! '%s'", top_score_cache_filepath)
         orig_top_score_dict = {}
 
     # make a copy so that we can figure out if there are updates
@@ -71,10 +75,12 @@ def best_score_cache(
     finally:
         if orig_top_score_dict != top_score_dict:
             # TODO: should save the cache as new scores are added
-            print(f"Writing updated best score values to cache '{top_score_cache_filepath}'")
+            _LOGGER.info(
+                "Writing updated best score values to cache '%s'", top_score_cache_filepath
+            )
             with open(top_score_cache_filepath, "w") as f:
                 json.dump(top_score_dict, f)
-        print("Exiting best_score_cache")
+        _LOGGER.info("Exiting best_score_cache")
 
 
 def best_possible_lineup_score(
@@ -101,10 +107,8 @@ def best_possible_lineup_score(
     slate_id = int(slate_id)
     if best_score_cache:
         if slate_id in best_score_cache:
-            # print(
-            #     f"For {slate_id=} using cached best score value of {best_score_cache[slate_id]}")
             return best_score_cache[slate_id]
-        print(f"{slate_id=} not in best score cache")
+        _LOGGER.info("slate_id=%i not in best score cache", slate_id)
 
     db_obj = db.get_db_obj(db_filename)
     if sport:
@@ -119,15 +123,17 @@ def best_possible_lineup_score(
             .filter(db.DailyFantasySlate.id == int(slate_id))
             .one_or_none()
         )
-        if slate == None:
-            print(f"Error: Unable to find {slate_id=} in database")
+        if slate is None:
+            _LOGGER.warning("Error: Unable to find slate_id=%i in database", slate_id)
             return None
 
         game_date = slate.date
         slate_name = slate.name
         service = slate.service
 
-    print(f"Generating best historic lineup for {game_date} slate '{slate_name}' ({slate_id})")
+    _LOGGER.info(
+        "Generating best historic lineup for %s slate '%s' (%i)", game_date, slate_name, slate_id
+    )
 
     # TODO: the following should also take slate_id
     # get the starters
@@ -137,13 +143,11 @@ def best_possible_lineup_score(
         db_obj=db_obj,
         slate=slate_id,
     )
-    # print("all starters: ", starters)
     if slate_name not in starters.slates:
         raise ValueError(
             f"{slate_name=} not in starters. Starters slates are {starters.slates.keys()}"
         )
     starters: Starters = starters.filter_by_slate(slate_name)
-    # print(f"starters for {slate_name=}: ", starters)
 
     # TODO: most of the following should be defaults for the args object and should not be required here
     args = Namespace(
@@ -158,10 +162,10 @@ def best_possible_lineup_score(
         lineup_plan_paths=None,
     )
     args, fca = db_obj.db_manager.gen_lineups_preprocess(
-        db_obj, args, None, game_date, starters=starters
+        db_obj, args, None, game_date, starters=starters, print_slate_info=False
     )
 
-    service_cls = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service)
+    service_cls = cast(FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service))
 
     args = lineup_plan_helper(args, db_obj, starters, service_cls, [])[0]
     constraints = service_cls.get_constraints(
@@ -182,7 +186,7 @@ def best_possible_lineup_score(
         lineups = gen_lineups(
             db_obj,
             fca,
-            args.model_names,
+            service_cls.DEFAULT_MODEL_NAMES.get(sport),
             solver,
             service_cls,
             1,  # of lineups
@@ -194,12 +198,15 @@ def best_possible_lineup_score(
         )[0]
         hist_score = lineups[0].historic_fpts
     except Exception as ex:
-        print(
-            f"Error calculating best lineup for {service_abbr=} {sport=} {slate_id=} on {game_date}. "
-            f"{type(ex).__name__}"
+        _LOGGER.error(
+            "Error calculating best lineup for service_abbr='%s' sport='%s' slate_id=%i on %s.",
+            service_abbr,
+            sport,
+            slate_id,
+            game_date,
+            exc_info=ex,
         )
-        traceback.print_exc()
-        return None
+        raise
 
     if best_score_cache is not None and hist_score is not None:
         best_score_cache[slate_id] = hist_score
