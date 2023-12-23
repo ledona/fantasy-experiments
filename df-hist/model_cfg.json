@@ -1,0 +1,19 @@
+{
+    // TODO: try skautoml once onnx export is possible
+    // 'skautoml': {
+    //     'per_run_time_limit': 120,
+    //     'max_train_time': 900,
+    //     'n_jobs': 4,
+    //     'random_state': RANDOM_SEED,
+    // },
+    "tpot": {
+        "population_size": 100,
+        "n_jobs": 6,
+        "verbosity": 2,
+        "max_train_time": 1200,
+        "generations": 100,
+        "early_stop": 15,
+        "random_state": 1,
+        "use_dask": true
+    }
+}

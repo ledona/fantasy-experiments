@@ -20,7 +20,7 @@
             "justMyCode": true
         },
         {
-            "name": "train_test CLI",
+            "name": "model train-test CLI",
             "type": "python",
             "request": "launch",
             "module": "lib.cli",
@@ -68,6 +68,18 @@
                 "--services", "draftkings",
                 "--dates", "20200901", "20201101",
                 "nfl",
+            ]
+        },
+        {
+            "name": "df-hist modeling",
+            "type": "python",
+            "request": "launch",
+            "module": "lib.modeling.cli",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/df-hist",
+            "args": [
+                "--auto", "dummy",
+                "nfl"
             ]
         },
     ]

@@ -2,6 +2,9 @@
 chrome-profile
 cache
 
+# model folder
+models
+
 # folder with post transformed data
 data
 

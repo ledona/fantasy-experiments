@@ -3,7 +3,6 @@
 import os
 import platform
 import re
-import tempfile
 import traceback
 from collections import defaultdict
 from datetime import datetime

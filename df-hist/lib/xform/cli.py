@@ -9,8 +9,8 @@ from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle
 from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
 
 from .. import log
+from ..data_cfg import SPORT_CFGS
 from .best_possible_lineup_score import TopScoreCacheMode
-from .data_cfg import SPORT_CFGS
 from .data_xform import xform
 
 _DEFAULT_TOP_PERCENTILE = 0.7
