@@ -1,7 +1,8 @@
-import os
 import logging
+import os
 
 import pandas as pd
+from fantasy_py import dt_to_filename_str
 
 _EVAL_COL_ORDER = [
     "Sport",
@@ -51,17 +52,17 @@ def show_eval_results(eval_results, failed_models, dest_path):
         print(f"failure #{n + 1}: {failure[0]}\n\tcause='{failure[1]['cause']}'")
 
     if len(eval_results):
-        eval_results_df = log_eval_results(eval_results, "all_eval_results", dest_path)
+        eval_results_df = log_eval_results(
+            eval_results, f"all_eval_results-{dt_to_filename_str()}", dest_path
+        )
 
         print(f"{len(eval_results)} successfully serialized models")
         with pd.option_context(
             "display.max_rows",
-            1000,
+            None,
             "display.max_columns",
-            100,
+            None,
             "display.max_colwidth",
             None,
         ):
-            print(eval_results_df)
-
-        print(eval_results_df.to_csv(index=False, sep="\t"))
+            print(eval_results_df.to_csv(index=False, sep="\t"))

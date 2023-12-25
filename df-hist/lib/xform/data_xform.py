@@ -414,14 +414,9 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
 
     slates_found = len(slates)
     if slates_found == 0:
-        # with pd.option_context("display.max_colwidth", None):
         _LOGGER.warning(
             "No slates found for %s that matches teams %s.", contest_row.date, contest_row.teams
         )
-        # display(
-        #     f"No slates found for {contest_row.date} that matches teams {contest_row.teams}. date_slates_df=",
-        #     date_slates,
-        # )
         return _NO_SLATE_ID_FOUND
 
     return slates.iloc[0][["slate_id", "team_count"]]

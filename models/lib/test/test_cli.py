@@ -21,7 +21,7 @@ from ..cli import (
     _Params,
     main,
 )
-from ..train_test import _dt_to_filename_str
+from ..train_test import dt_to_filename_str
 
 _EXPECTED_PARAMS = {
     "win": {
@@ -292,7 +292,7 @@ def test_model_gen(tmpdir, mocker):
 
     model_filepath = os.path.join(tmpdir, f"{model_name}.{target_stat}.{automl_type}.model")
     pkl_filepath = os.path.join(
-        tmpdir, f"{model_name}-{automl_type}-stat.{target_stat}.{_dt_to_filename_str(dt)}.pkl"
+        tmpdir, f"{model_name}-{automl_type}-stat.{target_stat}.{dt_to_filename_str(dt)}.pkl"
     )
     with open(pkl_filepath, "rb") as f_:
         regressor = joblib.load(f_)

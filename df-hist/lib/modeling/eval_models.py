@@ -4,7 +4,7 @@ from typing import Literal
 
 import pandas as pd
 
-from .automl import Framework, ModelTarget, create_automl_model
+from .automl import ExistingModelMode, Framework, ModelTarget, create_automl_model
 from .generate_train_test import generate_train_test, load_csv
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,6 +43,7 @@ def evaluate_models(
     models_to_test: set[ModelTargetGroup] | None = None,
     model_folder="models",
     service=None,
+    mode: ExistingModelMode = "fail",
 ) -> tuple[dict, list, list[tuple[str, str]]]:
     """
     models_to_test - set/list of the models to test. if None then all models tested.
@@ -130,11 +131,12 @@ def evaluate_models(
         cam_result = create_automl_model(
             model_desc,
             model_folder,
+            X_train,
+            y_train,
+            X_test,
+            y_test,
             framework=framework,
-            X_train=X_train,
-            y_train=y_train,
-            X_test=X_test,
-            y_test=y_test,
+            mode=mode,
             **automl_params,
         )
 

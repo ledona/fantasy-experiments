@@ -12,7 +12,7 @@ from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
 from .. import log
-from .automl import Framework
+from .automl import ExistingModelMode, Framework
 from .eval_models import ModelTargetGroup, evaluate_models
 from .results import show_eval_results
 
@@ -45,6 +45,7 @@ def _multi_run(
     contest_types,
     models_to_test: set[ModelTargetGroup],
     model_folder,
+    mode: ExistingModelMode,
 ):
     _LOGGER.info("starting multirun")
     models = {}
@@ -75,6 +76,7 @@ def _multi_run(
             model_folder=model_folder,
             models_to_test=models_to_test,
             service=service,
+            mode=mode,
         )
         if failed_models:
             all_failed_models += failed_models
@@ -145,6 +147,14 @@ def _process_cmd_line(cmd_line_str=None):
         choices=Framework.__args__,
         default="tpot",
     )
+    parser.add_argument(
+        "--existing_model_mode",
+        "--mode",
+        choices=ExistingModelMode.__args__,
+        default="fail",
+        help="What to do if a model already exists. reuse=evaluate the model; "
+        "overwrite=retrain the model; fail=fail with file already exists",
+    )
     parser.add_argument("sports", nargs="+", choices=["nhl", "nfl", "mlb", "nba", "lol"])
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
@@ -176,6 +186,7 @@ def _process_cmd_line(cmd_line_str=None):
         c_types,
         set(args.model_types),
         args.model_path,
+        args.existing_model_mode,
     )
 
     show_eval_results(eval_results, failed_models, args.results_path)

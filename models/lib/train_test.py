@@ -25,6 +25,7 @@ from fantasy_py import (
     FeatureDict,
     PlayerOrTeam,
     UnexpectedValueError,
+    dt_to_filename_str,
 )
 from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
@@ -249,10 +250,6 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
 AutomlType = Literal["tpot", "tpot-light", "autosk", "dummy"]
 
 
-def _dt_to_filename_str(dt: datetime):
-    return dt.isoformat().replace(":", "").rsplit(".", 1)[0]
-
-
 def train_test(
     type_: AutomlType,
     model_name: str,
@@ -312,7 +309,7 @@ def train_test(
 
     filepath = os.path.join(
         dest_dir,
-        f"{model_name}-{type_}-{target[0]}.{target[1]}.{_dt_to_filename_str(dt_trained)}.pkl",
+        f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}.pkl",
     )
     print(f"Exporting model artifact to '{filepath}'")
     if type_ in ("autosk", "dummy"):
@@ -488,7 +485,7 @@ def model_and_test(
 
         if os.path.isfile(requested_model_filepath):
             model_filename = ".".join(
-                [name, target[1], automl_type, _dt_to_filename_str(dt_trained), "model"]
+                [name, target[1], automl_type, dt_to_filename_str(dt_trained), "model"]
             )
             old_path = requested_model_filepath
             requested_model_filepath = os.path.join(dest_dir, model_filename)
