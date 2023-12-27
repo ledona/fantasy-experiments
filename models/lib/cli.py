@@ -8,17 +8,19 @@ import sys
 from pprint import pprint
 from typing import Literal, TypedDict, cast
 
-from fantasy_py import PlayerOrTeam, typed_dict_validate
+from fantasy_py import JSONWithCommentsDecoder, PlayerOrTeam, typed_dict_validate
 from ledona import process_timer
 
-from .train_test import load_data, model_and_test, AutomlType
+from .train_test import AutomlType, load_data, model_and_test
+
+_EXPECTED_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
 
 
 class _Params(TypedDict):
     """definition of the final parameters used for model training/testing"""
 
     data_filename: str
-    target: tuple[Literal["stat", "calc"], str]
+    target: tuple[Literal["stat", "calc", "extra"], str]
     validation_season: int
     recent_games: int
     training_seasons: list[int]
@@ -28,12 +30,13 @@ class _Params(TypedDict):
     p_or_t: PlayerOrTeam | None
     include_pos: bool | None
     cols_to_drop: list[str] | None
+    """columns to drop from inout data. wildcards are accepted"""
     missing_data_threshold: float | None
     filtering_query: str | None
     """pandas compatible query string that will be run on the loaded data"""
     target_pos: list[str] | None
     training_pos: list[str] | None
-    train_params: dict | None
+    train_params: dict[_EXPECTED_TRAINING_PARAMS, int | str | float | bool] | None
     """params passed to the training algorithm (likely as kwargs)"""
 
 
@@ -41,7 +44,7 @@ class TrainingDefinitionFile:
     def __init__(self, file_path: str):
         self._file_path = file_path
         with open(file_path, "r") as f_:
-            self._json: dict = json.load(f_)
+            self._json = cast(dict, json.load(f_, cls=JSONWithCommentsDecoder))
 
         self._model_names_to_group_idx: dict[str, int] = {}
         for i, model_group in enumerate(self._json["model_groups"]):
@@ -112,21 +115,27 @@ class TrainingDefinitionFile:
     ):
         params = self.get_params(model_name)
 
+        # for any regressor kwarg not already set, fill in with model params
         if automl_type.startswith("tpot"):
-            if params["seed"]:
+            if not regressor_kwargs.get("random_state") and params["seed"]:
                 regressor_kwargs["random_state"] = params["seed"]
-            if params["train_params"].get("max_train_mins") and not regressor_kwargs.get(
-                "max_time_mins"
-            ):
-                regressor_kwargs["max_time_mins"] = params["train_params"]["max_train_mins"]
-            if params["train_params"].get("max_iter_mins") and not regressor_kwargs.get(
-                "max_eval_time_mins"
-            ):
-                regressor_kwargs["max_eval_time_mins"] = params["train_params"]["max_iter_mins"]
+            if params["train_params"]:
+                if not set(params["train_params"].keys()) <= set(
+                    _EXPECTED_TRAINING_PARAMS.__args__
+                ):
+                    raise ValueError(
+                        "unexpected training parameters found in model definition file",
+                        set(params["train_params"].keys())
+                        - set(_EXPECTED_TRAINING_PARAMS.__args__),
+                    )
+                for arg in _EXPECTED_TRAINING_PARAMS.__args__:
+                    if regressor_kwargs.get(arg) or not params["train_params"].get(arg):
+                        continue
+                    regressor_kwargs[arg] = params["train_params"][arg]
 
         print("Training will proceed with the following parameters:")
         pprint(params)
-        print()
+        print(f"Fitting model {model_name} with {automl_type} using {regressor_kwargs=}")
 
         raw_df, tt_data, one_hot_stats = load_data(
             params["data_filename"],
@@ -183,13 +192,16 @@ def main(cmd_line_str=None):
         "evalute that instead of training a fresh model",
     )
     parser.add_argument("--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AutomlType.__args__)
-    parser.add_argument("--tpot_jobs", type=int)
+    parser.add_argument(
+        "--n_jobs", "--tpot_jobs", help="Number of jobs/processors to use during training", type=int
+    )
     parser.add_argument(
         "--training_mins",
         "--mins",
         "--max_train_mins",
         "--time",
         "--max_time",
+        "--max_time_mins",
         type=int,
         help="override the training time defined in the train_file",
     )
@@ -198,6 +210,7 @@ def main(cmd_line_str=None):
         "--max_iter_mins",
         "--iter_mins",
         "--iter_time",
+        "--max_eval_time_mins",
         type=int,
         help="override the training iteration time defined in the train_file",
     )
@@ -225,13 +238,12 @@ def main(cmd_line_str=None):
 
     if args.automl_type.startswith("tpot"):
         modeler_init_kwargs = {}
-        if args.tpot_jobs:
-            modeler_init_kwargs["n_jobs"] = args.tpot_jobs
+        if args.n_jobs:
+            modeler_init_kwargs["n_jobs"] = args.n_jobs
         if args.training_mins:
             modeler_init_kwargs["max_time_mins"] = args.training_mins
         if args.training_iter_mins:
             modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
-
     elif args.automl_type == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
     else:

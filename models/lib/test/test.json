@@ -9,8 +9,8 @@
         ],
         "missing_data_threshold": 0.07,
         "train_params": {
-            "max_train_mins": 10,
-            "max_iter_mins": 2
+            "max_time_mins": 10,
+            "max_eval_time_mins": 2
         },
         "data_filename": "all-data.pq"
     },
@@ -58,7 +58,7 @@
                 "P5"
             ],
             "train_params": {
-                "max_train_mins": 25
+                "max_time_mins": 25
             },
             "models": {
                 "player-score": {
@@ -73,7 +73,7 @@
                         "stop"
                     ],
                     "train_params": {
-                        "max_iter_mins": 5
+                        "max_eval_time_mins": 5
                     },
                     "target_pos": ["P1"],
                     "include_pos": false

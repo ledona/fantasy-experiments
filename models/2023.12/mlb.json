@@ -15,7 +15,7 @@
         ],
         "missing_data_threshold": 0.1,
         "train_params": {
-            "max_train_mins": 20
+            "max_time_mins": 20
         }
     },
     "model_groups": [
@@ -29,7 +29,7 @@
                         "off_runs"
                     ],
                     "train_params": {
-                        "max_train_mins": 40
+                        "max_time_mins": 40
                     }
                 },
                 "MLB-team-win": {

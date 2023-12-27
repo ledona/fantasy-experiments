@@ -32,7 +32,7 @@ _EXPECTED_PARAMS = {
         "training_seasons": [2022, 2023],
         "missing_data_threshold": 0.07,
         "data_filename": "all-data.pq",
-        "train_params": {"max_train_mins": 10, "max_iter_mins": 2},
+        "train_params": {"max_time_mins": 10, "max_eval_time_mins": 2},
     },
     "team-pts": {
         "target": ("stat", "pts"),
@@ -43,7 +43,7 @@ _EXPECTED_PARAMS = {
         "missing_data_threshold": 0.07,
         "data_filename": "team.pq",
         "p_or_t": PlayerOrTeam.TEAM,
-        "train_params": {"max_train_mins": 10, "max_iter_mins": 2},
+        "train_params": {"max_time_mins": 10, "max_eval_time_mins": 2},
     },
     "team-pts-allowed": {
         "target": ("stat", "pts-allowed"),
@@ -54,7 +54,7 @@ _EXPECTED_PARAMS = {
         "missing_data_threshold": 0.07,
         "data_filename": "team.pq",
         "p_or_t": PlayerOrTeam.TEAM,
-        "train_params": {"max_train_mins": 10, "max_iter_mins": 2},
+        "train_params": {"max_time_mins": 10, "max_eval_time_mins": 2},
     },
     "player-score": {
         "target": ("stat", "score"),
@@ -68,7 +68,7 @@ _EXPECTED_PARAMS = {
         "p_or_t": PlayerOrTeam.PLAYER,
         "target_pos": ["P1", "P2"],
         "training_pos": ["P3", "P4", "P5"],
-        "train_params": {"max_train_mins": 25, "max_iter_mins": 2},
+        "train_params": {"max_time_mins": 25, "max_eval_time_mins": 2},
     },
     "p1-stop": {
         "target": ("stat", "stop"),
@@ -82,7 +82,7 @@ _EXPECTED_PARAMS = {
         "p_or_t": PlayerOrTeam.PLAYER,
         "target_pos": ["P1"],
         "training_pos": ["P3", "P4", "P5"],
-        "train_params": {"max_train_mins": 25, "max_iter_mins": 5},
+        "train_params": {"max_time_mins": 25, "max_eval_time_mins": 5},
     },
 }
 
@@ -130,7 +130,7 @@ def test_training_def_file_model_names(tdf: TrainingDefinitionFile):
         "--overwrite --reuse_existing",
         "--automl_type tpot-light",
         "--tpot_jobs 5",
-        "--max_train_mins 8 --max_iter_mins 4",
+        "--max_time_mins 8 --max_eval_time_mins 4",
     ],
 )
 def test_training_def_file_train_test(
@@ -147,21 +147,21 @@ def test_training_def_file_train_test(
 
     expected_tpot_train_params = {
         "random_state": params["seed"],
-        "max_time_mins": params["train_params"]["max_train_mins"],
-        "max_eval_time_mins": params["train_params"]["max_iter_mins"],
+        "max_time_mins": params["train_params"]["max_time_mins"],
+        "max_eval_time_mins": params["train_params"]["max_eval_time_mins"],
     }
 
     if "--tpot_jobs" in cmdline_strs:
         expected_tpot_train_params["n_jobs"] = int(
             cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1]
         )
-    if "--max_iter_mins" in cmdline_strs:
+    if "--max_eval_time_mins" in cmdline_strs:
         expected_tpot_train_params["max_eval_time_mins"] = int(
-            cmdline_strs[cmdline_strs.index("--max_iter_mins") + 1]
+            cmdline_strs[cmdline_strs.index("--max_eval_time_mins") + 1]
         )
-    if "--max_train_mins" in cmdline_strs:
+    if "--max_time_mins" in cmdline_strs:
         expected_tpot_train_params["max_time_mins"] = int(
-            cmdline_strs[cmdline_strs.index("--max_train_mins") + 1]
+            cmdline_strs[cmdline_strs.index("--max_time_mins") + 1]
         )
     if "--automl_type" in cmdline_strs:
         automl_type = cmdline_strs[cmdline_strs.index("--automl_type") + 1]
@@ -268,7 +268,7 @@ def test_model_gen(tmpdir, mocker):
     model_name = "p1-stop"
     automl_type = "dummy"
     cmdline = (
-        f"--automl_type {automl_type} --max_train_mins 8 --max_iter_mins 4 "
+        f"--automl_type {automl_type} --max_time_mins 8 --max_eval_time_mins 4 "
         f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
     )
 

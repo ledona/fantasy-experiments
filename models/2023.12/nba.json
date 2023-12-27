@@ -14,7 +14,7 @@
         ],
         "missing_data_threshold": 0.09,
         "train_params": {
-            "max_train_mins": 10
+            "max_time_mins": 10
         }
     },
     "model_groups": [

@@ -14,7 +14,7 @@
         ],
         "missing_data_threshold": 0.085,
         "train_params": {
-            "max_train_mins": 10
+            "max_time_mins": 10
         }
     },
     "model_groups": [
@@ -55,7 +55,7 @@
                 "D"
             ],
             "train_params": {
-                "max_train_mins": 30
+                "max_time_mins": 30
             },
             "models": {
                 "NHL-skater-DK": {
@@ -70,7 +70,7 @@
                         "shot"
                     ],
                     "train_params": {
-                        "max_iter_mins": 10
+                        "max_eval_time_mins": 10
                     }
                 },
                 "NHL-skater-assist": {
@@ -85,7 +85,7 @@
                         "goal"
                     ],
                     "train_params": {
-                        "max_iter_mins": 15
+                        "max_eval_time_mins": 15
                     }
                 }
             }
@@ -95,7 +95,7 @@
             "p_or_t": "P",
             "include_pos": false,
             "train_params": {
-                "max_train_mins": 20
+                "max_time_mins": 20
             },
             "target_pos": [
                 "G"

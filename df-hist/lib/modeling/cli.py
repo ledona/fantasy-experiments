@@ -5,9 +5,8 @@ import re
 import shlex
 from argparse import ArgumentParser
 from itertools import product
-from typing import Any
 
-from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle
+from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle, JSONWithCommentsDecoder
 from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
@@ -20,20 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 _DEFAULT_CFG_PATH = os.path.join(".", "model_cfg.json")
 _DEFAULT_RESULTS_PATH = os.path.join(".", "eval_results")
 _DEFAULT_MODEL_PATH = os.path.join(".", "models")
-
-
-class _JSONWithCommentsDecoder(json.JSONDecoder):
-    """
-    json decoder that supports full line comments
-    based on https://stackoverflow.com/a/72168909
-    """
-
-    def __init__(self, **kw):
-        super().__init__(**kw)
-
-    def decode(self, s: str) -> Any:
-        s = "\n".join(l if not re.match(r"(//)|#.*", l.lstrip()) else "" for l in s.split("\n"))
-        return super().decode(s)
 
 
 def _multi_run(
@@ -166,7 +151,7 @@ def _process_cmd_line(cmd_line_str=None):
         parser.error(f"model cfg file '{args.model_cfg_file}' does not exist")
 
     with open(args.model_cfg_file, "r") as f_:
-        model_cfg = json.load(f_, cls=_JSONWithCommentsDecoder)
+        model_cfg = json.load(f_, cls=JSONWithCommentsDecoder)
     if args.automl_framework not in model_cfg and args.automl_framework != "dummy":
         parser.error(
             f"automl type '{args.automl_framework}' not defined in model "

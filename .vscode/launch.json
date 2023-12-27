@@ -28,13 +28,13 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 // "--info",
-                "--tpot_jobs", "2",
+                // "--tpot_jobs", "2",
                 // "--time", "2",
-                "--automl", "dummy",
-                "--dest", "/tmp",
-                "2023.12/nhl.json",
+                // "--automl", "dummy",
+                "--dest", "2023.12",
+                "2023.12/lol.json",
                 // "--info",
-                "NHL-goalie-DK"
+                "LOL-player-DK"
             ]
         },
         {

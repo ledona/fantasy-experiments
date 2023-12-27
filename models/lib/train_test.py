@@ -58,7 +58,9 @@ def _load_data(filename: str, include_position: bool | None):
         )
 
     print(f"Include player position set to {include_position}")
-    one_hots = [col for col in df_raw if ":" in col and isinstance(df_raw[col].iloc[0], str)]
+    one_hots = [
+        col for col in df_raw.columns if ":" in col and isinstance(df_raw[col].iloc[0], str)
+    ]
     if "pos" in df_raw:
         df_raw.drop(columns="pos_id", inplace=True)
         if include_position:
@@ -69,7 +71,7 @@ def _load_data(filename: str, include_position: bool | None):
     df = pd.get_dummies(df_raw, columns=one_hots)
 
     one_hot_stats = (
-        {"extra:venue": [col for col in df if col.startswith("extra:venue_")]}
+        {"extra:venue": [col for col in df.columns if col.startswith("extra:venue_")]}
         if "extra:venue" in df_raw
         else None
     )
@@ -87,7 +89,7 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     """
     return [
         col
-        for col in df
+        for col in df.columns
         if (col.startswith("pos_") and include_position is True and col != "pos_id")
         or col.startswith("extra")
         or ":recent" in col
@@ -158,7 +160,7 @@ def load_data(
         print(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
     feature_cols = [
         col
-        for col in df
+        for col in df.columns
         if col != target_col_name
         and (
             (col.startswith("pos_") and include_position is True)
@@ -177,7 +179,7 @@ def load_data(
         )
     X = train_test_df[feature_cols]
     if target_col_name not in train_test_df:
-        available_targets = [col for col in train_test_df if len(col.split(":")) == 2]
+        available_targets = [col for col in train_test_df.columns if len(col.split(":")) == 2]
         raise ValueError(
             f"Target feature '{target_col_name}' not found in data. "
             f"Available targets are {available_targets}"
@@ -235,7 +237,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     """
     impute_values = {
         Model.impute_key_for_feature_name(col, team_target): round(train_df[col].median(), 2)
-        for col in train_df
+        for col in train_df.columns
         if (":std-mean" in col or col.startswith("extra:"))
     }
     if len(impute_values) == 0:
@@ -265,7 +267,7 @@ def train_test(
     returns the filepath to the model
     """
     dt_trained = datetime.now()
-    print(f"Commencing training for {model_name=} using {type_} fit " f"with {model_init_kwargs=}")
+    print(f"Fitting {model_name=} using {type_}")
     if type_ == "tpot":
         automl = TPOTRegressor(
             verbosity=3,
@@ -298,13 +300,13 @@ def train_test(
         print("Dummy fitted")
 
     y_hat = automl.predict(X_test)
-    r2_test = round(sklearn.metrics.r2_score(y_test, y_hat), 3)
-    mae_test = round(sklearn.metrics.mean_absolute_error(y_test, y_hat), 3)
+    r2_test = round(float(sklearn.metrics.r2_score(y_test, y_hat)), 3)
+    mae_test = round(float(sklearn.metrics.mean_absolute_error(y_test, y_hat)), 3)
     print(f"Test {r2_test=} {mae_test=}")
 
     y_hat_val = automl.predict(X_val)
-    r2_val = round(sklearn.metrics.r2_score(y_val, y_hat_val), 3)
-    mae_val = round(sklearn.metrics.mean_absolute_error(y_val, y_hat_val), 3)
+    r2_val = round(float(sklearn.metrics.r2_score(y_val, y_hat_val)), 3)
+    mae_val = round(float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val)), 3)
     print(f"Validation {r2_val=} {mae_val=}")
 
     filepath = os.path.join(
@@ -314,7 +316,7 @@ def train_test(
     print(f"Exporting model artifact to '{filepath}'")
     if type_ in ("autosk", "dummy"):
         joblib.dump(automl, filepath)
-    elif type_.startswith("tpot"):
+    elif isinstance(automl, TPOTRegressor):
         joblib.dump(automl.fitted_pipeline_, filepath)
     else:
         raise NotImplementedError(f"automl type {type_} not recognized")
@@ -378,11 +380,14 @@ def create_fantasy_model(
                     )
                 if len(possible_1_hot_extras) > 1:
                     raise ValueError(
-                        f"Extra stat '{extra_name}' could be a one hot of multiple {sport_abbr} extra stats. "
-                        f"Can't figure out which of the following extra stats to use: {possible_1_hot_extras}"
+                        f"Extra stat '{extra_name}' could be a one hot of multiple "
+                        f"{sport_abbr} extra stats. "
+                        "Can't figure out which of the following extra stats to use: "
+                        f"{possible_1_hot_extras}"
                     )
                 print(
-                    f"One hotted extra stat '{extra_name}' assigned to original extra stat '{possible_1_hot_extras[0]}'"
+                    f"One hotted extra stat '{extra_name}' assigned to original "
+                    f"extra stat '{possible_1_hot_extras[0]}'"
                 )
                 extra_name = possible_1_hot_extras[0]
 
