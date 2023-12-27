@@ -39,4 +39,3 @@ dumpdata.sc --seasons $SEASONS --no_player \
    --target_stats off_runs win \
    --hist_recent_games 5 --hist_recent_mode ma \
    --progress $DB_FILE --format parquet -f mlb_team.pq
-```
