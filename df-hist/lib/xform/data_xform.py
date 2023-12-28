@@ -97,7 +97,7 @@ def _create_team_score_df(db_filename, slate_ids_str, top_player_percentile) -> 
     conn = sqlite3.connect(f"file:{db_filename}?mode=ro", uri=True)
     sql = f"""
     select distinct daily_fantasy_slate.id as slate_id, game.id as game_id, 
-           game.score_home, game.score_away
+           game.score_home, game.score_away, (game.score_home + game.score_away) as total_score
     from daily_fantasy_slate
         join daily_fantasy_cost on daily_fantasy_slate.id = daily_fantasy_cost.daily_fantasy_slate_id
         join game on ((game.date = daily_fantasy_slate.date or 
@@ -114,19 +114,12 @@ def _create_team_score_df(db_filename, slate_ids_str, top_player_percentile) -> 
 
     team_score_df = (
         db_team_score_df.melt(
-            id_vars=["slate_id", "game_id"], value_vars=["score_home", "score_away"]
+            id_vars=["slate_id", "game_id"], value_vars=["score_home", "score_away", "total_score"]
         )
         .groupby(["slate_id"])
-        .agg(
-            {
-                "value": [
-                    "median",
-                    lambda x: np.percentile(x, top_player_percentile * 100),
-                ]
-            }
-        )
+        .agg({"value": ["median", lambda x: np.percentile(x, top_player_percentile * 100), "sum"]})
     )
-    team_score_df.columns = ["team-med", f"team-{top_player_percentile * 100}th_pctl"]
+    team_score_df.columns = ["team-med", f"team-{top_player_percentile * 100}th_pctl", "team-total"]
     return team_score_df
 
 

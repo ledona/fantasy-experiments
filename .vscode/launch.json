@@ -66,8 +66,8 @@
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
                 "--services", "draftkings",
-                "--dates", "20200901", "20201101",
-                "nfl",
+                "--", // "--dates", "20200901", "20201101",
+                "lol",
             ]
         },
         {
