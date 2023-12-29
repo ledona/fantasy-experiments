@@ -1,0 +1,174 @@
+ CREATE TABLE "player_position" (
+	"id"	INTEGER NOT NULL,
+	"abbr"	VARCHAR(2) NOT NULL,
+	"name"	VARCHAR NOT NULL,
+	PRIMARY KEY("id")
+);
+CREATE TABLE "team" (
+	"id"	INTEGER NOT NULL,
+	"abbr"	VARCHAR NOT NULL,
+	"name"	VARCHAR NOT NULL,
+	"league"	VARCHAR,
+	UNIQUE("name"),
+	PRIMARY KEY("id")
+);
+CREATE TABLE "official" (
+	"id"	INTEGER NOT NULL,
+	"first_name"	VARCHAR,
+	"last_name"	VARCHAR,
+	PRIMARY KEY("id")
+);
+CREATE TABLE "calculation" (
+	"id"	INTEGER NOT NULL,
+	"name"	VARCHAR NOT NULL,
+	"description"	VARCHAR NOT NULL,
+	"trained"	BOOLEAN NOT NULL,
+	UNIQUE("name"),
+	PRIMARY KEY("id")
+);
+CREATE TABLE "daily_fantasy_slate" (
+	"id"	INTEGER NOT NULL,
+	"service"	VARCHAR NOT NULL,
+	"date"	DATE NOT NULL,
+	"season"	INTEGER NOT NULL,
+	"game_number"	INTEGER NOT NULL,
+	"style"	VARCHAR NOT NULL,
+	"name"	VARCHAR NOT NULL,
+	PRIMARY KEY("id")
+);
+CREATE TABLE "player" (
+	"id"	INTEGER NOT NULL,
+	"first_name"	VARCHAR,
+	"last_name"	VARCHAR,
+	"alt_names"	VARCHAR,
+	"handedness"	VARCHAR(1),
+	"player_position_id"	INTEGER NOT NULL,
+	"team_id"	INTEGER,
+	PRIMARY KEY("id"),
+	FOREIGN KEY("player_position_id") REFERENCES "player_position"("id"),
+	FOREIGN KEY("team_id") REFERENCES "team"("id")
+);
+CREATE TABLE "team_ext" (
+	"team_id"	INTEGER NOT NULL,
+	"ext_id"	VARCHAR NOT NULL,
+	"ext_name"	VARCHAR NOT NULL,
+	PRIMARY KEY("team_id","ext_id","ext_name"),
+	FOREIGN KEY("team_id") REFERENCES "team"("id")
+);
+CREATE TABLE "game" (
+	"id"	INTEGER NOT NULL,
+	"home_team_id"	INTEGER NOT NULL,
+	"away_team_id"	INTEGER NOT NULL,
+	"winning_team_id"	INTEGER,
+	"dt"	DATETIME NOT NULL,
+	"date"	DATE NOT NULL,
+	"score_home"	INTEGER NOT NULL,
+	"score_away"	INTEGER NOT NULL,
+	"season"	INTEGER NOT NULL,
+	"venue"	VARCHAR,
+	"season_part"	VARCHAR NOT NULL CHECK("season_part" IN ('REG', 'PRE', 'POST')),
+	"game_number"	INTEGER NOT NULL,
+	"game_number_sub"	INTEGER,
+	PRIMARY KEY("id"),
+	FOREIGN KEY("away_team_id") REFERENCES "team"("id"),
+	FOREIGN KEY("home_team_id") REFERENCES "team"("id"),
+	FOREIGN KEY("winning_team_id") REFERENCES "team"("id")
+);
+CREATE TABLE "statistic" (
+	"id"	INTEGER NOT NULL,
+	"name"	VARCHAR NOT NULL,
+	"description"	VARCHAR,
+	"player_or_team"	VARCHAR(1) NOT NULL CHECK("player_or_team" IN ('P', 'T')),
+	"calculation_id"	INTEGER,
+	CONSTRAINT "con_statistic_uniq" UNIQUE("calculation_id","name","player_or_team"),
+	PRIMARY KEY("id"),
+	FOREIGN KEY("calculation_id") REFERENCES "calculation"("id")
+);
+CREATE TABLE "calculation_definition" (
+	"id"	INTEGER NOT NULL,
+	"calculation_id"	INTEGER NOT NULL,
+	"name"	VARCHAR,
+	"parameters"	VARCHAR NOT NULL,
+	"trained_parameters"	VARCHAR,
+	"training_data_def"	VARCHAR,
+	"meta_extra"	VARCHAR,
+	"dt_created"	DATETIME,
+	"dt_trained"	DATETIME,
+	UNIQUE("name"),
+	CONSTRAINT "calculation_def_uniq" UNIQUE("calculation_id","parameters","training_data_def"),
+	PRIMARY KEY("id"),
+	FOREIGN KEY("calculation_id") REFERENCES "calculation"("id")
+);
+CREATE TABLE "player_ext" (
+	"player_id"	INTEGER NOT NULL,
+	"ext_id"	VARCHAR NOT NULL,
+	"ext_name"	VARCHAR NOT NULL,
+	PRIMARY KEY("player_id","ext_id","ext_name"),
+	FOREIGN KEY("player_id") REFERENCES "player"("id")
+);
+CREATE TABLE "game_ext" (
+	"game_id"	INTEGER NOT NULL,
+	"ext_id"	VARCHAR NOT NULL,
+	"ext_name"	VARCHAR NOT NULL,
+	PRIMARY KEY("game_id","ext_id","ext_name"),
+	FOREIGN KEY("game_id") REFERENCES "game"("id")
+);
+CREATE TABLE "game_official" (
+	"id"	INTEGER NOT NULL,
+	"game_id"	INTEGER NOT NULL,
+	"official_id"	INTEGER NOT NULL,
+	"position"	VARCHAR,
+	PRIMARY KEY("id"),
+	FOREIGN KEY("game_id") REFERENCES "game"("id"),
+	FOREIGN KEY("official_id") REFERENCES "official"("id")
+);
+CREATE TABLE "game_player_position" (
+	"id"	INTEGER NOT NULL,
+	"game_id"	INTEGER NOT NULL,
+	"player_id"	INTEGER NOT NULL,
+	"player_position_id"	INTEGER NOT NULL,
+	PRIMARY KEY("id"),
+	FOREIGN KEY("game_id") REFERENCES "game"("id"),
+	FOREIGN KEY("player_position_id") REFERENCES "player_position"("id"),
+	FOREIGN KEY("player_id") REFERENCES "player"("id")
+);
+CREATE TABLE "datum" (
+	"id"	INTEGER NOT NULL,
+	"statistic_id"	INTEGER NOT NULL,
+	"game_id"	INTEGER NOT NULL,
+	"team_id"	INTEGER NOT NULL,
+	"player_id"	INTEGER,
+	"value"	FLOAT NOT NULL,
+	PRIMARY KEY("id"),
+	FOREIGN KEY("game_id") REFERENCES "game"("id"),
+	FOREIGN KEY("player_id") REFERENCES "player"("id"),
+	FOREIGN KEY("team_id") REFERENCES "team"("id"),
+	FOREIGN KEY("statistic_id") REFERENCES "statistic"("id")
+);
+CREATE TABLE "calculation_datum" (
+	"id"	INTEGER NOT NULL,
+	"statistic_id"	INTEGER NOT NULL,
+	"calculation_definition_id"	INTEGER NOT NULL,
+	"game_id"	INTEGER NOT NULL,
+	"team_id"	INTEGER NOT NULL,
+	"player_id"	INTEGER,
+	"value"	FLOAT NOT NULL,
+	PRIMARY KEY("id"),
+	FOREIGN KEY("statistic_id") REFERENCES "statistic"("id"),
+	FOREIGN KEY("game_id") REFERENCES "game"("id"),
+	FOREIGN KEY("calculation_definition_id") REFERENCES "calculation_definition"("id"),
+	FOREIGN KEY("team_id") REFERENCES "team"("id"),
+	FOREIGN KEY("player_id") REFERENCES "player"("id")
+);
+CREATE TABLE "daily_fantasy_cost" (
+	"daily_fantasy_slate_id"	INTEGER NOT NULL,
+	"player_id"	INTEGER,
+	"team_id"	INTEGER NOT NULL,
+	"cost"	FLOAT NOT NULL,
+	"positions"	VARCHAR,
+	PRIMARY KEY("daily_fantasy_slate_id","player_id","team_id"),
+	FOREIGN KEY("team_id") REFERENCES "team"("id"),
+	FOREIGN KEY("player_id") REFERENCES "player"("id"),
+	FOREIGN KEY("daily_fantasy_slate_id") REFERENCES "daily_fantasy_slate"("id")
+);
+
