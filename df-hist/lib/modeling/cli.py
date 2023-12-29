@@ -31,6 +31,7 @@ def _multi_run(
     models_to_test: set[ModelTargetGroup],
     model_folder,
     mode: ExistingModelMode,
+    eval_results_path: str,
 ):
     _LOGGER.info("starting multirun")
     models = {}
@@ -59,6 +60,7 @@ def _multi_run(
             model_params,
             pbar,
             model_folder=model_folder,
+            eval_results_path=eval_results_path,
             models_to_test=models_to_test,
             service=service,
             mode=mode,
@@ -162,7 +164,7 @@ def _process_cmd_line(cmd_line_str=None):
     c_types = [CLSRegistry.get_class(CONTEST_DOMAIN, type_) for type_ in set(args.contest_types)]
 
     print(f"{args=}")
-    models, eval_results, failed_models = _multi_run(
+    eval_results, failed_models = _multi_run(
         args.automl_framework,
         model_cfg.get(args.automl_framework, {}),
         c_styles,
@@ -172,7 +174,8 @@ def _process_cmd_line(cmd_line_str=None):
         set(args.model_types),
         args.model_path,
         args.existing_model_mode,
-    )
+        args.results_path,
+    )[1:]
 
     show_eval_results(eval_results, failed_models, args.results_path)
 

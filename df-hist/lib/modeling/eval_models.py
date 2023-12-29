@@ -40,15 +40,17 @@ def evaluate_models(
     automl_params: dict,
     pbar,
     data_folder="data",
+    eval_results_path: str | None = None,
     models_to_test: set[ModelTargetGroup] | None = None,
     model_folder="models",
     service=None,
     mode: ExistingModelMode = "fail",
 ) -> tuple[dict, list, list[tuple[str, str]]]:
     """
-    models_to_test - set/list of the models to test. if None then all models tested.
-        possible models are
-        if service is None then use all service data and add a service feature
+    models_to_test: set/list of the models to test. if None then all models \
+        tested. Possible models are if service is None then use all service \
+        data and add a service feature
+    eval_results_path: path to write evuation predictions and truth
     returns tuple of (models, evaluation results, failed models)
     """
     service_name = service or "multi"
@@ -137,6 +139,7 @@ def evaluate_models(
             y_test,
             framework=framework,
             mode=mode,
+            eval_results_path=eval_results_path,
             **automl_params,
         )
 

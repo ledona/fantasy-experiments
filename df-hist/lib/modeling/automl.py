@@ -32,13 +32,7 @@ ExistingModelMode = Literal["reuse", "overwrite", "fail"]
 """action to take if a model file already exists"""
 
 
-def _error_report(
-    model,
-    X_test,
-    y_test,
-    desc: str = None,
-    show_results=True,
-) -> dict:
+def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_path) -> dict:
     """
     display the error report for the model, also return a dict with the scores
     """
@@ -55,8 +49,7 @@ def _error_report(
         "RMSE": rmse,
         "MAE": mae,
     }
-    if show_results:
-        print(f"**** Error Report for {desc} ****: {result}")
+    if show_results or eval_results_path:
         assert isinstance(predictions, (pd.Series, np.ndarray))
         assert isinstance(y_test, (pd.Series, np.ndarray))
 
@@ -68,25 +61,18 @@ def _error_report(
         plot_data = pd.concat([truth, pred], axis=1)
         plot_data.columns = ["truth", "prediction"]
         plot_data["error"] = plot_data.prediction - plot_data.truth
-        print()
-        print(plot_data)
 
-        # fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-        # fig.suptitle(f"{desc or 'unknown model'} : {r2=} {rmse=} {mae=}")
-        # for ax in axs:
-        #     ax.axis("equal")
+        if eval_results_path:
+            predictions_filename = os.path.join(eval_results_path, desc + ".prediction.csv")
+            with open(predictions_filename, "w") as f_:
+                plot_data.to_csv(f_, index=False)
 
-        # min_v = min(plot_data.truth.min(), plot_data.prediction.min())
-        # max_v = max(plot_data.truth.max(), plot_data.prediction.max())
+        if show_results:
+            print(f"**** Error Report for {desc} ****: {result}")
+            print()
+            print(plot_data)
 
-        # axs[0].plot((min_v, max_v), (min_v, max_v), "-g", linewidth=1)
-        # plot_data.plot(kind="scatter", x="truth", y="prediction", ax=axs[0])
-
-        # axs[1].yaxis.set_label_position("right")
-        # axs[1].plot((min_v, max_v), (0, 0), "-g", linewidth=1)
-        # plot_data.plot(kind="scatter", x="truth", y="error", ax=axs[1])
-
-    return result, predictions
+    return result
 
 
 def create_automl_model(
@@ -100,6 +86,7 @@ def create_automl_model(
     framework: Framework = "tpot",
     max_train_time=None,
     mode: ExistingModelMode = "fail",
+    eval_results_path=None,
     **automl_params,
 ):
     """
@@ -152,11 +139,6 @@ def create_automl_model(
         _LOGGER.info("writing model to pickled file '%s'", model_filepath)
         joblib.dump(model, model_filepath)
 
-    eval_results, predictions = _error_report(model, X_test, y_test, desc=model_desc)
+    eval_results = _error_report(model, X_test, y_test, model_desc, True, eval_results_path)
 
-    return {
-        "model": model,
-        "fit_params": fit_params,
-        "eval_result": eval_results,
-        "predictions": predictions,
-    }
+    return {"model": model, "fit_params": fit_params, "eval_result": eval_results}
