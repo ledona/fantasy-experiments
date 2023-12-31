@@ -6,7 +6,6 @@ from typing import Literal
 
 import dask
 import joblib
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn
