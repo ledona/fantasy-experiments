@@ -11,7 +11,7 @@
         "n_jobs": 6,
         "verbosity": 2,
         "max_train_time": 1200,
-        "max_eval_time_mins": 5,
+        "max_eval_time_mins": 10,
         "generations": 100,
         "early_stop": 15,
         "random_state": 1,

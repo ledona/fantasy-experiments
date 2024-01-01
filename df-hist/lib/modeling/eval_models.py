@@ -127,7 +127,7 @@ def evaluate_models(
     for target, y_train, y_test in model_ys:
         model_desc = f"{model_desc_pre}-{target}-{framework}"
 
-        _LOGGER.info("training model=%s", model_desc)
+        _LOGGER.info("training model=%s params=%s", model_desc, automl_params)
         pbar.set_postfix_str(model_desc)
 
         cam_result = create_automl_model(
