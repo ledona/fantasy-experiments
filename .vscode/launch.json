@@ -31,6 +31,7 @@
                 // "--tpot_jobs", "2",
                 // "--time", "2",
                 // "--automl", "dummy",
+                "--mode", "reuse",
                 "--dest", "2023.12",
                 "2023.12/lol.json",
                 // "--info",
