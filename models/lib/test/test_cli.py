@@ -1,22 +1,21 @@
 import json
 import os
-from datetime import datetime
 import platform
+from datetime import datetime
 
 import joblib
 import pandas as pd
 import pytest
+from fantasy_py import FeatureType, PlayerOrTeam
 from freezegun import freeze_time
+from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
-
-from ledona import deep_compare_dicts
-
-from fantasy_py import PlayerOrTeam, FeatureType
 
 from ..cli import (
     _DEFAULT_AUTOML_TYPE,
     _DUMMY_REGRESSOR_KWARGS,
+    OverwriteMode,
     TrainingDefinitionFile,
     _Params,
     main,
@@ -124,24 +123,22 @@ def test_training_def_file_model_names(tdf: TrainingDefinitionFile):
 
 
 @pytest.mark.parametrize(
-    "cmdline",
+    "cmdline, overwrite_mode",
     [
-        "",
-        "--overwrite --reuse_existing",
-        "--automl_type tpot-light",
-        "--tpot_jobs 5",
-        "--max_time_mins 8 --max_eval_time_mins 4",
+        ("", "fail"),
+        ("--mode reuse", "reuse"),
+        ("--mode overwrite", "overwrite"),
+        ("--automl_type tpot-light", "fail"),
+        ("--tpot_jobs 5", "fail"),
+        ("--max_time_mins 8 --max_eval_time_mins 4", "fail"),
     ],
 )
 def test_training_def_file_train_test(
-    mocker: MockFixture, cmdline: str, tdf: TrainingDefinitionFile
+    mocker: MockFixture, cmdline: str, overwrite_mode: OverwriteMode, tdf: TrainingDefinitionFile
 ):
     """test that the calls to load_data and model_and_test are
     as expected"""
     cmdline_strs = cmdline.split(" ")
-    overwrite = "--overwrite" in cmdline
-    reuse_existing = "--reuse_existing" in cmdline
-
     model_name = "p1-stop"
     params = tdf.get_params(model_name)
 
@@ -202,8 +199,7 @@ def test_training_def_file_train_test(
         params["training_pos"] or params["target_pos"],
         ".",
         raw_df=fake_raw_df,
-        reuse_existing=reuse_existing,
-        overwrite=overwrite,
+        overwrite_mode=overwrite_mode,
     )
 
 

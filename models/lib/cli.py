@@ -11,7 +11,7 @@ from typing import Literal, TypedDict, cast
 from fantasy_py import JSONWithCommentsDecoder, PlayerOrTeam, typed_dict_validate
 from ledona import process_timer
 
-from .train_test import AutomlType, load_data, model_and_test
+from .train_test import AutomlType, OverwriteMode, load_data, model_and_test
 
 _EXPECTED_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
 
@@ -104,13 +104,13 @@ class TrainingDefinitionFile:
         return cast(_Params, param_dict)
 
     @process_timer
-    def train_and_test(
+    def _train_and_test(
         self,
         model_name: str,
         automl_type: AutomlType,
-        reuse_existing: bool,
-        overwrite: bool,
+        overwrite_mode: OverwriteMode,
         dest_dir: str | None,
+        error_data: bool,
         **regressor_kwargs,
     ):
         params = self.get_params(model_name)
@@ -164,8 +164,7 @@ class TrainingDefinitionFile:
             params["training_pos"] or params["target_pos"],
             dest_dir,
             raw_df=raw_df,
-            reuse_existing=reuse_existing,
-            overwrite=overwrite,
+            overwrite_mode=overwrite_mode,
         )
 
         return model
@@ -185,11 +184,18 @@ def main(cmd_line_str=None):
     )
     parser.add_argument("--info", default=False, action="store_true")
     parser.add_argument(
-        "--reuse_existing",
+        "--overwrite_mode",
+        "--mode",
+        help="What action to take if a model already exists",
+        default="fail",
+        choices=OverwriteMode.__args__,
+    )
+    parser.add_argument(
+        "--error_analysis_data",
+        help="Write error analysis data based on validation dataset to a file. "
+        "Data consists of columns 'truth', 'prediction', 'error'",
         default=False,
         action="store_true",
-        help="If an existing model exists at the destination then load and "
-        "evalute that instead of training a fresh model",
     )
     parser.add_argument("--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AutomlType.__args__)
     parser.add_argument(
@@ -249,12 +255,12 @@ def main(cmd_line_str=None):
     else:
         raise NotImplementedError()
 
-    tdf.train_and_test(
+    tdf._train_and_test(
         args.model,
         args.automl_type,
-        args.reuse_existing,
-        args.overwrite,
+        args.overwrite_mode,
         args.dest_dir,
+        args.error_analysis_data,
         **modeler_init_kwargs,
     )
 

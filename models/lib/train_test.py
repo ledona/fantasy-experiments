@@ -14,10 +14,6 @@ import joblib
 import pandas as pd
 import sklearn.metrics
 import sklearn.model_selection
-from sklearn.dummy import DummyRegressor
-from tpot import TPOTRegressor
-from tpot.config import regressor_config_dict_light
-
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
@@ -29,6 +25,9 @@ from fantasy_py import (
 )
 from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
+from sklearn.dummy import DummyRegressor
+from tpot import TPOTRegressor
+from tpot.config import regressor_config_dict_light
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -439,6 +438,9 @@ def create_fantasy_model(
     return model
 
 
+OverwriteMode = Literal["overwrite", "reuse", "fail"]
+
+
 def model_and_test(
     name: str,
     validation_season: int,
@@ -452,17 +454,21 @@ def model_and_test(
     target_pos: None | list[str],
     training_pos,
     dest_dir,
-    reuse_existing=False,
+    overwrite_mode: OverwriteMode = "fail",
     raw_df=None,
-    overwrite=False,
 ):
     """create or load a model and test it"""
     model_filename = ".".join([name, target[1], automl_type, "model"])
     print(f"Model filename = '{model_filename}'")
     requested_model_filepath = os.path.join(dest_dir, model_filename)
-    if not reuse_existing or not os.path.exists(requested_model_filepath):
-        if reuse_existing:
-            print("Reuse failed, existing model not found")
+    model = None
+    if os.path.exists(requested_model_filepath):
+        if overwrite_mode == "fail":
+            raise FileExistsError(f"model file '{requested_model_filepath}' exists!")
+        print("Reusing existing model...")
+        final_model_filepath = requested_model_filepath
+        model = Model.load(requested_model_filepath)
+    else:
         model_artifact_path, performance, dt_trained = train_test(
             automl_type,
             name,
@@ -488,22 +494,21 @@ def model_and_test(
             automl_kwargs,
         )
 
-        if os.path.isfile(requested_model_filepath):
-            model_filename = ".".join(
-                [name, target[1], automl_type, dt_to_filename_str(dt_trained), "model"]
-            )
-            old_path = requested_model_filepath
-            requested_model_filepath = os.path.join(dest_dir, model_filename)
-            print(
-                f"File exists at model filepath '{old_path}' switching to timestamped "
-                f"filepath at '{requested_model_filepath}'"
-            )
+        # if os.path.isfile(requested_model_filepath):
+        #     model_filename = ".".join(
+        #         [name, target[1], automl_type, dt_to_filename_str(dt_trained), "model"]
+        #     )
+        #     old_path = requested_model_filepath
+        #     requested_model_filepath = os.path.join(dest_dir, model_filename)
+        #     print(
+        #         f"File exists at model filepath '{old_path}' switching to timestamped "
+        #         f"filepath at '{requested_model_filepath}'"
+        #     )
 
-        final_model_filepath = model.dump(requested_model_filepath, overwrite=overwrite)
+        final_model_filepath = model.dump(
+            requested_model_filepath
+        )
         print(f"Model file saved to '{final_model_filepath}'")
-    else:
-        print("Reusing existing model...")
-        model = Model.load(model_filename)
 
     if raw_df is not None:
         try:
