@@ -67,13 +67,20 @@ def load_csv(
             nan_best_score_rows,
             len(df),
         )
+    if len(missing_last_winning_score_rows := df.query("last_winning_score == 0")) > 0:
+        df = df.query("last_winning_score > 0")
+        _LOGGER.info(
+            "Dropped %i rows because last winning score is 0. %i rows remaining",
+            len(missing_last_winning_score_rows),
+            len(df),
+        )
 
     return df
 
 
 def generate_train_test(
     df: pd.DataFrame,
-    train_size: float = 0.5,
+    train_size: float = 0.25,
     random_state: None | int = None,
     model_cols: None | set[str] = None,
     service_as_feature: bool = False,
@@ -101,7 +108,7 @@ def generate_train_test(
             x_cols.append(col)
 
     len_pre_na_drop = len(df)
-    if not service_as_feature and 'service' in df:
+    if not service_as_feature and "service" in df:
         df = df.drop(columns="service")
     df = df[df["top_score"].notna()]
     df = df[df["last_winning_score"].notna()]
