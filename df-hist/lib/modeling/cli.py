@@ -48,7 +48,9 @@ def _multi_run(
 
     for sport, service, style, contest_type in (
         pbar := tqdm(
-            product(sports, services, styles, contest_types), total=progress_total, desc="modeling"
+            product(sorted(sports), sorted(services), styles, contest_types),
+            total=progress_total,
+            desc="modeling",
         )
     ):
         (new_models, new_eval_results, failed_models) = evaluate_models(
