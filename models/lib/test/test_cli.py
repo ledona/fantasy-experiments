@@ -172,7 +172,7 @@ def test_training_def_file_train_test(
     )
     mock_model_and_test = mocker.patch("lib.cli.model_and_test", return_value=None)
 
-    main(cmdline + f" {_TEST_DEF_FILE_FILEPATH} {model_name}")
+    main(f"train {cmdline} {_TEST_DEF_FILE_FILEPATH} {model_name}")
 
     mock_load_data.assert_called_once_with(
         params["data_filename"],
@@ -284,7 +284,7 @@ def test_model_gen(tmpdir, mocker):
 
     dt = datetime(2023, 12, 3, 0, 33)
     with freeze_time(dt):
-        main(cmdline)
+        main("train " + cmdline)
 
     model_filepath = os.path.join(tmpdir, f"{model_name}.{target_stat}.{automl_type}.model")
     pkl_filepath = os.path.join(

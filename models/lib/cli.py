@@ -1,12 +1,16 @@
 #! /venv/bin/python
 import argparse
 import json
+import glob
 import os
 import pathlib
 import shlex
 import sys
 from pprint import pprint
 from typing import Literal, TypedDict, cast
+
+import pandas as pd
+import dateutil
 
 from fantasy_py import JSONWithCommentsDecoder, PlayerOrTeam, typed_dict_validate
 from ledona import process_timer
@@ -174,65 +178,14 @@ _DEFAULT_AUTOML_TYPE: AutomlType = "tpot"
 _DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 
-def main(cmd_line_str=None):
-    parser = argparse.ArgumentParser(description="Train and Test CLI")
-    parser.add_argument("train_file", help="Json file containing training parameters")
-    parser.add_argument(
-        "model",
-        nargs="?",
-        help="Name of the model to train, if not set then model names will be listed",
-    )
-    parser.add_argument("--info", default=False, action="store_true")
-    parser.add_argument(
-        "--overwrite_mode",
-        "--mode",
-        help="What action to take if a model already exists",
-        default="fail",
-        choices=OverwriteMode.__args__,
-    )
-    parser.add_argument(
-        "--error_analysis_data",
-        help="Write error analysis data based on validation dataset to a file. "
-        "Data consists of columns 'truth', 'prediction', 'error'",
-        default=False,
-        action="store_true",
-    )
-    parser.add_argument("--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AutomlType.__args__)
-    parser.add_argument(
-        "--n_jobs", "--tpot_jobs", help="Number of jobs/processors to use during training", type=int
-    )
-    parser.add_argument(
-        "--training_mins",
-        "--mins",
-        "--max_train_mins",
-        "--time",
-        "--max_time",
-        "--max_time_mins",
-        type=int,
-        help="override the training time defined in the train_file",
-    )
-    parser.add_argument(
-        "--training_iter_mins",
-        "--max_iter_mins",
-        "--iter_mins",
-        "--iter_time",
-        "--max_eval_time_mins",
-        type=int,
-        help="override the training iteration time defined in the train_file",
-    )
-    parser.add_argument("--overwrite", default=False, action="store_true")
-    parser.add_argument("--dest_dir", default=".")
-
-    arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
-    args = parser.parse_args(arg_strings)
-
+def _handle_train(args):
     tdf = TrainingDefinitionFile(args.train_file)
     if not args.model:
         print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
         sys.exit(0)
 
     if args.model not in tdf.model_names:
-        parser.error(
+        args.parser.error(
             f"Model '{args.model}' not defined. Try again with one "
             f"of the following: {tdf.model_names}"
         )
@@ -263,6 +216,130 @@ def main(cmd_line_str=None):
         args.error_analysis_data,
         **modeler_init_kwargs,
     )
+
+
+def _add_train_parser(sub_parsers):
+    train_parser = sub_parsers.add_parser("train", help="Train a model")
+    train_parser.set_defaults(func=_handle_train, parser=train_parser)
+    train_parser.add_argument("train_file", help="Json file containing training parameters")
+    train_parser.add_argument(
+        "model",
+        nargs="?",
+        help="Name of the model to train, if not set then model names will be listed",
+    )
+    train_parser.add_argument("--info", default=False, action="store_true")
+    train_parser.add_argument(
+        "--overwrite_mode",
+        "--mode",
+        help="What action to take if a model already exists",
+        default="fail",
+        choices=OverwriteMode.__args__,
+    )
+    train_parser.add_argument(
+        "--error_analysis_data",
+        help="Write error analysis data based on validation dataset to a file. "
+        "Data consists of columns 'truth', 'prediction', 'error'",
+        default=False,
+        action="store_true",
+    )
+    train_parser.add_argument(
+        "--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AutomlType.__args__
+    )
+    train_parser.add_argument(
+        "--n_jobs", "--tpot_jobs", help="Number of jobs/processors to use during training", type=int
+    )
+    train_parser.add_argument(
+        "--training_mins",
+        "--mins",
+        "--max_train_mins",
+        "--time",
+        "--max_time",
+        "--max_time_mins",
+        type=int,
+        help="override the training time defined in the train_file",
+    )
+    train_parser.add_argument(
+        "--training_iter_mins",
+        "--max_iter_mins",
+        "--iter_mins",
+        "--iter_time",
+        "--max_eval_time_mins",
+        type=int,
+        help="override the training iteration time defined in the train_file",
+    )
+    train_parser.add_argument("--overwrite", default=False, action="store_true")
+    train_parser.add_argument("--dest_dir", default=".")
+
+
+def _model_catalog_func(args):
+    """parser func that creates/updates the model catalog"""
+    data = []
+
+    root = os.path.join(args.root, "**", "*.model")
+    for model_filepath in glob.glob(root, recursive=True):
+        print(f"parsing '{model_filepath}'")
+        with open(model_filepath, "r") as f_:
+            model_data = json.load(f_)
+
+        data.append(
+            {
+                "file_name": os.path.basename(model_filepath),
+                "name": model_data["name"],
+                "sport": model_data["name"].split("-", 1)[0],
+                "dt": dateutil.parser.parse(model_data["dt_trained"]),
+                "r2": model_data["meta_extra"]["performance"]["r2"],
+                "mae": model_data["meta_extra"]["performance"]["mae"],
+                "target": ":".join(model_data["training_data_def"]["target"]),
+            }
+        )
+
+    df = pd.DataFrame(data)
+    with pd.option_context(
+        "display.max_rows",
+        None,
+        "display.max_columns",
+        None,
+        "display.max_colwidth",
+        None,
+        "expand_frame_repr",
+        False,
+    ):
+        print(df.to_string(index=False))
+
+
+def _add_model_catalog_parser(sub_parsers):
+    parser = sub_parsers.add_parser("catalog", help="Update model catalog")
+    parser.set_defaults(func=_model_catalog_func, parser=parser)
+    parser.add_argument(
+        "--root",
+        help="The root directory to start the search for model files. Default=.",
+        default=".",
+    )
+
+
+def _model_load_actives_func(args):
+    """parser func that loads active models"""
+    raise NotImplementedError()
+
+
+def _add_load_actives_parser(sub_parsers):
+    parser = sub_parsers.add_parser("load", help="Load active models")
+    parser.set_defaults(func=_model_load_actives_func, parser=parser)
+
+
+def main(cmd_line_str=None):
+    parser = argparse.ArgumentParser(description="Train and Test CLI")
+    subparsers = parser.add_subparsers()
+    _add_train_parser(subparsers)
+    _add_model_catalog_parser(subparsers)
+    _add_load_actives_parser(subparsers)
+
+    arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
+    args = parser.parse_args(arg_strings)
+    if not hasattr(args, "func"):
+        parser.print_help()
+        parser.exit(1)
+    args.func(args)
 
 
 if __name__ == "__main__":
