@@ -1,5 +1,6 @@
 """use this module's functions to train and evaluate models"""
 
+from glob import glob
 import os
 import platform
 import re
@@ -10,6 +11,7 @@ from pprint import pprint
 from typing import Literal, cast
 
 # import autosklearn.regression
+import dateutil
 import joblib
 import pandas as pd
 import sklearn.metrics
@@ -438,9 +440,6 @@ def create_fantasy_model(
     return model
 
 
-OverwriteMode = Literal["overwrite", "reuse", "fail"]
-
-
 def model_and_test(
     name: str,
     validation_season: int,
@@ -454,21 +453,29 @@ def model_and_test(
     target_pos: None | list[str],
     training_pos,
     dest_dir,
-    overwrite_mode: OverwriteMode = "fail",
+    reuse_most_recent: bool,
     raw_df=None,
 ):
     """create or load a model and test it"""
-    model_filename = ".".join([name, target[1], automl_type, "model"])
-    print(f"Model filename = '{model_filename}'")
-    requested_model_filepath = os.path.join(dest_dir, model_filename)
     model = None
-    if os.path.exists(requested_model_filepath):
-        if overwrite_mode == "fail":
-            raise FileExistsError(f"model file '{requested_model_filepath}' exists!")
-        print("Reusing existing model...")
-        final_model_filepath = requested_model_filepath
-        model = Model.load(requested_model_filepath)
-    else:
+    if reuse_most_recent:
+        model_filename_pattern = ".".join([name, target[1], automl_type, "*", "model"])
+        most_recent_model: tuple[datetime, str] | None = None
+        for filename in glob(os.path.join(dest_dir, model_filename_pattern)):
+            model_dt = dateutil.parser.parse(filename.split(".")[3])
+            if (most_recent_model is None) or (most_recent_model[0] < model_dt):
+                most_recent_model = (model_dt, filename)
+
+        if most_recent_model is not None:
+            final_model_filepath = most_recent_model[1]
+            print(f"Reusing model at '{final_model_filepath}'")
+            model = Model.load(final_model_filepath)
+
+    if model is None:
+        final_model_filepath = ".".join(
+            [name, target[1], automl_type, dt_to_filename_str(), "model"]
+        )
+
         model_artifact_path, performance, dt_trained = train_test(
             automl_type,
             name,
@@ -494,20 +501,7 @@ def model_and_test(
             automl_kwargs,
         )
 
-        # if os.path.isfile(requested_model_filepath):
-        #     model_filename = ".".join(
-        #         [name, target[1], automl_type, dt_to_filename_str(dt_trained), "model"]
-        #     )
-        #     old_path = requested_model_filepath
-        #     requested_model_filepath = os.path.join(dest_dir, model_filename)
-        #     print(
-        #         f"File exists at model filepath '{old_path}' switching to timestamped "
-        #         f"filepath at '{requested_model_filepath}'"
-        #     )
-
-        final_model_filepath = model.dump(
-            requested_model_filepath
-        )
+        model.dump(final_model_filepath)
         print(f"Model file saved to '{final_model_filepath}'")
 
     if raw_df is not None:

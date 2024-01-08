@@ -1,7 +1,7 @@
 #! /venv/bin/python
 import argparse
-import json
 import glob
+import json
 import os
 import pathlib
 import shlex
@@ -9,18 +9,17 @@ import sys
 from pprint import pprint
 from typing import Literal, TypedDict, cast
 
-import pandas as pd
 import dateutil
-
+import pandas as pd
 from fantasy_py import (
     JSONWithCommentsDecoder,
     PlayerOrTeam,
-    typed_dict_validate,
     dt_to_filename_str,
+    typed_dict_validate,
 )
 from ledona import process_timer
 
-from .train_test import AutomlType, OverwriteMode, load_data, model_and_test
+from .train_test import AutomlType, load_data, model_and_test
 
 _EXPECTED_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
 
@@ -117,9 +116,9 @@ class TrainingDefinitionFile:
         self,
         model_name: str,
         automl_type: AutomlType,
-        overwrite_mode: OverwriteMode,
         dest_dir: str | None,
         error_data: bool,
+        reuse_existing_models: bool,
         **regressor_kwargs,
     ):
         params = self.get_params(model_name)
@@ -172,8 +171,8 @@ class TrainingDefinitionFile:
             params["target_pos"],
             params["training_pos"] or params["target_pos"],
             dest_dir,
+            reuse_existing_models,
             raw_df=raw_df,
-            overwrite_mode=overwrite_mode,
         )
 
         return model
@@ -216,7 +215,6 @@ def _handle_train(args):
     tdf._train_and_test(
         args.model,
         args.automl_type,
-        args.overwrite_mode,
         args.dest_dir,
         args.error_analysis_data,
         **modeler_init_kwargs,
@@ -233,13 +231,7 @@ def _add_train_parser(sub_parsers):
         help="Name of the model to train, if not set then model names will be listed",
     )
     train_parser.add_argument("--info", default=False, action="store_true")
-    train_parser.add_argument(
-        "--overwrite_mode",
-        "--mode",
-        help="What action to take if a model already exists",
-        default="fail",
-        choices=OverwriteMode.__args__,
-    )
+    train_parser.add_argument("--reuse", default=False, action="store_true")    
     train_parser.add_argument(
         "--error_analysis_data",
         help="Write error analysis data based on validation dataset to a file. "
@@ -272,7 +264,6 @@ def _add_train_parser(sub_parsers):
         type=int,
         help="override the training iteration time defined in the train_file",
     )
-    train_parser.add_argument("--overwrite", default=False, action="store_true")
     train_parser.add_argument("--dest_dir", default=".")
 
 
