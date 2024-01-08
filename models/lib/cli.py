@@ -12,7 +12,12 @@ from typing import Literal, TypedDict, cast
 import pandas as pd
 import dateutil
 
-from fantasy_py import JSONWithCommentsDecoder, PlayerOrTeam, typed_dict_validate
+from fantasy_py import (
+    JSONWithCommentsDecoder,
+    PlayerOrTeam,
+    typed_dict_validate,
+    dt_to_filename_str,
+)
 from ledona import process_timer
 
 from .train_test import AutomlType, OverwriteMode, load_data, model_and_test
@@ -275,25 +280,28 @@ def _model_catalog_func(args):
     """parser func that creates/updates the model catalog"""
     data = []
 
-    root = os.path.join(args.root, "**", "*.model")
-    for model_filepath in glob.glob(root, recursive=True):
+    glob_pattern = os.path.join(args.root, "**", "*.model")
+    for model_filepath in glob.glob(glob_pattern, recursive=True):
         print(f"parsing '{model_filepath}'")
         with open(model_filepath, "r") as f_:
             model_data = json.load(f_)
 
+        p_t = "player" if model_data["training_data_def"]["target"][1] == "P" else "team"
         data.append(
             {
-                "file_name": os.path.basename(model_filepath),
                 "name": model_data["name"],
                 "sport": model_data["name"].split("-", 1)[0],
+                "p/t": p_t,
                 "dt": dateutil.parser.parse(model_data["dt_trained"]),
                 "r2": model_data["meta_extra"]["performance"]["r2"],
                 "mae": model_data["meta_extra"]["performance"]["mae"],
                 "target": ":".join(model_data["training_data_def"]["target"]),
+                "file_name": os.path.basename(model_filepath),
             }
         )
 
     df = pd.DataFrame(data)
+
     with pd.option_context(
         "display.max_rows",
         None,
@@ -306,6 +314,10 @@ def _model_catalog_func(args):
     ):
         print(df.to_string(index=False))
 
+    filename = args.csv_filename or f"model-catalog.{dt_to_filename_str()}.csv"
+    df.to_csv(os.path.join(args.root, filename), index=False)
+    print(f"catalog written to '{filename}'")
+
 
 def _add_model_catalog_parser(sub_parsers):
     parser = sub_parsers.add_parser("catalog", help="Update model catalog")
@@ -315,6 +327,7 @@ def _add_model_catalog_parser(sub_parsers):
         help="The root directory to start the search for model files. Default=.",
         default=".",
     )
+    parser.add_argument("--csv_filename", help="Also dump result to CSV at this file")
 
 
 def _model_load_actives_func(args):
