@@ -221,6 +221,9 @@ def _handle_train(args):
     )
 
 
+_MODEL_CATALOG_PATTERN = "model-catalog.{TIMESTAMP}.csv"
+
+
 def _add_train_parser(sub_parsers):
     train_parser = sub_parsers.add_parser("train", help="Train a model")
     train_parser.set_defaults(func=_handle_train, parser=train_parser)
@@ -231,7 +234,7 @@ def _add_train_parser(sub_parsers):
         help="Name of the model to train, if not set then model names will be listed",
     )
     train_parser.add_argument("--info", default=False, action="store_true")
-    train_parser.add_argument("--reuse", default=False, action="store_true")    
+    train_parser.add_argument("--reuse", default=False, action="store_true")
     train_parser.add_argument(
         "--error_analysis_data",
         help="Write error analysis data based on validation dataset to a file. "
@@ -287,11 +290,22 @@ def _model_catalog_func(args):
                 "r2": model_data["meta_extra"]["performance"]["r2"],
                 "mae": model_data["meta_extra"]["performance"]["mae"],
                 "target": ":".join(model_data["training_data_def"]["target"]),
-                "file_name": os.path.basename(model_filepath),
+                "file": model_filepath,
             }
         )
 
     df = pd.DataFrame(data)
+
+    filename = args.csv_filename or _MODEL_CATALOG_PATTERN.format(TIMESTAMP=dt_to_filename_str())
+    df.to_csv(os.path.join(args.root, filename), index=False)
+
+    if args.create_best_models_file:
+        top_r2_df = df.groupby("name")["r2"].max().reset_index()
+        best_models_df = df.merge(top_r2_df, on=["name", "r2"])[["name", "r2", "mae", "file"]]
+        best_models_filename = f"best-models.{dt_to_filename_str()}.csv"
+        best_models_df.to_csv(os.path.join(args.root, best_models_filename))
+    else:
+        best_models_df = None
 
     with pd.option_context(
         "display.max_rows",
@@ -303,11 +317,17 @@ def _model_catalog_func(args):
         "expand_frame_repr",
         False,
     ):
+        print(f"MODEL CATALOG (n={len(df)})")
         print(df.to_string(index=False))
+        if best_models_df is not None:
+            print()
+            print(f"BEST MODELS IN CATALOG (n={len(best_models_df)})")
+            print(best_models_df.to_string(index=False))
 
-    filename = args.csv_filename or f"model-catalog.{dt_to_filename_str()}.csv"
-    df.to_csv(os.path.join(args.root, filename), index=False)
-    print(f"catalog written to '{filename}'")
+    print()
+    print(f"Catalog written to '{filename}'")
+    if best_models_df is not None:
+        print(f"Best models written to '{best_models_filename}'")
 
 
 def _add_model_catalog_parser(sub_parsers):
@@ -318,7 +338,17 @@ def _add_model_catalog_parser(sub_parsers):
         help="The root directory to start the search for model files. Default=.",
         default=".",
     )
-    parser.add_argument("--csv_filename", help="Also dump result to CSV at this file")
+    parser.add_argument(
+        "--csv_filename",
+        help=f"Specify the name that the CSV data will be saved to. Default filename will be '{_MODEL_CATALOG_PATTERN}'",
+    )
+    parser.add_argument(
+        "--create_best_models_file",
+        "--best",
+        help="Create an file containing the best models for each model name based on r2",
+        default=False,
+        action="store_true",
+    )
 
 
 def _model_load_actives_func(args):
