@@ -79,9 +79,9 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
-                // "--auto", "dummy",
-                "--mode", "reuse", 
-                "lol", "nfl", "mlb", "nhl", "nba"
+                "--auto", "dummy",
+                // "--mode", "reuse", 
+                "lol" // , "nfl", "mlb", "nhl", "nba"
             ]
         },
     ]
