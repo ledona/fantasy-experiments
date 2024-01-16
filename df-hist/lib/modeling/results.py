@@ -67,4 +67,4 @@ def show_eval_results(eval_results, failed_models, dest_path):
                 "display.max_colwidth",
                 None,
             ):
-                print(eval_results_df.to_csv(index=False, sep="\t"))
+                print(eval_results_df.to_string(index=False))
