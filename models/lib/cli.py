@@ -121,6 +121,8 @@ class TrainingDefinitionFile:
         reuse_existing_models: bool,
         **regressor_kwargs,
     ):
+        if error_data:
+            raise NotImplementedError()
         params = self.get_params(model_name)
 
         # for any regressor kwarg not already set, fill in with model params
@@ -217,6 +219,7 @@ def _handle_train(args):
         args.automl_type,
         args.dest_dir,
         args.error_analysis_data,
+        args.reuse,
         **modeler_init_kwargs,
     )
 
@@ -305,6 +308,7 @@ def _model_catalog_func(args):
         best_models_filename = f"best-models.{dt_to_filename_str()}.csv"
         best_models_df.to_csv(os.path.join(args.root, best_models_filename))
     else:
+        best_models_filename = None
         best_models_df = None
 
     with pd.option_context(
@@ -340,7 +344,8 @@ def _add_model_catalog_parser(sub_parsers):
     )
     parser.add_argument(
         "--csv_filename",
-        help=f"Specify the name that the CSV data will be saved to. Default filename will be '{_MODEL_CATALOG_PATTERN}'",
+        help="Specify the name that the CSV data will be saved to. "
+        f"Default filename will be '{_MODEL_CATALOG_PATTERN}'",
     )
     parser.add_argument(
         "--create_best_models_file",

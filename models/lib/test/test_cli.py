@@ -15,7 +15,6 @@ from sklearn.dummy import DummyRegressor
 from ..cli import (
     _DEFAULT_AUTOML_TYPE,
     _DUMMY_REGRESSOR_KWARGS,
-    OverwriteMode,
     TrainingDefinitionFile,
     _Params,
     main,
@@ -123,18 +122,17 @@ def test_training_def_file_model_names(tdf: TrainingDefinitionFile):
 
 
 @pytest.mark.parametrize(
-    "cmdline, overwrite_mode",
+    "cmdline, expected_reuse",
     [
-        ("", "fail"),
-        ("--mode reuse", "reuse"),
-        ("--mode overwrite", "overwrite"),
-        ("--automl_type tpot-light", "fail"),
-        ("--tpot_jobs 5", "fail"),
-        ("--max_time_mins 8 --max_eval_time_mins 4", "fail"),
+        ("", False),
+        ("--reuse", True),
+        ("--automl_type tpot-light", False),
+        ("--tpot_jobs 5", False),
+        ("--max_time_mins 8 --max_eval_time_mins 4", False),
     ],
 )
 def test_training_def_file_train_test(
-    mocker: MockFixture, cmdline: str, overwrite_mode: OverwriteMode, tdf: TrainingDefinitionFile
+    mocker: MockFixture, cmdline: str, expected_reuse: bool, tdf: TrainingDefinitionFile
 ):
     """test that the calls to load_data and model_and_test are
     as expected"""
@@ -198,8 +196,8 @@ def test_training_def_file_train_test(
         params["target_pos"],
         params["training_pos"] or params["target_pos"],
         ".",
+        expected_reuse,
         raw_df=fake_raw_df,
-        overwrite_mode=overwrite_mode,
     )
 
 
@@ -286,7 +284,9 @@ def test_model_gen(tmpdir, mocker):
     with freeze_time(dt):
         main("train " + cmdline)
 
-    model_filepath = os.path.join(tmpdir, f"{model_name}.{target_stat}.{automl_type}.model")
+    model_filepath = os.path.join(
+        tmpdir, f"{model_name}.{target_stat}.{automl_type}.{dt_to_filename_str(dt)}.model"
+    )
     pkl_filepath = os.path.join(
         tmpdir, f"{model_name}-{automl_type}-stat.{target_stat}.{dt_to_filename_str(dt)}.pkl"
     )

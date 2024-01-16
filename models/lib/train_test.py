@@ -472,8 +472,8 @@ def model_and_test(
             model = Model.load(final_model_filepath)
 
     if model is None:
-        final_model_filepath = ".".join(
-            [name, target[1], automl_type, dt_to_filename_str(), "model"]
+        final_model_filepath = os.path.join(
+            dest_dir, ".".join([name, target[1], automl_type, dt_to_filename_str(), "model"])
         )
 
         model_artifact_path, performance, dt_trained = train_test(
@@ -501,7 +501,7 @@ def model_and_test(
             automl_kwargs,
         )
 
-        model.dump(final_model_filepath)
+        model.dump(final_model_filepath, overwrite=not reuse_most_recent)
         print(f"Model file saved to '{final_model_filepath}'")
 
     if raw_df is not None:
