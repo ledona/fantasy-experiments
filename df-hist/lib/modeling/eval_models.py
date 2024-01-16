@@ -4,6 +4,8 @@ from typing import Literal
 
 import pandas as pd
 
+from fantasy_py import DataNotAvailableException
+
 from .automl import ExistingModelMode, Framework, ModelTarget, create_automl_model
 from .generate_train_test import generate_train_test, load_csv
 
@@ -69,7 +71,7 @@ def evaluate_models(
 
     try:
         df = load_csv(sport, service, style, contest_type, data_folder=data_folder)
-    except FileNotFoundError as ex:
+    except DataNotAvailableException as ex:
         _LOGGER.error(
             "Data file(s) required for modeling not found. Skipping %s",
             model_desc_pre,

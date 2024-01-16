@@ -2,9 +2,11 @@ import logging
 import os
 
 import pandas as pd
+from sklearn.model_selection import train_test_split
+
+from fantasy_py import DataNotAvailableException
 from fantasy_py.fantasy_types import ContestStyle
 from fantasy_py.lineup.strategy import Contest
-from sklearn.model_selection import train_test_split
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +48,7 @@ def load_csv(
         except FileNotFoundError:
             failed_filenames.append(filepath)
     if len(dfs) == 0:
-        raise FileNotFoundError(f"Failed to find {failed_filenames}")
+        raise DataNotAvailableException(f"Failed to find training data for {failed_filenames}")
     if len(failed_filenames) > 0:
         _LOGGER.info(
             "Failed to find following data files %s. Using what data was found for modeling.",

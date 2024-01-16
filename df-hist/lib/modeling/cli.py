@@ -32,7 +32,7 @@ def _multi_run(
     mode: ExistingModelMode,
     eval_results_path: str,
 ):
-    _LOGGER.info("starting multirun")
+    _LOGGER.info("starting multirun for %s-%s-%s-%s", sports, services, styles, contest_types)
     models = {}
     eval_results = []
     if services is None:
@@ -76,12 +76,11 @@ def _multi_run(
                 style.name,
                 contest_type.NAME,
             )
-        else:
-            models.update(new_models)
-            eval_results += new_eval_results
+            continue
+        models.update(new_models)
+        eval_results += new_eval_results
 
-    _LOGGER.info("finished multirun.")
-    pbar.close()
+    _LOGGER.info("finished multirun of %s-%s-%s-%s", sports, services, styles, contest_types)
     return models, eval_results, all_failed_models
 
 

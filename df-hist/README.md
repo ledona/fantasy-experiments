@@ -17,14 +17,17 @@ python -m lib.retrieve.retrieve_hist --cache-path /fantasy-archive/betting df-hi
 ## Create model training data (__data_xform__)
 First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_. The following example
 call to _data_xform_ will create datasets for nfl and mlb using defaults for all settings.
+Default settings will write training data into the _data_ folder.
 ```
 python -m lib.xform.cli nfl mlb
 ```
 
 ## Create models
-Review/update _model_cfg.json_
+Review/update _model_cfg.json_ , then run the following. Models will be written to the
+_models_ directory. Evaluation results will be written to a timestamp named file in 
+_eval\_results_ .
 ```
-python -m lib.models.cli nfl nba
+python -m lib.modeling.cli nfl nba
 ```
 
 
