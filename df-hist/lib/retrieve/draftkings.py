@@ -186,7 +186,7 @@ class Draftkings(ServiceDataRetriever):
         # iterate while the rank of the last row is less than the desired rank
         prev_last_row_rank = -1
         while True:
-            rows = standings_list_ele.find_elements_by_xpath("div/div")
+            rows = standings_list_ele.find_elements("xpath", "div/div")
             last_row_rank = int(rows[-1].text.split("\n", 1)[0])
             if last_row_rank > last_winner_rank or prev_last_row_rank == last_row_rank:
                 break
@@ -213,16 +213,16 @@ class Draftkings(ServiceDataRetriever):
             "Waiting for contest data to fully load",
         )
 
-        standings_list_ele = self.browser.find_element_by_xpath(
-            '//div[div/div/span[text()="Rank"]]/div[position()=2]'
+        standings_list_ele = self.browser.find_element(
+            "xpath", '//div[div/div/span[text()="Rank"]]/div[position()=2]'
         )
 
-        top_entry_table_rows = standings_list_ele.find_elements_by_xpath("div/div")
+        top_entry_table_rows = standings_list_ele.find_elements("xpath", "div/div")
         if top_entry_table_rows[0].text.split("\n", 1)[0] != "1":
             # scroll to the top
             self.pause("scroll to top of entries")
             self.browser.execute_script("arguments[0].scroll({top: 0})", standings_list_ele)
-            top_entry_table_rows = standings_list_ele.find_elements_by_xpath("div/div")
+            top_entry_table_rows = standings_list_ele.find_elements("xpath", "div/div")
 
         assert top_entry_table_rows[0].text.split("\n", 1)[0] == "1"
         winning_score = float(top_entry_table_rows[0].text.rsplit("\n", 1)[-1].replace(",", ""))
@@ -230,7 +230,7 @@ class Draftkings(ServiceDataRetriever):
         lineups_data: list[str] = []
         # add draft % for all players in top 5 lineups
         for row_ele in top_entry_table_rows[:5]:
-            placement_div = row_ele.find_element_by_xpath("div/div[1]")
+            placement_div = row_ele.find_element("xpath", "div/div[1]")
             placement = int(placement_div.text)
             lineup_data, src, cache_filepath = self.get_data(
                 contest_key + f"-lineup-{placement}",

@@ -49,9 +49,11 @@
                 // "yahoo",
                 "draftkings", 
                 // "fanduel". 
-                // "--address", "127.0.0.1:9222",
+                "--address", "127.0.0.1:9222",
                 // "--web-limit", "10",
-                "--cache", "/fantasy-isync/fantasy-dfs-hist/betting/df-hist-cache",
+                "--history-file-dir", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting",
+                "--cache", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting\\df-hist-cache",
+
                 // "--cache-only", 
 
                 "--sports", 

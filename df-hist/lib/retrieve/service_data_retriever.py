@@ -518,7 +518,7 @@ class ServiceDataRetriever(ABC):
                 with gzip.open(gz_cache_filepath, "w") as f_:
                     json.dump(data, f_)
             elif data_type in {"html", "txt"}:
-                with gzip.open(gz_cache_filepath, "w") as f_:
+                with gzip.open(gz_cache_filepath, "wt") as f_:
                     f_.write(data)
             else:
                 raise ValueError(f"Don't know how to write '{cache_filepath}' to cache")

@@ -73,8 +73,8 @@ class Yahoo(ServiceDataRetriever):
         return head to head contest data if page content is for head to head, otherwise return None
         """
         self.browse_to(link)
-        score_spans = self.browser.find_elements_by_xpath(
-            '//div[@class="Grid Pos-r"]//span[@class="ydfs-scoring-points"]'
+        score_spans = self.browser.find_elements(
+            "xpath", '//div[@class="Grid Pos-r"]//span[@class="ydfs-scoring-points"]'
         )
         if len(score_spans) != 2:
             # either there is an error or this contest is for more than 2 contestants
@@ -149,15 +149,15 @@ class Yahoo(ServiceDataRetriever):
         """navigate to the page of contestant results that has the last paid winner"""
         while True:
             try:
-                last_winner_page_a = self.browser.find_element_by_xpath(
-                    f"{self._PAGE_LINKS_XPATH}[text()={last_winner_page}]"
+                last_winner_page_a = self.browser.find_element(
+                    "xpath", f"{self._PAGE_LINKS_XPATH}[text()={last_winner_page}]"
                 )
                 # the link is available
                 break
             except NoSuchElementException:
                 pass
 
-            page_links = self.browser.find_elements_by_xpath(self._PAGE_LINKS_XPATH)
+            page_links = self.browser.find_elements("xpath", self._PAGE_LINKS_XPATH)
 
             # find the next page to go to
             if (
@@ -188,8 +188,8 @@ class Yahoo(ServiceDataRetriever):
     def _find_last_winning_contestant_data(self, last_winner_placement) -> tuple[str, float]:
         """returns - tuple(html for lineup, score)"""
         try:
-            page_lineups_ele = self.browser.find_element_by_xpath(
-                "//h5[text()[contains(.,'Showing 1 - ')]]"
+            page_lineups_ele = self.browser.find_element(
+                "xpath", "//h5[text()[contains(.,'Showing 1 - ')]]"
             )
             lineups_per_page = int(page_lineups_ele.text.rsplit(" ", 1)[1])
             last_winner_page = math.ceil(last_winner_placement / lineups_per_page)
@@ -201,8 +201,9 @@ class Yahoo(ServiceDataRetriever):
             self._go_to_last_winner_page(last_winner_page, lineups_per_page)
 
         try:
-            last_winner_row = self.browser.find_element_by_xpath(
-                f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement}']/.."
+            last_winner_row = self.browser.find_element(
+                "xpath",
+                f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement}']/..",
             )
         except NoSuchElementException:
             _LOGGER.warning(
@@ -210,23 +211,24 @@ class Yahoo(ServiceDataRetriever):
                 last_winner_placement,
             )
             for row in reversed(
-                self.browser.find_elements_by_xpath(self._XPATH_OPPONENT_LINEUP_ROWS)
+                self.browser.find_elements("xpath", self._XPATH_OPPONENT_LINEUP_ROWS)
             ):
-                if int(row.find_element_by_tag_name("td").text) < last_winner_placement:
+                if int(row.find_element("tagName", "td").text) < last_winner_placement:
                     last_winner_row = row
                     break
             else:
                 raise ValueError("Failed to find a rank higher than the last winning placement")
 
-        last_winner_score = float(last_winner_row.find_elements_by_tag_name("td")[2].text)
+        last_winner_score = float(last_winner_row.find_elements("tagName", "td")[2].text)
         if "highlight" in last_winner_row.get_attribute("class"):
             # I am the last winner, so lets get the lineup for the next contestant
             _LOGGER.warning(
                 "I am the last winner, retrieving the lineup draft %%s for the first loser instead"
             )
             try:
-                first_loser_row = self.browser.find_element_by_xpath(
-                    f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement + 1}']/.."
+                first_loser_row = self.browser.find_element(
+                    "xpath",
+                    f"{self._XPATH_OPPONENT_LINEUP_ROWS}/td[position()=1][text()='{last_winner_placement + 1}']/..",
                 )
                 lineup_data = self._get_opp_lineup_data(
                     first_loser_row, last_winner_placement + 1, reset_when_done=False
@@ -247,33 +249,33 @@ class Yahoo(ServiceDataRetriever):
         self.browse_to(link)
         if entry_info.fee > 0:
             paid_places = int(
-                self.browser.find_element_by_xpath(
-                    '//div[@data-tst="contest-header-payout-places"]'
+                self.browser.find_element(
+                    "xpath", '//div[@data-tst="contest-header-payout-places"]'
                 ).text.replace(",", "")
             )
         else:
             paid_places = 0
 
-        top_contestant_row = self.browser.find_element_by_xpath(
-            self._XPATH_OPPONENT_LINEUP_ROWS + "[1]"
+        top_contestant_row = self.browser.find_element(
+            "xpath", self._XPATH_OPPONENT_LINEUP_ROWS + "[1]"
         )
 
-        if not top_contestant_row.find_element_by_tag_name("td").text == "1":
+        if not top_contestant_row.find_element("tagName", "td").text == "1":
             # can happen if we halted a previous retrieval
             self.browser.refresh()
-            top_contestant_row = self.browser.find_element_by_xpath(
-                self._XPATH_OPPONENT_LINEUP_ROWS + "[1]"
+            top_contestant_row = self.browser.find_element(
+                "xpath", self._XPATH_OPPONENT_LINEUP_ROWS + "[1]"
             )
-            assert top_contestant_row.find_element_by_tag_name("td").text == "1"
+            assert top_contestant_row.find_element("tagName", "td").text == "1"
 
-        winning_score = float(top_contestant_row.find_elements_by_tag_name("td")[2].text)
+        winning_score = float(top_contestant_row.find_elements("tagName", "td")[2].text)
 
         lineups_data = []
         for rank in range(1, min(6, entry_info.entries)):
             if rank == entry_info["rank"]:
                 continue
-            row_ele = self.browser.find_element_by_xpath(
-                self._XPATH_OPPONENT_LINEUP_ROWS + f"[{rank}]"
+            row_ele = self.browser.find_element(
+                "xpath", self._XPATH_OPPONENT_LINEUP_ROWS + f"[{rank}]"
             )
 
             lineup_data, src, cache_filepath = self.get_data(

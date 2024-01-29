@@ -9,9 +9,24 @@ models do the following.
 1. train new models
 
 ## Data Retrieval (__retrieve_hist__)
-Use _retrieve_hist_ to retrieve contest data from dfs websites.
+Use _retrieve_hist_ to retrieve contest data from dfs websites. This is not done from
+within the docker container, easier to just run it in the native local environment
+1. Create a venv to run the retrieval in by running the following command on the commandline in the local environment (again, not in the container).
 ```
-python -m lib.retrieve.retrieve_hist --cache-path /fantasy-archive/betting df-hist-cache/ draftkings \
+python -m venv venv-retrieve-hist
+.\venv-retrieve-hist\Scripts\activate
+pip install pandas selenium beautifulsoup4 tqdm
+```
+2. Start chrome with a debugging port. On windows run the following from powershell.
+```
+Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" -ArgumentList "--remote-debugging-port=9222"
+```
+3. Run the retrieval. Update the paths before running. The cache folder is where the retrieval process will write cache files, the export folder is where the files downloaded from the fantasy service accounts (with past betting activity) are located.
+```
+python -m lib.retrieve.retrieve_hist \
+   --cache-path _PATH_TO_CACHE_FOLDER_ \
+   --history-file-path _PATH_TO_DFS_EXPORT_FILE_FOLDER_ \
+   draftkings \
    [--sports nfl] [--cache-only] [--start-date 20201001] [--end-date 20210101]
 ```
 

@@ -140,8 +140,8 @@ class Fanduel(ServiceDataRetriever):
         returns tuple(placement, lineup html)
         """
         self.pause("getting last winning lineup")
-        last_winner_link_ele = self.browser.find_element_by_xpath(
-            '//button[text()="Last winning position"]'
+        last_winner_link_ele = self.browser.find_element(
+            "xpath", '//button[text()="Last winning position"]'
         )
         _LOGGER.info("scrolling/finding last winning lineup link into view")
         self.browser.execute_script(
@@ -210,7 +210,7 @@ class Fanduel(ServiceDataRetriever):
         if entry_table_rows[0].text[0] != "1":
             # make sure that the state of the page is fresh (top of the lineups)
             self.pause("reset to top winning lineup")
-            first_place_ele = self.browser.find_element_by_xpath('//button/span[text()="First"]/..')
+            first_place_ele = self.browser.find_element("xpath", '//button/span[text()="First"]/..')
             _LOGGER.info("scrolling/finding top lineups link")
             self.browser.execute_script(
                 'arguments[0].scrollIntoView({block: "center"})', first_place_ele
@@ -240,9 +240,9 @@ class Fanduel(ServiceDataRetriever):
 
         lineups_data: list[str] = []
         # add draft % for all players in top 5 lineups
-        assert entry_table_rows[0].find_element_by_tag_name("td").text == "1st"
+        assert entry_table_rows[0].find_element("tagName", "td").text == "1st"
         for row_ele in entry_table_rows[:5]:
-            placement = row_ele.find_element_by_tag_name("td").text
+            placement = row_ele.find_element("tagName", "td").text
             lineup_data, src, cache_filepath = self.get_data(
                 contest_key + "-lineup-" + placement,
                 self._get_opponent_lineup_data,
