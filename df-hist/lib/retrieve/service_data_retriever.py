@@ -12,7 +12,7 @@ from typing import Literal
 import pandas as pd
 import tqdm
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -167,7 +167,7 @@ class ServiceDataRetriever(ABC):
             chrome_options.add_argument("--disable-software-rasterizer")
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
-        browser_ = webdriver.Chrome("chromedriver", options=chrome_options)
+        browser_ = webdriver.Chrome(options=chrome_options)
         try:
             browser_.execute_script(
                 "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
@@ -260,7 +260,8 @@ class ServiceDataRetriever(ABC):
 
     @abstractmethod
     def get_entry_lineup_data(self, link, title):
-        """retrieve entry data from link. returns a dict containing unprocessed/raw data that can be cached and processed"""
+        """retrieve entry data from link. returns a dict containing
+        unprocessed/raw data that can be cached and processed"""
         raise NotImplementedError()
 
     @abstractmethod
@@ -424,7 +425,8 @@ class ServiceDataRetriever(ABC):
     def browse_to(self, url, pause_before=True, title=None):
         """
         browse to the requested page, possibly with a pause before browsing
-        if the current browser title is the same as title OR the current browser URL is the same as url then
+        if the current browser title is the same as title OR the current
+        browser URL is the same as url then
         don't load anything new, use the current page content
 
         pause_before - if false then don't pause or prompt user to continue
@@ -536,7 +538,7 @@ def get_service_data_retriever(
     web_limit: None | str = None,
 ) -> ServiceDataRetriever:
     """attempt to import the data retriever for the requested service"""
-    module = import_module("." + service, "lib")
+    module = import_module("." + service, "lib.retrieve")
     class_ = getattr(module, service.capitalize())
     if cache_path is not None and not os.path.isdir(cache_path):
         raise FileNotFoundError(f"cache path '{cache_path}' does not exist!")

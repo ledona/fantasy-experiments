@@ -15,7 +15,7 @@ from .service_data_retriever import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-_DEFAULT_HISTORY_FILE_DIR = "/fantasy-archive/betting"
+_DEFAULT_HISTORY_FILE_DIR = "/fantasy-isync/fantasy-dfs-hist/betting"
 
 
 def retrieve_history(
@@ -34,10 +34,11 @@ def retrieve_history(
     profile_path=None,
 ) -> tuple[ServiceDataRetriever, int]:
     """
-    sports - collection of sports to process, if None then process all sports
-    browser_debug_address - address of an existing chrome browser to use, ip-address:port
-    browser_debug_port - port to request that the new browser used for debugging will be available on
-    interactive - require user response prior to every browser action
+    sports: collection of sports to process, if None then process all sports
+    browser_debug_address: address of an existing chrome browser to use, ip-address:port
+    browser_debug_port: port to request that the new browser used for debugging \
+        will be available on
+    interactive: require user response prior to every browser action
 
     returns ServiceDataRetriever, entry_count
     """
@@ -208,26 +209,29 @@ def process_cmd_line(cmd_line_str=None):
         web_limit=args.web_limit,
     )
 
-    if args.filename_prefix:
-        _LOGGER.info("Writing CSV files")
-        service_obj.contest_df.to_csv(args.filename_prefix + ".contest.csv", index=False)
-        service_obj.player_draft_df.to_csv(args.filename_prefix + ".draft.csv", index=False)
-        service_obj.entry_df.to_csv(args.filename_prefix + ".betting.csv", index=False)
+    if len(service_obj.processed_contests) == 0:
+        _LOGGER.warning("Nothing was processed!")
     else:
-        with pd.option_context(
-            "display.max_rows",
-            None,
-            "display.max_columns",
-            None,
-            "display.expand_frame_repr",
-            False,
-        ):
-            print("\nContest History")
-            print(service_obj.contest_df)
-            print("\nBetting History")
-            print(service_obj.entry_df)
-            print("\nDraft History")
-            print(service_obj.player_draft_df)
+        if args.filename_prefix:
+            _LOGGER.info("Writing CSV files")
+            service_obj.contest_df.to_csv(args.filename_prefix + ".contest.csv", index=False)
+            service_obj.player_draft_df.to_csv(args.filename_prefix + ".draft.csv", index=False)
+            service_obj.entry_df.to_csv(args.filename_prefix + ".betting.csv", index=False)
+        else:
+            with pd.option_context(
+                "display.max_rows",
+                None,
+                "display.max_columns",
+                None,
+                "display.expand_frame_repr",
+                False,
+            ):
+                print("\nContest History")
+                print(service_obj.contest_df)
+                print("\nBetting History")
+                print(service_obj.entry_df)
+                print("\nDraft History")
+                print(service_obj.player_draft_df)
 
     _LOGGER.info(
         "Done! %i / %i entries processed. %s",

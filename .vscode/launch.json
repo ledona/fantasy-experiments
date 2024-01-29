@@ -42,7 +42,7 @@
             "name": "df-hist retrieval",
             "type": "python",
             "request": "launch",
-            "module": "lib.retrieve_hist",
+            "module": "lib.retrieve.retrieve_hist",
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
@@ -51,11 +51,11 @@
                 // "fanduel". 
                 // "--address", "127.0.0.1:9222",
                 // "--web-limit", "10",
-                "--cache", "/fantasy-archive/betting/df-hist-cache",
-                "--cache-only", 
+                "--cache", "/fantasy-isync/fantasy-dfs-hist/betting/df-hist-cache",
+                // "--cache-only", 
 
-                "--sports", "nfl",
-                "--start-date", "20201001", "--end-date", "2021-01-01",
+                "--sports", 
+                "nfl", "--start-date", "20221001", "--end-date", "2024-01-28",
             ]
         },
         {

@@ -3,7 +3,8 @@ Historic betting and contest data. Used to generate backtest
 models that predict for dfs contest winning scores. To generate/refresh
 models do the following.
 
-1. retrieve the data using _retrieve_hist_
+1. Download contest data files from the daily fantasy service.
+1. Retrieve detailed data history using _retrieve_hist_
 1. transform data into a training dataset using _data_xform_
 1. train new models
 
@@ -46,7 +47,3 @@ export CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON"
 pip install -r requirements
 ```
 
-### To retrieve historic betting data
-1. download betting history from services and save in the history file directory (e.g. /
-   fantasy-archive/betting). Make sure that the file names match the format of the previous
-   files for the service
