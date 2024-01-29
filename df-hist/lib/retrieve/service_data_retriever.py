@@ -17,7 +17,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-LOGGER = logging.getLogger(__name__)
+CacheMode = Literal["overwrite", "disable", "enable"]
 
 PAUSE_MIN = 3
 PAUSE_MAX = 15
@@ -111,7 +111,7 @@ class ServiceDataRetriever(ABC):
         browser_debug_port: None | bool = None,
         browser_profile_path: None | str = None,
         cache_path: None | str = None,
-        cache_overwrite=False,
+        cache_mode: CacheMode | None = None,
         cache_only=False,
         interactive=False,
         web_limit=None,
@@ -122,7 +122,7 @@ class ServiceDataRetriever(ABC):
         web_limit - halt processing if this number of web retrievals is exceeded
         """
         self.cache_path = cache_path
-        self.cache_overwrite = cache_overwrite
+        self.cache_mode = cache_mode
         self.cache_only = cache_only
         self.interactive = interactive
 
@@ -476,26 +476,29 @@ class ServiceDataRetriever(ABC):
         if os.sep in cache_key:
             cache_key = cache_key.replace(os.sep, "|")
 
-        if self.cache_path is not None and not self.cache_overwrite:
+        if self.cache_path is not None:
             cache_filepath = os.path.join(self.cache_path, f"{cache_key}.{data_type}")
             gz_cache_filepath = cache_filepath + ".gz"
 
-            for filepath in [cache_filepath, gz_cache_filepath]:
-                if not os.path.isfile(filepath):
-                    continue
+            if self.cache_mode != "overwrite":
+                for filepath in [cache_filepath, gz_cache_filepath]:
+                    if not os.path.isfile(filepath):
+                        continue
 
-                if data_type == "csv":
-                    return pd.read_csv(filepath), "cache", filepath
+                    if data_type == "csv":
+                        return pd.read_csv(filepath), "cache", filepath
 
-                open_ = gzip.open if filepath.endswith(".gz") else open
-                if data_type == "json":
-                    with open_(filepath, "r") as f_:
-                        return json.load(f_), "cache", filepath
-                if data_type in {"html", "txt"}:
-                    with open_(filepath, "r") as f_:
-                        return f_.read(), "cache", filepath
+                    open_ = gzip.open if filepath.endswith(".gz") else open
+                    if data_type == "json":
+                        with open_(filepath, "r") as f_:
+                            return json.load(f_), "cache", filepath
+                    if data_type in {"html", "txt"}:
+                        with open_(filepath, "r") as f_:
+                            return f_.read(), "cache", filepath
 
-                raise ValueError(f"Don't know how to load '{filepath}' from cache")
+                    raise ValueError(f"Don't know how to load '{filepath}' from cache")
+        elif self.cache_only:
+            raise ValueError("cache_only enabled without a cache_path")
 
         if self.cache_only:
             raise DataUnavailableInCache(cache_key, [cache_filepath, gz_cache_filepath])
@@ -529,7 +532,7 @@ class ServiceDataRetriever(ABC):
 def get_service_data_retriever(
     service: str,
     cache_path: None | str = None,
-    cache_overwrite=False,
+    cache_mode: CacheMode | None = None,
     cache_only=False,
     browser_address: None | str = None,
     browser_debug_port: None | str = None,
@@ -547,7 +550,7 @@ def get_service_data_retriever(
         browser_debug_port=browser_debug_port,
         browser_profile_path=browser_profile_path,
         cache_path=cache_path,
-        cache_overwrite=cache_overwrite,
+        cache_mode=cache_mode,
         cache_only=cache_only,
         interactive=interactive,
         web_limit=web_limit,

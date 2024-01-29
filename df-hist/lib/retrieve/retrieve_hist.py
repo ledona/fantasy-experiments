@@ -8,6 +8,7 @@ from tqdm import tqdm
 from .. import log
 from .service_data_retriever import (
     EXPECTED_HISTORIC_ENTRIES_DF_COLS,
+    CacheMode,
     DataUnavailableInCache,
     ServiceDataRetriever,
     WebLimitReached,
@@ -25,7 +26,7 @@ def retrieve_history(
     start_date=None,
     end_date=None,
     cache_path=None,
-    cache_overwrite=False,
+    cache_mode: CacheMode | None = None,
     cache_only=False,
     interactive=False,
     web_limit=None,
@@ -46,7 +47,7 @@ def retrieve_history(
     service_obj = get_service_data_retriever(
         service_name,
         cache_path=cache_path,
-        cache_overwrite=cache_overwrite,
+        cache_mode=cache_mode,
         cache_only=cache_only,
         browser_profile_path=profile_path,
         browser_address=browser_debug_address,
@@ -129,7 +130,7 @@ def process_cmd_line(cmd_line_str=None):
     parser.add_argument("--cache-path", "--cache", help="path to cached files")
 
     mut_ex_group = parser.add_mutually_exclusive_group()
-    mut_ex_group.add_argument("--cache-overwrite", action="store_true", default=False)
+    mut_ex_group.add_argument("--cache-mode", choices=CacheMode.__args__)
     mut_ex_group.add_argument("--cache-only", action="store_true", default=False)
 
     mut_ex_group = parser.add_mutually_exclusive_group()
@@ -203,7 +204,7 @@ def process_cmd_line(cmd_line_str=None):
         browser_debug_address=args.chrome_debug_address,
         profile_path=args.chrome_profile_path,
         cache_path=args.cache_path,
-        cache_overwrite=args.cache_overwrite,
+        cache_mode=args.cache_mode,
         cache_only=args.cache_only,
         interactive=args.interactive,
         web_limit=args.web_limit,
