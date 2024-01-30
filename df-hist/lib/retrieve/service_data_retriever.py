@@ -24,6 +24,10 @@ _LOGGER = logging.getLogger(__name__)
 PAUSE_MIN = 3
 PAUSE_MAX = 15
 
+_TT_SOURCE = "ÁÄáāäČćčÉéêèěİíìŁĹłñกņÖÓØóòöŠŞşšŤúūüý\uf122"
+_TT_DEST = "AAaaaCccEeeeeIiiLllnnnOOOoooSSsstuuuy.."
+_TEXT_TRANSLATION_TABLE = str.maketrans(_TT_SOURCE, _TT_DEST)
+
 # columns that will be present in the outputted contest dataframe
 EXPECTED_CONTEST_COLS = {
     "contest_id",
@@ -522,8 +526,9 @@ class ServiceDataRetriever(ABC):
                 with gzip.open(gz_cache_filepath, "wt") as f_:
                     json.dump(data, f_)
             elif data_type in {"html", "txt"}:
+                text = data.translate(_TEXT_TRANSLATION_TABLE)
                 with gzip.open(gz_cache_filepath, "wt") as f_:
-                    f_.write(data)
+                    f_.write(text)
             else:
                 raise ValueError(f"Don't know how to write '{data_type}' to cache")
 
