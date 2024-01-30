@@ -4,10 +4,11 @@ import json
 import logging
 import os
 import random
+import re
 import time
-from abc import ABC, abstractclassmethod, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 from importlib import import_module
-from typing import Literal
+from typing import Literal, Callable
 
 import pandas as pd
 import tqdm
@@ -15,9 +16,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.wait import WebDriverWait
 
 CacheMode = Literal["overwrite", "disable", "enable"]
+_LOGGER = logging.getLogger(__name__)
 
 PAUSE_MIN = 3
 PAUSE_MAX = 15
@@ -149,19 +151,19 @@ class ServiceDataRetriever(ABC):
             assert self.browser_debug_port is None
             assert self.browser_profile_path is None
 
-            LOGGER.info("try and connect to an existing browser at %s", self.browser_address)
+            _LOGGER.info("try and connect to an existing browser at %s", self.browser_address)
             chrome_options.add_experimental_option("debuggerAddress", self.browser_address)
         else:
             # try and create a new browser to run the retrieval from
-            LOGGER.info("Opening new browser")
+            _LOGGER.info("Opening new browser")
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option("useAutomationExtension", False)
             chrome_options.add_argument("start-maximized")
             if self.browser_debug_port is not None:
-                LOGGER.info("Exposing chrome debugging on port '%s'", self.browser_debug_port)
+                _LOGGER.info("Exposing chrome debugging on port '%s'", self.browser_debug_port)
                 chrome_options.add_argument(f"--remote-debugging-port={self.browser_debug_port}")
             if self.browser_profile_path is not None:
-                LOGGER.info("Using chrome profile at '%s'", self.browser_profile_path)
+                _LOGGER.info("Using chrome profile at '%s'", self.browser_profile_path)
                 chrome_options.add_argument(f"--user-data-dir={self.browser_profile_path}")
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-software-rasterizer")
@@ -173,8 +175,8 @@ class ServiceDataRetriever(ABC):
                 "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
             )
         except Exception as ex:
-            LOGGER.warning("Error updating browser webdriver property", exc_info=ex)
-        LOGGER.info("Connected to browser")
+            _LOGGER.warning("Error updating browser webdriver property", exc_info=ex)
+        _LOGGER.info("Connected to browser")
         return browser_
 
     @property
@@ -211,7 +213,7 @@ class ServiceDataRetriever(ABC):
         return df
 
     def wait_on_login(self):
-        LOGGER.info("Running login flow... going to '%s' if not already there", self.SERVICE_URL)
+        _LOGGER.info("Running login flow... going to '%s' if not already there", self.SERVICE_URL)
         if self.browser.current_url != self.SERVICE_URL:
             if self.interactive:
                 input(f"About to retrieve {self.SERVICE_URL}. <Enter> to continue:")
@@ -221,7 +223,7 @@ class ServiceDataRetriever(ABC):
             # if found, then signin is required
             self.browser.find_element(*self.LOC_SIGN_IN)
         except NoSuchElementException:
-            LOGGER.info(
+            _LOGGER.info(
                 "Log in link %s not found. Assuming account is already logged in",
                 self.LOC_SIGN_IN,
             )
@@ -230,7 +232,7 @@ class ServiceDataRetriever(ABC):
         if self.interactive:
             input("Waiting for you to log in. <Enter> to continue:")
 
-        LOGGER.info("Waiting %i seconds for you to log in...", self.LOGIN_TIMEOUT)
+        _LOGGER.info("Waiting %i seconds for you to log in...", self.LOGIN_TIMEOUT)
         WebDriverWait(self.browser, self.LOGIN_TIMEOUT).until(
             EC.presence_of_element_located(self.LOC_LOGGED_IN), "Still not logged in..."
         )
@@ -239,12 +241,12 @@ class ServiceDataRetriever(ABC):
     def logged_in_to_service(self) -> bool:
         """use self.LOC_LOGGED_IN to confirm that the account is logged in"""
         try:
-            LOGGER.debug("Looking for logged in indication...")
+            _LOGGER.debug("Looking for logged in indication...")
             # if found, then signin has already taken place
             self.browser.find_element(*self.LOC_LOGGED_IN)
             return True
         except NoSuchElementException:
-            LOGGER.error(
+            _LOGGER.error(
                 "Logged in indicator %s not found! Confirmation of logged in status failed",
                 self.LOC_LOGGED_IN,
             )
@@ -296,7 +298,7 @@ class ServiceDataRetriever(ABC):
         If the contest has not yet been processed then add contest
         information to the contest dataframe and draft information from non entry lineups
         """
-        LOGGER.info(
+        _LOGGER.info(
             "Processing %s %s '%s'",
             entry_info.date.strftime("%Y%m%d"),
             entry_info.sport,
@@ -316,7 +318,7 @@ class ServiceDataRetriever(ABC):
 
         # handle entry lineup info
         if (rejection_reason := self.is_entry_supported(entry_info)) is not None:
-            LOGGER.info("Skipping entry '%s': %s", entry_key, rejection_reason)
+            _LOGGER.info("Skipping entry '%s': %s", entry_key, rejection_reason)
             self.processed_counts_by_src["skipped"] += 1
             return
 
@@ -326,10 +328,10 @@ class ServiceDataRetriever(ABC):
             data_type="html",
             func_args=(entry_dict["link"], entry_info.title),
         )
-        LOGGER.info("Entry lineup for '%s' from %s", entry_key, entry_src)
+        _LOGGER.info("Entry lineup for '%s' from %s", entry_key, entry_src)
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
         if entry_lineup_df is None:
-            LOGGER.warning("No entry data returned for '%s'", contest_id)
+            _LOGGER.warning("No entry data returned for '%s'", contest_id)
         else:
             entry_lineup_df["contest"] = contest_key
             entry_lineup_df["date"] = entry_info.date
@@ -339,7 +341,7 @@ class ServiceDataRetriever(ABC):
 
         # if contest has been processed then we are done
         if contest_id in self.processed_contests:
-            LOGGER.info(
+            _LOGGER.info(
                 "Contest data for '%s' already processed. Skipping to next entry.",
                 contest_id,
             )
@@ -356,7 +358,7 @@ class ServiceDataRetriever(ABC):
 
         src = "web" if "web" in (contest_src, entry_src) else "cache"
         self.processed_counts_by_src[src] += 1
-        LOGGER.info("Contest data for '%s' from %s", contest_key, contest_src)
+        _LOGGER.info("Contest data for '%s' from %s", contest_key, contest_src)
         if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
             # see if the required data is in entry_info
             still_missing = []
@@ -395,7 +397,8 @@ class ServiceDataRetriever(ABC):
         """default to using get_entry_lineup_df"""
         return self.get_entry_lineup_df(lineup_data)
 
-    @abstractstaticmethod
+    @staticmethod
+    @abstractmethod
     def get_entry_link(entry_info) -> str:
         raise NotImplementedError()
 
@@ -403,10 +406,10 @@ class ServiceDataRetriever(ABC):
         """
         Pause for a random amount of time
 
-        msg - message to print describing the pause
-        pause_min - minimum pause duration
+        msg: message to print describing the pause
+        pause_min: minimum pause duration
         pause_max - maximum pause duration
-        progress_bar - show a progress bar counting down the pause.
+        progress_bar: show a progress bar counting down the pause.\
            if final pause duration is <= 2 then no progress bar is displayed regardless
         """
         if self.interactive:
@@ -429,12 +432,12 @@ class ServiceDataRetriever(ABC):
         browser URL is the same as url then
         don't load anything new, use the current page content
 
-        pause_before - if false then don't pause or prompt user to continue
+        pause_before: if false then don't pause or prompt user to continue
         """
-        LOGGER.info("Browsing url='%s' title='%s'", url, title)
+        _LOGGER.info("Browsing url='%s' title='%s'", url, title)
         # first check to see if we are already on that page
         if self.browser.current_url == url or self.browser.title == title:
-            LOGGER.info("Browser already at url='%s', title='%s'", url, title)
+            _LOGGER.info("Browser already at url='%s', title='%s'", url, title)
             return
 
         if not self.logged_in_to_service:
@@ -442,19 +445,19 @@ class ServiceDataRetriever(ABC):
             for i, post_login_url in enumerate(self.POST_LOGIN_URLS, 1):
                 if pause_before:
                     self.pause(msg=f"wait before post login link #{i}")
-                LOGGER.info("Going to post login url #%i '%s'", i, post_login_url)
+                _LOGGER.info("Going to post login url #%i '%s'", i, post_login_url)
                 self.browser.get(post_login_url)
 
         if pause_before:
             self.pause(f"wait before url '{url}'")
 
-        LOGGER.info("Getting content at '%s'", url)
+        _LOGGER.info("Getting content at '%s'", url)
         self.browser.get(url)
 
     def get_data(
         self,
         cache_key: str,
-        func: callable,
+        func: Callable,
         data_type: str = "csv",
         func_args: None | tuple = None,
         func_kwargs: None | dict = None,
@@ -472,12 +475,10 @@ class ServiceDataRetriever(ABC):
         """
         cache_filepath = None
 
-        # see if it in the cache
-        if os.sep in cache_key:
-            cache_key = cache_key.replace(os.sep, "|")
+        filename = re.sub(r'[<>:"/\\|?*]', "_", cache_key)
 
         if self.cache_path is not None:
-            cache_filepath = os.path.join(self.cache_path, f"{cache_key}.{data_type}")
+            cache_filepath = os.path.join(self.cache_path, f"{filename}.{data_type}")
             gz_cache_filepath = cache_filepath + ".gz"
 
             if self.cache_mode != "overwrite":
@@ -493,7 +494,7 @@ class ServiceDataRetriever(ABC):
                         with open_(filepath, "r") as f_:
                             return json.load(f_), "cache", filepath
                     if data_type in {"html", "txt"}:
-                        with open_(filepath, "r") as f_:
+                        with open_(filepath, "rt") as f_:
                             return f_.read(), "cache", filepath
 
                     raise ValueError(f"Don't know how to load '{filepath}' from cache")
@@ -501,13 +502,13 @@ class ServiceDataRetriever(ABC):
             raise ValueError("cache_only enabled without a cache_path")
 
         if self.cache_only:
-            raise DataUnavailableInCache(cache_key, [cache_filepath, gz_cache_filepath])
+            raise DataUnavailableInCache(filename, [cache_filepath, gz_cache_filepath])
         if self.web_limit is not None and self.web_limit <= self.processed_counts_by_src["web"]:
-            LOGGER.info(
+            _LOGGER.info(
                 "Data not in cache and web retrieval limit reached. Processing stopped on %s",
-                cache_key,
+                filename,
             )
-            raise WebLimitReached(cache_key)
+            raise WebLimitReached(filename)
 
         data = func(
             *(func_args or tuple()),
@@ -518,13 +519,13 @@ class ServiceDataRetriever(ABC):
             if data_type == "csv":
                 data.to_csv(gz_cache_filepath)
             elif data_type == "json":
-                with gzip.open(gz_cache_filepath, "w") as f_:
+                with gzip.open(gz_cache_filepath, "wt") as f_:
                     json.dump(data, f_)
             elif data_type in {"html", "txt"}:
                 with gzip.open(gz_cache_filepath, "wt") as f_:
                     f_.write(data)
             else:
-                raise ValueError(f"Don't know how to write '{cache_filepath}' to cache")
+                raise ValueError(f"Don't know how to write '{data_type}' to cache")
 
         return data, "web", gz_cache_filepath
 
