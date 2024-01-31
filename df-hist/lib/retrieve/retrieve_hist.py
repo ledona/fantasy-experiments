@@ -96,11 +96,13 @@ def retrieve_history(
                 )
                 service_obj.processed_counts_by_src["skipped"] += 1
                 result = None
-            pbar.set_postfix(**service_obj.processed_counts_by_src)
+            postfix = service_obj.processed_counts_by_src.copy()
+            postfix["date"] = entry_info.date.date()
+            pbar.set_postfix(postfix)
             return result
 
         try:
-            contest_entries_df.sort_values(["date", "title"], ascending=False).apply(func, axis=1)
+            contest_entries_df.sort_values(["date", "title"]).apply(func, axis=1)
         except WebLimitReached as limit_reached_ex:
             _LOGGER.info(
                 "Web retrieval limit was reached before retrieval attempt for %s",

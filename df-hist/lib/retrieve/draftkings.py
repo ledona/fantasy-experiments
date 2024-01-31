@@ -4,6 +4,7 @@ import os
 
 import pandas as pd
 from bs4 import BeautifulSoup
+from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -16,6 +17,10 @@ _X_PATH_QUERIES = {
     "<2024": {"entry-table-rows": "div/div"},
     ">=2024": {"entry-table-rows": "//button[starts-with(@aria-label, 'view standings for ')]"},
 }
+
+
+class _MinWinScoreNotFoundError(ValueError):
+    pass
 
 
 class Draftkings(ServiceDataRetriever):
@@ -218,9 +223,32 @@ class Draftkings(ServiceDataRetriever):
         for row_ele in reversed(rows):
             if int(row_ele.text.split("\n", 1)[0]) <= last_winner_rank:
                 score = float(row_ele.text.rsplit("\n", 1)[-1].replace(",", ""))
-                return score, self._get_opponent_lineup_data(row_ele)
+                lineup_data = self._get_opponent_lineup_data(row_ele)
+                assert isinstance(lineup_data, str) and len(lineup_data) > 0
+                return score, lineup_data
 
-        raise ValueError("Unable to find last winner")
+        raise _MinWinScoreNotFoundError("Unable to find last winner")
+
+    def _last_winner_helper(self, entry_info, standings_list_ele, contest_key, xpath_q_key):
+        (min_winning_score, lineup_data), src, cache_filepath = self.get_data(
+            contest_key + "-lineup-lastwinner",
+            self._get_last_winning_lineup_data,
+            data_type="json",
+            func_args=(
+                entry_info.winners,
+                standings_list_ele,
+                _X_PATH_QUERIES[xpath_q_key]["entry-table-rows"],
+            ),
+        )
+        assert isinstance(lineup_data, str) and len(lineup_data) > 0
+        _LOGGER.info(
+            "Last winning lineup scored %s for '%s' retrieved from %s, cached from/to '%s'",
+            min_winning_score,
+            entry_info.title,
+            src,
+            cache_filepath,
+        )
+        return lineup_data, min_winning_score
 
     def get_contest_data(self, link, contest_key, entry_info) -> dict:
         self.browse_to(link, title="DraftKings - " + entry_info.title)
@@ -244,10 +272,30 @@ class Draftkings(ServiceDataRetriever):
         else:
             raise ValueError("Unable to identify which xpath queries to use")
 
-        for i in range(2, 4):
-            if top_entry_table_rows[0].text.split("\n", 1)[0] == "1":
-                break
-            # scroll to the top
+        lineups_data: list[str] = []
+
+        min_winning_score = 0
+        min_winning_score_found = None
+        if entry_info.winners > 0:
+            try:
+                lineup_data, min_winning_score = self._last_winner_helper(
+                    entry_info, standings_list_ele, contest_key, xpath_q_key
+                )
+                lineups_data.append(lineup_data)
+                min_winning_score_found = True
+            except _MinWinScoreNotFoundError:
+                _LOGGER.warning(
+                    "Last winner not found on default lineup list for '%s'", entry_info.title
+                )
+                min_winning_score_found = False
+
+        # scroll to the top
+        for i in range(1, 4):
+            try:
+                if top_entry_table_rows[0].text.split("\n", 1)[0] == "1":
+                    break
+            except (StaleElementReferenceException, NoSuchElementException):
+                _LOGGER.warning("Will attempt to recover from Stale|NoSuch element error")
             self.pause(f"wait before retry #{i} to scroll to top of entries")
             self.browser.execute_script("arguments[0].scroll({top: 0})", standings_list_ele)
             top_entry_table_rows = standings_list_ele.find_elements(
@@ -259,7 +307,6 @@ class Draftkings(ServiceDataRetriever):
 
         winning_score = float(top_entry_table_rows[0].text.rsplit("\n", 1)[-1].replace(",", ""))
 
-        lineups_data: list[str] = []
         # add draft % for all players in top 5 lineups
         for i, row_ele in enumerate(top_entry_table_rows[:5], 1):
             placement_div = row_ele.find_element("xpath", "div/div[1]")
@@ -281,28 +328,11 @@ class Draftkings(ServiceDataRetriever):
             assert isinstance(lineup_data, str) and len(lineup_data) > 0
             lineups_data.append(lineup_data)
 
-        if entry_info.winners > 0:
-            (min_winning_score, lineup_data), src, cache_filepath = self.get_data(
-                contest_key + "-lineup-lastwinner",
-                self._get_last_winning_lineup_data,
-                data_type="json",
-                func_args=(
-                    entry_info.winners,
-                    standings_list_ele,
-                    _X_PATH_QUERIES[xpath_q_key]["entry-table-rows"],
-                ),
+        if entry_info.winners > 0 and not min_winning_score_found:
+            lineup_data, min_winning_score = self._last_winner_helper(
+                entry_info, standings_list_ele, contest_key, xpath_q_key
             )
-            _LOGGER.info(
-                "Last winning lineup scoring %s for '%s' retrieved from %s, cached from/to '%s'",
-                min_winning_score,
-                entry_info.title,
-                src,
-                cache_filepath,
-            )
-            assert isinstance(lineup_data, str) and len(lineup_data) > 0
             lineups_data.append(lineup_data)
-        else:
-            min_winning_score = 0
 
         return {
             "last_winning_score": min_winning_score,
