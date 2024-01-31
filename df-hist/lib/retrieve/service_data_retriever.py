@@ -479,7 +479,7 @@ class ServiceDataRetriever(ABC):
         """
         cache_filepath = None
 
-        filename = re.sub(r'[<>:"/\\|?*]', "_", cache_key)
+        filename = re.sub(r'[<>:"/\\|?*]', " ", cache_key)
 
         if self.cache_path is not None:
             cache_filepath = os.path.join(self.cache_path, f"{filename}.{data_type}")

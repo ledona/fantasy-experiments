@@ -108,13 +108,8 @@ class Draftkings(ServiceDataRetriever):
             position = player_row.contents[0].text
             name = player_row.contents[1].text
             if "$" in name:
+                # if cost is included then drop it
                 name = name.split("$", 1)[0]
-            else:
-                _LOGGER.warning(
-                    "Player cost for '%s' did not appear with name, "
-                    "maybe processed before cost was retrieved...",
-                    name,
-                )
             team_cell_spans = player_row.contents[3].find_all("span")
 
             if len(team_cell_spans) in [7, 8]:

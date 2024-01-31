@@ -1,8 +1,10 @@
 import logging
 import shlex
 from argparse import ArgumentParser
+from datetime import timedelta
 
 import pandas as pd
+from dateutil.parser import parse as dateutil_parse
 from tqdm import tqdm
 
 from .. import log
@@ -178,8 +180,8 @@ def process_cmd_line(cmd_line_str=None):
         nargs="+",
         choices=("nhl", "nfl", "mlb", "nba", "lol"),
     )
-    parser.add_argument("--start-date")
-    parser.add_argument("--end-date")
+    parser.add_argument("--start-date", help="Start date in YYYY-MM-DD format")
+    parser.add_argument("--end-date", help="End date (inclusive) in YYYY-MM-DD format")
     parser.add_argument(
         "--web-limit",
         type=int,
@@ -196,12 +198,18 @@ def process_cmd_line(cmd_line_str=None):
     if (args.cache_only is True) and (args.cache_path is None):
         parser.error("--cache_path is required if --cache_only is used")
     _LOGGER.info("starting data retrieval")
+    start_date = dateutil_parse(args.start_date).date() if args.start_date is not None else None
+    end_date = (
+        (dateutil_parse(args.start_date) + timedelta(days=1)).date()
+        if args.end_date is not None
+        else None
+    )
     service_obj, entry_count = retrieve_history(
         args.service,
         args.history_file_dir,
         sports=args.sports,
-        start_date=args.start_date,
-        end_date=args.end_date,
+        start_date=start_date,
+        end_date=end_date,
         browser_debug_port=args.chrome_debug_port,
         browser_debug_address=args.chrome_debug_address,
         profile_path=args.chrome_profile_path,

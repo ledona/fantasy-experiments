@@ -21,7 +21,7 @@ pip install pandas selenium beautifulsoup4 tqdm
 ```
 Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" -ArgumentList "--remote-debugging-port=9222"
 ```
-3. Run the retrieval. Update the paths before running. The cache folder is where the retrieval process will write cache files, the export folder is where the files downloaded from the fantasy service accounts (with past betting activity) are located.
+3. Run the retrieval. Update the paths before running. The cache folder is where the retrieval process will write cache files, the export folder is where the files downloaded from the fantasy service accounts (with past betting activity) are located. See the _launch.json_ entry for more argument examples
 ```
 python -m lib.retrieve.retrieve_hist \
    --cache-path _PATH_TO_CACHE_FOLDER_ \
@@ -29,6 +29,7 @@ python -m lib.retrieve.retrieve_hist \
    draftkings \
    [--sports nfl] [--cache-only] [--start-date 20201001] [--end-date 20210101]
 ```
+
 
 ## Create model training data (__data_xform__)
 First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_. The following example
