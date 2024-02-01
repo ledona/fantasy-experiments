@@ -200,7 +200,7 @@ def process_cmd_line(cmd_line_str=None):
     _LOGGER.info("starting data retrieval")
     start_date = dateutil_parse(args.start_date).date() if args.start_date is not None else None
     end_date = (
-        (dateutil_parse(args.start_date) + timedelta(days=1)).date()
+        (dateutil_parse(args.end_date) + timedelta(days=1)).date()
         if args.end_date is not None
         else None
     )
