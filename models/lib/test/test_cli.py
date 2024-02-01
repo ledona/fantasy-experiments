@@ -12,7 +12,7 @@ from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
-from ..cli import (
+from ..regressor import (
     _DEFAULT_AUTOML_TYPE,
     _DUMMY_REGRESSOR_KWARGS,
     TrainingDefinitionFile,
@@ -166,9 +166,9 @@ def test_training_def_file_train_test(
     fake_raw_df = mocker.Mock()
     fake_tt_data = mocker.Mock()
     mock_load_data = mocker.patch(
-        "lib.cli.load_data", return_value=(fake_raw_df, fake_tt_data, None)
+        "lib.regressor.load_data", return_value=(fake_raw_df, fake_tt_data, None)
     )
-    mock_model_and_test = mocker.patch("lib.cli.model_and_test", return_value=None)
+    mock_model_and_test = mocker.patch("lib.regressor.model_and_test", return_value=None)
 
     main(f"train {cmdline} {_TEST_DEF_FILE_FILEPATH} {model_name}")
 

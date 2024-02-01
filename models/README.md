@@ -27,15 +27,15 @@ database files containing raw and calculated stats are in $FANTASY_HOME.
   ]
 }
 ```
-1. Run the data export scripts to generate the parquet data files used for training.
+1. Run the data export scripts found in the model definition subfolder to generate the parquet data files used for training.
 1. Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). From the models folder execute:
 ```
 # list models defined in a model definition file
-python -m lib.cli train {MODEL_DIR}/{SPORT}.json
+python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
 # get model create params for a model
-python -m lib.cli train {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
+python -m lib.regressor train {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
 # create model using defaults
-python -m lib.cli train --tpot_jobs 3 [--automl_type MODEL_TYPE] {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {MODEL_DIR}
+python -m lib.regressor train --tpot_jobs 3 [--automl_type MODEL_TYPE] {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {MODEL_DIR}
 ```
 1. (Optional) Load the models into the sport database and run some tests. Load modules using 
 model_manager.py from the fantasy repository. Generate lineups or run backtesting using one

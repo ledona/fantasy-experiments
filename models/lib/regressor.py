@@ -368,7 +368,9 @@ def _add_load_actives_parser(sub_parsers):
 
 
 def main(cmd_line_str=None):
-    parser = argparse.ArgumentParser(description="Train and Test CLI")
+    parser = argparse.ArgumentParser(
+        description="Train and Test CLI for standard regression models"
+    )
     subparsers = parser.add_subparsers()
     _add_train_parser(subparsers)
     _add_model_catalog_parser(subparsers)
