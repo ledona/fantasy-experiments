@@ -55,9 +55,9 @@
                 "--cache", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting\\df-hist-cache",
 
                 "--cache-only", 
-                "-o",
-                "--sports", 
-                "nfl", "--start-date", "20240120", "--end-date", "2024-01-28",
+                "-o", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting",
+                // "--sports", "nfl", 
+                // "--start-date", "20240120", "--end-date", "2024-01-28",
             ]
         },
         {
@@ -70,7 +70,7 @@
             "args": [
                 "--services", "draftkings",
                 // "--", "--dates", "20200901", "20201101",
-                "--sports", "nfl",
+                // "--sports", "nfl",
             ]
         },
         {

@@ -46,20 +46,3 @@ _eval\_results_ .
 ```
 python -m lib.modeling.cli nfl nba
 ```
-
-
-## OUTDATED!!!
-### setup the environment
-```
-# EDIT dot_envrc then
-source dot_envrc
-# RUN THE FOLLOWING ON THE CHROMEDRIVER BINARY...
-perl -pi -e 's/cdc/dog/g' /path/to/chromedriver
-
-# then use the Model Export/Testing notebooks
-# install automl + onnx
-sudo apt-get install libprotobuf-dev protobuf-compiler swig
-export CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON"
-pip install -r requirements
-```
-
