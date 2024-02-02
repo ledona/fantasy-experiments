@@ -40,13 +40,13 @@
         },
         {
             "name": "deep lineup modeler",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "lib.deep_lineup",
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "--file_mode", "fail",
+                // "--file_mode", "fail",
                 "--name", "test",
                 "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
             ]

@@ -1,4 +1,5 @@
 """functions required for exporting and training deep models"""
+
 import argparse
 import json
 import os
@@ -7,11 +8,14 @@ import shutil
 from random import Random
 from typing import Literal, cast
 
-from fantasy_py import FantasyException, db, log, dt_to_filename_str
+from fantasy_py import FantasyException, db, dt_to_filename_str, log
+from fantasy_py.lineup import FantasyCostAggregate
+from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 _DEFAULT_SAMPLE_COUNT = 10
-_DEFAULT_PARENT_PATH = os.path.join(".", "deep-lineup-datasets")
+_DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
+_DEFAULT_GAMES_PER_SLATE = 4, 6
 _LOGGER = log.get_logger(__name__)
 
 
@@ -54,11 +58,58 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
+# def _create_fca(session, season: int, game_num: int, game_ids: list[int]) -> FantasyCostAggregate:
+#     raise NotImplementedError()
+
+
+class _RandomSlateSelector:
+    def __init__(
+        self, session: Session, seasons: list[int], slate_games_range: tuple[int, int], seed
+    ):
+        self._session = session
+        self._seasons = seasons
+        self._slate_games_range = slate_games_range
+        self._rand_obj = Random(seed)
+
+        self._past_selections: set[int] = set()
+        """ past randomly generated slate selections in the form of a 
+        set of sorted tuples of game IDs"""
+
+    @property
+    def next(self) -> tuple[int, int, list[int]]:
+        """
+        return what the next slate will be based on as a tuple of (season, game_num, game_ids)
+        """
+        season = self._rand_obj.choice(self._seasons)
+        while True:
+            game_num = self._rand_obj.randint(
+                1, self._session.info["fantasy.db_manager"].get_max_epochs(season)
+            )
+            all_game_ids = list(
+                cast(int, row[0])
+                for row in self._session.query(db.Game.id)
+                .filter(db.Game.season == season, db.Game.game_number == game_num)
+                .all()
+            )
+            game_count = self._rand_obj.randint(*self._slate_games_range)
+            if game_count > len(all_game_ids):
+                continue
+            game_ids = sorted(self._rand_obj.sample(all_game_ids, game_count))
+            if (game_ids_hash := hash(tuple(game_ids))) in self._past_selections:
+                continue
+
+            self._past_selections.add(game_ids_hash)
+            break
+
+        return season, game_num, game_ids
+
+
 def _export_deep_dataset(
     db_file: str,
     dataset_name,
     parent_dest_dir: str,
     requested_seasons: list[int] | None,
+    slate_games_range: tuple[int, int],
     case_count: int,
     existing_files_mode: _ExistingFilesMode,
     seed,
@@ -82,16 +133,18 @@ def _export_deep_dataset(
     )
 
     samples_meta: list[dict] = []
-    rand_season = Random(seed)
-    for _ in (prog_iter := tqdm(range(case_count))):
-        season = rand_season.choice(seasons)
-        game_num = rand_season.randint(1, db_obj.db_manager.get_max_epochs(season))
-        prog_iter.set_postfix_str(f"{season}-{game_num}")
-        sample_meta = {"season": season, "game_num": game_num}
 
-        raise NotImplementedError()
+    with db_obj.session_scoped() as session:
+        rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
+        for _ in (prog_iter := tqdm(range(case_count))):
+            season, game_number, game_ids = rand_obj.next
 
-        samples_meta.append(sample_meta)
+            prog_iter.set_postfix_str(f"{season}-{game_number}")
+            sample_meta = {"season": season, "game_num": game_number, "game_ids": game_ids}
+
+            raise NotImplementedError()
+
+            samples_meta.append(sample_meta)
 
     with open(os.path.join(dataset_dest_dir, "samples_meta.json"), "w") as f_:
         json.dump(
@@ -127,9 +180,17 @@ def main(cmd_line_str=None):
         help="Default is to infer slates from any available season",
     )
     parser.add_argument(
+        "--games_per_slate_range",
+        help=f"Number of games per slate. Default is {_DEFAULT_GAMES_PER_SLATE}",
+        nargs=2,
+        type=int,
+        default=_DEFAULT_GAMES_PER_SLATE,
+    )
+    parser.add_argument(
         "--dest_dir",
-        help=f"Directory under which dataset directories will be written. Default is '{_DEFAULT_PARENT_PATH}'",
-        default=_DEFAULT_PARENT_PATH,
+        help="Directory under which dataset directories will be written. "
+        f"Default is '{_DEFAULT_PARENT_DATASET_PATH}'",
+        default=_DEFAULT_PARENT_DATASET_PATH,
     )
     parser.add_argument(
         "--existing_files_mode",
@@ -149,6 +210,7 @@ def main(cmd_line_str=None):
         args.name,
         args.dest_dir,
         args.seasons,
+        args.games_per_slate_range,
         args.samples,
         args.existing_files_mode,
         args.seed,
