@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Python: Debug Tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "purpose": [
@@ -21,7 +21,7 @@
         },
         {
             "name": "model train-test CLI",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "lib.cli",
             "justMyCode": true,
@@ -40,7 +40,7 @@
         },
         {
             "name": "df-hist retrieval",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "lib.retrieve.retrieve_hist",
             "justMyCode": true,
@@ -54,28 +54,28 @@
                 "--history-file-dir", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting",
                 "--cache", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting\\df-hist-cache",
 
-                // "--cache-only", 
-
+                "--cache-only", 
+                "-o",
                 "--sports", 
-                "nfl", "--start-date", "20221001", "--end-date", "2024-01-28",
+                "nfl", "--start-date", "20240120", "--end-date", "2024-01-28",
             ]
         },
         {
             "name": "df-hist xform",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "lib.xform.cli",
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
                 "--services", "draftkings",
-                "--", // "--dates", "20200901", "20201101",
-                "lol",
+                // "--", "--dates", "20200901", "20201101",
+                "--sports", "nfl",
             ]
         },
         {
             "name": "df-hist modeling",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "lib.modeling.cli",
             "justMyCode": true,

@@ -1,4 +1,5 @@
 import logging
+import os
 import shlex
 from argparse import ArgumentParser
 from datetime import timedelta
@@ -18,7 +19,6 @@ from .service_data_retriever import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-_DEFAULT_HISTORY_FILE_DIR = "/fantasy-isync/fantasy-dfs-hist/betting"
 
 
 def retrieve_history(
@@ -157,22 +157,17 @@ def process_cmd_line(cmd_line_str=None):
     )
     parser.add_argument(
         "--history-file-dir",
-        default=_DEFAULT_HISTORY_FILE_DIR,
-        help=(
-            "Path to directory containing downloaded contest history files. "
-            f"Default={_DEFAULT_HISTORY_FILE_DIR}"
-        ),
+        default=".",
+        help="Path to directory containing downloaded contest history files. Default='./'",
     )
     parser.add_argument(
-        "--filename-prefix",
+        "--write",
         "-o",
-        metavar="filename-prefix",
-        help=(
-            "Output filename prefix. Create 3 csv files containing results. "
-            "One for contest history, one with player draft history, "
-            "and one with betting results. "
-            "Filenames will be prefixed with this value."
-        ),
+        const=".",
+        nargs="?",
+        metavar="DIR",
+        help="Write the results to this directory. Default is the current directory. "
+        "Results will be written to files with names {service}.[betting|contest|draft].csv",
     )
     parser.add_argument(
         "--sports",
@@ -223,11 +218,17 @@ def process_cmd_line(cmd_line_str=None):
     if len(service_obj.processed_contests) == 0:
         _LOGGER.warning("Nothing was processed!")
     else:
-        if args.filename_prefix:
-            _LOGGER.info("Writing CSV files")
-            service_obj.contest_df.to_csv(args.filename_prefix + ".contest.csv", index=False)
-            service_obj.player_draft_df.to_csv(args.filename_prefix + ".draft.csv", index=False)
-            service_obj.entry_df.to_csv(args.filename_prefix + ".betting.csv", index=False)
+        if args.write is not None:
+            _LOGGER.info("Writing CSV files to '%s'", args.write)
+            service_obj.contest_df.to_csv(
+                os.path.join(args.write, args.service + ".contest.csv"), index=False
+            )
+            service_obj.player_draft_df.to_csv(
+                os.path.join(args.write, args.service + ".draft.csv"), index=False
+            )
+            service_obj.entry_df.to_csv(
+                os.path.join(args.write, args.service + ".betting.csv"), index=False
+            )
         else:
             with pd.option_context(
                 "display.max_rows",
