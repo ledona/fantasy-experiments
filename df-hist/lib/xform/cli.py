@@ -14,6 +14,9 @@ from .best_possible_lineup_score import TopScoreCacheMode
 from .data_xform import xform
 
 _DEFAULT_TOP_PERCENTILE = 0.7
+_DEFAULT_DATA_PARENT_DIR = "/fantasy-isync/fantasy-dfs-hist"
+_DEFAULT_INPUT_DATA_DIR = os.path.join(_DEFAULT_DATA_PARENT_DIR, "betting")
+_DEFAULT_OUTPUT_DATA_DIR = os.path.join(_DEFAULT_DATA_PARENT_DIR, "data")
 
 
 def _process_cmd_line(cmd_line_str=None):
@@ -58,7 +61,11 @@ def _process_cmd_line(cmd_line_str=None):
         "--top_score_cache_mode", choices=TopScoreCacheMode.__args__, default="default"
     )
 
-    parser.add_argument("--data_path", default="data", help="default='data'")
+    parser.add_argument(
+        "--data_path",
+        default=_DEFAULT_OUTPUT_DATA_DIR,
+        help=f"Directory where data will be written.default='{_DEFAULT_OUTPUT_DATA_DIR}'",
+    )
 
     parser.add_argument(
         "--no_df",
@@ -68,11 +75,10 @@ def _process_cmd_line(cmd_line_str=None):
         help="Do not print the resulting data to stdout on completion. "
         "(default is to show the data)",
     )
-    default_contest_data_path = os.path.join(os.environ["FANTASY_ARCHIVE_BASE"], "betting")
     parser.add_argument(
         "--contest_data_path",
-        default=default_contest_data_path,
-        help=f"default='{default_contest_data_path}'",
+        default=_DEFAULT_INPUT_DATA_DIR,
+        help=f"Directory containing contest data. default='{_DEFAULT_INPUT_DATA_DIR}'",
     )
 
     parser.add_argument(
@@ -85,7 +91,7 @@ def _process_cmd_line(cmd_line_str=None):
         "Default is the dates in the config for the sport",
     )
 
-    parser.add_argument("sports", nargs="+", choices=SPORT_CFGS.keys())
+    parser.add_argument("--sports", nargs="+", choices=SPORT_CFGS.keys(), default=SPORT_CFGS.keys())
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)

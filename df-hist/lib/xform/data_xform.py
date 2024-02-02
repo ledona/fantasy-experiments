@@ -464,10 +464,12 @@ def _generate_dataset(
     screen_lineup_constraints_mode="fail",
 ) -> pd.DataFrame:
     """
-    max_count - maximum number of slates to process
-    min_date - inclusive
-    max_date - not inclusive
-    top_score_cache_mode -
+    max_count: maximum number of slates to process
+    min_date: inclusive
+    max_date: not inclusive
+    datapath: target directory for data
+    contest_data_path: input data path
+    top_score_cache_mode:
         'default'=load and use the cache,
         'overwrite'=overwrite all existing cache data if any exists
         'missing'=use all existing valid cache data, any cached failures will be rerun
@@ -475,7 +477,7 @@ def _generate_dataset(
     contest_df = _get_contest_df(
         service, sport, style, contest_type, min_date, max_date, contest_data_path
     )
-    if contest_df is not None:
+    if contest_df is not None and max_count is not None:
         contest_df = contest_df.head(max_count)
 
     draft_df = _get_draft_df(service, sport, style, min_date, max_date, contest_data_path)
@@ -493,11 +495,7 @@ def _generate_dataset(
     if len(slate_ids_df) == 0:
         raise DataNotAvailableException("No slates ids found (based on teams contest df)")
 
-    # try:
-    # need this for subsequent sql queries
     slate_ids_str = ",".join(map(str, slate_ids_df.slate_id.dropna().astype(int)))
-    # except Exception as ex:
-    #     raise ValueError("Something wrong with slate_ids_df", slate_ids_df) from ex
 
     if len(slate_ids_str) == 0:
         raise DataNotAvailableException("No slate ids found after removing Nones")
