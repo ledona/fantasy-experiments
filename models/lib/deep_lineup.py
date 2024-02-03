@@ -81,7 +81,10 @@ def _get_slate_df(session: Session, game_ids: list[int], model_names, cache_dir,
         cache_mode=cache_mode,
     )[0]
 
-    raise NotImplementedError()
+    raise NotImplementedError("""
+        1. find top score for lineups based on games
+        2. transform predictions to train/test data format 
+    """)
 
 
 class _RandomSlateSelector:
