@@ -35,7 +35,7 @@ python -m lib.cli train {MODEL_DIR}/{SPORT}.json
 # get model create params for a model
 python -m lib.cli train {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
 # create model using defaults
-python -m lib.cli train --tpot_jobs 3 {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {MODEL_DIR}
+python -m lib.cli train --tpot_jobs 3 [--automl_type MODEL_TYPE] {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {MODEL_DIR}
 ```
 1. (Optional) Load the models into the sport database and run some tests. Load modules using 
 model_manager.py from the fantasy repository. Generate lineups or run backtesting using one
