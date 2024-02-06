@@ -17,7 +17,8 @@ from fantasy_py import (
     dt_to_filename_str,
     log,
 )
-from fantasy_py.lineup import gen_predictions_for_hypothetical_games
+from fantasy_py.lineup import gen_predictions_for_hypothetical_games, gen_lineups
+from fantasy_py.sport import Starters
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
 from tqdm import tqdm
@@ -67,24 +68,38 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
-def _get_slate_df(session: Session, game_ids: list[int], model_names, cache_dir, cache_mode):
-    games = [
-        game.to_game_dict(include_players=True)
-        for game in session.query(db.Game).filter(db.Game.id.in_(game_ids)).all()
-    ]
+def _get_slate_df(session: Session, game_ids: list[int], model_names, cache_dir, cache_mode, epoch):
+    starters = Starters.from_historic_data(session, service, epoch, game_ids=game_ids)
+    fca = session.info["fantasy.db_manager"].fca_from_starters(session, starters, service_name)
+    sport_constraints = self.bt_service.get_constraints(
+        style=self.slate_info["style"], slate=self.slate_info
+    )
+    solver = MixedIntegerKnapsackSolver(
+        sport_constraints.lineup_constraints,
+        sport_constraints.budget,
+        fill_all_positions=sport_constraints.fill_all_positions,
+        random_seed=self.random_seed,
+    )
 
-    predictions = gen_predictions_for_hypothetical_games(
-        session,
+    # use historic data to generate the best possible lineup
+    lineup, scores = gen_lineups(
+        db_obj,
+        fca,
         model_names,
-        games,
+        solver,
+        service_name,
+        1,
+        slate_info=slate_info,
+        slate_epoch=epoch,
         cache_dir=cache_dir,
-        cache_mode=cache_mode,
-    )[0]
-
-    raise NotImplementedError("""
+        score_data_type="predicted",
+    )
+    raise NotImplementedError(
+        """
         1. find top score for lineups based on games
         2. transform predictions to train/test data format 
-    """)
+    """
+    )
 
 
 class _RandomSlateSelector:
@@ -163,13 +178,18 @@ def _export_deep_dataset(
 
     with db_obj.session_scoped() as session:
         rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
-        for _ in (prog_iter := tqdm(range(case_count))):
+        for _ in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
             season, game_number, game_ids, game_ids_hashed = rand_obj.next
 
             prog_iter.set_postfix_str(f"{season}-{game_number}")
             sample_meta = {"season": season, "game_num": game_number, "game_ids": game_ids}
             df, sample_meta["top_score"] = _get_slate_df(
-                session, game_ids, model_names, cache_dir, cache_mode
+                session,
+                game_ids,
+                model_names,
+                cache_dir,
+                cache_mode,
+                db_obj.db_manager.epoch_for_game_number(season, game_number),
             )
 
             df.to_parquet(
@@ -227,12 +247,14 @@ def main(cmd_line_str=None):
         f"Default is '{_DEFAULT_PARENT_DATASET_PATH}'",
         default=_DEFAULT_PARENT_DATASET_PATH,
     )
+    parser.add_argument("--no_progress", dest="progress", default=True, action="store_false")
     parser.add_argument(
         "--existing_files_mode",
         "--file_mode",
         choices=_ExistingFilesMode.__args__,
         default="append",
-        help="Default is append, new files will overwrite or add to existing files in the dataset directory",
+        help="Default is append, new files will overwrite or add to existing "
+        "files in the dataset directory",
     )
     parser.add_argument("--name", help="Name of the dataset. Default is a datetime stamp")
     parser.add_argument("db_file")
@@ -242,12 +264,13 @@ def main(cmd_line_str=None):
         CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, name).ABBR.lower(): name
         for name in service_names
     }
-    parser.add_argument(
-        "service", choices=sorted(service_names + tuple(service_abbrs.keys())), required=True
-    )
+    parser.add_argument("service", choices=sorted(service_names + list(service_abbrs.keys())))
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
+
+    if args.progress:
+        log.enable_progress()
 
     db_obj = db.get_db_obj(args.db_file)
     service_class = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
@@ -263,7 +286,7 @@ def main(cmd_line_str=None):
         model_names,
         args.seed,
         args.cache_dir,
-        args.cache_mode if args.cache_dir else "disabled",
+        args.cache_mode if args.cache_dir else "disable",
     )
 
 
