@@ -47,8 +47,10 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 // "--file_mode", "fail",
+                "--cache_dir", "./cache_dir",
                 "--name", "test",
                 "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
+                "draftkings"
             ]
         },
         {

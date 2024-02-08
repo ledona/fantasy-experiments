@@ -6,7 +6,7 @@ import os
 import shlex
 import shutil
 from random import Random
-from typing import Literal, cast
+from typing import Literal, cast, Type
 
 from fantasy_py import (
     FANTASY_SERVICE_DOMAIN,
@@ -16,8 +16,10 @@ from fantasy_py import (
     db,
     dt_to_filename_str,
     log,
+    ContestStyle,
 )
-from fantasy_py.lineup import gen_predictions_for_hypothetical_games, gen_lineups
+from fantasy_py.lineup import FantasyService, gen_lineups
+from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
@@ -68,38 +70,57 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
-def _get_slate_df(session: Session, game_ids: list[int], model_names, cache_dir, cache_mode, epoch):
-    starters = Starters.from_historic_data(session, service, epoch, game_ids=game_ids)
-    fca = session.info["fantasy.db_manager"].fca_from_starters(session, starters, service_name)
-    sport_constraints = self.bt_service.get_constraints(
-        style=self.slate_info["style"], slate=self.slate_info
+def _get_slate_sample(
+    db_obj: db.FantasySQLAlchemyWrapper,
+    service_cls: Type[FantasyService],
+    game_ids: list[int],
+    model_names,
+    cache_dir,
+    cache_mode,
+    epoch,
+    seed,
+    style: ContestStyle,
+):
+    starters = Starters.from_historic_data(
+        db_obj, service_cls.SERVICE_NAME, epoch, game_ids=game_ids, style=style
     )
+    fca = db_obj.db_manager.fca_from_starters(db_obj, starters, service_cls.SERVICE_NAME)
+    sport_constraints = service_cls.get_constraints(db_obj.db_manager.ABBR, style=style)
+    assert sport_constraints is not None
     solver = MixedIntegerKnapsackSolver(
         sport_constraints.lineup_constraints,
         sport_constraints.budget,
         fill_all_positions=sport_constraints.fill_all_positions,
-        random_seed=self.random_seed,
+        random_seed=seed,
     )
 
     # use historic data to generate the best possible lineup
-    lineup, scores = gen_lineups(
+    top_lineup, scores = gen_lineups(
         db_obj,
         fca,
         model_names,
         solver,
-        service_name,
+        service_cls,
         1,
-        slate_info=slate_info,
+        # slate_info=slate_info,
         slate_epoch=epoch,
         cache_dir=cache_dir,
-        score_data_type="predicted",
+        cache_mode=cache_mode,
+        score_data_type="historic",
+        scores_to_include=["predicted"],
     )
+    top_score = top_lineup[0].get_fpts
+    assert top_score is not None
+
+    df = scores["predicted"]
+
     raise NotImplementedError(
         """
-        1. find top score for lineups based on games
         2. transform predictions to train/test data format 
     """
     )
+
+    return top_score, df
 
 
 class _RandomSlateSelector:
@@ -152,12 +173,15 @@ def _export_deep_dataset(
     slate_games_range: tuple[int, int],
     case_count: int,
     existing_files_mode: _ExistingFilesMode,
-    model_names: list[str],
+    service_cls,
+    style: ContestStyle,
     seed,
     cache_dir,
     cache_mode: CacheMode,
 ):
     _LOGGER.info("Starting export")
+    model_names = getattr(service_cls, "DEFAULT_MODEL_NAMES", {}).get(db_obj.db_manager.ABBR)
+
     dataset_dest_dir = _prep_dataset_directory(parent_dest_dir, dataset_name, existing_files_mode)
     if requested_seasons is None:
         seasons = cast(list[int], db_obj.db_manager.get_seasons())
@@ -183,13 +207,16 @@ def _export_deep_dataset(
 
             prog_iter.set_postfix_str(f"{season}-{game_number}")
             sample_meta = {"season": season, "game_num": game_number, "game_ids": game_ids}
-            df, sample_meta["top_score"] = _get_slate_df(
-                session,
+            sample_meta["top_score"], df = _get_slate_sample(
+                db_obj,
+                service_cls,
                 game_ids,
                 model_names,
                 cache_dir,
                 cache_mode,
                 db_obj.db_manager.epoch_for_game_number(season, game_number),
+                seed,
+                style,
             )
 
             df.to_parquet(
@@ -228,6 +255,8 @@ def main(cmd_line_str=None):
         help=f"How many samples to infer. default={_DEFAULT_SAMPLE_COUNT}",
         default=_DEFAULT_SAMPLE_COUNT,
     )
+
+    parser.add_argument("--style", default=ContestStyle.CLASSIC)
     parser.add_argument(
         "--seasons",
         nargs="+",
@@ -274,7 +303,6 @@ def main(cmd_line_str=None):
 
     db_obj = db.get_db_obj(args.db_file)
     service_class = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
-    model_names = getattr(service_class, "DEFAULT_MODEL_NAMES", {}).get(db_obj.db_manager.ABBR)
     _export_deep_dataset(
         db_obj,
         args.name,
@@ -283,7 +311,8 @@ def main(cmd_line_str=None):
         args.games_per_slate_range,
         args.samples,
         args.existing_files_mode,
-        model_names,
+        service_class,
+        args.style,
         args.seed,
         args.cache_dir,
         args.cache_mode if args.cache_dir else "disable",
