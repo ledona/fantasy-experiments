@@ -8,6 +8,8 @@ import shutil
 from random import Random
 from typing import Literal, cast, Type
 
+import pandas as pd
+
 from fantasy_py import (
     FANTASY_SERVICE_DOMAIN,
     CacheMode,
@@ -115,6 +117,15 @@ def _get_slate_sample(
     assert top_score is not None
 
     df = scores["predicted"]
+
+    def cost_func(row):
+        if "player_id" not in row or pd.isna(row.player_id):
+            pt_dict = fca.get_mi_team(row.team_id)
+        else:
+            pt_dict = fca.get_mi_player(row.player_id)
+        raise NotImplementedError()
+
+    df["cost"] = df.apply(cost_func, axis=1)
 
     raise NotImplementedError(
         """
