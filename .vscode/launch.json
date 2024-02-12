@@ -39,18 +39,31 @@
             ]
         },
         {
-            "name": "deep lineup modeler",
+            "name": "deep lineup - data",
             "type": "debugpy",
             "request": "launch",
             "module": "lib.deep_lineup",
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
+                "data",
                 // "--file_mode", "fail",
                 "--cache_dir", "./cache_dir",
                 "--name", "test",
                 "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
                 "draftkings"
+            ]
+        },
+        {
+            "name": "deep lineup - train",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.deep_lineup",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                "train",
+                "/fantasy-isync/fantasy-modeling/deep_lineup/test"
             ]
         },
         {

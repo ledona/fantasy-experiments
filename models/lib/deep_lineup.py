@@ -5,6 +5,7 @@ import json
 import os
 import shlex
 import shutil
+import statistics
 from random import Random
 from typing import Literal, NamedTuple, Type, cast
 
@@ -25,7 +26,10 @@ from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
+from torch.utils.data import DataLoader
 from tqdm import tqdm
+
+from .data_loader import DeepLineupDataset
 
 _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
@@ -225,6 +229,7 @@ def _export_deep_dataset(
     total_attempts = 0
     successful_attempts = []
     failed_attempts = []
+    df_lens = []
     with db_obj.session_scoped() as session:
         rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
         for sample_num in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
@@ -273,7 +278,8 @@ def _export_deep_dataset(
                     f"{slate_def.season}-{slate_def.game_number}-{slate_def.game_ids_hash}.pq",
                 )
             )
-
+            sample_meta["items"] = len(df)
+            df_lens.append(len(df))
             samples_meta.append(sample_meta)
 
     with open(meta_filepath := os.path.join(dataset_dest_dir, "samples_meta.json"), "w") as f_:
@@ -287,73 +293,16 @@ def _export_deep_dataset(
             f_,
             indent="\t",
         )
-    _LOGGER.info("Meta data written to '%s'", meta_filepath)
-
-
-def main(cmd_line_str=None):
-    parser = argparse.ArgumentParser(
-        description="Functions to export data for, train and test deep "
-        "learning lineup generator models"
+    _LOGGER.info(
+        "Meta data written to '%s' min-median-max df lens = %i %i %i",
+        meta_filepath,
+        min(df_lens),
+        statistics.median(df_lens),
+        max(df_lens),
     )
 
-    parser.add_argument("--cache_dir", default=None, help="Folder to cache to")
-    parser.add_argument("--cache_mode", choices=CacheMode.__args__)
 
-    parser.add_argument("--seed", default=0)
-    parser.add_argument(
-        "--samples",
-        "--cases",
-        "--n",
-        type=int,
-        help=f"How many samples to infer. default={_DEFAULT_SAMPLE_COUNT}",
-        default=_DEFAULT_SAMPLE_COUNT,
-    )
-
-    parser.add_argument("--style", default=ContestStyle.CLASSIC)
-    parser.add_argument(
-        "--seasons",
-        nargs="+",
-        type=int,
-        help="Default is to infer slates from any available season",
-    )
-    parser.add_argument(
-        "--games_per_slate_range",
-        help=f"Number of games per slate. Default is {_DEFAULT_GAMES_PER_SLATE}",
-        nargs=2,
-        type=int,
-        default=_DEFAULT_GAMES_PER_SLATE,
-    )
-    parser.add_argument(
-        "--dest_dir",
-        help="Directory under which dataset directories will be written. "
-        f"Default is '{_DEFAULT_PARENT_DATASET_PATH}'",
-        default=_DEFAULT_PARENT_DATASET_PATH,
-    )
-    parser.add_argument("--no_progress", dest="progress", default=True, action="store_false")
-    parser.add_argument(
-        "--existing_files_mode",
-        "--file_mode",
-        choices=_ExistingFilesMode.__args__,
-        default="append",
-        help="Default is append, new files will overwrite or add to existing "
-        "files in the dataset directory",
-    )
-    parser.add_argument("--name", help="Name of the dataset. Default is a datetime stamp")
-    parser.add_argument("db_file")
-
-    service_names = CLSRegistry.get_names(FANTASY_SERVICE_DOMAIN)
-    service_abbrs = {
-        CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, name).ABBR.lower(): name
-        for name in service_names
-    }
-    parser.add_argument("service", choices=sorted(service_names + list(service_abbrs.keys())))
-
-    arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
-    args = parser.parse_args(arg_strings)
-
-    if args.progress:
-        log.enable_progress()
-
+def _data_export_parser_func(args: argparse.Namespace):
     db_obj = db.get_db_obj(args.db_file)
     service_class = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
     _export_deep_dataset(
@@ -370,6 +319,105 @@ def main(cmd_line_str=None):
         args.cache_dir,
         args.cache_mode if args.cache_dir else "disable",
     )
+
+
+def _train_parser_func(args: argparse.Namespace):
+    samples_meta_filepath = os.path.join(args.dataset_dir, "samples_meta.json")
+    _LOGGER.info("Loading training samples from '%s'", samples_meta_filepath)
+    dataset = DeepLineupDataset(samples_meta_filepath)
+    dataloader = DataLoader(dataset, batch_size=args.batch_size)
+
+    for _ in range(args.epochs):
+        for x, y in dataloader:
+            optimizer.zero_grad()
+
+            # x has shape (batch_size, seq_len, input_size)
+            preds = model(x)
+
+            loss = criterion(preds, y)
+            loss.backward()
+            optimizer.step()
+
+
+def main(cmd_line_str=None):
+    parser = argparse.ArgumentParser(
+        description="Functions to export data for, train and test deep "
+        "learning lineup generator models"
+    )
+
+    parser.add_argument("--seed", default=0)
+    parser.add_argument(
+        "--dest_dir",
+        help="Directory under which dataset directories will be written. "
+        f"Default is '{_DEFAULT_PARENT_DATASET_PATH}'",
+        default=_DEFAULT_PARENT_DATASET_PATH,
+    )
+    parser.add_argument("--no_progress", dest="progress", default=True, action="store_false")
+
+    sub_parsers = parser.add_subparsers(
+        title="operation", help="The deep learning lineup operation to execute"
+    )
+
+    data_parser = sub_parsers.add_parser(
+        "data", help="Create training data for deep learning lineup models"
+    )
+    data_parser.set_defaults(func=_data_export_parser_func)
+    data_parser.add_argument("--cache_dir", default=None, help="Folder to cache to")
+    data_parser.add_argument("--cache_mode", choices=CacheMode.__args__)
+    data_parser.add_argument(
+        "--samples",
+        "--cases",
+        "--n",
+        type=int,
+        help=f"How many samples to infer. default={_DEFAULT_SAMPLE_COUNT}",
+        default=_DEFAULT_SAMPLE_COUNT,
+    )
+
+    data_parser.add_argument("--style", default=ContestStyle.CLASSIC)
+    data_parser.add_argument(
+        "--seasons",
+        nargs="+",
+        type=int,
+        help="Default is to infer slates from any available season",
+    )
+    data_parser.add_argument(
+        "--games_per_slate_range",
+        help=f"Number of games per slate. Default is {_DEFAULT_GAMES_PER_SLATE}",
+        nargs=2,
+        type=int,
+        default=_DEFAULT_GAMES_PER_SLATE,
+    )
+    data_parser.add_argument(
+        "--existing_files_mode",
+        "--file_mode",
+        choices=_ExistingFilesMode.__args__,
+        default="append",
+        help="Default is append, new files will overwrite or add to existing "
+        "files in the dataset directory",
+    )
+    data_parser.add_argument("--name", help="Name of the dataset. Default is a datetime stamp")
+    data_parser.add_argument("db_file")
+
+    service_names = CLSRegistry.get_names(FANTASY_SERVICE_DOMAIN)
+    service_abbrs = {
+        CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, name).ABBR.lower(): name
+        for name in service_names
+    }
+    data_parser.add_argument("service", choices=sorted(service_names + list(service_abbrs.keys())))
+
+    train_parser = sub_parsers.add_parser("train", help="Train a deep model")
+    train_parser.set_defaults(func=_train_parser_func)
+    train_parser.add_argument("dataset_dir", help="Path to the training dataset")
+    train_parser.add_argument("--batch_size", type=int, default=64)
+    train_parser.add_argument("--epochs", type=int, default=10)
+
+    arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
+    args = parser.parse_args(arg_strings)
+
+    if args.progress:
+        log.enable_progress()
+
+    args.func(args)
 
 
 if __name__ == "__main__":
