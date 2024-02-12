@@ -5,3 +5,6 @@
 
 # default parent folder with deep lineup export data
 deep-lineup-datasets
+
+# ignore the default cache dir
+cache_dir

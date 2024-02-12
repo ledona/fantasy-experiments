@@ -6,19 +6,18 @@ import os
 import shlex
 import shutil
 from random import Random
-from typing import Literal, cast, Type
+from typing import Literal, Type, cast
 
 import pandas as pd
-
 from fantasy_py import (
     FANTASY_SERVICE_DOMAIN,
     CacheMode,
     CLSRegistry,
+    ContestStyle,
     FantasyException,
     db,
     dt_to_filename_str,
     log,
-    ContestStyle,
 )
 from fantasy_py.lineup import FantasyService, gen_lineups
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
@@ -113,27 +112,31 @@ def _get_slate_sample(
         score_data_type="historic",
         scores_to_include=["predicted"],
     )
-    top_score = top_lineup[0].get_fpts
-    assert top_score is not None
+    top_hist_score = top_lineup[0].get_fpts("historic")
+    assert top_hist_score is not None
 
-    df = scores["predicted"]
+    pred_df = scores["predicted"]
 
     def cost_func(row):
         if "player_id" not in row or pd.isna(row.player_id):
             pt_dict = fca.get_mi_team(row.team_id)
         else:
             pt_dict = fca.get_mi_player(row.player_id)
-        raise NotImplementedError()
+        dict_ = {
+            "cost": pt_dict["cost"][service_cls.SERVICE_NAME][slate_info["cost_id"]],
+        }
+        for pos in pt_dict["positions"]:
+            dict_["pos:" + pos] = 1
+        return dict_
 
-    df["cost"] = df.apply(cost_func, axis=1)
+    cost_pos_df = pred_df.apply(cost_func, axis=1, result_type="expand")
+    df = pd.concat([pred_df.drop("game_id", axis=1), cost_pos_df], axis=1)
 
-    raise NotImplementedError(
-        """
-        2. transform predictions to train/test data format 
-    """
-    )
-
-    return top_score, df
+    for col in df.columns:
+        if not col.startswith("pos:"):
+            continue
+        df[col] = df[col].fillna(0)
+    return top_hist_score, df
 
 
 class _RandomSlateSelector:
