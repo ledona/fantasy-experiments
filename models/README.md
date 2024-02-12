@@ -41,7 +41,10 @@ python -m lib.cli train --tpot_jobs 3 [--automl_type MODEL_TYPE] {MODEL_DIR}/{SP
 model_manager.py from the fantasy repository. Generate lineups or run backtesting using one
 of the debug configurations or lineup.sc or backtest.sc
 1. Archive models and data
+TBD
 
 ## Model Cataloging
+Run the following to create a catalog of the best models currently in the catalog
+```python -m lib.cli catalog --best --root {root-model-dir}```
 
 ## Loading Active Models

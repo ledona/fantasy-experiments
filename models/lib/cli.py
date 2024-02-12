@@ -306,7 +306,7 @@ def _model_catalog_func(args):
         top_r2_df = df.groupby("name")["r2"].max().reset_index()
         best_models_df = df.merge(top_r2_df, on=["name", "r2"])[["name", "r2", "mae", "file"]]
         best_models_filename = f"best-models.{dt_to_filename_str()}.csv"
-        best_models_df.to_csv(os.path.join(args.root, best_models_filename))
+        best_models_df.to_csv(os.path.join(args.root, best_models_filename), index=False)
     else:
         best_models_filename = None
         best_models_df = None
@@ -339,7 +339,8 @@ def _add_model_catalog_parser(sub_parsers):
     parser.set_defaults(func=_model_catalog_func, parser=parser)
     parser.add_argument(
         "--root",
-        help="The root directory to start the search for model files. Default=.",
+        metavar="ROOT_DIRECTORY",
+        help="The root directory to start the search for model files. Default=./",
         default=".",
     )
     parser.add_argument(
