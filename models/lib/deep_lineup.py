@@ -6,7 +6,7 @@ import os
 import shlex
 import shutil
 from random import Random
-from typing import Literal, Type, cast
+from typing import Literal, NamedTuple, Type, cast
 
 import pandas as pd
 from fantasy_py import (
@@ -14,6 +14,7 @@ from fantasy_py import (
     CacheMode,
     CLSRegistry,
     ContestStyle,
+    DataNotAvailableException,
     FantasyException,
     db,
     dt_to_filename_str,
@@ -152,6 +153,12 @@ class _RandomSlateSelector:
         """ past randomly generated slate selections in the form of a 
         set of sorted tuples of game IDs"""
 
+    class NextSlateDef(NamedTuple):
+        season: int
+        game_number: int
+        game_ids: list[int]
+        game_ids_hash: int
+
     @property
     def next(self):
         """
@@ -178,7 +185,7 @@ class _RandomSlateSelector:
             self._past_selections.add(game_ids_hash)
             break
 
-        return season, game_num, game_ids, game_ids_hash
+        return self.NextSlateDef(season, game_num, game_ids, game_ids_hash)
 
 
 def _export_deep_dataset(
@@ -215,33 +222,61 @@ def _export_deep_dataset(
     )
 
     samples_meta: list[dict] = []
-
+    total_attempts = 0
+    successful_attempts = []
+    failed_attempts = []
     with db_obj.session_scoped() as session:
         rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
-        for _ in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
-            season, game_number, game_ids, game_ids_hashed = rand_obj.next
+        for sample_num in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
+            for attempt_num in range(10):
+                total_attempts += 1
+                slate_def = rand_obj.next
+                prog_iter.set_postfix(attempts=total_attempts)
+                sample_meta = slate_def._asdict()
 
-            prog_iter.set_postfix_str(f"{season}-{game_number}")
-            sample_meta = {"season": season, "game_num": game_number, "game_ids": game_ids}
-            sample_meta["top_score"], df = _get_slate_sample(
-                db_obj,
-                service_cls,
-                game_ids,
-                model_names,
-                cache_dir,
-                cache_mode,
-                db_obj.db_manager.epoch_for_game_number(season, game_number),
-                seed,
-                style,
-            )
-
+                try:
+                    sample_meta["top_score"], df = _get_slate_sample(
+                        db_obj,
+                        service_cls,
+                        slate_def.game_ids,
+                        model_names,
+                        cache_dir,
+                        cache_mode,
+                        db_obj.db_manager.epoch_for_game_number(
+                            slate_def.season, slate_def.game_number
+                        ),
+                        seed,
+                        style,
+                    )
+                    break
+                except DataNotAvailableException as ex:
+                    _LOGGER.warning(
+                        "Attempt %i for sample %i failed to create a slate "
+                        "for %i-%i game_ids=%s: %s",
+                        attempt_num,
+                        sample_num,
+                        slate_def.season,
+                        slate_def.game_number,
+                        slate_def.game_ids,
+                        ex,
+                    )
+                    failed_attempts.append(slate_def)
+            else:
+                raise ExportError(
+                    f"Failed to create a slate for sample #{sample_num} "
+                    f"after {attempt_num} attempts"
+                )
+            successful_attempts.append(slate_def)
             df.to_parquet(
-                os.path.join(dataset_dest_dir, f"{season}-{game_number}-{game_ids_hashed}.pq")
+                os.path.join(
+                    dataset_dest_dir,
+                    f"{slate_def.season}-{slate_def.game_number}-{slate_def.game_ids_hash}.pq",
+                )
             )
 
             samples_meta.append(sample_meta)
 
-    with open(os.path.join(dataset_dest_dir, "samples_meta.json"), "w") as f_:
+    with open(meta_filepath := os.path.join(dataset_dest_dir, "samples_meta.json"), "w") as f_:
         json.dump(
             {
                 "sport": db_obj.db_manager.ABBR,
@@ -252,11 +287,13 @@ def _export_deep_dataset(
             f_,
             indent="\t",
         )
+    _LOGGER.info("Meta data written to '%s'", meta_filepath)
 
 
 def main(cmd_line_str=None):
     parser = argparse.ArgumentParser(
-        description="Functions to export data for, train and test deep learning lineup generator models"
+        description="Functions to export data for, train and test deep "
+        "learning lineup generator models"
     )
 
     parser.add_argument("--cache_dir", default=None, help="Folder to cache to")
