@@ -26,10 +26,9 @@ from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .data_loader import DeepLineupDataset
+from .deep import deep_train
 
 _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
@@ -289,6 +288,8 @@ def _export_deep_dataset(
                 "seasons": seasons,
                 "seed": seed,
                 "samples": samples_meta,
+                "service": service_cls.SERVICE_NAME,
+                "style": style.name,
             },
             f_,
             indent="\t",
@@ -322,21 +323,8 @@ def _data_export_parser_func(args: argparse.Namespace):
 
 
 def _train_parser_func(args: argparse.Namespace):
-    samples_meta_filepath = os.path.join(args.dataset_dir, "samples_meta.json")
-    _LOGGER.info("Loading training samples from '%s'", samples_meta_filepath)
-    dataset = DeepLineupDataset(samples_meta_filepath)
-    dataloader = DataLoader(dataset, batch_size=args.batch_size)
-
-    for _ in range(args.epochs):
-        for x, y in dataloader:
-            optimizer.zero_grad()
-
-            # x has shape (batch_size, seq_len, input_size)
-            preds = model(x)
-
-            loss = criterion(preds, y)
-            loss.backward()
-            optimizer.step()
+    model = deep_train(args.dataset_dir, args.epochs, args.batch_size)
+    raise NotImplementedError("do something with the model")
 
 
 def main(cmd_line_str=None):
