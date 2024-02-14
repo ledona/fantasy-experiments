@@ -30,5 +30,8 @@ class DeepLineupDataset(Dataset):
             f"{sample_info['season']}-{sample_info['game_number']}-{sample_info['game_ids_hash']}.pq",
         )
         df = pd.read_parquet(filepath)
-        raise NotImplementedError('add padding')
-        return df, sample_info["top_score"]
+        drop_cols = ["team_id"]
+        if "player_id" in df:
+            drop_cols.append("player_id")
+
+        return df.drop(columns=drop_cols), sample_info["top_score"]

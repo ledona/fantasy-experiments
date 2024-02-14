@@ -28,12 +28,13 @@ from ledona import constant_hasher
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from .deep import deep_train
+from .deep import deep_train, save
 
 _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
 _DEFAULT_GAMES_PER_SLATE = 4, 6
 _LOGGER = log.get_logger(__name__)
+_DEFAULT_MODEL_FILENAME_FORMAT = "deep-lineup-model.{sport}.{service}.{style}.{datetime}.pkl"
 
 
 class ExportError(FantasyException):
@@ -303,7 +304,7 @@ def _export_deep_dataset(
     )
 
 
-def _data_export_parser_func(args: argparse.Namespace):
+def _data_export_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
     db_obj = db.get_db_obj(args.db_file)
     service_class = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
     _export_deep_dataset(
@@ -322,9 +323,27 @@ def _data_export_parser_func(args: argparse.Namespace):
     )
 
 
-def _train_parser_func(args: argparse.Namespace):
-    model = deep_train(args.dataset_dir, args.epochs, args.batch_size)
-    raise NotImplementedError("do something with the model")
+def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
+    if not args.model_filepath:
+        target_dir = "."
+        model_filename = None
+    elif os.path.isdir(args.model_filepath):
+        target_dir = args.model_filepath
+        model_filename = None
+    else:
+        target_dir = os.path.dirname(args.model_filepath)
+        model_filename = os.path.basename(args.model_filepath)
+    if not os.path.isdir(target_dir):
+        parser.error(f"Infered model target directory '{target_dir}' is not a valid directory!")
+
+    model, sport, service_name, style = deep_train(args.dataset_dir, args.epochs, args.batch_size)
+
+    if model_filename is None:
+        model_filename = _DEFAULT_MODEL_FILENAME_FORMAT.format(
+            sport=sport, service=service_name, style=style.name, datetime=dt_to_filename_str()
+        )
+    target_filepath = os.path.join(target_dir, model_filename)
+    save(model, target_filepath)
 
 
 def main(cmd_line_str=None):
@@ -398,6 +417,14 @@ def main(cmd_line_str=None):
     train_parser.add_argument("dataset_dir", help="Path to the training dataset")
     train_parser.add_argument("--batch_size", type=int, default=64)
     train_parser.add_argument("--epochs", type=int, default=10)
+    train_parser.add_argument(
+        "--model_filepath",
+        help="Path of the model file to save to. If this is a directory then "
+        "the model will be written to that directory using the default "
+        "filename format '{_DEFAULT_MODEL_FILENAME_FORMAT}'. If this is a file path "
+        "then the model will be saved to the file",
+    )
+    train_parser.add_argument("--model_dir", help="The directory to")
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
@@ -405,7 +432,7 @@ def main(cmd_line_str=None):
     if args.progress:
         log.enable_progress()
 
-    args.func(args)
+    args.func(args, parser)
 
 
 if __name__ == "__main__":

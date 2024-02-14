@@ -1,4 +1,8 @@
 from torch import nn
+import torch
+from fantasy_py import log
+
+_LOGGER = log.get_logger(__name__)
 
 
 class DeepLineupModel(nn.Module):
@@ -14,3 +18,13 @@ class DeepLineupModel(nn.Module):
         x = self.pool(x)
         # x is now (batch_size, 1, out_channels)
         return x.squeeze()  # output is (batch_size, out_channels)
+
+
+def save(model: DeepLineupModel, filepath: str):
+    _LOGGER.info("Saving model to '%s'", filepath)
+    torch.save(model, filepath)
+
+
+def load(filepath: str):
+    _LOGGER.info("Loading model from '%s'", filepath)
+    return torch.load(filepath)

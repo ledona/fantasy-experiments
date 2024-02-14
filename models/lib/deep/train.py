@@ -51,7 +51,7 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
     # TODO: look inter optimizer options
     optimizer = torch.optim.Adam(model.parameters())
 
-    for _ in tqdm(range(train_epochs, 1, train_epochs + 1), desc="deep-training-epoch"):
+    for _ in tqdm(range(1, train_epochs + 1), desc="deep-training-epoch"):
         for x, y in dataloader:
             optimizer.zero_grad()
 
@@ -62,4 +62,9 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
             loss.backward()
             optimizer.step()
 
-    return model
+    return (
+        model,
+        samples_meta["sport"],
+        samples_meta["service"],
+        ContestStyle[samples_meta["style"]],
+    )
