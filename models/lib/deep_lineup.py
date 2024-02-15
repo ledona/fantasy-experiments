@@ -163,13 +163,16 @@ class _RandomSlateSelector:
         game_ids: list[int]
         game_ids_hash: int
 
+    _MAX_NEXT_FAILURES = 100
+    """maximum number of failed next search tries before giving up"""
+
     @property
     def next(self):
         """
         return what the next slate will be based on as a tuple of (season, game_num, game_ids)
         """
         season = self._rand_obj.choice(self._seasons)
-        while True:
+        for _ in range(self._MAX_NEXT_FAILURES):
             game_num = self._rand_obj.randint(
                 1, self._session.info["fantasy.db_manager"].get_max_epochs(season)
             )
@@ -188,6 +191,10 @@ class _RandomSlateSelector:
 
             self._past_selections.add(game_ids_hash)
             break
+        else:
+            raise ExportError(
+                f"After {self._MAX_NEXT_FAILURES} tries, failed to find a slate for {season}"
+            )
 
         return self.NextSlateDef(season, game_num, game_ids, game_ids_hash)
 
@@ -210,20 +217,6 @@ def _export_deep_dataset(
     model_names = getattr(service_cls, "DEFAULT_MODEL_NAMES", {}).get(db_obj.db_manager.ABBR)
 
     dataset_dest_dir = _prep_dataset_directory(parent_dest_dir, dataset_name, existing_files_mode)
-    if requested_seasons is None:
-        seasons = cast(list[int], db_obj.db_manager.get_seasons())
-    else:
-        if not set(requested_seasons).issubset(db_obj.db_manager.get_seasons()):
-            raise ExportError(f"Requested seasons {requested_seasons} not supported by sport")
-        seasons = requested_seasons
-
-    _LOGGER.info(
-        "Exporting n=%i for sport=%s seasons=%s to '%s'",
-        case_count,
-        db_obj.db_manager.ABBR,
-        seasons,
-        dataset_dest_dir,
-    )
 
     samples_meta: list[dict] = []
     total_attempts = 0
@@ -231,6 +224,21 @@ def _export_deep_dataset(
     failed_attempts = []
     df_lens = []
     with db_obj.session_scoped() as session:
+        if requested_seasons is None:
+            seasons = [cast(int, row[0]) for row in session.query(db.Game.season).distinct().all()]
+        else:
+            if not set(requested_seasons).issubset(db_obj.db_manager.get_seasons()):
+                raise ExportError(f"Requested seasons {requested_seasons} not supported by sport")
+            seasons = requested_seasons
+
+        _LOGGER.info(
+            "Exporting n=%i for sport=%s seasons=%s to '%s'",
+            case_count,
+            db_obj.db_manager.ABBR,
+            seasons,
+            dataset_dest_dir,
+        )
+
         rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
         for sample_num in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
             for attempt_num in range(10):
