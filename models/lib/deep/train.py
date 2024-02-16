@@ -46,7 +46,7 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
     loss = DeepLineupLoss()
-    model = DeepLineupModel(lineup_slot_count)
+    model = DeepLineupModel(dataset.sample_df_len, lineup_slot_count)
 
     # TODO: look inter optimizer options
     optimizer = torch.optim.Adam(model.parameters())

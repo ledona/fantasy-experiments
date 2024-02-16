@@ -6,9 +6,15 @@ _LOGGER = log.get_logger(__name__)
 
 
 class DeepLineupModel(nn.Module):
-    def __init__(self, lineup_slot_count: int):
+    def __init__(self, in_channels: int, lineup_slot_count: int):
+        """
+        in_channels: number of rows in the input matrix
+        lineup_slot_count: number of values in the output
+        """
         super().__init__()
-        self.conv1 = nn.Conv1d(in_channels=32, out_channels=lineup_slot_count, kernel_size=3)
+        self.conv1 = nn.Conv1d(
+            in_channels=in_channels, out_channels=lineup_slot_count, kernel_size=3
+        )
         self.pool = nn.AdaptiveAvgPool1d(output_size=1)
 
     def forward(self, x):

@@ -24,6 +24,7 @@ from fantasy_py import (
 from fantasy_py.lineup import FantasyService, gen_lineups
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
+from fantasy_py.inference import ImputeFailure
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
 from tqdm import tqdm
@@ -76,6 +77,10 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
+_POS_REMAP = {"nhl": {"RW": "W", "LW": "W", "R": "W", "L": "W"}}
+"""mapping for sport -> position-mapping-dict"""
+
+
 def _get_slate_sample(
     db_obj: db.FantasySQLAlchemyWrapper,
     service_cls: Type[FantasyService],
@@ -121,6 +126,7 @@ def _get_slate_sample(
     assert top_hist_score is not None
 
     pred_df = scores["predicted"]
+    pos_mapping = _POS_REMAP.get(db_obj.db_manager.ABBR, {})
 
     def cost_func(row):
         if "player_id" not in row or pd.isna(row.player_id):
@@ -131,7 +137,7 @@ def _get_slate_sample(
             "cost": pt_dict["cost"][service_cls.SERVICE_NAME][slate_info["cost_id"]],
         }
         for pos in pt_dict["positions"]:
-            dict_["pos:" + pos] = 1
+            dict_["pos:" + pos_mapping.get(pos, pos)] = 1
         return dict_
 
     cost_pos_df = pred_df.apply(cost_func, axis=1, result_type="expand")
@@ -262,7 +268,7 @@ def _export_deep_dataset(
                         style,
                     )
                     break
-                except DataNotAvailableException as ex:
+                except (ImputeFailure, DataNotAvailableException) as ex:
                     _LOGGER.warning(
                         "Attempt %i for sample %i failed to create a slate "
                         "for %i-%i game_ids=%s: %s",

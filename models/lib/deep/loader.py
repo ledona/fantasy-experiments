@@ -2,8 +2,10 @@
 
 import json
 import os
+from typing import cast
 
 import pandas as pd
+import torch
 from torch.utils.data import Dataset
 
 
@@ -18,7 +20,8 @@ class DeepLineupDataset(Dataset):
             self.samples_meta = json.load(f_)
 
         max_len = max(info["items"] for info in self.samples_meta["samples"])
-        self.sample_df_len = max_len + int(max_len * padding)
+        self.sample_df_len = cast(int, max_len + int(max_len * padding))
+        """the length of a sample dataframe plus padding"""
 
     def __len__(self):
         return len(self.samples_meta["samples"])
@@ -29,9 +32,11 @@ class DeepLineupDataset(Dataset):
             self.data_dir,
             f"{sample_info['season']}-{sample_info['game_number']}-{sample_info['game_ids_hash']}.pq",
         )
-        df = pd.read_parquet(filepath)
-        drop_cols = ["team_id"]
+        df = pd.read_parquet(filepath).drop(columns="team_id")
         if "player_id" in df:
-            drop_cols.append("player_id")
+            df = df.drop(columns="player_id")
 
-        return df.drop(columns=drop_cols), sample_info["top_score"]
+        padding_df = pd.DataFrame((self.sample_df_len - len(df)) * [{"cost": float("inf")}])
+        df = pd.concat([df, padding_df]).fillna(0)
+        tensor = torch.Tensor(df.values)
+        return tensor, sample_info["top_score"]
