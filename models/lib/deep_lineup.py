@@ -21,21 +21,25 @@ from fantasy_py import (
     dt_to_filename_str,
     log,
 )
+from fantasy_py.inference import ImputeFailure
 from fantasy_py.lineup import FantasyService, gen_lineups
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
-from fantasy_py.inference import ImputeFailure
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 from .deep import deep_train, save
 
+_MAX_SLATE_ATTEMPTS = 20
+"""max number of failed attempts to create a valid slate for an epoch"""
 _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
 _DEFAULT_GAMES_PER_SLATE = 4, 6
 _LOGGER = log.get_logger(__name__)
 _DEFAULT_MODEL_FILENAME_FORMAT = "deep-lineup-model.{sport}.{service}.{style}.{datetime}.pkl"
+_MAX_NEXT_FAILURES = 100
+"""maximum number of failed next search tries before giving up"""
 
 
 class ExportError(FantasyException):
@@ -169,16 +173,13 @@ class _RandomSlateSelector:
         game_ids: list[int]
         game_ids_hash: int
 
-    _MAX_NEXT_FAILURES = 100
-    """maximum number of failed next search tries before giving up"""
-
     @property
     def next(self):
         """
         return what the next slate will be based on as a tuple of (season, game_num, game_ids)
         """
         season = self._rand_obj.choice(self._seasons)
-        for _ in range(self._MAX_NEXT_FAILURES):
+        for _ in range(_MAX_NEXT_FAILURES):
             game_num = self._rand_obj.randint(
                 1, self._session.info["fantasy.db_manager"].get_max_epochs(season)
             )
@@ -199,7 +200,7 @@ class _RandomSlateSelector:
             break
         else:
             raise ExportError(
-                f"After {self._MAX_NEXT_FAILURES} tries, failed to find a slate for {season}"
+                f"After {_MAX_NEXT_FAILURES} tries, failed to find a slate for {season}"
             )
 
         return self.NextSlateDef(season, game_num, game_ids, game_ids_hash)
@@ -247,7 +248,7 @@ def _export_deep_dataset(
 
         rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
         for sample_num in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
-            for attempt_num in range(10):
+            for attempt_num in range(_MAX_SLATE_ATTEMPTS):
                 total_attempts += 1
                 slate_def = rand_obj.next
                 prog_iter.set_postfix(attempts=total_attempts)
@@ -272,8 +273,8 @@ def _export_deep_dataset(
                     _LOGGER.warning(
                         "Attempt %i for sample %i failed to create a slate "
                         "for %i-%i game_ids=%s: %s",
-                        attempt_num,
-                        sample_num,
+                        attempt_num + 1,
+                        sample_num + 1,
                         slate_def.season,
                         slate_def.game_number,
                         slate_def.game_ids,
@@ -282,8 +283,8 @@ def _export_deep_dataset(
                     failed_attempts.append(slate_def)
             else:
                 raise ExportError(
-                    f"Failed to create a slate for sample #{sample_num} "
-                    f"after {attempt_num} attempts"
+                    f"Failed to create a slate for sample #{sample_num + 1} "
+                    f"after {attempt_num + 1} attempts"
                 )
             successful_attempts.append(slate_def)
             df.to_parquet(
