@@ -129,7 +129,12 @@ def _get_slate_sample(
     top_hist_score = top_lineup[0].get_fpts("historic")
     assert top_hist_score is not None
 
-    pred_df = scores["predicted"]
+    hist_df = scores["historic"].rename(columns={"fpts": "fpts-historic"})
+    pred_df = scores["predicted"].rename(columns={"fpts": "fpts-predicted"})
+    score_df = hist_df.join(
+        pred_df.set_index(["game_id", "team_id", "player_id"]),
+        on=["game_id", "team_id", "player_id"],
+    )
     pos_mapping = _POS_REMAP.get(db_obj.db_manager.ABBR, {})
 
     def cost_func(row):
@@ -144,8 +149,8 @@ def _get_slate_sample(
             dict_["pos:" + pos_mapping.get(pos, pos)] = 1
         return dict_
 
-    cost_pos_df = pred_df.apply(cost_func, axis=1, result_type="expand")
-    df = pd.concat([pred_df.drop("game_id", axis=1), cost_pos_df], axis=1)
+    cost_pos_df = score_df.apply(cost_func, axis=1, result_type="expand")
+    df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df], axis=1)
 
     for col in df.columns:
         if not col.startswith("pos:"):
