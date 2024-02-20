@@ -126,8 +126,6 @@ def _get_slate_sample(
         score_data_type="historic",
         scores_to_include=["predicted"],
     )
-    top_hist_score = top_lineup[0].get_fpts("historic")
-    assert top_hist_score is not None
 
     hist_df = scores["historic"].rename(columns={"fpts": "fpts-historic"})
     pred_df = scores["predicted"].rename(columns={"fpts": "fpts-predicted"})
@@ -152,11 +150,18 @@ def _get_slate_sample(
     cost_pos_df = score_df.apply(cost_func, axis=1, result_type="expand")
     df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df], axis=1)
 
+    def in_lineup(row):
+        if pd.isna(row.player_id) and row.team_id in top_lineup[0].team_ids:
+            return 1
+        return row.player_id in top_lineup[0].player_ids
+
+    df["in-lineup"] = df.apply(in_lineup, axis=1)
+
     for col in df.columns:
         if not col.startswith("pos:"):
             continue
         df[col] = df[col].fillna(0)
-    return top_hist_score, df
+    return df
 
 
 class _RandomSlateSelector:
@@ -260,7 +265,7 @@ def _export_deep_dataset(
                 sample_meta = slate_def._asdict()
 
                 try:
-                    sample_meta["top_score"], df = _get_slate_sample(
+                    df = _get_slate_sample(
                         db_obj,
                         service_cls,
                         slate_def.game_ids,
