@@ -36,17 +36,17 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
             f"Constraints not found for sport={samples_meta['sport']} service={samples_meta['service']}"
         )
     lineup_constraints = constraints.lineup_constraints
-    if isinstance(lineup_constraints, dict):
-        lineup_slot_count = sum(lineup_constraints.values())
-    elif isinstance(lineup_constraints, list):
-        lineup_slot_count = sum(lineup_constraints)
-    else:
-        lineup_slot_count = sum(constraint.max_count for constraint in lineup_constraints)
+    # if isinstance(lineup_constraints, dict):
+    #     lineup_slot_count = sum(lineup_constraints.values())
+    # elif isinstance(lineup_constraints, list):
+    #     lineup_slot_count = sum(lineup_constraints)
+    # else:
+    #     lineup_slot_count = sum(constraint.max_count for constraint in lineup_constraints)
 
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    loss = DeepLineupLoss()
-    model = DeepLineupModel(dataset.sample_df_len, lineup_slot_count)
+    deep_lineup_loss = DeepLineupLoss(dataset.target_cols)
+    model = DeepLineupModel(dataset.sample_df_len)
 
     # TODO: look inter optimizer options
     optimizer = torch.optim.Adam(model.parameters())
@@ -58,7 +58,7 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
             # x has shape (batch_size, seq_len, input_size)
             preds = model(x)
 
-            loss = loss(preds, y)
+            loss = deep_lineup_loss(preds, y)
             loss.backward()
             optimizer.step()
 

@@ -6,24 +6,28 @@ _LOGGER = log.get_logger(__name__)
 
 
 class DeepLineupModel(nn.Module):
-    def __init__(self, in_channels: int, lineup_slot_count: int):
+    def __init__(self, inventory_size: int, kernel_size=3):
         """
-        in_channels: number of rows in the input matrix
-        lineup_slot_count: number of values in the output
+        inventory_size: number of rows in the input matrix,\
+            i.e number of player/teams in the slate
         """
         super().__init__()
         self.conv1 = nn.Conv1d(
-            in_channels=in_channels, out_channels=lineup_slot_count, kernel_size=3
+            in_channels=inventory_size, out_channels=inventory_size, kernel_size=kernel_size
         )
         self.pool = nn.AdaptiveAvgPool1d(output_size=1)
+        self.fc = nn.Linear(inventory_size, inventory_size)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        # x is (batch_size, seq_len, input_size)
-        x = self.conv1(x)
-        # x is now (batch_size, seq_len, out_channels)
-        x = self.pool(x)
-        # x is now (batch_size, 1, out_channels)
-        return x.squeeze()  # output is (batch_size, out_channels)
+        """x: is (batch_size, seq_len, input_size)"""
+        x = self.conv1(x)  # x is now (batch_size, seq_len, out_channels)
+        x = self.pool(x)  # x is now (batch_size, 1, out_channels)
+
+        x = x.squeeze()  # output is (batch_size, out_channels)
+
+        x = self.fc(x)  # x is now (batch_size, out_channels)
+        return self.sigmoid(x)
 
 
 def save(model: DeepLineupModel, filepath: str):
