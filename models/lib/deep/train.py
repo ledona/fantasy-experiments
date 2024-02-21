@@ -35,17 +35,9 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
         raise DeepTrainFailure(
             f"Constraints not found for sport={samples_meta['sport']} service={samples_meta['service']}"
         )
-    lineup_constraints = constraints.lineup_constraints
-    # if isinstance(lineup_constraints, dict):
-    #     lineup_slot_count = sum(lineup_constraints.values())
-    # elif isinstance(lineup_constraints, list):
-    #     lineup_slot_count = sum(lineup_constraints)
-    # else:
-    #     lineup_slot_count = sum(constraint.max_count for constraint in lineup_constraints)
-
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    deep_lineup_loss = DeepLineupLoss(dataset.target_cols)
+    deep_lineup_loss = DeepLineupLoss(dataset.input_cols, dataset.target_cols, constraints)
     model = DeepLineupModel(dataset.sample_df_len)
 
     # TODO: look inter optimizer options

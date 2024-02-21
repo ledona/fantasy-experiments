@@ -13,6 +13,9 @@ from torch.utils.data import Dataset
 _PADDING_COST = 999999999
 """cost to use for padded inventory items"""
 
+_DATASET_COLS_TO_DROP = ["in-lineup", "team_id"]
+
+
 class DeepLineupDataset(Dataset):
     def __init__(self, samples_meta_filepath: str, padding=0.1):
         """
@@ -46,12 +49,17 @@ class DeepLineupDataset(Dataset):
         ]
         return target_cols
 
+    @cached_property
+    def input_cols(self):
+        df = self._get_sample_df(0)
+        return [col for col in df if col not in _DATASET_COLS_TO_DROP]
+
     def __len__(self):
         return len(self.samples_meta["samples"])
 
     def __getitem__(self, idx):
         dataset_df = self._get_sample_df(idx)
-        df = dataset_df.drop(columns=["in-lineup", "team_id"])
+        df = dataset_df.drop(columns=_DATASET_COLS_TO_DROP)
         if "player_id" in df:
             df = df.drop(columns="player_id")
 
