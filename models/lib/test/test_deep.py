@@ -2,6 +2,7 @@
 
 import os
 
+import torch
 import pandas as pd
 import pytest
 from fantasy_py.lineup.services.fantasy_service import SportConstraints
@@ -26,40 +27,35 @@ _TOP_SCORE = 50
 @pytest.fixture(name="sample_base_df", scope="module")
 def _sample_base_df():
     df_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "deep_sample_base.csv")
-    return pd.read_csv(df_path)
+    df = pd.read_csv(df_path)
+    df["in-lineup"] = df.player_id.map(lambda pid: pid in _TOP_LINEUP)
+    return df
 
 
-def _pred_from_lineup(lineup, sample_base_df: pd.DataFrame):
-    """return the predicted lineup dataframe"""
-    raise NotImplementedError()
+@pytest.fixture(name="top_score", scope="module")
+def _top_score(sample_base_df: pd.DataFrame):
+    return sample_base_df.query("`in-lineup`")["fpts-historic"].sum()
 
 
 @pytest.mark.parametrize(
-    "expected_loss, lineup",
+    "loss_delta, lineup",
     [
-        (0, _TOP_LINEUP),
-        (_TOP_SCORE - 32.2, [1, 2, 8, 9, 15]),
-        (_TOP_SCORE - 37, [1, 2, 3, 9, 15]),
-        (_TOP_SCORE + 5, []),
-        (_TOP_SCORE + 4, [1]),
-        (_TOP_SCORE + 3, [1, 6, 2]),
-        (_TOP_SCORE + 2, [1, 2, 3]),
-        (_TOP_SCORE + 1, [1, 2, 3, 8]),
-        (_TOP_SCORE + 5, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-        (_TOP_SCORE + 1.6, [18, 19, 15, 6, 7]),
-        (_TOP_SCORE + 1, [1, 2, 3, 9, 10]),
-        (_TOP_SCORE + 1, [6, 7, 8, 9, 10]),
-        (_TOP_SCORE + 1, [1, 2, 8, 9, 16]),
-        (_TOP_SCORE + 2, [1, 2, 5, 6, 16]),
+        (5, []),
+        (4, [1]),
+        (1, [1, 2, 3, 8]),
+        (5, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        (1.6, [18, 19, 15, 6, 7]),
+        (1, [1, 2, 3, 9, 10]),
+        (1, [6, 7, 8, 9, 10]),
+        (1, [1, 2, 8, 9, 16]),
+        (2, [1, 2, 5, 6, 16]),
+        (None, [1, 2, 8, 9, 15]),
+        (None, [1, 2, 3, 9, 15]),
+        (None, _TOP_LINEUP),
     ],
     ids=[
-        "top lineup",
-        "valid lineup 1",
-        "valid lineup 2",
         "empty lineup",
         "missing 4",
-        "missing 3",
-        "missing 2",
         "missing 1",
         "too many players",
         "over budget",
@@ -67,13 +63,26 @@ def _pred_from_lineup(lineup, sample_base_df: pd.DataFrame):
         "failed 2 viability",
         "missing 1 position",
         "missing 2 position",
+        "valid lineup 1",
+        "valid lineup 2",
+        "top lineup",
     ],
 )
-def test_loss(expected_loss: float, lineup: list[int], sample_base_df: pd.DataFrame):
+def test_loss(
+    loss_delta: None | float, lineup: list[int], sample_base_df: pd.DataFrame, top_score: float
+):
     """
+    loss_delta: if None then expected loss is top_score - lineup score, if not None then\
+        expected loss is top_score + this value
     lineup: list of player IDs
     """
+    expected_loss = (
+        (top_score + loss_delta)
+        if loss_delta is not None
+        else top_score - sample_base_df.query("player_id in @lineup")["fpts-historic"].sum()
+    )
+
     dll = DeepLineupLoss([], [], SportConstraints.from_json_dict(_CONSTRAINTS))
-    pred = _pred_from_lineup(lineup, sample_base_df)
-    loss = dll.calc_loss(pred, _TOP_SCORE)
+    pred = sample_base_df.player_id.map(lambda pid: pid in lineup)
+    loss = dll.calc_loss(pred, sample_base_df)
     assert loss == expected_loss
