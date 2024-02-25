@@ -111,6 +111,17 @@ class DeepLineupLoss(nn.Module):
         unmatched_players = sum(cost_matrix[row_i, col_i] for row_i, col_i in zip(row_ind, col_ind))
         return self._lineup_slot_count - unmatched_players
 
+    def _test_viabilities(self, df: pd.DataFrame):
+        if self.constraints.knapsack_viability_testers is None:
+            return 0
+
+        failures = 0
+        for tester in self.constraints.viability_testers:
+            if not tester.is_valid(df):
+                failures += 1
+
+        return failures
+
     def calc_score(self, pred: list[int], target_df: pd.DataFrame):
         """
         calculate the score of the predicted lineup
@@ -135,7 +146,7 @@ class DeepLineupLoss(nn.Module):
         if (over_budget_by := pred_df.cost.sum() - self.constraints.budget) > 0:
             return -over_budget_by / self._cost_penalty_divider
 
-        if failed_viability_tests := self._test_viabilities():
+        if (failed_viability_tests := self._test_viabilities(pred_df)) > 0:
             return -failed_viability_tests
 
         return pred_df["fpts-historic"].sum()
