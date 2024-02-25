@@ -1,9 +1,12 @@
+from itertools import product
 from typing import cast
 
-import torch.nn as nn
+import numpy as np
 import pandas as pd
+import torch.nn as nn
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.knapsack import KnapsackConstraint
+from scipy.optimize import linear_sum_assignment
 
 
 class DeepLineupLoss(nn.Module):
@@ -16,10 +19,10 @@ class DeepLineupLoss(nn.Module):
     1. If the number of players in the lineup is not equal to the required number
        (regardless of position) then the score is negative the number of missing or excess
        players
-    2. If the number of players is correct but the positions are not then the score is
-       negative .5 * the number of positions/slots not fillable by the lineup
+    2. If the number of players is correct but the lineup is invalid the score is
+       -(.5 * the number of positions/slots not filled by the lineup)
     3. If the lineup is overbudget then the score is
-       -(amount over budget) / (median cost of all players)
+       -(amount over budget) / cost_penalty_divider
     4. -(number of failed viability tests)
 
     the difference in score between the predicted lineup and top lineup
@@ -30,48 +33,118 @@ class DeepLineupLoss(nn.Module):
     _lineup_slot_count: int
     """the number of slots in the expected lineup"""
 
+    _lineup_slot_pos: list[set[str]]
+    """list of lineup slot positions based on constraints, each item
+    is a list of positions that can be placed in the lineup position"""
+
+    _cost_penalty_divider: float
+
     def __init__(
         self,
-        input_cols: list[str],
+        # input_cols: list[str],
         target_cols: list[str],
         constraints: SportConstraints,
+        cost_penalty_divider: float,
         *args,
         **kwargs,
     ) -> None:
+        """
+        cost_penalty_divider: used for the over budget penalty
+        """
         super().__init__(*args, **kwargs)
+        self._cost_penalty_divider = cost_penalty_divider
         self.target_cols = target_cols
         # self.input_cols = input_cols
         self.constraints = constraints
+        self._pos_cols = [col for col in target_cols if col.startswith("pos:")]
+        assert self._pos_cols, "no player positions found in target cols"
 
         if isinstance(constraints.lineup_constraints, dict):
+            self._lineup_slot_pos = []
             self._lineup_slot_count = sum(constraints.lineup_constraints.values())
+            for pos, slots in constraints.lineup_constraints.items():
+                self._lineup_slot_pos += [{pos} if isinstance(pos, str) else set(pos)] * slots
         elif isinstance(constraints.lineup_constraints[0], int):
-            self._lineup_slot_count = sum(cast(list[int], constraints.lineup_constraints))
+            self._lineup_slot_count = len(constraints.lineup_constraints)
+            self._lineup_slot_pos = []
+            for pos, slots in enumerate(cast(list[int], constraints.lineup_constraints)):
+                self._lineup_slot_pos += [{str(pos)}] * slots
         else:
-            self._lineup_slot_count = sum(
-                constraint.max_count
-                for constraint in cast(list[KnapsackConstraint], constraints.lineup_constraints)
-            )
+            self._lineup_slot_pos = []
+            self._lineup_slot_count = 0
+            for constraint in cast(list[KnapsackConstraint], constraints.lineup_constraints):
+                self._lineup_slot_count += constraint.max_count
+                self._lineup_slot_pos += [
+                    (
+                        {str(constraint.classes)}
+                        if isinstance(constraint.classes, (int, str))
+                        else {str(pos) for pos in constraint.classes}
+                    )
+                ] * constraint.max_count
 
-    def calc_loss(self, pred: list[int], target_df: pd.DataFrame):
+        assert len(self._lineup_slot_pos) == self._lineup_slot_count
+
+    def _valid_lineup(self, pred_df: pd.DataFrame):
+        """check that the predicted lineup is valid"""
+        lineup_player_pos: dict[str, set[str]] = {}
+
+        def player_pos_recorder(row):
+            if pd.isna(row.player_id):
+                return
+            lineup_player_pos[f"p-{row.player_id}"] = {
+                pos_col.split(":", 1)[1] for pos_col in self._pos_cols if row[pos_col]
+            }
+
+        pred_df.apply(player_pos_recorder, axis=1)
+        assert len(lineup_player_pos) == self._lineup_slot_count
+
+        # Create cost matrix
+        cost_matrix = np.zeros((self._lineup_slot_count, self._lineup_slot_count))
+        for (slot_i, slot_positions), (player_i, player_positions) in product(
+            enumerate(self._lineup_slot_pos), enumerate(lineup_player_pos.values())
+        ):
+            if player_positions & slot_positions:
+                cost_matrix[slot_i, player_i] = 1
+
+        # solve
+        row_ind, col_ind = linear_sum_assignment(cost_matrix, maximize=True)
+        unmatched_players = sum(cost_matrix[row_i, col_i] for row_i, col_i in zip(row_ind, col_ind))
+        return self._lineup_slot_count - unmatched_players
+
+    def calc_score(self, pred: list[int], target_df: pd.DataFrame):
         """
-        calculate the loss for a predictioned lineup
-        relative to the target/optimal information
+        calculate the score of the predicted lineup
 
         pred: list-like of 0|1, each element is for a player and corresponds to\
             a row in target_df. 1=that player is in the lineup
-        target_df: dataframe with all information for the slate
+        target_df: dataframe with all information for the slate, including 'in-lineup'\
+            column with 1 for players in the optimal lineup
         """
-        top_score = target_df.query("`in-lineup`")["fpts-historic"].sum()
         if (player_count_diff := abs(sum(pred) - self._lineup_slot_count)) > 0:
-            return top_score + player_count_diff
-        pred_df = target_df.drop(columns='in-lineup').assign(**{'in-lineup': pred})
-        raise NotImplementedError()
+            return -player_count_diff
+
+        # dataframe just of the predicted lineup
+        pred_df = (
+            target_df.drop(columns="in-lineup").assign(**{"in-lineup": pred}).query("`in-lineup`")
+        )
+
+        # is this a valid lineup?
+        if (failed_slots := self._valid_lineup(pred_df)) > 0:
+            return -0.5 * failed_slots
+
+        if (over_budget_by := pred_df.cost.sum() - self.constraints.budget) > 0:
+            return -over_budget_by / self._cost_penalty_divider
+
+        if failed_viability_tests := self._test_viabilities():
+            return -failed_viability_tests
+
+        return pred_df["fpts-historic"].sum()
 
     def forward(self, preds, targets):
         loss = 0
         for i in range(preds.size(0)):
             target_df = pd.DataFrame(targets[i], columns=self.target_cols)
-            loss += self.calc_loss(preds[i], target_df)
+            top_score = target_df.query("`in-lineup`")["fpts-historic"].sum()
+            loss += top_score - self.calc_score(preds[i], target_df)
         loss = loss / preds.size(0)
         return loss
