@@ -37,7 +37,7 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
         )
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    deep_lineup_loss = DeepLineupLoss(dataset.input_cols, dataset.target_cols, constraints)
+    deep_lineup_loss = DeepLineupLoss(dataset.input_cols, constraints, dataset.cost_oom)
     model = DeepLineupModel(dataset.sample_df_len)
 
     # TODO: look inter optimizer options

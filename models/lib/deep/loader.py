@@ -1,19 +1,23 @@
 """pytorch dataloader for deep learning lineup models"""
 
 import json
+import math
 import os
-from typing import cast
 from functools import cached_property
+from typing import cast
 
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
-
 _PADDING_COST = 999999999
 """cost to use for padded inventory items"""
 
-_DATASET_COLS_TO_DROP = ["in-lineup", "team_id"]
+_DATASET_COLS_TO_DROP = ["fpts-historic", "in-lineup", "team_id"]
+"""
+columns to drop from the dataset before creating an input tensor
+'player_id' will also be dropped if present
+"""
 
 
 class DeepLineupDataset(Dataset):
@@ -42,29 +46,44 @@ class DeepLineupDataset(Dataset):
     @cached_property
     def target_cols(self):
         df = self._get_sample_df(0)
-        target_cols = [
-            col
-            for col in df.columns
-            if not col.startswith("pos:") and col not in ["fpts-predicted", "in-lineup"]
-        ]
-        return target_cols
+        return df.columns
 
     @cached_property
     def input_cols(self):
         df = self._get_sample_df(0)
-        return [col for col in df if col not in _DATASET_COLS_TO_DROP]
+        ignore_cols = (
+            _DATASET_COLS_TO_DROP
+            if "player_id" not in df
+            else ["player_id", *_DATASET_COLS_TO_DROP]
+        )
+        return [str(col) for col in df if col not in ignore_cols]
+
+    @cached_property
+    def cost_oom(self):
+        """return an order of magnitude estimate of the cost of the dataset"""
+        cost_mean = self._get_sample_df(0)["cost"].mean()
+        return int(math.log(cost_mean, 10))
 
     def __len__(self):
         return len(self.samples_meta["samples"])
 
     def __getitem__(self, idx):
-        dataset_df = self._get_sample_df(idx)
-        df = dataset_df.drop(columns=_DATASET_COLS_TO_DROP)
-        if "player_id" in df:
-            df = df.drop(columns="player_id")
+        """
+        returns - tuple of (input, target) where input is the input tensor for model training \
+            and target is a numpy array describing all information\
+            about the slate including the target/optimal lineup
+        """
+        target_df = self._get_sample_df(idx)
+        padding_df = pd.DataFrame((self.sample_df_len - len(target_df)) * [{"cost": _PADDING_COST}])
+        target_df = pd.concat([target_df, padding_df]).fillna(0)
 
-        padding_df = pd.DataFrame((self.sample_df_len - len(df)) * [{"cost": _PADDING_COST}])
-        df = pd.concat([df, padding_df]).fillna(0)
-        tensor = torch.Tensor(df.values)
-        target_df = dataset_df.query("`in-lineup`")[self.target_cols]
+        input_df = target_df[self.input_cols]
+        target_df.replace(False, 0, inplace=True)
+        target_df.replace(True, 1, inplace=True)
+
+        # input_df = pd.concat([input_df, padding_df]).fillna(0)
+        tensor = torch.Tensor(input_df.values)
+
+        assert len(tensor) == self.sample_df_len
+        assert len(target_df) == self.sample_df_len
         return tensor, target_df.to_numpy()
