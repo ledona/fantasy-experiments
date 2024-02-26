@@ -350,12 +350,15 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
 
 def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
     if not args.model_filepath:
-        target_dir = "."
+        # write to [dataset_dir]/[default_model_filename]
+        target_dir = os.path.join("..", args.dataset_dir)
         model_filename = None
     elif os.path.isdir(args.model_filepath):
+        # write to [model_filepath]/[default_model_filename]
         target_dir = args.model_filepath
         model_filename = None
     else:
+        # write to [model_filepath]
         target_dir = os.path.dirname(args.model_filepath)
         model_filename = os.path.basename(args.model_filepath)
     if not os.path.isdir(target_dir):
@@ -368,10 +371,13 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
             sport=sport, service=service_name, style=style.name, datetime=dt_to_filename_str()
         )
     target_filepath = os.path.join(target_dir, model_filename)
+    _LOGGER.info("Training complete. Model written to '%s'", target_filepath)
     save(model, target_filepath)
 
 
 def main(cmd_line_str=None):
+    log.set_default_log_level(only_fantasy=False)
+
     parser = argparse.ArgumentParser(
         description="Functions to export data for, train and test deep "
         "learning lineup generator models"
@@ -444,10 +450,11 @@ def main(cmd_line_str=None):
     train_parser.add_argument("--epochs", type=int, default=10)
     train_parser.add_argument(
         "--model_filepath",
-        help="Path of the model file to save to. If this is a directory then "
-        "the model will be written to that directory using the default "
-        "filename format '{_DEFAULT_MODEL_FILENAME_FORMAT}'. If this is a file path "
-        "then the model will be saved to the file",
+        help="Filename to write model to. Default is to write to "
+        "'[dataset_dir]/../{_DEFAULT_MODEL_FILENAME_FORMAT}'. If this is a directory "
+        "then the model will be written to '[model_filepath]/{_DEFAULT_MODEL_FILENAME_FORMAT}'. "
+        "If this is a filename without a path then the model will be written to "
+        "'[dataset_dir]/[model_filepath]'.",
     )
     train_parser.add_argument("--model_dir", help="The directory to")
 

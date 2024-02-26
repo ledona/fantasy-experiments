@@ -1,5 +1,6 @@
 import json
 import os
+import statistics
 from typing import cast
 
 import torch
@@ -37,14 +38,16 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
         )
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    deep_lineup_loss = DeepLineupLoss(dataset.input_cols, constraints, dataset.cost_oom)
+    deep_lineup_loss = DeepLineupLoss(dataset.target_cols, constraints, dataset.cost_oom)
     model = DeepLineupModel(dataset.sample_df_len)
 
     # TODO: look inter optimizer options
     optimizer = torch.optim.Adam(model.parameters())
 
-    for _ in tqdm(range(1, train_epochs + 1), desc="deep-training-epoch"):
-        for x, y in dataloader:
+    for epoch in tqdm(range(1, train_epochs + 1), desc="epoch"):
+        losses = []
+
+        for x, y in (batch_pbar := tqdm(dataloader, desc="batch", leave=False)):
             optimizer.zero_grad()
 
             # x has shape (batch_size, seq_len, input_size)
@@ -53,6 +56,10 @@ def train(dataset_dir: str, train_epochs: int, batch_size: int):
             loss = deep_lineup_loss(preds, y)
             loss.backward()
             optimizer.step()
+            losses.append(loss.item())
+            batch_pbar.set_postfix(loss=round(loss.item(), 2))
+
+        _LOGGER.info("mean loss for epoch %i: %f", epoch, round(statistics.mean(losses), 2))
 
     return (
         model,
