@@ -29,7 +29,7 @@ from ledona import constant_hasher
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from .deep import deep_train, save
+from .deep import deep_train
 
 _MAX_SLATE_ATTEMPTS = 20
 """max number of failed attempts to create a valid slate for an epoch"""
@@ -37,7 +37,6 @@ _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
 _DEFAULT_GAMES_PER_SLATE = 4, 6
 _LOGGER = log.get_logger(__name__)
-_DEFAULT_MODEL_FILENAME_FORMAT = "deep-lineup-model.{sport}.{service}.{style}.{datetime}.pkl"
 _MAX_NEXT_FAILURES = 100
 """maximum number of failed next search tries before giving up"""
 
@@ -364,15 +363,7 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
     if not os.path.isdir(target_dir):
         parser.error(f"Infered model target directory '{target_dir}' is not a valid directory!")
 
-    model, sport, service_name, style = deep_train(args.dataset_dir, args.epochs, args.batch_size)
-
-    if model_filename is None:
-        model_filename = _DEFAULT_MODEL_FILENAME_FORMAT.format(
-            sport=sport, service=service_name, style=style.name, datetime=dt_to_filename_str()
-        )
-    target_filepath = os.path.join(target_dir, model_filename)
-    _LOGGER.info("Training complete. Model written to '%s'", target_filepath)
-    save(model, target_filepath)
+    deep_train(args.dataset_dir, args.epochs, args.batch_size, target_dir, model_filename)
 
 
 def main(cmd_line_str=None):

@@ -17,7 +17,9 @@ class DeepLineupModel(nn.Module):
         )
         self.pool = nn.AdaptiveAvgPool1d(output_size=1)
         self.fc = nn.Linear(inventory_size, inventory_size)
-        self.sigmoid = nn.Sigmoid()
+
+        # self.sigmoid = nn.Sigmoid()
+        # self.tanh = nn.Tanh()
 
     def forward(self, x):
         """x: is (batch_size, seq_len, input_size)"""
@@ -27,7 +29,10 @@ class DeepLineupModel(nn.Module):
         x = x.squeeze()  # output is (batch_size, out_channels)
 
         x = self.fc(x)  # x is now (batch_size, out_channels)
-        return self.sigmoid(x)
+        # x = self.sigmoid(x)
+        # x = (1 + self.tanh(x)) / 2
+
+        return x
 
 
 def save(model: DeepLineupModel, filepath: str):

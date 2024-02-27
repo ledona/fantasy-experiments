@@ -64,7 +64,8 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "train",
-                "/fantasy-isync/fantasy-modeling/deep_lineup/test"
+                "/fantasy-isync/fantasy-modeling/deep_lineup/test",
+                "--epochs", "5",
             ]
         },
         {

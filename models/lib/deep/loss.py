@@ -41,7 +41,6 @@ class DeepLineupLoss(nn.Module):
 
     def __init__(
         self,
-        # input_cols: list[str],
         target_cols: list[str],
         constraints: SportConstraints,
         cost_penalty_divider: float,
@@ -54,7 +53,6 @@ class DeepLineupLoss(nn.Module):
         super().__init__(*args, **kwargs)
         self._cost_penalty_divider = cost_penalty_divider
         self.target_cols = target_cols
-        # self.input_cols = input_cols
         self.constraints = constraints
         self._pos_cols = [col for col in target_cols if col.startswith("pos:")]
         assert self._pos_cols, "no player positions found in target cols"
@@ -155,7 +153,8 @@ class DeepLineupLoss(nn.Module):
         loss = 0
         for i in range(preds.size(0)):
             target_df = pd.DataFrame(targets[i], columns=self.target_cols)
+            score = self.calc_score(preds[i], target_df)
             top_score = target_df.query("`in-lineup`")["fpts-historic"].sum()
-            loss += top_score - self.calc_score(preds[i], target_df)
+            loss += top_score - score
         loss = loss / preds.size(0)
         return loss
