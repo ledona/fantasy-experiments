@@ -42,21 +42,21 @@ def _train_epoch(
         # compute loss
         loss = deep_lineup_loss(preds, y)
 
-        # what should the update be
+        # back prop
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
         losses.append(loss.item())
-        _LOGGER.info("  batch loss: %s", round(loss.item(), 2))
-        # batch_pbar.set_postfix(loss=round(loss.item(), 2))
+        _LOGGER.info("  batch loss: %s", round(loss.item(), 10))
+        batch_pbar.set_postfix(loss=round(loss.item(), 5))
 
     return losses
 
 
 def _eval_epoch(model, epoch, losses):
     model.eval()
-    _LOGGER.info("mean loss for epoch %i: %f", epoch, round(statistics.mean(losses), 2))
+    _LOGGER.info("mean loss for epoch %i: %.5f", epoch, statistics.mean(losses))
 
 
 def train(
@@ -94,9 +94,9 @@ def train(
 
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    deep_lineup_loss = DeepLineupLoss(dataset.target_cols, constraints, dataset.cost_oom)
-    model = DeepLineupModel(dataset.sample_df_len)
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    deep_lineup_loss = DeepLineupLoss(dataset, constraints)
+    model = DeepLineupModel(dataset.sample_df_len, len(dataset.input_cols))
+    optimizer = torch.optim.Adam(model.parameters())
 
     for epoch in tqdm(range(1, train_epochs + 1), desc="epoch"):
         losses = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)

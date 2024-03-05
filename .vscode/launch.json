@@ -65,7 +65,8 @@
             "args": [
                 "train",
                 "/fantasy-isync/fantasy-modeling/deep_lineup/test",
-                "--epochs", "5",
+                "--epochs", "10",
+                "--batch", "64",
             ]
         },
         {

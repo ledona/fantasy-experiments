@@ -8,6 +8,8 @@ from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.knapsack import KnapsackConstraint
 from scipy.optimize import linear_sum_assignment
 
+from .loader import DeepLineupDataset
+
 
 class DeepLineupLoss(nn.Module):
     """
@@ -41,9 +43,8 @@ class DeepLineupLoss(nn.Module):
 
     def __init__(
         self,
-        target_cols: list[str],
+        dataset: DeepLineupDataset,
         constraints: SportConstraints,
-        cost_penalty_divider: float,
         *args,
         **kwargs,
     ) -> None:
@@ -51,10 +52,10 @@ class DeepLineupLoss(nn.Module):
         cost_penalty_divider: used for the over budget penalty
         """
         super().__init__(*args, **kwargs)
-        self._cost_penalty_divider = cost_penalty_divider
-        self.target_cols = target_cols
+        self._cost_penalty_divider = dataset.cost_oom
+        self.target_cols = dataset.target_cols
         self.constraints = constraints
-        self._pos_cols = [col for col in target_cols if col.startswith("pos:")]
+        self._pos_cols = [col for col in self.target_cols if col.startswith("pos:")]
         assert self._pos_cols, "no player positions found in target cols"
 
         if isinstance(constraints.lineup_constraints, dict):
@@ -81,6 +82,8 @@ class DeepLineupLoss(nn.Module):
                 ] * constraint.max_count
 
         assert len(self._lineup_slot_pos) == self._lineup_slot_count
+
+        self._max_loss = dataset.sample_df_len - self._lineup_slot_count
 
     def _valid_lineup(self, pred_df: pd.DataFrame):
         """check that the predicted lineup is valid"""
@@ -150,11 +153,20 @@ class DeepLineupLoss(nn.Module):
         return pred_df["fpts-historic"].sum()
 
     def forward(self, preds, targets):
-        loss = 0
+        """
+        returns the mean loss across all predicted lineups, loss range is 0 to 1
+        """
+        scaled_adjusted_total_score = 0
         for i in range(preds.size(0)):
             target_df = pd.DataFrame(targets[i], columns=self.target_cols)
             score = self.calc_score(preds[i], target_df)
+            adjusted_score = score + self._max_loss
             top_score = target_df.query("`in-lineup`")["fpts-historic"].sum()
-            loss += top_score - score
-        loss = loss / preds.size(0)
+            adjusted_top_score = top_score + self._max_loss
+            scaled_adjusted_score = adjusted_score / adjusted_top_score
+            scaled_adjusted_total_score += scaled_adjusted_score
+        mean_adjusted_score = scaled_adjusted_total_score / preds.size(0)
+        loss = 1 - mean_adjusted_score
+        assert 0 <= loss <= 1
+
         return loss
