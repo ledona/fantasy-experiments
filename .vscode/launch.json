@@ -63,6 +63,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
+                "--verbose",
                 "train",
                 "/fantasy-isync/fantasy-modeling/deep_lineup/test",
                 "--epochs", "10",

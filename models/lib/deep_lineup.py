@@ -375,6 +375,7 @@ def main(cmd_line_str=None):
     )
 
     parser.add_argument("--seed", default=0)
+    parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
         "--dest_dir",
         help="Directory under which dataset directories will be written. "
@@ -454,6 +455,9 @@ def main(cmd_line_str=None):
 
     if args.progress:
         log.enable_progress()
+
+    if args.verbose:
+        log.set_debug_log_level()
 
     args.func(args, parser)
 

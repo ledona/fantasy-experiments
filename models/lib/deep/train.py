@@ -44,11 +44,12 @@ def _train_epoch(
 
         # back prop
         optimizer.zero_grad()
+        loss.requires_grad = True
         loss.backward()
         optimizer.step()
 
         losses.append(loss.item())
-        _LOGGER.info("  batch loss: %s", round(loss.item(), 10))
+        _LOGGER.debug("  batch loss: %s", round(loss.item(), 10))
         batch_pbar.set_postfix(loss=round(loss.item(), 5))
 
     return losses
@@ -104,6 +105,7 @@ def train(
         torch.save(model.state_dict(), target_filepath + ".epoch-" + str(epoch))
 
     _LOGGER.info("Training complete. Model written to '%s'", target_filepath)
+    _LOGGER.info("Best lineup failure type and score: %s", deep_lineup_loss._best_lineup_found)
     save(model, target_filepath)
 
     return (model,)

@@ -25,23 +25,13 @@ class DeepLineupModel(nn.Module):
             nn.LayerNorm(hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, player_count),
-            nn.Sigmoid(),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
         batch_size, seq_len, _ = cast(tuple[int, ...], x.size())
         assert seq_len == self._player_count
         y = self.stack(x.view(batch_size, -1))
-
-        # y = x.view(batch_size, -1)
-        # y = self.fc1(y)
-        # y = self.layer_norm1(y)
-        # y = self.relu(y)
-
-        # y = self.fc2(y)
-        # y = self.layer_norm2(y)
-        # y = self.sigmoid(y)
-
         return y
 
 

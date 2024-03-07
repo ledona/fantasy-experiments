@@ -1,14 +1,18 @@
+import sys
 from itertools import product
 from typing import cast
 
 import numpy as np
 import pandas as pd
-import torch.nn as nn
+from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.knapsack import KnapsackConstraint
 from scipy.optimize import linear_sum_assignment
+from torch import Tensor, nn
 
 from .loader import DeepLineupDataset
+
+_LOGGER = log.get_logger(__name__)
 
 
 class DeepLineupLoss(nn.Module):
@@ -41,6 +45,9 @@ class DeepLineupLoss(nn.Module):
 
     _cost_penalty_divider: float
 
+    _best_lineup_found: tuple[str, float]
+    """description of the best lineup found, tuple of (description, score)"""
+
     def __init__(
         self,
         dataset: DeepLineupDataset,
@@ -53,6 +60,7 @@ class DeepLineupLoss(nn.Module):
         """
         super().__init__(*args, **kwargs)
         self._cost_penalty_divider = dataset.cost_oom
+        self._best_lineup_found = ("", -sys.float_info.max)
         self.target_cols = dataset.target_cols
         self.constraints = constraints
         self._pos_cols = [col for col in self.target_cols if col.startswith("pos:")]
@@ -110,7 +118,7 @@ class DeepLineupLoss(nn.Module):
         # solve
         row_ind, col_ind = linear_sum_assignment(cost_matrix, maximize=True)
         unmatched_players = sum(cost_matrix[row_i, col_i] for row_i, col_i in zip(row_ind, col_ind))
-        return self._lineup_slot_count - unmatched_players
+        return self._lineup_slot_count - cast(int, unmatched_players)
 
     def _test_viabilities(self, df: pd.DataFrame):
         if self.constraints.knapsack_viability_testers is None:
@@ -123,7 +131,13 @@ class DeepLineupLoss(nn.Module):
 
         return failures
 
-    def calc_score(self, pred: list[int], target_df: pd.DataFrame):
+    def _update_best_lineup(self, reason, score):
+        if score <= self._best_lineup_found[1]:
+            return
+        _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
+        self._best_lineup_found = (reason, score)
+
+    def calc_score(self, pred, target_df: pd.DataFrame) -> float:
         """
         calculate the score of the predicted lineup
 
@@ -133,7 +147,11 @@ class DeepLineupLoss(nn.Module):
             column with 1 for players in the optimal lineup
         """
         if (player_count_diff := abs(sum(pred) - self._lineup_slot_count)) > 0:
-            return -player_count_diff
+            score = -player_count_diff
+            self._update_best_lineup(f"{player_count_diff} too many players", score)
+            return score
+
+        _LOGGER.limited_info("Valid player count achieved", limit=5)
 
         # dataframe just of the predicted lineup
         pred_df = (
@@ -142,15 +160,34 @@ class DeepLineupLoss(nn.Module):
 
         # is this a valid lineup?
         if (failed_slots := self._valid_lineup(pred_df)) > 0:
-            return -0.5 * failed_slots
+            score = -0.5 * failed_slots
+            self._update_best_lineup(
+                f"correct # of players but invalid lineup. {failed_slots} failed slots",
+                score,
+            )
+            return score
+
+        _LOGGER.limited_info("Valid lineup positions achieved", limit=5)
 
         if (over_budget_by := pred_df.cost.sum() - self.constraints.budget) > 0:
-            return -over_budget_by / self._cost_penalty_divider
+            score = -over_budget_by / self._cost_penalty_divider
+            self._update_best_lineup("lineup is valid but overbudget", score)
+            return score
+
+        _LOGGER.limited_info("Valid lineup positions + budget achieved", limit=5)
 
         if (failed_viability_tests := self._test_viabilities(pred_df)) > 0:
-            return -failed_viability_tests
+            score = -failed_viability_tests
+            self._update_best_lineup("lineup is valid but failed viability tests", score)
+            return score
 
-        return pred_df["fpts-historic"].sum()
+        _LOGGER.limited_info(
+            "Completely Valid lineup of positions + budget + viability achieved", limit=5
+        )
+
+        score = pred_df["fpts-historic"].sum()
+        self._update_best_lineup("completely valid lineup", score)
+        return score
 
     def forward(self, preds, targets):
         """
@@ -169,4 +206,4 @@ class DeepLineupLoss(nn.Module):
         loss = 1 - mean_adjusted_score
         assert 0 <= loss <= 1
 
-        return loss
+        return Tensor([loss])
