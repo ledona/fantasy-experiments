@@ -1,9 +1,10 @@
 import sys
 from itertools import product
-from typing import cast
+from typing import Callable, cast
 
 import numpy as np
 import pandas as pd
+import torch
 from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.knapsack import KnapsackConstraint
@@ -52,6 +53,7 @@ class DeepLineupLoss(nn.Module):
         self,
         dataset: DeepLineupDataset,
         constraints: SportConstraints,
+        to_lineup_bools: Callable[[Tensor], Tensor],
         *args,
         **kwargs,
     ) -> None:
@@ -64,6 +66,8 @@ class DeepLineupLoss(nn.Module):
         self.target_cols = dataset.target_cols
         self.constraints = constraints
         self._pos_cols = [col for col in self.target_cols if col.startswith("pos:")]
+        self._to_lineup_bools = to_lineup_bools
+
         assert self._pos_cols, "no player positions found in target cols"
 
         if isinstance(constraints.lineup_constraints, dict):
@@ -137,7 +141,7 @@ class DeepLineupLoss(nn.Module):
         _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
-    def calc_score(self, pred, target_df: pd.DataFrame) -> float:
+    def calc_score(self, pred: Tensor, target_df: pd.DataFrame) -> float:
         """
         calculate the score of the predicted lineup
 
@@ -146,16 +150,24 @@ class DeepLineupLoss(nn.Module):
         target_df: dataframe with all information for the slate, including 'in-lineup'\
             column with 1 for players in the optimal lineup
         """
-        if (player_count_diff := abs(sum(pred) - self._lineup_slot_count)) > 0:
+        pred_bool = self._to_lineup_bools(pred)
+
+        players_included = torch.sum(pred_bool)
+        player_count_diff = torch.abs(players_included - self._lineup_slot_count)
+        if player_count_diff > 0:
             score = -player_count_diff
-            self._update_best_lineup(f"{player_count_diff} too many players", score)
+            self._update_best_lineup(
+                f"{players_included - self._lineup_slot_count} too many players", score
+            )
             return score
 
         _LOGGER.limited_info("Valid player count achieved", limit=5)
 
         # dataframe just of the predicted lineup
         pred_df = (
-            target_df.drop(columns="in-lineup").assign(**{"in-lineup": pred}).query("`in-lineup`")
+            target_df.drop(columns="in-lineup")
+            .assign(**{"in-lineup": pred_bool})
+            .query("`in-lineup`")
         )
 
         # is this a valid lineup?
@@ -202,8 +214,8 @@ class DeepLineupLoss(nn.Module):
             adjusted_top_score = top_score + self._max_loss
             scaled_adjusted_score = adjusted_score / adjusted_top_score
             scaled_adjusted_total_score += scaled_adjusted_score
+
         mean_adjusted_score = scaled_adjusted_total_score / preds.size(0)
         loss = 1 - mean_adjusted_score
         assert 0 <= loss <= 1
-
-        return Tensor([loss])
+        return loss

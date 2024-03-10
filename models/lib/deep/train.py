@@ -2,6 +2,7 @@ import json
 import os
 import statistics
 from typing import cast
+import logging
 
 import torch
 from fantasy_py import (
@@ -20,13 +21,23 @@ from .loader import DeepLineupDataset
 from .loss import DeepLineupLoss
 from .model import DeepLineupModel, save
 
+
+log.set_debug_log_level(__name__)
 _LOGGER = log.get_logger(__name__)
+
 
 DEFAULT_MODEL_FILENAME_FORMAT = "deep-lineup-model.{sport}.{service}.{style}.{datetime}.pkl"
 
 
 class DeepTrainFailure(FantasyException):
     """raised if there is a failure during training"""
+
+
+def _print_gradients(model):
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(f"Parameter: {name}")
+            print(param.grad)
 
 
 def _train_epoch(
@@ -44,13 +55,15 @@ def _train_epoch(
 
         # back prop
         optimizer.zero_grad()
-        loss.requires_grad = True
         loss.backward()
-        optimizer.step()
 
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            _print_gradients(model)
+        batch_pbar.set_postfix(loss=round(loss.item(), 5))
+
+        optimizer.step()
         losses.append(loss.item())
         _LOGGER.debug("  batch loss: %s", round(loss.item(), 10))
-        batch_pbar.set_postfix(loss=round(loss.item(), 5))
 
     return losses
 
@@ -90,14 +103,15 @@ def train(
     )
     if constraints is None:
         raise DeepTrainFailure(
-            f"Constraints not found for sport={samples_meta['sport']} service={samples_meta['service']}"
+            f"Constraints not found for sport={samples_meta['sport']} "
+            f"service={samples_meta['service']}"
         )
 
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    deep_lineup_loss = DeepLineupLoss(dataset, constraints)
     model = DeepLineupModel(dataset.sample_df_len, len(dataset.input_cols))
-    optimizer = torch.optim.Adam(model.parameters())
+    deep_lineup_loss = DeepLineupLoss(dataset, constraints, model.to_inlineup)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in tqdm(range(1, train_epochs + 1), desc="epoch"):
         losses = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)

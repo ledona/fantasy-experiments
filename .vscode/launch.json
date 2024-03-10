@@ -66,8 +66,8 @@
                 "--verbose",
                 "train",
                 "/fantasy-isync/fantasy-modeling/deep_lineup/test",
-                "--epochs", "10",
-                "--batch", "64",
+                "--epochs", "5",
+                "--batch", "128",
             ]
         },
         {
