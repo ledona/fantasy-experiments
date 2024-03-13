@@ -1,8 +1,8 @@
 import json
+import logging
 import os
 import statistics
 from typing import cast
-import logging
 
 import torch
 from fantasy_py import (
@@ -20,7 +20,6 @@ from tqdm import tqdm
 from .loader import DeepLineupDataset
 from .loss import DeepLineupLoss
 from .model import DeepLineupModel, save
-
 
 log.set_debug_log_level(__name__)
 _LOGGER = log.get_logger(__name__)
@@ -57,8 +56,8 @@ def _train_epoch(
         optimizer.zero_grad()
         loss.backward()
 
-        if _LOGGER.isEnabledFor(logging.DEBUG):
-            _print_gradients(model)
+        # if _LOGGER.isEnabledFor(logging.DEBUG):
+        #     _print_gradients(model)
         batch_pbar.set_postfix(loss=round(loss.item(), 5))
 
         optimizer.step()
@@ -110,7 +109,7 @@ def train(
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
     model = DeepLineupModel(dataset.sample_df_len, len(dataset.input_cols))
-    deep_lineup_loss = DeepLineupLoss(dataset, constraints, model.to_inlineup)
+    deep_lineup_loss = DeepLineupLoss(dataset, constraints)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in tqdm(range(1, train_epochs + 1), desc="epoch"):

@@ -438,7 +438,9 @@ def main(cmd_line_str=None):
     train_parser = sub_parsers.add_parser("train", help="Train a deep model")
     train_parser.set_defaults(func=_train_parser_func)
     train_parser.add_argument("dataset_dir", help="Path to the training dataset")
-    train_parser.add_argument("--batch_size", type=int, default=32)
+    train_parser.add_argument(
+        "--batch_size", type=int, default=32, help="The number of samples/slates per batch"
+    )
     train_parser.add_argument("--epochs", type=int, default=10)
     train_parser.add_argument(
         "--model_filepath",

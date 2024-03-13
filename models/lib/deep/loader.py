@@ -78,8 +78,8 @@ class DeepLineupDataset(Dataset):
         target_df = pd.concat([target_df, padding_df]).fillna(0)
 
         input_df = target_df[self.input_cols]
-        target_df.replace(False, 0, inplace=True)
-        target_df.replace(True, 1, inplace=True)
+        target_df.replace(False, 0., inplace=True)
+        target_df.replace(True, 1., inplace=True)
 
         # input_df = pd.concat([input_df, padding_df]).fillna(0)
         tensor = torch.Tensor(input_df.values)

@@ -21,13 +21,12 @@ class DeepLineupModel(nn.Module):
         self._player_count = player_count
 
         self.stack = nn.Sequential(
-            # nn.Linear(player_features * player_count, player_count),
-            # nn.ReLU(),
             nn.Linear(player_features * player_count, hidden_size),
             nn.LayerNorm(hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, player_count),
-            nn.Sigmoid(),
+            # nn.Sigmoid(),
+            nn.Softmax(dim=1),
         )
 
     def forward(self, x):
@@ -36,14 +35,6 @@ class DeepLineupModel(nn.Module):
         x_reshaped = x.view(batch_size, -1)
         y = self.stack(x_reshaped)
         return y
-
-    def to_inlineup(self, y):
-        """
-        translate the the output from forward to an array of booleans
-        where each bool states if the player should be included in the
-        lineup
-        """
-        return torch.round(y)
 
 
 def save(model: DeepLineupModel, filepath: str):
