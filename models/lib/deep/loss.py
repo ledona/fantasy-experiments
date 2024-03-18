@@ -142,14 +142,21 @@ class DeepLineupLoss(nn.Module):
         _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
-    def _calc_pred_scores(self, pred: Tensor, target: Tensor):
-        pred_probs, pred_indices = torch.topk(pred, self._lineup_slot_count)
-        absolute_scores = target[
-            torch.arange(pred.size(0)).unsqueeze(-1),
-            pred_indices,
-            self._hist_score_col_idx,
-        ].sum(dim=1)
-        return absolute_scores
+    def _calc_slate_score(self, pred: Tensor, target: Tensor):
+        raise NotImplementedError("create gen_lineup parameters")
+
+        raise NotImplementedError("# call gen_lineup to create optimal lineup")
+
+        raise NotImplementedError("# calculate historic score for optimal lineup")
+
+    # def _calc_pred_scores(self, preds: Tensor, targets: Tensor):
+    #     pred_probs, pred_indices = torch.topk(pred, self._lineup_slot_count)
+    #     absolute_scores = target[
+    #         torch.arange(pred.size(0)).unsqueeze(-1),
+    #         pred_indices,
+    #         self._hist_score_col_idx,
+    #     ].sum(dim=1)
+    #     return absolute_scores
 
     def _calc_score(self, pred: Tensor, target: Tensor):
         top_lineups_players_mask = target[:, :, self._in_top_lineup_col_idx] == 1
@@ -158,7 +165,8 @@ class DeepLineupLoss(nn.Module):
         )
         top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
-        pred_scores = self._calc_pred_scores(pred, target)
+        pred_scores = Tensor([self._calc_slate_score(pred, target) for pred, target in zip(pred, target)])
+        # pred_scores = self._calc_pred_scores(pred, target)
 
         mean_score = torch.mean(pred_scores / top_lineups_scores)
         return mean_score
