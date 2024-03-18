@@ -1,6 +1,6 @@
 import sys
 from itertools import product
-from typing import Callable, cast
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -69,6 +69,7 @@ class DeepLineupLoss(nn.Module):
 
         self._cost_col_idx = self.target_cols.index("cost")
         self._hist_score_col_idx = self.target_cols.index("fpts-historic")
+        self._in_top_lineup_col_idx = self.target_cols.index("in-lineup")
 
         if isinstance(constraints.lineup_constraints, dict):
             self._lineup_slot_pos = []
@@ -141,91 +142,38 @@ class DeepLineupLoss(nn.Module):
         _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
-    def calc_score(self, pred: Tensor, target_df: pd.DataFrame) -> Tensor:
+    def _calc_pred_scores(self, pred: Tensor, target: Tensor):
+        pred_probs, pred_indices = torch.topk(pred, self._lineup_slot_count)
+        absolute_scores = target[
+            torch.arange(pred.size(0)).unsqueeze(-1),
+            pred_indices,
+            self._hist_score_col_idx,
+        ].sum(dim=1)
+        return absolute_scores
+
+    def _calc_score(self, pred: Tensor, target: Tensor):
+        top_lineups_players_mask = target[:, :, self._in_top_lineup_col_idx] == 1
+        top_lineups_masked_scores = (
+            target[:, :, self._hist_score_col_idx] * top_lineups_players_mask.float()
+        )
+        top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
+
+        pred_scores = self._calc_pred_scores(pred, target)
+
+        mean_score = torch.mean(pred_scores / top_lineups_scores)
+        return mean_score
+
+    def forward(self, preds: Tensor, targets: Tensor):
         """
-        calculate the score of the predicted lineup
-
-        pred: list-like of 0|1, each element is for a player and corresponds to\
-            a row in target_df. 1=that player is in the lineup
-        target_df: dataframe with all information for the slate, including 'in-lineup'\
-            column with 1 for players in the optimal lineup
+        preds: tensor of shape (batch_size, inventory_size). batch_size=number of slates in batch\
+            inventory_size=number of players in each slate. Values are 0-1, and are the probability\
+            that each player is in the slate.
+        targets: tensor of shage (batch_size, inventory_size, feature-count) which describes\
+            the batch slates.
+        returns (policy_gradient, reward), policy gradient is the gradient to use to update model\
+            weights. Reward is the reward for the batch.
         """
-
-        raise NotImplementedError()
-        # pred_bool = self._to_lineup_bools(pred)
-        # players_included = torch.sum(pred_bool)
-
-        # player_count_diff = torch.abs(players_included - self._lineup_slot_count)
-        # if player_count_diff > 0:
-        #     score = -player_count_diff
-        #     self._update_best_lineup(
-        #         f"{players_included - self._lineup_slot_count} too many players", score
-        #     )
-        #     return score
-
-        # _LOGGER.limited_info("Valid player count achieved", limit=5)
-
-        # # dataframe just of the predicted lineup
-        # pred_df = (
-        #     target_df.drop(columns="in-lineup")
-        #     .assign(**{"in-lineup": pred_bool})
-        #     .query("`in-lineup`")
-        # )
-
-        # # is this a valid lineup?
-        # if (failed_slots := self._valid_lineup(pred_df)) > 0:
-        #     score = -0.5 * failed_slots
-        #     self._update_best_lineup(
-        #         f"correct # of players but invalid lineup. {failed_slots} failed slots",
-        #         score,
-        #     )
-        #     return score
-
-        # _LOGGER.limited_info("Valid lineup positions achieved", limit=5)
-
-        # if (over_budget_by := pred_df.cost.sum() - self.constraints.budget) > 0:
-        #     score = -over_budget_by / self._cost_penalty_divider
-        #     self._update_best_lineup("lineup is valid but overbudget", score)
-        #     return score
-
-        # _LOGGER.limited_info("Valid lineup positions + budget achieved", limit=5)
-
-        # if (failed_viability_tests := self._test_viabilities(pred_df)) > 0:
-        #     score = -failed_viability_tests
-        #     self._update_best_lineup("lineup is valid but failed viability tests", score)
-        #     return score
-
-        # _LOGGER.limited_info(
-        #     "Completely Valid lineup of positions + budget + viability achieved", limit=5
-        # )
-
-        raise NotImplementedError()
-
-        score = pred_df["fpts-historic"].sum()
-        self._update_best_lineup("completely valid lineup", score)
-        return score
-
-    def forward(self, preds, targets):
-        """
-        preds: tensor of shape (batch_size, inventory_size) where each value is a value 0-1\
-            used to idenfity which players are in the solution lineup. The top players are\
-            selected
-        targets: tensor of shage (batch_size, inventory_size, feature count) which includes all\
-            information for the slate.
-        returns the mean loss across all predicted lineups, loss range is 0 to 1
-        """
-        # top_probs, top_indices = torch.topk(preds, self._lineup_slot_count, dim=1)
-        # scaled_adjusted_total_score = 0
-
-        # calculate budget penalty
-        budget_sums = (preds * targets[:, :, self._cost_col_idx]).sum(dim=1)
-        exceed_budget_penalty = torch.sum(torch.relu(budget_sums - self.constraints.budget))
-        mean_budget_penalty = exceed_budget_penalty / preds.size(0)
-
-        # calculate the historic score of the predicted lineups
-        score_sum = (preds * targets[:, :, self._hist_score_col_idx]).sum()
-        mean_score = score_sum / preds.size(0)
-
-        loss = mean_budget_penalty - mean_score
-
-        return loss
+        reward = self._calc_score(preds, targets)
+        log_prob = torch.log(preds)
+        policy_gradient = log_prob * reward
+        return policy_gradient, float(reward)

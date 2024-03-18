@@ -42,29 +42,28 @@ def _print_gradients(model):
 def _train_epoch(
     dataloader: DataLoader, model: DeepLineupModel, optimizer, deep_lineup_loss: DeepLineupLoss
 ):
-    losses = []
+    rewards = []
     model.train()
 
     for x, y in (batch_pbar := tqdm(dataloader, desc="batch", leave=False)):
         # make predictions
         preds = model(x)
 
-        # compute loss
-        loss = deep_lineup_loss(preds, y)
+        # compute loss for the batch
+        policy_gradient, reward = deep_lineup_loss(preds, y)
 
         # back prop
         optimizer.zero_grad()
-        loss.backward()
+        preds.backward(policy_gradient)
 
         # if _LOGGER.isEnabledFor(logging.DEBUG):
         #     _print_gradients(model)
-        batch_pbar.set_postfix(loss=round(loss.item(), 5))
 
         optimizer.step()
-        losses.append(loss.item())
-        _LOGGER.debug("  batch loss: %s", round(loss.item(), 10))
+        rewards.append(reward)
+        _LOGGER.debug("  batch reward: %s", round(reward, 3))
 
-    return losses
+    return rewards
 
 
 def _eval_epoch(model, epoch, losses):

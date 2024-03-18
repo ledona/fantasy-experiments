@@ -98,7 +98,7 @@ def _get_slate_sample(
     starters = Starters.from_historic_data(
         db_obj, service_cls.SERVICE_NAME, epoch, game_ids=game_ids, style=style
     )
-    assert len(starters.slates) == 1
+    assert starters is not None and starters.slates is not None and len(starters.slates) == 1
     slate_info = next(iter(starters.slates.values()))
     fca = db_obj.db_manager.fca_from_starters(db_obj, starters, service_cls.SERVICE_NAME)
     sport_constraints = service_cls.get_constraints(db_obj.db_manager.ABBR, style=style)
