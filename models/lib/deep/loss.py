@@ -7,7 +7,9 @@ import pandas as pd
 import torch
 from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
-from fantasy_py.lineup.knapsack import KnapsackConstraint
+from fantasy_py.lineup.create_lineups import KnapsackInputData
+from fantasy_py.lineup.do_gen_lineup import create_solver
+from fantasy_py.lineup.knapsack import KnapsackConstraint, KnapsackIdentityMapping, KnapsackItem
 from scipy.optimize import linear_sum_assignment
 from torch import Tensor, nn
 
@@ -64,10 +66,16 @@ class DeepLineupLoss(nn.Module):
         self._best_lineup_found = ("", -sys.float_info.max)
         self.target_cols = list(dataset.target_cols)
         self.constraints = constraints
-        self._pos_cols = [col for col in self.target_cols if col.startswith("pos:")]
+        self._pos_cols = {
+            col: idx for idx, col in enumerate(self.target_cols) if col.startswith("pos:")
+        }
         assert self._pos_cols, "no player positions found in target cols"
 
         self._cost_col_idx = self.target_cols.index("cost")
+        self._player_idx = (
+            self.target_cols.index("player_id") if "player_id" in self.target_cols else None
+        )
+        self._team_idx = self.target_cols.index("team_id")
         self._hist_score_col_idx = self.target_cols.index("fpts-historic")
         self._in_top_lineup_col_idx = self.target_cols.index("in-lineup")
 
@@ -142,12 +150,75 @@ class DeepLineupLoss(nn.Module):
         _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
+    def _gen_knapsack_input(self, probs: Tensor, target: Tensor) -> KnapsackInputData:
+        knap_items: list[KnapsackItem] = []
+        knap_mappings: list[KnapsackIdentityMapping] = []
+        pid_to_i: dict[int, int] = {}
+        tid_to_i: dict[int, int] = {}
+        for knap_idx, (value, player_info) in enumerate(zip(probs, target)):
+            classes = [
+                pos_col.split(":", 1)[1]
+                for pos_col, idx in self._pos_cols.items()
+                if player_info[idx]
+            ]
+            knap_items.append(
+                KnapsackItem(classes, float(value), float(player_info[self._cost_col_idx]))
+            )
+            if self._player_idx is not None and not torch.isnan(player_info[self._player_idx]):
+                pid = int(player_info[self._player_idx])
+                knap_mapping = KnapsackIdentityMapping.player_mapping(pid, float(value))
+                pid_to_i[pid] = knap_idx
+            else:
+                tid = int(self._team_idx)
+                knap_mapping = KnapsackIdentityMapping.team_mapping(tid, float(value))
+                tid_to_i[tid] = knap_idx
+            knap_mappings.append(knap_mapping)
+        return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i)
+
+    def _gen_lineup(
+        self,
+        probs: Tensor,
+        target: Tensor,
+        # db_obj: FantasySQLAlchemyWrapper,
+        # fca: FantasyCostAggregate,
+        # fantasy_service_cls: type[FantasyService],
+    ) -> list[int]:
+        """
+        solve for the best lineup given the model probs
+        returns: list of player ids in the best lineup
+        """
+        solver = create_solver(self.constraints)
+
+        knapsack_input = self._gen_knapsack_input(probs, target)
+
+        solutions = solver.solve(
+            knapsack_input.data,
+            1,
+            self.constraints,
+            # fca,
+            # knapsack_input.mappings,
+        )
+
+        assert len(solutions) == 1
+
+        raise NotImplementedError()
+
+        lineup = _knapsacks_to_lineups(
+            solutions,
+            knapsack_input.mappings,
+            db_obj,
+            fantasy_service_cls.SERVICE_NAME,
+            fca,
+        )[0]
+
+        raise NotImplementedError()
+
     def _calc_slate_score(self, pred: Tensor, target: Tensor):
-        raise NotImplementedError("create gen_lineup parameters")
+        player_ids = self._gen_lineup(pred, target)
 
-        raise NotImplementedError("# call gen_lineup to create optimal lineup")
+        raise NotImplementedError("call gen_lineup to create optimal lineup")
 
-        raise NotImplementedError("# calculate historic score for optimal lineup")
+        raise NotImplementedError("calculate historic score for optimal lineup")
 
     # def _calc_pred_scores(self, preds: Tensor, targets: Tensor):
     #     pred_probs, pred_indices = torch.topk(pred, self._lineup_slot_count)
@@ -165,7 +236,9 @@ class DeepLineupLoss(nn.Module):
         )
         top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
-        pred_scores = Tensor([self._calc_slate_score(pred, target) for pred, target in zip(pred, target)])
+        pred_scores = Tensor(
+            [self._calc_slate_score(pred, target) for pred, target in zip(pred, target)]
+        )
         # pred_scores = self._calc_pred_scores(pred, target)
 
         mean_score = torch.mean(pred_scores / top_lineups_scores)
