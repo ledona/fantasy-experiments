@@ -147,14 +147,23 @@ def _get_slate_sample(
         return dict_
 
     cost_pos_df = score_df.apply(cost_func, axis=1, result_type="expand")
-    df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df], axis=1)
 
-    def in_lineup(row):
+    def addl_data_func(row):
+        ret = {}
         if pd.isna(row.player_id) and row.team_id in top_lineup[0].team_ids:
-            return 1
-        return row.player_id in top_lineup[0].player_ids
+            ret["in-lineup"] = 1
+        else:
+            ret["in-lineup"] = row.player_id in top_lineup[0].player_ids
+        if pd.isna(row.player_id):
+            ret['opp_id'] = fca.get_mi_team(row.team_id)["opp_id"]
+        else:
+            ret['opp_id'] = fca.get_mi_player(row.player_id)["opp_id"]
 
-    df["in-lineup"] = df.apply(in_lineup, axis=1)
+        return ret
+
+    addl_df = score_df.apply(addl_data_func, axis=1, result_type="expand")
+
+    df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df, addl_df], axis=1)
 
     for col in df.columns:
         if not col.startswith("pos:"):

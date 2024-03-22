@@ -9,6 +9,11 @@ from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.create_lineups import KnapsackInputData
 from fantasy_py.lineup.do_gen_lineup import create_solver
+from fantasy_py.lineup.fantasy_cost_aggregate import (
+    FCAPlayerDict,
+    FCAPlayerTeamInventoryMixin,
+    FCATeamDict,
+)
 from fantasy_py.lineup.knapsack import KnapsackConstraint, KnapsackIdentityMapping, KnapsackItem
 from scipy.optimize import linear_sum_assignment
 from torch import Tensor, nn
@@ -16,6 +21,20 @@ from torch import Tensor, nn
 from .loader import DeepLineupDataset
 
 _LOGGER = log.get_logger(__name__)
+
+
+class PTInv(FCAPlayerTeamInventoryMixin):
+    def __init__(
+        self, players: None | dict[int, FCAPlayerDict], teams: None | dict[int, FCATeamDict]
+    ):
+        self._players = players or {}
+        self._teams = teams or {}
+
+    def get_mi_player(self, id_: int):
+        return self._players[id_]
+
+    def get_mi_team(self, id_: int):
+        return self._teams[id_]
 
 
 class DeepLineupLoss(nn.Module):
@@ -150,12 +169,20 @@ class DeepLineupLoss(nn.Module):
         _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
-    def _gen_knapsack_input(self, probs: Tensor, target: Tensor) -> KnapsackInputData:
+    def _gen_knapsack_input(self, probs: Tensor, target: Tensor):
         knap_items: list[KnapsackItem] = []
         knap_mappings: list[KnapsackIdentityMapping] = []
         pid_to_i: dict[int, int] = {}
         tid_to_i: dict[int, int] = {}
+        players: dict[int, FCAPlayerDict] = {}
+        teams: dict[int, FCATeamDict] = {}
+
         for knap_idx, (value, player_info) in enumerate(zip(probs, target)):
+            team_id = int(player_info[self._team_idx])
+            if team_id == 0:
+                # padding
+                continue
+
             classes = [
                 pos_col.split(":", 1)[1]
                 for pos_col, idx in self._pos_cols.items()
@@ -166,22 +193,38 @@ class DeepLineupLoss(nn.Module):
             )
             if self._player_idx is not None and not torch.isnan(player_info[self._player_idx]):
                 pid = int(player_info[self._player_idx])
+                assert pid not in players and pid not in pid_to_i
                 knap_mapping = KnapsackIdentityMapping.player_mapping(pid, float(value))
                 pid_to_i[pid] = knap_idx
+                players[pid] = {
+                    "player_id": pid,
+                    "team": str(team_id),
+                    "team_id": team_id,
+                    "cost": float(player_info[self._cost_col_idx]),
+                    "positions": classes,
+                }
+
             else:
-                tid = int(self._team_idx)
-                knap_mapping = KnapsackIdentityMapping.team_mapping(tid, float(value))
-                tid_to_i[tid] = knap_idx
+                assert team_id not in teams and team_id not in tid_to_i
+                knap_mapping = KnapsackIdentityMapping.team_mapping(team_id, float(value))
+                tid_to_i[team_id] = knap_idx
+                teams[team_id] = {
+                    "id": team_id,
+                    "abbr": str(team_id),
+                    "cost": float(player_info[self._cost_col_idx]),
+                    "positions": classes,
+                }
             knap_mappings.append(knap_mapping)
-        return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i)
+
+        # raise NotImplementedError("opp_abbr is needed for PTInv items")
+        mpt_inv = PTInv(players, teams)
+
+        return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i), mpt_inv
 
     def _gen_lineup(
         self,
         probs: Tensor,
         target: Tensor,
-        # db_obj: FantasySQLAlchemyWrapper,
-        # fca: FantasyCostAggregate,
-        # fantasy_service_cls: type[FantasyService],
     ) -> list[int]:
         """
         solve for the best lineup given the model probs
@@ -189,14 +232,14 @@ class DeepLineupLoss(nn.Module):
         """
         solver = create_solver(self.constraints)
 
-        knapsack_input = self._gen_knapsack_input(probs, target)
+        knapsack_input, pt_inv = self._gen_knapsack_input(probs, target)
 
         solutions = solver.solve(
             knapsack_input.data,
             1,
-            self.constraints,
-            # fca,
-            # knapsack_input.mappings,
+            self.constraints.viability_testers,
+            pt_inv,
+            knapsack_input.mappings,
         )
 
         assert len(solutions) == 1
