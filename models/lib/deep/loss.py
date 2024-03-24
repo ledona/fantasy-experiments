@@ -1,10 +1,15 @@
+import math
+import os
 import sys
 from itertools import chain, product
 from typing import cast
 
+import dask
+import dask.bag as db
 import numpy as np
 import pandas as pd
 import torch
+from dask.diagnostics import ProgressBar
 from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.create_lineups import KnapsackInputData
@@ -17,10 +22,10 @@ from fantasy_py.lineup.fantasy_cost_aggregate import (
 from fantasy_py.lineup.knapsack import KnapsackConstraint, KnapsackIdentityMapping, KnapsackItem
 from scipy.optimize import linear_sum_assignment
 from torch import Tensor, nn
-from tqdm import tqdm
 
 from .loader import DeepLineupDataset
 
+dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 _LOGGER = log.get_logger(__name__)
 
 
@@ -254,12 +259,17 @@ class DeepLineupLoss(nn.Module):
         )
         top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
-        pred_scores = Tensor(
-            [
-                self._calc_slate_score(pred, target)
-                for pred, target in tqdm(zip(pred, target), total=len(pred), desc="scoring batch")
-            ]
-        )
+        dask_bag = db.from_sequence(zip(pred, target), npartitions=8)
+
+        def func(bag_item: tuple[Tensor, Tensor]):
+            return self._calc_slate_score(*bag_item)
+
+        if log.PROGRESS_REQUESTED:
+            print()
+            pbar = ProgressBar()
+            pbar.register()
+        pred_scores = dask_bag.map(func)
+
         mean_score = torch.mean(pred_scores / top_lineups_scores)
         return mean_score
 
