@@ -155,9 +155,9 @@ def _get_slate_sample(
         else:
             ret["in-lineup"] = row.player_id in top_lineup[0].player_ids
         if pd.isna(row.player_id):
-            ret['opp_id'] = fca.get_mi_team(row.team_id)["opp_id"]
+            ret["opp_id"] = fca.get_mi_team(row.team_id)["opp_id"]
         else:
-            ret['opp_id'] = fca.get_mi_player(row.player_id)["opp_id"]
+            ret["opp_id"] = fca.get_mi_player(row.player_id)["opp_id"]
 
         return ret
 
@@ -305,12 +305,8 @@ def _export_deep_dataset(
                     f"after {attempt_num + 1} attempts"
                 )
             successful_attempts.append(slate_def)
-            df.to_parquet(
-                os.path.join(
-                    dataset_dest_dir,
-                    f"{slate_def.season}-{slate_def.game_number}-{slate_def.game_ids_hash}.pq",
-                )
-            )
+            filename = f"{slate_def.season}-{slate_def.game_number}-{slate_def.game_ids_hash}.pq"
+            df.to_parquet(os.path.join(dataset_dest_dir, filename))
             sample_meta["items"] = len(df)
             df_lens.append(len(df))
             samples_meta.append(sample_meta)

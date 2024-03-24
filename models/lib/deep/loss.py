@@ -1,5 +1,5 @@
 import sys
-from itertools import product
+from itertools import chain, product
 from typing import cast
 
 import numpy as np
@@ -17,6 +17,7 @@ from fantasy_py.lineup.fantasy_cost_aggregate import (
 from fantasy_py.lineup.knapsack import KnapsackConstraint, KnapsackIdentityMapping, KnapsackItem
 from scipy.optimize import linear_sum_assignment
 from torch import Tensor, nn
+from tqdm import tqdm
 
 from .loader import DeepLineupDataset
 
@@ -97,6 +98,7 @@ class DeepLineupLoss(nn.Module):
         self._team_idx = self.target_cols.index("team_id")
         self._hist_score_col_idx = self.target_cols.index("fpts-historic")
         self._in_top_lineup_col_idx = self.target_cols.index("in-lineup")
+        self._opp_id = self.target_cols.index("opp_id")
 
         if isinstance(constraints.lineup_constraints, dict):
             self._lineup_slot_pos = []
@@ -169,7 +171,13 @@ class DeepLineupLoss(nn.Module):
         _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
-    def _gen_knapsack_input(self, probs: Tensor, target: Tensor):
+    def _gen_knapsack_data(self, probs: Tensor, target: Tensor):
+        """
+        The returned knapsack input data is in the same order as the probs and target
+        tensor
+
+        returns tuple of knapsack input data, player/team FCA inventory
+        """
         knap_items: list[KnapsackItem] = []
         knap_mappings: list[KnapsackIdentityMapping] = []
         pid_to_i: dict[int, int] = {}
@@ -202,8 +210,8 @@ class DeepLineupLoss(nn.Module):
                     "team_id": team_id,
                     "cost": float(player_info[self._cost_col_idx]),
                     "positions": classes,
+                    "opp_abbr": str(player_info[self._opp_id]),
                 }
-
             else:
                 assert team_id not in teams and team_id not in tid_to_i
                 knap_mapping = KnapsackIdentityMapping.team_mapping(team_id, float(value))
@@ -213,6 +221,7 @@ class DeepLineupLoss(nn.Module):
                     "abbr": str(team_id),
                     "cost": float(player_info[self._cost_col_idx]),
                     "positions": classes,
+                    "opp_abbr": str(player_info[self._opp_id]),
                 }
             knap_mappings.append(knap_mapping)
 
@@ -221,18 +230,10 @@ class DeepLineupLoss(nn.Module):
 
         return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i), mpt_inv
 
-    def _gen_lineup(
-        self,
-        probs: Tensor,
-        target: Tensor,
-    ) -> list[int]:
-        """
-        solve for the best lineup given the model probs
-        returns: list of player ids in the best lineup
-        """
+    def _calc_slate_score(self, pred: Tensor, target: Tensor):
         solver = create_solver(self.constraints)
 
-        knapsack_input, pt_inv = self._gen_knapsack_input(probs, target)
+        knapsack_input, pt_inv = self._gen_knapsack_data(pred, target)
 
         solutions = solver.solve(
             knapsack_input.data,
@@ -243,34 +244,8 @@ class DeepLineupLoss(nn.Module):
         )
 
         assert len(solutions) == 1
-
-        raise NotImplementedError()
-
-        lineup = _knapsacks_to_lineups(
-            solutions,
-            knapsack_input.mappings,
-            db_obj,
-            fantasy_service_cls.SERVICE_NAME,
-            fca,
-        )[0]
-
-        raise NotImplementedError()
-
-    def _calc_slate_score(self, pred: Tensor, target: Tensor):
-        player_ids = self._gen_lineup(pred, target)
-
-        raise NotImplementedError("call gen_lineup to create optimal lineup")
-
-        raise NotImplementedError("calculate historic score for optimal lineup")
-
-    # def _calc_pred_scores(self, preds: Tensor, targets: Tensor):
-    #     pred_probs, pred_indices = torch.topk(pred, self._lineup_slot_count)
-    #     absolute_scores = target[
-    #         torch.arange(pred.size(0)).unsqueeze(-1),
-    #         pred_indices,
-    #         self._hist_score_col_idx,
-    #     ].sum(dim=1)
-    #     return absolute_scores
+        pt_indices = list(chain(*solutions[0].items))
+        return float(target[pt_indices, self._hist_score_col_idx].sum())
 
     def _calc_score(self, pred: Tensor, target: Tensor):
         top_lineups_players_mask = target[:, :, self._in_top_lineup_col_idx] == 1
@@ -280,10 +255,11 @@ class DeepLineupLoss(nn.Module):
         top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
         pred_scores = Tensor(
-            [self._calc_slate_score(pred, target) for pred, target in zip(pred, target)]
+            [
+                self._calc_slate_score(pred, target)
+                for pred, target in tqdm(zip(pred, target), total=len(pred), desc="scoring batch")
+            ]
         )
-        # pred_scores = self._calc_pred_scores(pred, target)
-
         mean_score = torch.mean(pred_scores / top_lineups_scores)
         return mean_score
 
