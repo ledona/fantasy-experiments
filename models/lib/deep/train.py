@@ -56,8 +56,8 @@ def _train_epoch(
         optimizer.zero_grad()
         preds.backward(policy_gradient)
 
-        # if _LOGGER.isEnabledFor(logging.DEBUG):
-        #     _print_gradients(model)
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            _print_gradients(model)
 
         optimizer.step()
         rewards.append(reward)

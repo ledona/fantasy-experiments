@@ -259,7 +259,7 @@ class DeepLineupLoss(nn.Module):
         )
         top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
-        dask_bag = db.from_sequence(zip(pred, target), npartitions=8)
+        dask_bag = db.from_sequence(zip(pred, target), npartitions=16)
 
         def func(bag_item: tuple[Tensor, Tensor]):
             return self._calc_slate_score(*bag_item)
@@ -268,9 +268,9 @@ class DeepLineupLoss(nn.Module):
             print()
             pbar = ProgressBar()
             pbar.register()
-        pred_scores = dask_bag.map(func)
+        mean_pred_score = dask_bag.map(func).mean().compute()
 
-        mean_score = torch.mean(pred_scores / top_lineups_scores)
+        mean_score = torch.mean(mean_pred_score / top_lineups_scores)
         return mean_score
 
     def forward(self, preds: Tensor, targets: Tensor):
