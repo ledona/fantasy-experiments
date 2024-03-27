@@ -32,43 +32,45 @@ class DeepTrainFailure(FantasyException):
     """raised if there is a failure during training"""
 
 
-def _print_gradients(model):
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print(f"Parameter: {name}")
-            print(param.grad)
-
-
 def _train_epoch(
     dataloader: DataLoader, model: DeepLineupModel, optimizer, deep_lineup_loss: DeepLineupLoss
 ):
     rewards = []
     model.train()
 
-    for x, y in (batch_pbar := tqdm(dataloader, desc="batch", leave=False)):
+    for x, y in tqdm(dataloader, desc="batch", leave=False):
         # make predictions
         preds = model(x)
 
         # compute loss for the batch
-        policy_gradient, reward = deep_lineup_loss(preds, y)
+        policy_gradients, reward = deep_lineup_loss(preds, y)
+
+        if policy_gradients.isnan().any() or policy_gradients.isinf().any():
+            _LOGGER.warning("nan or inf found in policy gradients")
 
         # back prop
         optimizer.zero_grad()
-        preds.backward(policy_gradient)
+        # REINFORCE gradient update
+        preds.backward(policy_gradients)
 
-        if _LOGGER.isEnabledFor(logging.DEBUG):
-            _print_gradients(model)
+        # if _LOGGER.isEnabledFor(logging.DEBUG):
+        #     for name, param in model.named_parameters():
+        #         print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]}")
 
         optimizer.step()
         rewards.append(reward)
-        _LOGGER.debug("  batch reward: %s", round(reward, 3))
 
     return rewards
 
 
-def _eval_epoch(model, epoch, losses):
+def _eval_epoch(model, epoch, rewards):
     model.eval()
-    _LOGGER.info("mean loss for epoch %i: %.5f", epoch, statistics.mean(losses))
+    _LOGGER.info(
+        "batch rewards for epoch %i: mean=%.10f rewards=%s",
+        epoch,
+        statistics.mean(rewards),
+        [round(reward, 5) for reward in rewards],
+    )
 
 
 def train(
@@ -77,7 +79,7 @@ def train(
     batch_size: int,
     target_dir: str,
     model_filename: str | None = None,
-    learning_rate=1e-3,
+    learning_rate=0.001,
 ):
     samples_meta_filepath = os.path.join(dataset_dir, "samples_meta.json")
     _LOGGER.info("Loading training samples from '%s'", samples_meta_filepath)
@@ -112,12 +114,11 @@ def train(
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in tqdm(range(1, train_epochs + 1), desc="epoch"):
-        losses = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
-        _eval_epoch(model, epoch, losses)
+        rewards = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
+        _eval_epoch(model, epoch, rewards)
         torch.save(model.state_dict(), target_filepath + ".epoch-" + str(epoch))
 
     _LOGGER.info("Training complete. Model written to '%s'", target_filepath)
-    _LOGGER.info("Best lineup failure type and score: %s", deep_lineup_loss._best_lineup_found)
     save(model, target_filepath)
 
     return (model,)

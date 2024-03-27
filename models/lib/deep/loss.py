@@ -5,11 +5,9 @@ from itertools import chain, product
 from typing import cast
 
 import dask
-import dask.bag as db
 import numpy as np
 import pandas as pd
 import torch
-from dask.diagnostics import ProgressBar
 from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.create_lineups import KnapsackInputData
@@ -88,9 +86,11 @@ class DeepLineupLoss(nn.Module):
         """
         super().__init__(*args, **kwargs)
         self._cost_penalty_divider = dataset.cost_oom
-        self._best_lineup_found = ("", -sys.float_info.max)
+        self._best_lineupclear_found = ("", -sys.float_info.max)
         self.target_cols = list(dataset.target_cols)
         self.constraints = constraints
+        self._solver = create_solver(self.constraints, silent=True)
+
         self._pos_cols = {
             col: idx for idx, col in enumerate(self.target_cols) if col.startswith("pos:")
         }
@@ -201,9 +201,8 @@ class DeepLineupLoss(nn.Module):
                 for pos_col, idx in self._pos_cols.items()
                 if player_info[idx]
             ]
-            knap_items.append(
-                KnapsackItem(classes, float(value), float(player_info[self._cost_col_idx]))
-            )
+            knap_item = KnapsackItem(classes, float(player_info[self._cost_col_idx]), float(value))
+            knap_items.append(knap_item)
             if self._player_idx is not None and not torch.isnan(player_info[self._player_idx]):
                 pid = int(player_info[self._player_idx])
                 assert pid not in players and pid not in pid_to_i
@@ -230,17 +229,15 @@ class DeepLineupLoss(nn.Module):
                 }
             knap_mappings.append(knap_mapping)
 
-        # raise NotImplementedError("opp_abbr is needed for PTInv items")
         mpt_inv = PTInv(players, teams)
 
         return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i), mpt_inv
 
     def _calc_slate_score(self, pred: Tensor, target: Tensor):
-        solver = create_solver(self.constraints)
-
+        _LOGGER.info("preds score: started")
         knapsack_input, pt_inv = self._gen_knapsack_data(pred, target)
 
-        solutions = solver.solve(
+        solutions = self._solver.solve(
             knapsack_input.data,
             1,
             self.constraints.viability_testers,
@@ -250,6 +247,7 @@ class DeepLineupLoss(nn.Module):
 
         assert len(solutions) == 1
         pt_indices = list(chain(*solutions[0].items))
+        _LOGGER.info("preds score:finished")
         return float(target[pt_indices, self._hist_score_col_idx].sum())
 
     def _calc_score(self, pred: Tensor, target: Tensor):
@@ -259,31 +257,35 @@ class DeepLineupLoss(nn.Module):
         )
         top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
-        dask_bag = db.from_sequence(zip(pred, target), npartitions=16)
+        dask_bag = dask.bag.from_sequence(zip(pred, target), npartitions=16)
 
         def func(bag_item: tuple[Tensor, Tensor]):
             return self._calc_slate_score(*bag_item)
 
-        if log.PROGRESS_REQUESTED:
-            print()
-            pbar = ProgressBar()
-            pbar.register()
-        mean_pred_score = dask_bag.map(func).mean().compute()
+        # if log.PROGRESS_REQUESTED:
+        #     print()
+        #     pbar = ProgressBar()
+        #     pbar.register()
+        pred_scores = Tensor(dask_bag.map(func).compute())
 
-        mean_score = torch.mean(mean_pred_score / top_lineups_scores)
+        assert not (pred_scores > top_lineups_scores).any()
+
+        mean_score = torch.mean(pred_scores / top_lineups_scores)
         return mean_score
 
     def forward(self, preds: Tensor, targets: Tensor):
         """
+        Calculate the policy reward and policy gradients, based on the policy predictions.
+        Policy rewards/gradients returned instead of loss to support REINFORCE training
+
         preds: tensor of shape (batch_size, inventory_size). batch_size=number of slates in batch\
             inventory_size=number of players in each slate. Values are 0-1, and are the probability\
             that each player is in the slate.
         targets: tensor of shage (batch_size, inventory_size, feature-count) which describes\
             the batch slates.
-        returns (policy_gradient, reward), policy gradient is the gradient to use to update model\
-            weights. Reward is the reward for the batch.
+        returns (gradients, reward)
         """
         reward = self._calc_score(preds, targets)
         log_prob = torch.log(preds)
-        policy_gradient = log_prob * reward
-        return policy_gradient, float(reward)
+        gradients = log_prob * reward
+        return gradients, float(reward)
