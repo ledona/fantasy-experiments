@@ -47,7 +47,7 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "data",
-                "--samples", "200",
+                "--samples", "500",
                 // "--file_mode", "fail",
                 "--cache_dir", "./cache_dir",
                 "--name", "test",

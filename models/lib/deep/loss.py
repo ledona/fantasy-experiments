@@ -262,11 +262,8 @@ class DeepLineupLoss(nn.Module):
         def func(bag_item: tuple[Tensor, Tensor]):
             return self._calc_slate_score(*bag_item)
 
-        # if log.PROGRESS_REQUESTED:
-        #     print()
-        #     pbar = ProgressBar()
-        #     pbar.register()
         pred_scores = Tensor(dask_bag.map(func).compute())
+        return pred_scores.mean()
 
         assert not (pred_scores > top_lineups_scores).any()
 
