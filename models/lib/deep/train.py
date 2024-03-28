@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import statistics
 from typing import cast
@@ -25,7 +24,7 @@ log.set_debug_log_level(__name__)
 _LOGGER = log.get_logger(__name__)
 
 
-DEFAULT_MODEL_FILENAME_FORMAT = "deep-lineup-model.{sport}.{service}.{style}.{datetime}.pkl"
+DEFAULT_MODEL_FILENAME_FORMAT = "deep-lineup-model.{sport}.{service}.{style}.{datetime}"
 
 
 class DeepTrainFailure(FantasyException):
@@ -35,7 +34,7 @@ class DeepTrainFailure(FantasyException):
 def _train_epoch(
     dataloader: DataLoader, model: DeepLineupModel, optimizer, deep_lineup_loss: DeepLineupLoss
 ):
-    rewards = []
+    rewards: list[float] = []
     model.train()
 
     for x, y in tqdm(dataloader, desc="batch", leave=False):
@@ -43,15 +42,14 @@ def _train_epoch(
         preds = model(x)
 
         # compute loss for the batch
-        policy_gradients, reward = deep_lineup_loss(preds, y)
+        loss, reward = cast(tuple[torch.Tensor, float], deep_lineup_loss(preds, y))
 
-        if policy_gradients.isnan().any() or policy_gradients.isinf().any():
+        if loss.isnan().any() or loss.isinf().any():
             _LOGGER.warning("nan or inf found in policy gradients")
 
         # back prop
         optimizer.zero_grad()
-        # REINFORCE gradient update
-        preds.backward(policy_gradients)
+        deep_lineup_loss.backwards_(preds, loss)
 
         # if _LOGGER.isEnabledFor(logging.DEBUG):
         #     for name, param in model.named_parameters():
@@ -63,14 +61,16 @@ def _train_epoch(
     return rewards
 
 
-def _eval_epoch(model, epoch, rewards):
+def _eval_epoch(model, epoch, rewards: list[float]):
     model.eval()
+    mean_reward = statistics.mean(rewards)
     _LOGGER.info(
         "batch rewards for epoch %i: mean=%.10f rewards=%s",
         epoch,
-        statistics.mean(rewards),
+        mean_reward,
         [round(reward, 5) for reward in rewards],
     )
+    return mean_reward
 
 
 def train(
@@ -80,9 +80,26 @@ def train(
     target_dir: str,
     model_filename: str | None = None,
     learning_rate=0.001,
+    hidden_size=128,
+    checkpoint_epoch_interval: int | None = 5,
+    continue_from_checkpoint_filepath: str | None = None,
 ):
+    """
+    checkpoint_filepath: if not None, continue from the checkpoint at this filepath
+    """
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     samples_meta_filepath = os.path.join(dataset_dir, "samples_meta.json")
-    _LOGGER.info("Loading training samples from '%s'", samples_meta_filepath)
+    _LOGGER.info(
+        "Training model: device=%s checkpoint-restart-file='%s' data-filepath='%s' learning-rate=%f "
+        "hidden-size=%i batch-size=%i checkpoint-epoch-interval=%i",
+        device,
+        continue_from_checkpoint_filepath,
+        samples_meta_filepath,
+        learning_rate,
+        hidden_size,
+        batch_size,
+        checkpoint_epoch_interval,
+    )
     with open(samples_meta_filepath, "r") as f_:
         samples_meta = json.load(f_)
 
@@ -94,6 +111,7 @@ def train(
             datetime=dt_to_filename_str(),
         )
     target_filepath = os.path.join(target_dir, model_filename)
+    _LOGGER.info("Model target filepath: '%s'", target_filepath)
 
     service_cls = cast(
         FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, samples_meta["service"])
@@ -109,16 +127,47 @@ def train(
 
     dataset = DeepLineupDataset(samples_meta_filepath)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    model = DeepLineupModel(dataset.sample_df_len, len(dataset.input_cols))
+    model = DeepLineupModel(
+        dataset.sample_df_len, len(dataset.input_cols), hidden_size=hidden_size
+    ).to(device)
     deep_lineup_loss = DeepLineupLoss(dataset, constraints)
+
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    for epoch in tqdm(range(1, train_epochs + 1), desc="epoch"):
+    if continue_from_checkpoint_filepath is not None:
+        raise NotImplementedError()
+    else:
+        best_score = (-1, float("-inf"))
+        epoch_scores: list[float] = []
+        starting_epoch = 1
+
+    for epoch in tqdm(range(starting_epoch, train_epochs + 1), desc="epoch"):
         rewards = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
-        _eval_epoch(model, epoch, rewards)
-        torch.save(model.state_dict(), target_filepath + ".epoch-" + str(epoch))
+        epoch_score = _eval_epoch(model, epoch, rewards)
+        epoch_scores.append(epoch_score)
+        if epoch_score > best_score[1]:
+            _LOGGER.info(
+                "New best model found! old[epoch=%i score=%f] new[epoch=%i score=%f]",
+                *(*best_score, epoch, epoch_score),
+            )
+            best_score = (epoch, epoch_score)
+            save(target_filepath + ".pt", model, epoch, rewards)
 
-    _LOGGER.info("Training complete. Model written to '%s'", target_filepath)
-    save(model, target_filepath)
+        if checkpoint_epoch_interval is not None and epoch % checkpoint_epoch_interval == 0:
+            _LOGGER.info("Saving checkpoint at epoch %i", epoch)
+            save(
+                target_filepath + f".checkpoint.epoch-{epoch}.pt",
+                model,
+                epoch,
+                rewards,
+                optimizer=optimizer.state_dict(),
+                epoch_scores=epoch_scores,
+                best_score=best_score,
+            )
 
-    return (model,)
+    _LOGGER.info(
+        "Training complete. Best model found in epoch=%i score=%f. mean-epoch-score=%f",
+        *(*best_score, statistics.mean(epoch_scores)),
+    )
+
+    return model

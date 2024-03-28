@@ -368,7 +368,15 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
     if not os.path.isdir(target_dir):
         parser.error(f"Infered model target directory '{target_dir}' is not a valid directory!")
 
-    deep_train(args.dataset_dir, args.epochs, args.batch_size, target_dir, model_filename)
+    deep_train(
+        args.dataset_dir,
+        args.epochs,
+        args.batch_size,
+        target_dir,
+        model_filename,
+        hidden_size=args.hidden_size,
+        continue_from_checkpoint_filepath=args.from_checkpoint,
+    )
 
 
 def main(cmd_line_str=None):
@@ -447,6 +455,8 @@ def main(cmd_line_str=None):
         "--batch_size", type=int, default=32, help="The number of samples/slates per batch"
     )
     train_parser.add_argument("--epochs", type=int, default=10)
+    train_parser.add_argument("--hidden_size", type=int, default=128, help="Size of hidden layers")
+    train_parser.add_argument("--from_checkpoint", help="Path to checkpoint to continue from")
     train_parser.add_argument(
         "--model_filepath",
         help="Filename to write model to. Default is to write to "

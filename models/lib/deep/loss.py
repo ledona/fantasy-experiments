@@ -251,11 +251,11 @@ class DeepLineupLoss(nn.Module):
         return float(target[pt_indices, self._hist_score_col_idx].sum())
 
     def _calc_score(self, pred: Tensor, target: Tensor):
-        top_lineups_players_mask = target[:, :, self._in_top_lineup_col_idx] == 1
-        top_lineups_masked_scores = (
-            target[:, :, self._hist_score_col_idx] * top_lineups_players_mask.float()
-        )
-        top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
+        # top_lineups_players_mask = target[:, :, self._in_top_lineup_col_idx] == 1
+        # top_lineups_masked_scores = (
+        #     target[:, :, self._hist_score_col_idx] * top_lineups_players_mask.float()
+        # )
+        # top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
         dask_bag = dask.bag.from_sequence(zip(pred, target), npartitions=16)
 
@@ -265,10 +265,10 @@ class DeepLineupLoss(nn.Module):
         pred_scores = Tensor(dask_bag.map(func).compute())
         return pred_scores.mean()
 
-        assert not (pred_scores > top_lineups_scores).any()
+        # assert not (pred_scores > top_lineups_scores).any()
 
-        mean_score = torch.mean(pred_scores / top_lineups_scores)
-        return mean_score
+        # mean_score = torch.mean(pred_scores / top_lineups_scores)
+        # return mean_score
 
     def forward(self, preds: Tensor, targets: Tensor):
         """
@@ -282,7 +282,15 @@ class DeepLineupLoss(nn.Module):
             the batch slates.
         returns (gradients, reward)
         """
+        # REINFORCE reward
         reward = self._calc_score(preds, targets)
         log_prob = torch.log(preds)
-        gradients = log_prob * reward
+        gradients = -log_prob * reward
         return gradients, float(reward)
+
+    def backwards_(self, preds: Tensor, loss_tensor: Tensor):
+        """
+        apply whatever was gradients were returned in forward() to the model
+        """
+        # REINFORCE gradient update
+        preds.backward(loss_tensor)

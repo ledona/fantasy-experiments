@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 _PADDING_COST = 999999999
 """cost to use for padded inventory items"""
 
-_DATASET_COLS_TO_DROP = ["fpts-historic", "in-lineup", "team_id"]
+_DATASET_COLS_TO_DROP = ["fpts-historic", "in-lineup"]
 """
 columns to drop from the dataset before creating an input tensor
 'player_id' will also be dropped if present
@@ -81,7 +81,6 @@ class DeepLineupDataset(Dataset):
         target_df.replace(False, 0., inplace=True)
         target_df.replace(True, 1., inplace=True)
 
-        # input_df = pd.concat([input_df, padding_df]).fillna(0)
         tensor = torch.Tensor(input_df.values)
 
         assert len(tensor) == self.sample_df_len
