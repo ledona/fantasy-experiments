@@ -1,4 +1,4 @@
-from typing import cast
+from typing import cast, TypedDict
 
 import torch
 from fantasy_py import log
@@ -53,19 +53,30 @@ class DeepLineupModel(nn.Module):
         return y
 
 
+class ModelFileData(TypedDict):
+    model: DeepLineupModel
+    last_epoch: int
+    addl_info: dict
+    batch_size: int
+
+
 def save(
     filepath: str,
     model: DeepLineupModel,
     epoch: int,
-    rewards: list[float],
+    batch_size,
     **addl_info,
 ):
     _LOGGER.info("Saving model to '%s'", filepath)
-    torch.save(
-        {"model": model, "epoch": epoch, "rewards": rewards, "addl_info": addl_info}, filepath
-    )
+    file_data: ModelFileData = {
+        "model": model,
+        "last_epoch": epoch,
+        "addl_info": addl_info,
+        "batch_size": batch_size,
+    }
+    torch.save(file_data, filepath)
 
 
 def load(filepath: str):
     _LOGGER.info("Loading model from '%s'", filepath)
-    return cast(dict, torch.load(filepath))
+    return cast(ModelFileData, torch.load(filepath))

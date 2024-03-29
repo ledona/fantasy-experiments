@@ -65,10 +65,14 @@
             "args": [
                 "--verbose",
                 "train",
-                "/fantasy-isync/fantasy-modeling/deep_lineup/test",
-                "--epochs", "40",
+                "/fantasy-isync/fantasy-modeling/deep_lineup/test-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/deep_lineup/test-model/nhl-test",
+                "--epochs", "50",
                 "--batch", "64",
                 "--hidden_size", "1024",
+                "--checkpoint_frequency", "10",
+                // "--limit", "128",
+                // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/deep_lineup/test-model/nhl-test.checkpoint.epoch-20.pt"
             ]
         },
         {

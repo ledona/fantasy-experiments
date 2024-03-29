@@ -1,7 +1,7 @@
 import json
 import os
 import statistics
-from typing import cast
+from typing import TypedDict, cast
 
 import torch
 from fantasy_py import (
@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from .loader import DeepLineupDataset
 from .loss import DeepLineupLoss
-from .model import DeepLineupModel, save
+from .model import DeepLineupModel, load, save
 
 log.set_debug_log_level(__name__)
 _LOGGER = log.get_logger(__name__)
@@ -73,27 +73,140 @@ def _eval_epoch(model, epoch, rewards: list[float]):
     return mean_reward
 
 
+_BestScore = tuple[int, float]
+"""best score thus far as a tuple of [epoch, score]"""
+
+
+class CheckpointData(TypedDict):
+    best_score: _BestScore
+    optimizer_state_dict: dict
+    target_filepath: str
+    epoch_scores: list[float]
+    batch_size: int
+    dataset_limit: int | None
+    dataset_dir: str
+
+
+def _checkpoint_cmdline_compare(name, cmdline_val, checkpoint_val):
+    """
+    make sure the cmdline value and checkpoint value match
+    returns the value to use
+    """
+    if cmdline_val is None or checkpoint_val == cmdline_val:
+        return checkpoint_val
+
+    raise DeepTrainFailure(
+        "Checkpoint '{name}' != commandline value. "
+        "Remove '{name}' from commandline or make sure they match. "
+        f"checkpoint-{name}={checkpoint_val} cmdline-{name}={cmdline_val}"
+    )
+
+
+def _setup_training(
+    continue_from_checkpoint_filepath: None | str,
+    target_dir: str,
+    model_filename: str | None,
+    learning_rate: float,
+    samples_meta: dict,
+    dataset_dir: None | str,
+    dataset_limit: None | int,
+    hidden_size: None | int,
+    samples_meta_filepath,
+    batch_size: None | int,
+):
+    if continue_from_checkpoint_filepath is not None:
+        _LOGGER.info(
+            "Resuming training from checkpoint file '%s'", continue_from_checkpoint_filepath
+        )
+        resume_dict = load(continue_from_checkpoint_filepath)
+        starting_epoch = resume_dict["last_epoch"] + 1
+
+        _checkpoint_cmdline_compare("hidden_size", hidden_size, resume_dict["model"]._hidden_size)
+        batch_size = _checkpoint_cmdline_compare(
+            "batch_size", batch_size, resume_dict["batch_size"]
+        )
+        model = resume_dict["model"]
+
+        checkpoint_data = cast(CheckpointData, resume_dict["addl_info"])
+
+        dataset_dir = _checkpoint_cmdline_compare(
+            "dataset_dir", dataset_dir, checkpoint_data["dataset_dir"]
+        )
+        dataset_limit = _checkpoint_cmdline_compare(
+            "dataset_limit", dataset_limit, checkpoint_data["dataset_limit"]
+        )
+
+        epoch_scores = checkpoint_data["epoch_scores"]
+
+        target_filepath = checkpoint_data["target_filepath"]
+        best_score = checkpoint_data["best_score"]
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        optimizer.load_state_dict(checkpoint_data["optimizer_state_dict"])
+
+        _LOGGER.info(
+            "Resuming from checkpoint at end of epoch=%i best-model-epoch=%i best-model-score=%f",
+            starting_epoch - 1,
+            *best_score,
+        )
+    else:
+        best_score: _BestScore = (-1, float("-inf"))
+        epoch_scores = []
+        starting_epoch = 1
+        if model_filename is None:
+            model_filename = DEFAULT_MODEL_FILENAME_FORMAT.format(
+                sport=samples_meta["sport"],
+                service=samples_meta["service"],
+                style=samples_meta["style"],
+                datetime=dt_to_filename_str(),
+            )
+        target_filepath = os.path.join(target_dir, model_filename)
+        model = None
+        optimizer = None
+
+    _LOGGER.info("Model target filepath: '%s'", target_filepath)
+
+    checkpoint_base_dict = {
+        "dataset_dir": dataset_dir,
+        "dataset_limit": dataset_limit,
+    }
+
+    dataset = DeepLineupDataset(samples_meta_filepath, limit=dataset_limit)
+
+    return (
+        model,
+        starting_epoch,
+        best_score,
+        epoch_scores,
+        target_filepath,
+        optimizer,
+        checkpoint_base_dict,
+        dataset,
+        batch_size,
+    )
+
+
 def train(
     dataset_dir: str,
     train_epochs: int,
-    batch_size: int,
+    batch_size: int | None,
     target_dir: str,
     model_filename: str | None = None,
     learning_rate=0.001,
     hidden_size=128,
     checkpoint_epoch_interval: int | None = 5,
     continue_from_checkpoint_filepath: str | None = None,
+    dataset_limit: int | None = None,
 ):
     """
     checkpoint_filepath: if not None, continue from the checkpoint at this filepath
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    _LOGGER.info("Device: %s", device)
+
     samples_meta_filepath = os.path.join(dataset_dir, "samples_meta.json")
     _LOGGER.info(
-        "Training model: device=%s checkpoint-restart-file='%s' data-filepath='%s' learning-rate=%f "
+        "Training model: data-filepath='%s' learning-rate=%f "
         "hidden-size=%i batch-size=%i checkpoint-epoch-interval=%i",
-        device,
-        continue_from_checkpoint_filepath,
         samples_meta_filepath,
         learning_rate,
         hidden_size,
@@ -102,16 +215,6 @@ def train(
     )
     with open(samples_meta_filepath, "r") as f_:
         samples_meta = json.load(f_)
-
-    if model_filename is None:
-        model_filename = DEFAULT_MODEL_FILENAME_FORMAT.format(
-            sport=samples_meta["sport"],
-            service=samples_meta["service"],
-            style=samples_meta["style"],
-            datetime=dt_to_filename_str(),
-        )
-    target_filepath = os.path.join(target_dir, model_filename)
-    _LOGGER.info("Model target filepath: '%s'", target_filepath)
 
     service_cls = cast(
         FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, samples_meta["service"])
@@ -125,44 +228,77 @@ def train(
             f"service={samples_meta['service']}"
         )
 
-    dataset = DeepLineupDataset(samples_meta_filepath)
+    (
+        model,
+        starting_epoch,
+        best_score,
+        epoch_scores,
+        target_filepath,
+        optimizer,
+        checkpoint_base_dict,
+        dataset,
+        batch_size,
+    ) = _setup_training(
+        continue_from_checkpoint_filepath,
+        target_dir,
+        model_filename,
+        learning_rate,
+        samples_meta,
+        dataset_dir,
+        dataset_limit,
+        hidden_size,
+        samples_meta_filepath,
+        batch_size,
+    )
+
+    assert (model is None) == (optimizer is None)
+    if model is None:
+        # should be a new model, not continuing from a checkpoint
+        assert optimizer is None and continue_from_checkpoint_filepath is None
+        model = DeepLineupModel(
+            dataset.sample_df_len, len(dataset.input_cols), hidden_size=hidden_size
+        )
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    assert optimizer is not None
+
+    model = model.to(device)
+
     dataloader = DataLoader(dataset, batch_size=batch_size)
-    model = DeepLineupModel(
-        dataset.sample_df_len, len(dataset.input_cols), hidden_size=hidden_size
-    ).to(device)
     deep_lineup_loss = DeepLineupLoss(dataset, constraints)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-    if continue_from_checkpoint_filepath is not None:
-        raise NotImplementedError()
-    else:
-        best_score = (-1, float("-inf"))
-        epoch_scores: list[float] = []
-        starting_epoch = 1
-
-    for epoch in tqdm(range(starting_epoch, train_epochs + 1), desc="epoch"):
+    for epoch in tqdm(
+        range(starting_epoch, train_epochs + 1),
+        total=train_epochs,
+        initial=starting_epoch,
+        desc="epoch",
+    ):
         rewards = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
         epoch_score = _eval_epoch(model, epoch, rewards)
         epoch_scores.append(epoch_score)
-        if epoch_score > best_score[1]:
+        if new_best_score := epoch_score > best_score[1]:
             _LOGGER.info(
-                "New best model found! old[epoch=%i score=%f] new[epoch=%i score=%f]",
-                *(*best_score, epoch, epoch_score),
+                "New best model found! score=%f epoch=%i",
+                epoch_score,
+                epoch,
             )
             best_score = (epoch, epoch_score)
-            save(target_filepath + ".pt", model, epoch, rewards)
+            save(target_filepath + ".pt", model, epoch, batch_size)
 
-        if checkpoint_epoch_interval is not None and epoch % checkpoint_epoch_interval == 0:
+        if checkpoint_epoch_interval is not None and (
+            epoch % checkpoint_epoch_interval == 0 or new_best_score
+        ):
+            checkpoint_filepath = target_filepath + f".checkpoint.epoch-{epoch}.pt"
             _LOGGER.info("Saving checkpoint at epoch %i", epoch)
             save(
-                target_filepath + f".checkpoint.epoch-{epoch}.pt",
+                checkpoint_filepath,
                 model,
                 epoch,
-                rewards,
-                optimizer=optimizer.state_dict(),
+                batch_size,
+                optimizer_state_dict=optimizer.state_dict(),
                 epoch_scores=epoch_scores,
                 best_score=best_score,
+                target_filepath=target_filepath,
+                **checkpoint_base_dict,
             )
 
     _LOGGER.info(

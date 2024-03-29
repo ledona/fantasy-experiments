@@ -8,6 +8,7 @@ from typing import cast
 
 import pandas as pd
 import torch
+from fantasy_py import FantasyException
 from torch.utils.data import Dataset
 
 _PADDING_COST = 999999999
@@ -20,15 +21,24 @@ columns to drop from the dataset before creating an input tensor
 """
 
 
+class InsufficientData(FantasyException):
+    """raised if the requested dataset limit is greater than the available data"""
+
+
 class DeepLineupDataset(Dataset):
-    def __init__(self, samples_meta_filepath: str, padding=0.1):
+    def __init__(self, samples_meta_filepath: str, padding=0.1, limit: None | int = None):
         """
         padding: every dataframe returned will be padded to the length \
             of the longest dataframe plus this percent
+        limit: Limit the dataset to this number of samples
         """
+        self.limit = limit
         self.data_dir = os.path.dirname(samples_meta_filepath)
         with open(samples_meta_filepath, "r") as f_:
             self.samples_meta = json.load(f_)
+
+        if limit is not None and limit > (n := len(self.samples_meta["samples"])):
+            raise InsufficientData(f"Limit of {limit} is greater than the available data (n={n})")
 
         max_len = max(info["items"] for info in self.samples_meta["samples"])
         self.sample_df_len = cast(int, max_len + int(max_len * padding))
@@ -65,7 +75,7 @@ class DeepLineupDataset(Dataset):
         return int(math.log(cost_mean, 10))
 
     def __len__(self):
-        return len(self.samples_meta["samples"])
+        return self.limit or len(self.samples_meta["samples"])
 
     def __getitem__(self, idx):
         """
@@ -78,8 +88,8 @@ class DeepLineupDataset(Dataset):
         target_df = pd.concat([target_df, padding_df]).fillna(0)
 
         input_df = target_df[self.input_cols]
-        target_df.replace(False, 0., inplace=True)
-        target_df.replace(True, 1., inplace=True)
+        target_df.replace(False, 0.0, inplace=True)
+        target_df.replace(True, 1.0, inplace=True)
 
         tensor = torch.Tensor(input_df.values)
 

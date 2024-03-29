@@ -375,7 +375,9 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
         target_dir,
         model_filename,
         hidden_size=args.hidden_size,
-        continue_from_checkpoint_filepath=args.from_checkpoint,
+        continue_from_checkpoint_filepath=args.checkpoint_filepath,
+        checkpoint_epoch_interval=args.checkpoint_frequency,
+        dataset_limit=args.dataset_limit,
     )
 
 
@@ -452,18 +454,23 @@ def main(cmd_line_str=None):
     train_parser.set_defaults(func=_train_parser_func)
     train_parser.add_argument("dataset_dir", help="Path to the training dataset")
     train_parser.add_argument(
+        "--dataset_limit", "--limit", type=int, help="Limit the data set to this many samples"
+    )
+    train_parser.add_argument(
         "--batch_size", type=int, default=32, help="The number of samples/slates per batch"
     )
     train_parser.add_argument("--epochs", type=int, default=10)
     train_parser.add_argument("--hidden_size", type=int, default=128, help="Size of hidden layers")
-    train_parser.add_argument("--from_checkpoint", help="Path to checkpoint to continue from")
+    train_parser.add_argument("--checkpoint_filepath", help="Path to checkpoint to continue from")
+    train_parser.add_argument(
+        "--checkpoint_frequency", type=int, help="Frequency of checkpoints (in epochs)"
+    )
     train_parser.add_argument(
         "--model_filepath",
-        help="Filename to write model to. Default is to write to "
-        "'[dataset_dir]/../{_DEFAULT_MODEL_FILENAME_FORMAT}'. If this is a directory "
-        "then the model will be written to '[model_filepath]/{_DEFAULT_MODEL_FILENAME_FORMAT}'. "
-        "If this is a filename without a path then the model will be written to "
-        "'[dataset_dir]/[model_filepath]'.",
+        help="Filename to write model to. Default is to write to. "
+        "If this is a directory then the model will be written to '[model_filepath]/{_DEFAULT_MODEL_FILENAME_FORMAT}'. "
+        "If this is a filename without a path then the model will be written to '[dataset_dir]/[model_filepath]'. "
+        "default='[dataset_dir]/../{_DEFAULT_MODEL_FILENAME_FORMAT}'",
     )
     train_parser.add_argument("--model_dir", help="The directory to")
 
