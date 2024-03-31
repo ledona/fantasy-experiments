@@ -3,7 +3,6 @@ import argparse
 import glob
 import json
 import os
-import pathlib
 import shlex
 import sys
 from pprint import pprint
@@ -101,9 +100,6 @@ class TrainingDefinitionFile:
             param_dict["train_params"].update(model_train_params)
         param_dict["target"] = tuple(param_dict["target"])
         param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"]) if param_dict["p_or_t"] else None
-        param_dict["data_filename"] = os.path.join(
-            pathlib.Path(self._file_path).parent.as_posix(), param_dict["data_filename"]
-        )
 
         if validation_failure_reason := typed_dict_validate(_Params, param_dict):
             raise ValueError(
@@ -119,6 +115,7 @@ class TrainingDefinitionFile:
         dest_dir: str | None,
         error_data: bool,
         reuse_existing_models: bool,
+        data_dir: str | None,
         **regressor_kwargs,
     ):
         if error_data:
@@ -147,8 +144,11 @@ class TrainingDefinitionFile:
         pprint(params)
         print(f"Fitting model {model_name} with {automl_type} using {regressor_kwargs=}")
 
+        data_filepath = params["data_filename"]
+        if data_dir is not None:
+            data_filepath = os.path.join(data_dir, data_filepath)
         raw_df, tt_data, one_hot_stats = load_data(
-            params["data_filename"],
+            data_filepath,
             params["target"],
             params["validation_season"],
             params["seed"],
@@ -220,6 +220,7 @@ def _handle_train(args):
         args.dest_dir,
         args.error_analysis_data,
         args.reuse,
+        args.data_dir,
         **modeler_init_kwargs,
     )
 
@@ -271,6 +272,7 @@ def _add_train_parser(sub_parsers):
         help="override the training iteration time defined in the train_file",
     )
     train_parser.add_argument("--dest_dir", default=".")
+    train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
 
 
 def _model_catalog_func(args):

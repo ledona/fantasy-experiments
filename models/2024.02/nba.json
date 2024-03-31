@@ -37,6 +37,7 @@
             }
         },
         {
+            // player modelsmay need to be done with tpot-light
             "data_filename": "nba_player.pq",
             "p_or_t": "P",
             "include_pos": true,
@@ -44,6 +45,10 @@
                 "extra:game_pos_recent_rank",
                 "extra:game_pos_season_rank"
             ],
+            "train_params": {
+                "max_time_mins": 30,
+                "max_eval_time_mins": 10
+            },
             "models": {
                 "NBA-DK": {
                     "target": [
@@ -52,15 +57,10 @@
                     ]
                 },
                 "NBA-Y": {
-                    // This may need to be done with tpot-light
                     "target": [
                         "calc",
                         "y_score"
-                    ],
-                    "train_params": {
-                        "max_time_mins": 30,
-                        "max_eval_time_mins": 10
-                    }
+                    ]
                 },
                 "NBA-player-pts": {
                     "target": [
