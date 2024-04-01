@@ -51,7 +51,10 @@ class DeepLineupDataset(Dataset):
             f"{sample_info['season']}-{sample_info['game_number']}-{sample_info['game_ids_hash']}.pq",
         )
         df = pd.read_parquet(filepath)
-        assert not _test_cols or set(df.columns) == set(self.target_cols)
+        assert not _test_cols or sorted(df.columns) == sorted(self.target_cols), (
+            f"dataset sample {idx=} columns do not match columns from sample 0: "
+            f"{sorted(df.columns)} != {sorted(self.target_cols)}"
+        )
         return df
 
     @cached_property
@@ -89,8 +92,7 @@ class DeepLineupDataset(Dataset):
         target_df = pd.concat([target_df, padding_df]).fillna(0)
 
         input_df = target_df[self.input_cols]
-        target_df.replace(False, 0.0, inplace=True)
-        target_df.replace(True, 1.0, inplace=True)
+        target_df = target_df.replace({False: 0.0, True: 1.0}).infer_objects(copy=False)
 
         tensor = torch.Tensor(input_df.values)
 

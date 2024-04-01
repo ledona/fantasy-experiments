@@ -115,6 +115,7 @@ def export(
         )
 
         rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
+        expected_cols: list[str] | None = None
         for sample_num in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
             for attempt_num in range(_MAX_SLATE_ATTEMPTS):
                 total_attempts += 1
@@ -136,6 +137,13 @@ def export(
                         seed,
                         style,
                     )
+                    if expected_cols is None:
+                        expected_cols = sorted(df.columns)
+                        _LOGGER.info("Expected sample cols set to: %s", expected_cols)
+                    elif (df_cols := sorted(df.columns)) != expected_cols:
+                        raise ExportError(
+                            f"Unexpected cols found For sample #{sample_num + 1}, expected={expected_cols} found={df_cols}"
+                        )
                     break
                 except (ImputeFailure, DataNotAvailableException) as ex:
                     _LOGGER.warning(
