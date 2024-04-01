@@ -66,7 +66,7 @@ def _eval_epoch(model, epoch, rewards: list[float]):
     mean_reward = statistics.mean(rewards)
     _LOGGER.info(
         "batch rewards for epoch %i: mean=%.10f rewards=%s",
-        epoch,
+        epoch + 1,
         mean_reward,
         [round(reward, 5) for reward in rewards],
     )
@@ -144,14 +144,14 @@ def _setup_training(
         optimizer.load_state_dict(checkpoint_data["optimizer_state_dict"])
 
         _LOGGER.info(
-            "Resuming from checkpoint at end of epoch=%i best-model-epoch=%i best-model-score=%f",
-            starting_epoch - 1,
+            "Resuming from checkpoint at epoch=%i best-model-epoch=%i best-model-score=%f",
+            starting_epoch,
             *best_score,
         )
     else:
         best_score: _BestScore = (-1, float("-inf"))
         epoch_scores = []
-        starting_epoch = 1
+        starting_epoch = 0
         if model_filename is None:
             model_filename = DEFAULT_MODEL_FILENAME_FORMAT.format(
                 sport=samples_meta["sport"],
@@ -267,33 +267,35 @@ def train(
     dataloader = DataLoader(dataset, batch_size=batch_size)
     deep_lineup_loss = DeepLineupLoss(dataset, constraints)
 
-    for epoch in tqdm(
-        range(starting_epoch, train_epochs + 1),
+    for epoch_i in tqdm(
+        range(train_epochs),
         total=train_epochs,
         initial=starting_epoch,
         desc="epoch",
     ):
         rewards = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
-        epoch_score = _eval_epoch(model, epoch, rewards)
+        epoch_score = _eval_epoch(model, epoch_i, rewards)
         epoch_scores.append(epoch_score)
         if new_best_score := epoch_score > best_score[1]:
             _LOGGER.info(
                 "New best model found! score=%f epoch=%i",
                 epoch_score,
-                epoch,
+                epoch_i + 1,
             )
-            best_score = (epoch, epoch_score)
-            save(target_filepath + ".pt", model, epoch, batch_size)
+            best_score = (epoch_i + 1, epoch_score)
+            save(target_filepath + ".pt", model, epoch_i + 1, batch_size)
 
-        if checkpoint_epoch_interval is not None and (
-            epoch % checkpoint_epoch_interval == 0 or new_best_score
+        if (
+            checkpoint_epoch_interval is not None
+            and epoch_i > 0
+            and ((epoch_i + 1) % checkpoint_epoch_interval == 0 or new_best_score)
         ):
-            checkpoint_filepath = target_filepath + f".checkpoint.epoch-{epoch}.pt"
-            _LOGGER.info("Saving checkpoint at epoch %i", epoch)
+            checkpoint_filepath = target_filepath + f".checkpoint.epoch-{epoch_i + 1}.pt"
+            _LOGGER.info("Saving checkpoint for epoch %i", epoch_i + 1)
             save(
                 checkpoint_filepath,
                 model,
-                epoch,
+                epoch_i + 1,
                 batch_size,
                 optimizer_state_dict=optimizer.state_dict(),
                 epoch_scores=epoch_scores,
