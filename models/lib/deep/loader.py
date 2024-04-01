@@ -43,6 +43,7 @@ class DeepLineupDataset(Dataset):
         max_len = max(info["items"] for info in self.samples_meta["samples"])
         self.sample_df_len = cast(int, max_len + int(max_len * padding))
         """the length of a sample dataframe plus padding"""
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def _get_sample_df(self, idx, _test_cols=True):
         sample_info = self.samples_meta["samples"][idx]
@@ -89,13 +90,16 @@ class DeepLineupDataset(Dataset):
         """
         target_df = self._get_sample_df(idx)
         padding_df = pd.DataFrame((self.sample_df_len - len(target_df)) * [{"cost": _PADDING_COST}])
-        target_df = pd.concat([target_df, padding_df]).fillna(0)
+        padded_target_df = pd.concat([target_df, padding_df]).fillna(0)
 
-        input_df = target_df[self.input_cols]
-        target_df = target_df.replace({False: 0.0, True: 1.0}).infer_objects(copy=False)
+        input_df = padded_target_df[self.input_cols]
+        input_tensor = torch.Tensor(input_df.values).to(self.device)
+        assert len(input_tensor) == self.sample_df_len
 
-        tensor = torch.Tensor(input_df.values)
+        bool_fixed_target_df = padded_target_df.replace(
+            {"in-lineup": {False: 0.0, True: 1.0}}
+        ).astype(float)
+        target_tensor = torch.Tensor(bool_fixed_target_df.values).to(self.device)
+        assert len(target_tensor) == self.sample_df_len
 
-        assert len(tensor) == self.sample_df_len
-        assert len(target_df) == self.sample_df_len
-        return tensor, target_df.to_numpy()
+        return input_tensor, target_tensor

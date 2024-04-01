@@ -201,6 +201,7 @@ def train(
     checkpoint_filepath: if not None, continue from the checkpoint at this filepath
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    torch.set_default_device(device)
     _LOGGER.info("Device: %s", device)
 
     samples_meta_filepath = os.path.join(dataset_dir, "samples_meta.json")
