@@ -29,7 +29,8 @@
                         "off_runs"
                     ],
                     "train_params": {
-                        "max_time_mins": 40
+                        "max_time_mins": 40, 
+                        "max_eval_time_mins": 15
                     }
                 },
                 "MLB-team-win": {
