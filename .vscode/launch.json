@@ -65,8 +65,10 @@
             "args": [
                 "--verbose",
                 "train",
-                "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model",
+                "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-model",
+                // "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-dataset",
+                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model",
                 "--epochs", "50",
                 "--batch", "64",
                 "--hidden_size", "1024",

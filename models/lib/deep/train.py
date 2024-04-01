@@ -283,7 +283,13 @@ def train(
                 epoch_i + 1,
             )
             best_score = (epoch_i + 1, epoch_score)
-            save(target_filepath + ".pt", model, epoch_i + 1, batch_size)
+            save(
+                target_filepath + ".pt",
+                model,
+                epoch_i + 1,
+                batch_size,
+                model_description="best-score",
+            )
 
         if (
             checkpoint_epoch_interval is not None
@@ -297,6 +303,7 @@ def train(
                 model,
                 epoch_i + 1,
                 batch_size,
+                model_description=f"checkpoint-epoch-{epoch_i + 1}",
                 optimizer_state_dict=optimizer.state_dict(),
                 epoch_scores=epoch_scores,
                 best_score=best_score,

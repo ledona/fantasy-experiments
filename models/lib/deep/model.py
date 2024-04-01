@@ -65,9 +65,10 @@ def save(
     model: DeepLineupModel,
     epoch: int,
     batch_size,
+    model_description: str | None = None,
     **addl_info,
 ):
-    _LOGGER.info("Saving model to '%s'", filepath)
+    _LOGGER.info("Saving model %s to '%s'", model_description or "", filepath)
     file_data: ModelFileData = {
         "model": model,
         "last_epoch": epoch,
