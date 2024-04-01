@@ -46,11 +46,11 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.03/nba-dk-deep-dataset",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04",
                 "data",
                 "--samples", "500",
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/cache-deep-lineup",
-                "--name", "nba-dk",
+                "--name", "nba-dk-deep-dataset",
                 "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",
                 "draftkings"
             ]
@@ -65,8 +65,8 @@
             "args": [
                 "--verbose",
                 "train",
-                "/fantasy-isync/fantasy-modeling/deep_lineup/test-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/deep_lineup/test-model/nhl-test",
+                "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model",
                 "--epochs", "50",
                 "--batch", "64",
                 "--hidden_size", "1024",

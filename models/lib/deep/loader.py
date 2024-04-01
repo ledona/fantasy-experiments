@@ -44,18 +44,19 @@ class DeepLineupDataset(Dataset):
         self.sample_df_len = cast(int, max_len + int(max_len * padding))
         """the length of a sample dataframe plus padding"""
 
-    def _get_sample_df(self, idx):
+    def _get_sample_df(self, idx, _test_cols=True):
         sample_info = self.samples_meta["samples"][idx]
         filepath = os.path.join(
             self.data_dir,
             f"{sample_info['season']}-{sample_info['game_number']}-{sample_info['game_ids_hash']}.pq",
         )
         df = pd.read_parquet(filepath)
+        assert not _test_cols or set(df.columns) == set(self.target_cols)
         return df
 
     @cached_property
     def target_cols(self):
-        df = self._get_sample_df(0)
+        df = self._get_sample_df(0, False)
         return df.columns
 
     @cached_property
