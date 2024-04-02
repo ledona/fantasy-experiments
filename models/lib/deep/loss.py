@@ -69,8 +69,6 @@ class DeepLineupLoss(nn.Module):
     """list of lineup slot positions based on constraints, each item
     is a list of positions that can be placed in the lineup position"""
 
-    _cost_penalty_divider: float
-
     _best_lineup_found: tuple[str, float]
     """description of the best lineup found, tuple of (description, score)"""
 
@@ -85,7 +83,6 @@ class DeepLineupLoss(nn.Module):
         cost_penalty_divider: used for the over budget penalty
         """
         super().__init__(*args, **kwargs)
-        self._cost_penalty_divider = dataset.cost_oom
         self._best_lineupclear_found = ("", -sys.float_info.max)
         self.target_cols = list(dataset.target_cols)
         self.constraints = constraints
@@ -234,7 +231,6 @@ class DeepLineupLoss(nn.Module):
         return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i), mpt_inv
 
     def _calc_slate_score(self, pred: Tensor, target: Tensor):
-        _LOGGER.info("preds score: started")
         knapsack_input, pt_inv = self._gen_knapsack_data(pred, target)
 
         solutions = self._solver.solve(
@@ -247,16 +243,28 @@ class DeepLineupLoss(nn.Module):
 
         assert len(solutions) == 1
         pt_indices = list(chain(*solutions[0].items))
-        _LOGGER.info("preds score:finished")
         return float(target[pt_indices, self._hist_score_col_idx].sum())
 
-    def _calc_score(self, pred: Tensor, target: Tensor):
+    def calc_score(self, pred: Tensor, target: Tensor):
+        """
+        pred: tensor of dims [S, P] where S is the number of samples and P is the number\
+            of players per sample OR [P] if the prediction is for a single sample
+        target: tensor with target data for all samples in pred
+
+        returns for a single prediction, the score for that prediction, for a batch\
+            the mean of the scores across the batch
+        """
         # top_lineups_players_mask = target[:, :, self._in_top_lineup_col_idx] == 1
         # top_lineups_masked_scores = (
         #     target[:, :, self._hist_score_col_idx] * top_lineups_players_mask.float()
         # )
         # top_lineups_scores = top_lineups_masked_scores.sum(dim=1)
 
+        if pred.ndim == 1:
+            assert target.ndim == 2, "Expecting a single target tensor"
+            return self._calc_slate_score(pred, target)
+
+        assert pred.ndim == 2 and target.ndim == 3, "Expecting preds and targets in batch"
         dask_bag = dask.bag.from_sequence(zip(pred, target), npartitions=16)
 
         def func(bag_item: tuple[Tensor, Tensor]):
@@ -283,7 +291,7 @@ class DeepLineupLoss(nn.Module):
         returns (gradients, reward)
         """
         # REINFORCE reward
-        reward = self._calc_score(preds, targets)
+        reward = self.calc_score(preds, targets)
         log_prob = torch.log(preds)
         gradients = -log_prob * reward
         return gradients, float(reward)

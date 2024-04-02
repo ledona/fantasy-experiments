@@ -6,7 +6,7 @@ import shlex
 
 from fantasy_py import FANTASY_SERVICE_DOMAIN, CacheMode, CLSRegistry, ContestStyle, db, log
 
-from .deep import deep_data_export, deep_train, ExistingFilesMode
+from .deep import ExistingFilesMode, deep_data_export, deep_train
 
 _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
@@ -149,7 +149,12 @@ def main(cmd_line_str=None):
 
     train_parser = sub_parsers.add_parser("train", help="Train a deep model")
     train_parser.set_defaults(func=_train_parser_func)
-    train_parser.add_argument("dataset_dir", help="Path to the training dataset")
+    train_parser.add_argument(
+        "dataset_dir",
+        help="Path to the training/testing dataset. "
+        "There should be two folders one for training that ends in '-train' and another for "
+        "test that ends in '-test'",
+    )
     train_parser.add_argument(
         "--dataset_limit", "--limit", type=int, help="Limit the data set to this many samples"
     )
@@ -160,7 +165,11 @@ def main(cmd_line_str=None):
     train_parser.add_argument("--hidden_size", type=int, default=128, help="Size of hidden layers")
     train_parser.add_argument("--checkpoint_filepath", help="Path to checkpoint to continue from")
     train_parser.add_argument(
-        "--checkpoint_frequency", type=int, help="Frequency of checkpoints (in epochs)"
+        "--checkpoint_frequency",
+        default=10,
+        type=int,
+        help="Frequency of checkpoints (in epochs). Checkpoints are also made for the last "
+        "training epoch and whenever a new best score model is found",
     )
     train_parser.add_argument(
         "--model_filepath",
