@@ -116,7 +116,7 @@ def export(
 
         rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
         expected_cols: list[str] | None = None
-        for sample_num in (prog_iter := tqdm(range(case_count), desc="sample-slates")):
+        for sample_num in (prog_iter := tqdm(range(case_count), desc=dataset_name)):
             for attempt_num in range(_MAX_SLATE_ATTEMPTS):
                 total_attempts += 1
                 slate_def = rand_obj.next

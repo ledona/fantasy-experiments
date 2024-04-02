@@ -50,9 +50,14 @@
                 "data",
                 "--samples", "500",
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/cache-deep-lineup",
-                "--name", "nba-dk-deep-dataset",
-                "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",
-                "draftkings"
+
+                // "--name", "nba-dk-deep-dataset",
+                // "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",
+                "--name", "nhl-dk-deep-dataset",
+                "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
+
+                "draftkings",
+                "--validation", "20222023", ".2"
             ]
         },
         {
@@ -65,10 +70,10 @@
             "args": [
                 "--verbose",
                 "train",
-                "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-model",
-                // "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-dataset",
-                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model",
+                // "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-dataset",
+                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-model",
+                "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model",
                 "--epochs", "50",
                 "--batch", "64",
                 "--hidden_size", "1024",

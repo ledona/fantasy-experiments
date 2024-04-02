@@ -16,20 +16,31 @@ _DEFAULT_GAMES_PER_SLATE = 4, 6
 def _data_export_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
     db_obj = db.get_db_obj(args.db_file)
     service_class = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
-    deep_data_export(
-        db_obj,
-        args.name,
-        args.dest_dir,
-        args.seasons,
-        args.games_per_slate_range,
-        args.samples,
-        args.existing_files_mode,
-        service_class,
-        args.style,
-        args.seed,
-        args.cache_dir,
-        args.cache_mode if args.cache_dir else "disable",
-    )
+
+    iters = [(args.seasons, args.samples, "-train")]
+    if args.validation is not None:
+        try:
+            season, cases = args.validation
+            cases = int(args.samples * float(cases) if "." in cases else cases)
+            iters.append(([int(season)], cases, "-test"))
+        except ValueError as ex:
+            parser.error(f"Failed to parse --validation argument: {ex}")
+
+    for seasons, samples, suffix in iters:
+        deep_data_export(
+            db_obj,
+            args.name + suffix,
+            args.dest_dir,
+            seasons,
+            args.games_per_slate_range,
+            samples,
+            args.existing_files_mode,
+            service_class,
+            args.style,
+            args.seed,
+            args.cache_dir,
+            args.cache_mode if args.cache_dir else "disable",
+        )
 
 
 def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
@@ -121,6 +132,12 @@ def main(cmd_line_str=None):
         "files in the dataset directory",
     )
     data_parser.add_argument("--name", help="Name of the dataset. Default is a datetime stamp")
+    data_parser.add_argument(
+        "--validation",
+        nargs=2,
+        metavar=("validation-season", "validation-cases"),
+        help="Create an additional validation set of this size from this season",
+    )
     data_parser.add_argument("db_file")
 
     service_names = CLSRegistry.get_names(FANTASY_SERVICE_DOMAIN)
