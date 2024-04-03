@@ -371,7 +371,7 @@ def train(
     performance = _calculate_performance(
         best_model[2], deep_lineup_loss, dataset_paths["test"]["meta"]
     )
-    _LOGGER.info("Final model performance against hold-out: %s", performance["mean-reward"])
+    _LOGGER.info("Best model performance against hold-out: %s", performance["mean-reward"])
     save(
         target_filepath,
         best_model[2],

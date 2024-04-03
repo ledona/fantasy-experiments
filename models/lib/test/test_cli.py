@@ -94,9 +94,9 @@ for model_params in _EXPECTED_PARAMS.values():
         and type(None) in value_type.__args__
         and param_key not in model_params
     }
-    model_params.update(
-        {"data_filename": os.path.join(_DIRNAME, model_params["data_filename"]), **pad_dict}
-    )
+    model_params.update(pad_dict)
+    #     {"data_filename": os.path.join(_DIRNAME, model_params["data_filename"]), **pad_dict}
+    # )
 
 
 _TEST_DEF_FILE_FILEPATH = os.path.join(_DIRNAME, "test.json")

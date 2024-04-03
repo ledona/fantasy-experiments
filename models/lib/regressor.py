@@ -348,12 +348,14 @@ def _add_model_catalog_parser(sub_parsers):
     parser.add_argument(
         "--csv_filename",
         help="Specify the name that the CSV data will be saved to. "
+        "File will be created in root directory. "
         f"Default filename will be '{_MODEL_CATALOG_PATTERN}'",
     )
     parser.add_argument(
         "--create_best_models_file",
         "--best",
-        help="Create an file containing the best models for each model name based on r2",
+        help="Create an file containing the best models for each model name based on r2. "
+        "File will be created in root directory. ",
         default=False,
         action="store_true",
     )

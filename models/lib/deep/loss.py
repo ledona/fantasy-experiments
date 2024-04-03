@@ -1,12 +1,10 @@
 import math
 import os
 import sys
-from itertools import chain, product
+from itertools import chain
 from typing import cast
 
 import dask
-import numpy as np
-import pandas as pd
 import torch
 from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
@@ -18,8 +16,6 @@ from fantasy_py.lineup.fantasy_cost_aggregate import (
     FCATeamDict,
 )
 from fantasy_py.lineup.knapsack import KnapsackConstraint, KnapsackIdentityMapping, KnapsackItem
-from scipy.optimize import linear_sum_assignment
-from torch import Tensor, nn
 
 from .loader import DeepLineupDataset
 
@@ -41,7 +37,7 @@ class PTInv(FCAPlayerTeamInventoryMixin):
         return self._teams[id_]
 
 
-class DeepLineupLoss(nn.Module):
+class DeepLineupLoss(torch.nn.Module):
     """
     Loss is the difference between the top lineup score and the predicted lineup score.
     Invalid lineups will have a negative score defined by the following rules. The rules
@@ -129,51 +125,13 @@ class DeepLineupLoss(nn.Module):
 
         self._max_loss = dataset.sample_df_len - self._lineup_slot_count
 
-    def _valid_lineup(self, pred_df: pd.DataFrame):
-        """check that the predicted lineup is valid"""
-        lineup_player_pos: dict[str, set[str]] = {}
-
-        def player_pos_recorder(row):
-            if pd.isna(row.player_id):
-                return
-            lineup_player_pos[f"p-{row.player_id}"] = {
-                pos_col.split(":", 1)[1] for pos_col in self._pos_cols if row[pos_col]
-            }
-
-        pred_df.apply(player_pos_recorder, axis=1)
-        assert len(lineup_player_pos) == self._lineup_slot_count
-
-        # Create cost matrix
-        cost_matrix = np.zeros((self._lineup_slot_count, self._lineup_slot_count))
-        for (slot_i, slot_positions), (player_i, player_positions) in product(
-            enumerate(self._lineup_slot_pos), enumerate(lineup_player_pos.values())
-        ):
-            if player_positions & slot_positions:
-                cost_matrix[slot_i, player_i] = 1
-
-        # solve
-        row_ind, col_ind = linear_sum_assignment(cost_matrix, maximize=True)
-        unmatched_players = sum(cost_matrix[row_i, col_i] for row_i, col_i in zip(row_ind, col_ind))
-        return self._lineup_slot_count - cast(int, unmatched_players)
-
-    def _test_viabilities(self, df: pd.DataFrame):
-        if self.constraints.knapsack_viability_testers is None:
-            return 0
-
-        failures = 0
-        for tester in self.constraints.viability_testers:
-            if not tester.is_valid(df):
-                failures += 1
-
-        return failures
-
     def _update_best_lineup(self, reason, score):
         if score <= self._best_lineup_found[1]:
             return
         _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
-    def _gen_knapsack_data(self, probs: Tensor, target: Tensor):
+    def _gen_knapsack_data(self, probs: torch.Tensor, target: torch.Tensor):
         """
         The returned knapsack input data is in the same order as the probs and target
         tensor
@@ -230,7 +188,7 @@ class DeepLineupLoss(nn.Module):
 
         return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i), mpt_inv
 
-    def _calc_slate_score(self, pred: Tensor, target: Tensor):
+    def _calc_slate_score(self, pred: torch.Tensor, target: torch.Tensor):
         knapsack_input, pt_inv = self._gen_knapsack_data(pred, target)
 
         solutions = self._solver.solve(
@@ -245,7 +203,7 @@ class DeepLineupLoss(nn.Module):
         pt_indices = list(chain(*solutions[0].items))
         return float(target[pt_indices, self._hist_score_col_idx].sum())
 
-    def calc_score(self, pred: Tensor, target: Tensor):
+    def calc_score(self, pred: torch.Tensor, target: torch.Tensor):
         """
         pred: tensor of dims [S, P] where S is the number of samples and P is the number\
             of players per sample OR [P] if the prediction is for a single sample
@@ -267,10 +225,10 @@ class DeepLineupLoss(nn.Module):
         assert pred.ndim == 2 and target.ndim == 3, "Expecting preds and targets in batch"
         dask_bag = dask.bag.from_sequence(zip(pred, target), npartitions=16)
 
-        def func(bag_item: tuple[Tensor, Tensor]):
+        def func(bag_item: tuple[torch.Tensor, torch.Tensor]):
             return self._calc_slate_score(*bag_item)
 
-        pred_scores = Tensor(dask_bag.map(func).compute())
+        pred_scores = torch.Tensor(dask_bag.map(func).compute())
         return pred_scores.mean()
 
         # assert not (pred_scores > top_lineups_scores).any()
@@ -278,7 +236,7 @@ class DeepLineupLoss(nn.Module):
         # mean_score = torch.mean(pred_scores / top_lineups_scores)
         # return mean_score
 
-    def forward(self, preds: Tensor, targets: Tensor):
+    def forward(self, preds: torch.Tensor, targets: torch.Tensor):
         """
         Calculate the policy reward and policy gradients, based on the policy predictions.
         Policy rewards/gradients returned instead of loss to support REINFORCE training
@@ -296,7 +254,7 @@ class DeepLineupLoss(nn.Module):
         gradients = -log_prob * reward
         return gradients, float(reward)
 
-    def backwards_(self, preds: Tensor, loss_tensor: Tensor):
+    def backwards_(self, preds: torch.Tensor, loss_tensor: torch.Tensor):
         """
         apply whatever was gradients were returned in forward() to the model
         """

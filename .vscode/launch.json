@@ -74,12 +74,12 @@
                 // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-model",
                 "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-dataset",
                 "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model",
-                "--epochs", "20",
-                "--batch", "16",
+                "--epochs", "50",
+                "--batch", "64",
                 "--hidden_size", "1024",
-                "--checkpoint_frequency", "2",
-                "--limit", "32",
-                "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model/dlm.nba.draftkings.CLASSIC.2024-04-03T012453-checkpoints/cp-epoch-7-best.pt"
+                "--checkpoint_frequency", "10",
+                // "--limit", "32",
+                // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model/dlm.nba.draftkings.CLASSIC.2024-04-03T012453-checkpoints/cp-epoch-7-best.pt"
             ]
         },
         {

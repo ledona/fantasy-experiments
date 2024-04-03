@@ -17,7 +17,7 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
     db_obj = db.get_db_obj(args.db_file)
     service_class = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
 
-    iters = [(args.seasons, args.samples, "-train")]
+    iters: list[tuple[list[int], int, str]] = [(args.seasons, args.samples, "-train")]
     if args.validation is not None:
         try:
             season, cases = args.validation
