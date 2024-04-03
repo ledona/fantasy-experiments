@@ -2,7 +2,7 @@ import copy
 import json
 import os
 import statistics
-from typing import Literal, TypedDict, cast
+from typing import Iterable, Literal, TypedDict, cast
 
 import torch
 from fantasy_py import (
@@ -13,13 +13,11 @@ from fantasy_py import (
     dt_to_filename_str,
     log,
 )
-from fantasy_py.lineup import FantasyService
+from fantasy_py.lineup import DeepLineupDataset, DeepLineupModel, FantasyService
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .loader import DeepLineupDataset
 from .loss import DeepLineupLoss
-from .model import DeepLineupModel, load, save
 
 log.set_debug_log_level(__name__)
 _LOGGER = log.get_logger(__name__)
@@ -33,14 +31,14 @@ class DeepTrainFailure(FantasyException):
 
 
 def _train_epoch(
-    dataloader: DataLoader, model: DeepLineupModel, optimizer, deep_lineup_loss: DeepLineupLoss
+    dataloader: DataLoader, nn_model: torch.nn.Module, optimizer, deep_lineup_loss: DeepLineupLoss
 ):
     rewards: list[float] = []
-    model.train()
+    nn_model.train()
 
     for x, y in tqdm(dataloader, desc="batch", leave=False):
         # make predictions
-        preds = model(x)
+        preds = nn_model(x)
 
         # compute loss for the batch
         loss, reward = cast(tuple[torch.Tensor, float], deep_lineup_loss(preds, y))
@@ -106,6 +104,48 @@ def _checkpoint_cmdline_compare(name, cmdline_val, checkpoint_val):
     )
 
 
+class CheckpointFileData(TypedDict):
+    model: DeepLineupModel
+    last_epoch: int
+    addl_info: dict
+    batch_size: int
+
+
+def load_checkpoint(filepath: str):
+    _LOGGER.info("Loading deep-lineup model from '%s'", filepath)
+    return cast(CheckpointFileData, torch.load(filepath))
+
+
+def save_checkpoint(
+    model: DeepLineupModel,
+    base_filepath: str,
+    epoch: int,
+    batch_size: int,
+    new_best_score: bool,
+    last_epoch: bool,
+    **addl_info,
+):
+    """
+    base_filepath: path + base filename (without extension) for model data files
+    """
+    checkpoint_filepath = base_filepath
+    if new_best_score:
+        checkpoint_filepath += "-best"
+    if last_epoch:
+        checkpoint_filepath += "-last"
+
+    checkpoint_filepath += ".pt"
+    _LOGGER.info("Saving checkpoint to '%s'", checkpoint_filepath)
+
+    file_data: CheckpointFileData = {
+        "model": model,
+        "last_epoch": epoch,
+        "addl_info": addl_info,
+        "batch_size": batch_size,
+    }
+    torch.save(file_data, checkpoint_filepath)
+
+
 def _setup_training(
     continue_from_checkpoint_filepath: None | str,
     target_dir: str,
@@ -122,7 +162,7 @@ def _setup_training(
         _LOGGER.info(
             "Resuming training from checkpoint file '%s'", continue_from_checkpoint_filepath
         )
-        resume_dict = load(continue_from_checkpoint_filepath)
+        resume_dict = load_checkpoint(continue_from_checkpoint_filepath)
         starting_epoch = resume_dict["last_epoch"]
 
         _checkpoint_cmdline_compare("hidden_size", hidden_size, resume_dict["model"]._hidden_size)
@@ -144,7 +184,8 @@ def _setup_training(
 
         target_filepath = checkpoint_data["target_filepath"]
         best_model = checkpoint_data["best_model"]
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        assert model.nn_model is not None, "Checkpoint model should already have an nn model"
+        optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
         optimizer.load_state_dict(checkpoint_data["optimizer_state_dict"])
 
         _LOGGER.info(
@@ -154,6 +195,7 @@ def _setup_training(
         )
         _LOGGER.info("Model target filepath: '%s'", target_filepath)
     else:
+        assert batch_size is not None
         best_model = cast(_BestModel, (-1, float("-inf"), None))
         epoch_scores = []
         starting_epoch = 0
@@ -213,8 +255,9 @@ def _calculate_performance(
     _LOGGER.info("Calculating model performance against holdout")
     dataset = DeepLineupDataset(test_meta_filepath, sample_df_len=model.player_count)
     rewards: list[float] = []
-    for x, y in tqdm(dataset, desc="model-eval", total=len(dataset)):
-        preds = model(x)
+    assert model.nn_model
+    for x, y in tqdm(cast(Iterable, dataset), desc="model-eval", total=len(dataset)):
+        preds = model.nn_model(x)
         assert list(preds.size()) == [model.player_count]
         reward = deep_lineup_loss.calc_score(preds, y)
         rewards.append(float(reward))
@@ -301,12 +344,16 @@ def train(
         # should be a new model, not continuing from a checkpoint
         assert optimizer is None and continue_from_checkpoint_filepath is None
         model = DeepLineupModel(
-            dataset.sample_df_len, len(dataset.input_cols), hidden_size=hidden_size
+            len(dataset),
+            dataset.input_cols,
+            dataset.samples_meta["service"],
+            dataset.samples_meta["sport"],
+            hidden_size=hidden_size,
         )
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    assert optimizer is not None
+        assert model.nn_model is not None
+        optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
 
-    model = model.to(device)
+    assert optimizer is not None and model.nn_model is not None
 
     dataloader = DataLoader(dataset, batch_size=batch_size)
     deep_lineup_loss = DeepLineupLoss(dataset, constraints)
@@ -324,7 +371,7 @@ def train(
     ):
         if epoch_i < starting_epoch:
             continue
-        rewards = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
+        rewards = _train_epoch(dataloader, model.nn_model, optimizer, deep_lineup_loss)
         epoch_score = _eval_epoch(model, epoch_i, rewards)
         epoch_scores.append(epoch_score)
         if new_best_score := epoch_score > best_model[1]:
@@ -341,18 +388,14 @@ def train(
             or epoch_i == train_epochs - 1
         ):
             checkpoint_filepath = os.path.join(checkpoint_dirpath, f"cp-epoch-{epoch_i + 1}")
-            if new_best_score:
-                checkpoint_filepath += "-best"
-            if epoch_i == train_epochs - 1:
-                checkpoint_filepath += "-last"
             _LOGGER.info("Saving checkpoint for epoch %i", epoch_i + 1)
-            save(
-                checkpoint_filepath,
+            save_checkpoint(
                 model,
+                checkpoint_filepath,
                 epoch_i + 1,
                 batch_size,
-                "checkpoint",
-                dataset,
+                new_best_score,
+                epoch_i == train_epochs - 1,
                 optimizer_state_dict=optimizer.state_dict(),
                 epoch_scores=epoch_scores,
                 best_model=best_model,
@@ -372,14 +415,12 @@ def train(
         best_model[2], deep_lineup_loss, dataset_paths["test"]["meta"]
     )
     _LOGGER.info("Best model performance against hold-out: %s", performance["mean-reward"])
-    save(
+    best_model[2].save(
         target_filepath,
-        best_model[2],
         best_model[0],
         batch_size,
-        "final",
         dataset,
-        performance=performance,
+        performance,
     )
 
     return model

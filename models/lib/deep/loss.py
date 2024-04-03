@@ -9,6 +9,7 @@ import torch
 from fantasy_py import log
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.create_lineups import KnapsackInputData
+from fantasy_py.lineup.deep import DeepLineupDataset
 from fantasy_py.lineup.do_gen_lineup import create_solver
 from fantasy_py.lineup.fantasy_cost_aggregate import (
     FCAPlayerDict,
@@ -16,8 +17,6 @@ from fantasy_py.lineup.fantasy_cost_aggregate import (
     FCATeamDict,
 )
 from fantasy_py.lineup.knapsack import KnapsackConstraint, KnapsackIdentityMapping, KnapsackItem
-
-from .loader import DeepLineupDataset
 
 dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 _LOGGER = log.get_logger(__name__)
