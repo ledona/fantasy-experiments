@@ -46,17 +46,18 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup",
                 "data",
                 "--samples", "500",
-                "--cache_dir", "/fantasy-isync/fantasy-modeling/cache-deep-lineup",
+                "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/cache",
 
-                // "--name", "nba-dk-deep-dataset",
+                // "--name", "nba-dk-dataset",
                 // "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",
-                "--name", "nhl-dk-deep-dataset",
+                "--name", "nhl-dk-dataset",
                 "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
 
                 "draftkings",
+                "--skip_training",
                 "--validation", "20222023", ".2"
             ]
         },
@@ -70,16 +71,14 @@
             "args": [
                 "--verbose",
                 "train",
-                // "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-dataset",
-                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nhl-dk-deep-model",
-                "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model",
-                "--epochs", "50",
+                "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-model",
+                "--epochs", "4",
                 "--batch", "64",
                 "--hidden_size", "1024",
                 "--checkpoint_frequency", "10",
-                // "--limit", "32",
-                // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.04/nba-dk-deep-model/dlm.nba.draftkings.CLASSIC.2024-04-03T012453-checkpoints/cp-epoch-7-best.pt"
+                "--limit", "32",
+                // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-model-checkpoints/cp-epoch-2-last.pt"
             ]
         },
         {

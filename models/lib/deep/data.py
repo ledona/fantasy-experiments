@@ -142,7 +142,8 @@ def export(
                         _LOGGER.info("Expected sample cols set to: %s", expected_cols)
                     elif (df_cols := sorted(df.columns)) != expected_cols:
                         raise ExportError(
-                            f"Unexpected cols found For sample #{sample_num + 1}, expected={expected_cols} found={df_cols}"
+                            f"Unexpected cols found For sample #{sample_num + 1}, "
+                            "expected={expected_cols} found={df_cols}"
                         )
                     break
                 except (ImputeFailure, DataNotAvailableException) as ex:

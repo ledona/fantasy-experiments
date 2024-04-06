@@ -3,8 +3,10 @@
 import argparse
 import os
 import shlex
+from typing import cast
 
 from fantasy_py import FANTASY_SERVICE_DOMAIN, CacheMode, CLSRegistry, ContestStyle, db, log
+from fantasy_py.lineup import FantasyService
 
 from .deep import ExistingFilesMode, deep_data_export, deep_train
 
@@ -15,9 +17,13 @@ _DEFAULT_GAMES_PER_SLATE = 4, 6
 
 def _data_export_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
     db_obj = db.get_db_obj(args.db_file)
-    service_class = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
+    service_class = cast(
+        FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
+    )
 
-    iters: list[tuple[list[int], int, str]] = [(args.seasons, args.samples, "-train")]
+    iters: list[tuple[list[int], int, str]] = []
+    if not args.skip_training:
+        iters.append((args.seasons, args.samples, "-train"))
     if args.validation is not None:
         try:
             season, cases = args.validation
@@ -137,6 +143,9 @@ def main(cmd_line_str=None):
         nargs=2,
         metavar=("validation-season", "validation-cases"),
         help="Create an additional validation set of this size from this season",
+    )
+    data_parser.add_argument(
+        "--skip_training", action="store_true", help="Skip training data creation", default=False
     )
     data_parser.add_argument("db_file")
 

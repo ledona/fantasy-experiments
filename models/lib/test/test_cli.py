@@ -7,6 +7,7 @@ import joblib
 import pandas as pd
 import pytest
 from fantasy_py import FeatureType, PlayerOrTeam
+from fantasy_py.inference import Model
 from freezegun import freeze_time
 from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
@@ -220,7 +221,7 @@ def _create_expected_model_dict(
         ]
     }
     target = expected_training_data_def.pop("target")
-    features = {fname: None for fname in FeatureType.__args__}
+    features: dict[str, list | None] = {fname: None for fname in FeatureType.__args__}
     features["stat"] = [feature_stat]
     expected_training_data_def.update(
         {
@@ -243,6 +244,7 @@ def _create_expected_model_dict(
         "parameters": _DUMMY_REGRESSOR_KWARGS,
         "trained_parameters": {"regressor_path": final_artifact_filepath},
         "training_data_def": expected_training_data_def,
+        "func_type": Model.FUNC_TYPE_NAME,
         "meta_extra": {
             "performance": {
                 "mae": 1.5,

@@ -2,6 +2,7 @@ import copy
 import json
 import os
 import statistics
+from datetime import datetime
 from typing import Iterable, Literal, TypedDict, cast
 
 import torch
@@ -31,14 +32,14 @@ class DeepTrainFailure(FantasyException):
 
 
 def _train_epoch(
-    dataloader: DataLoader, nn_model: torch.nn.Module, optimizer, deep_lineup_loss: DeepLineupLoss
+    dataloader: DataLoader, model: DeepLineupModel, optimizer, deep_lineup_loss: DeepLineupLoss
 ):
     rewards: list[float] = []
-    nn_model.train()
+    model.train()
 
     for x, y in tqdm(dataloader, desc="batch", leave=False):
         # make predictions
-        preds = nn_model(x)
+        preds = model.forward(x)
 
         # compute loss for the batch
         loss, reward = cast(tuple[torch.Tensor, float], deep_lineup_loss(preds, y))
@@ -184,7 +185,6 @@ def _setup_training(
 
         target_filepath = checkpoint_data["target_filepath"]
         best_model = checkpoint_data["best_model"]
-        assert model.nn_model is not None, "Checkpoint model should already have an nn model"
         optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
         optimizer.load_state_dict(checkpoint_data["optimizer_state_dict"])
 
@@ -194,28 +194,37 @@ def _setup_training(
             *best_model[:2],
         )
         _LOGGER.info("Model target filepath: '%s'", target_filepath)
-    else:
-        assert batch_size is not None
-        best_model = cast(_BestModel, (-1, float("-inf"), None))
-        epoch_scores = []
-        starting_epoch = 0
-        if model_filename is None:
-            model_filename = DEFAULT_MODEL_FILENAME_FORMAT.format(
-                sport=samples_meta["sport"],
-                service=samples_meta["service"],
-                style=samples_meta["style"],
-                datetime=dt_to_filename_str(),
-            )
-        target_filepath = os.path.join(target_dir, model_filename)
-        model = None
-        optimizer = None
 
     checkpoint_base_dict = {
         "dataset_dir": dataset_dir,
         "dataset_limit": dataset_limit,
     }
-
     dataset = DeepLineupDataset(samples_meta_filepath, limit=dataset_limit)
+
+    if continue_from_checkpoint_filepath is None:
+        assert batch_size is not None and hidden_size is not None
+        best_model = cast(_BestModel, (-1, float("-inf"), None))
+        epoch_scores = []
+        starting_epoch = 0
+        trained_on_dt = datetime.now()
+        if model_filename is None:
+            model_filename = DEFAULT_MODEL_FILENAME_FORMAT.format(
+                sport=samples_meta["sport"],
+                service=samples_meta["service"],
+                style=samples_meta["style"],
+                datetime=dt_to_filename_str(trained_on_dt),
+            )
+        target_filepath = os.path.join(target_dir, model_filename)
+
+        model = DeepLineupModel(
+            dataset.sample_df_len,
+            dataset.input_cols,
+            dataset.samples_meta["service"],
+            dataset.samples_meta["sport"],
+            hidden_size=hidden_size,
+            dt_trained=trained_on_dt,
+        )
+        optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
 
     return (
         model,
@@ -255,9 +264,8 @@ def _calculate_performance(
     _LOGGER.info("Calculating model performance against holdout")
     dataset = DeepLineupDataset(test_meta_filepath, sample_df_len=model.player_count)
     rewards: list[float] = []
-    assert model.nn_model
     for x, y in tqdm(cast(Iterable, dataset), desc="model-eval", total=len(dataset)):
-        preds = model.nn_model(x)
+        preds = model.forward(x)
         assert list(preds.size()) == [model.player_count]
         reward = deep_lineup_loss.calc_score(preds, y)
         rewards.append(float(reward))
@@ -339,20 +347,6 @@ def train(
         batch_size,
     )
 
-    assert (model is None) == (optimizer is None)
-    if model is None:
-        # should be a new model, not continuing from a checkpoint
-        assert optimizer is None and continue_from_checkpoint_filepath is None
-        model = DeepLineupModel(
-            len(dataset),
-            dataset.input_cols,
-            dataset.samples_meta["service"],
-            dataset.samples_meta["sport"],
-            hidden_size=hidden_size,
-        )
-        assert model.nn_model is not None
-        optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
-
     assert optimizer is not None and model.nn_model is not None
 
     dataloader = DataLoader(dataset, batch_size=batch_size)
@@ -371,7 +365,7 @@ def train(
     ):
         if epoch_i < starting_epoch:
             continue
-        rewards = _train_epoch(dataloader, model.nn_model, optimizer, deep_lineup_loss)
+        rewards = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
         epoch_score = _eval_epoch(model, epoch_i, rewards)
         epoch_scores.append(epoch_score)
         if new_best_score := epoch_score > best_model[1]:
