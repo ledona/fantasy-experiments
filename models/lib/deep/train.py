@@ -262,11 +262,15 @@ def _calculate_performance(
     model: DeepLineupModel, deep_lineup_loss: DeepLineupLoss, test_meta_filepath: str
 ):
     _LOGGER.info("Calculating model performance against holdout")
+
     dataset = DeepLineupDataset(test_meta_filepath, sample_df_len=model.player_count)
+    dataloader = DataLoader(dataset, batch_size=len(dataset))
+
+    input_batch, target_batch = next(iter(dataloader))
+    preds_batch = model.predict(input_batch)
+
     rewards: list[float] = []
-    for x, y in tqdm(cast(Iterable, dataset), desc="model-eval", total=len(dataset)):
-        preds = model.forward(x)
-        assert list(preds.size()) == [model.player_count]
+    for preds, y in tqdm(zip(preds_batch, target_batch), desc="model-eval", total=len(dataset)):
         reward = deep_lineup_loss.calc_score(preds, y)
         rewards.append(float(reward))
     mean_reward = statistics.mean(rewards)
