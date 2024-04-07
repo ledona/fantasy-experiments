@@ -3,7 +3,7 @@ import json
 import os
 import statistics
 from datetime import datetime
-from typing import Iterable, Literal, TypedDict, cast
+from typing import Literal, TypedDict, cast
 
 import torch
 from fantasy_py import (
@@ -58,6 +58,7 @@ def _train_epoch(
         optimizer.step()
         rewards.append(reward)
 
+    model.epochs_trained += 1
     return rewards
 
 
@@ -73,21 +74,24 @@ def _eval_epoch(model, epoch, rewards: list[float]):
     return mean_reward
 
 
-_BestModel = tuple[int, float, None | DeepLineupModel]
-"""best model thus far as a tuple of [epoch, score, model]"""
+_BestModel = tuple[float, None | DeepLineupModel]
+"""best model thus far as a tuple of [score, model]"""
 
 
-class CheckpointData(TypedDict):
+class CheckpointBaseData(TypedDict):
+    dataset_limit: int | None
+    dataset_dir: str
+
+
+class CheckpointData(CheckpointBaseData):
     """model training checkpoint used to resume training"""
 
+    model: DeepLineupModel
     best_model: _BestModel
     """the best model thus far"""
     optimizer_state_dict: dict
     target_filepath: str
     epoch_scores: list[float]
-    batch_size: int
-    dataset_limit: int | None
-    dataset_dir: str
 
 
 def _checkpoint_cmdline_compare(name, cmdline_val, checkpoint_val):
@@ -105,29 +109,15 @@ def _checkpoint_cmdline_compare(name, cmdline_val, checkpoint_val):
     )
 
 
-class CheckpointFileData(TypedDict):
-    model: DeepLineupModel
-    last_epoch: int
-    addl_info: dict
-    batch_size: int
-
-
-def load_checkpoint(filepath: str):
-    _LOGGER.info("Loading deep-lineup model from '%s'", filepath)
-    return cast(CheckpointFileData, torch.load(filepath))
-
-
-def save_checkpoint(
-    model: DeepLineupModel,
+def _save_checkpoint(
     base_filepath: str,
-    epoch: int,
-    batch_size: int,
     new_best_score: bool,
     last_epoch: bool,
-    **addl_info,
+    checkpoint_data: CheckpointData,
 ):
     """
     base_filepath: path + base filename (without extension) for model data files
+    last_epoch: if true, checkpoint is for last training epoch
     """
     checkpoint_filepath = base_filepath
     if new_best_score:
@@ -138,13 +128,7 @@ def save_checkpoint(
     checkpoint_filepath += ".pt"
     _LOGGER.info("Saving checkpoint to '%s'", checkpoint_filepath)
 
-    file_data: CheckpointFileData = {
-        "model": model,
-        "last_epoch": epoch,
-        "addl_info": addl_info,
-        "batch_size": batch_size,
-    }
-    torch.save(file_data, checkpoint_filepath)
+    torch.save(checkpoint_data, checkpoint_filepath)
 
 
 def _setup_training(
@@ -158,21 +142,20 @@ def _setup_training(
     hidden_size: None | int,
     samples_meta_filepath,
     batch_size: None | int,
+    max_epochs: None | int,
 ):
     if continue_from_checkpoint_filepath is not None:
         _LOGGER.info(
             "Resuming training from checkpoint file '%s'", continue_from_checkpoint_filepath
         )
-        resume_dict = load_checkpoint(continue_from_checkpoint_filepath)
-        starting_epoch = resume_dict["last_epoch"]
+        checkpoint_data = cast(CheckpointData, torch.load(continue_from_checkpoint_filepath))
+        starting_epoch = checkpoint_data["model"].epochs_trained
 
-        _checkpoint_cmdline_compare("hidden_size", hidden_size, resume_dict["model"]._hidden_size)
-        batch_size = _checkpoint_cmdline_compare(
-            "batch_size", batch_size, resume_dict["batch_size"]
+        _checkpoint_cmdline_compare(
+            "hidden_size", hidden_size, checkpoint_data["model"].hidden_size
         )
-        model = resume_dict["model"]
-
-        checkpoint_data = cast(CheckpointData, resume_dict["addl_info"])
+        model = checkpoint_data["model"]
+        _checkpoint_cmdline_compare("batch_size", batch_size, model.batch_size)
 
         dataset_dir = _checkpoint_cmdline_compare(
             "dataset_dir", dataset_dir, checkpoint_data["dataset_dir"]
@@ -187,23 +170,27 @@ def _setup_training(
         best_model = checkpoint_data["best_model"]
         optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
         optimizer.load_state_dict(checkpoint_data["optimizer_state_dict"])
-
+        assert best_model[1] is not None
         _LOGGER.info(
             "Resuming from checkpoint at epoch=%i best-model-epoch=%i best-model-score=%f",
             starting_epoch,
-            *best_model[:2],
+            best_model[1].epochs_trained,
+            best_model[0],
         )
         _LOGGER.info("Model target filepath: '%s'", target_filepath)
 
-    checkpoint_base_dict = {
-        "dataset_dir": dataset_dir,
-        "dataset_limit": dataset_limit,
-    }
+    checkpoint_base_data = cast(
+        CheckpointBaseData,
+        {
+            "dataset_dir": dataset_dir,
+            "dataset_limit": dataset_limit,
+        },
+    )
     dataset = DeepLineupDataset(samples_meta_filepath, limit=dataset_limit)
 
     if continue_from_checkpoint_filepath is None:
-        assert batch_size is not None and hidden_size is not None
-        best_model = cast(_BestModel, (-1, float("-inf"), None))
+        assert batch_size is not None and hidden_size is not None and max_epochs is not None
+        best_model = cast(_BestModel, (float("-inf"), None))
         epoch_scores = []
         starting_epoch = 0
         trained_on_dt = datetime.now()
@@ -217,12 +204,15 @@ def _setup_training(
         target_filepath = os.path.join(target_dir, model_filename)
 
         model = DeepLineupModel(
-            dataset.sample_df_len,
             dataset.input_cols,
             dataset.samples_meta["service"],
             dataset.samples_meta["sport"],
-            hidden_size=hidden_size,
-            dt_trained=trained_on_dt,
+            dataset.sample_df_len,
+            learning_rate,
+            batch_size,
+            hidden_size,
+            max_epochs,
+            trained_on_dt,
         )
         optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
 
@@ -233,9 +223,8 @@ def _setup_training(
         epoch_scores,
         target_filepath,
         optimizer,
-        checkpoint_base_dict,
+        checkpoint_base_data,
         dataset,
-        batch_size,
     )
 
 
@@ -261,7 +250,7 @@ def _validate_dataset_dirs(dir_path):
 def _calculate_performance(
     model: DeepLineupModel, deep_lineup_loss: DeepLineupLoss, test_meta_filepath: str
 ):
-    _LOGGER.info("Calculating model performance against holdout")
+    _LOGGER.info("Calculating model performance against holdout at '%s'", test_meta_filepath)
 
     dataset = DeepLineupDataset(test_meta_filepath, sample_df_len=model.player_count)
     dataloader = DataLoader(dataset, batch_size=len(dataset))
@@ -274,11 +263,12 @@ def _calculate_performance(
         reward = deep_lineup_loss.calc_score(preds, y)
         rewards.append(float(reward))
     mean_reward = statistics.mean(rewards)
-    return {
+    model.performance = {
         "mean-reward": mean_reward,
         "samples": len(dataset),
         "seasons": dataset.samples_meta["seasons"],
     }
+    return model.performance
 
 
 def train(
@@ -337,7 +327,6 @@ def train(
         optimizer,
         checkpoint_base_dict,
         dataset,
-        batch_size,
     ) = _setup_training(
         continue_from_checkpoint_filepath,
         target_dir,
@@ -349,11 +338,12 @@ def train(
         hidden_size,
         dataset_paths["train"]["meta"],
         batch_size,
+        train_epochs,
     )
 
     assert optimizer is not None and model.nn_model is not None
 
-    dataloader = DataLoader(dataset, batch_size=batch_size)
+    dataloader = DataLoader(dataset, batch_size=model.batch_size)
     deep_lineup_loss = DeepLineupLoss(dataset, constraints)
 
     checkpoint_dirpath = target_filepath + "-checkpoints"
@@ -372,13 +362,13 @@ def train(
         rewards = _train_epoch(dataloader, model, optimizer, deep_lineup_loss)
         epoch_score = _eval_epoch(model, epoch_i, rewards)
         epoch_scores.append(epoch_score)
-        if new_best_score := epoch_score > best_model[1]:
+        if new_best_score := epoch_score > best_model[0]:
             _LOGGER.info(
                 "New best model found! score=%f epoch=%i",
                 epoch_score,
                 epoch_i + 1,
             )
-            best_model = (epoch_i + 1, epoch_score, copy.deepcopy(model))
+            best_model = (epoch_score, copy.deepcopy(model))
 
         if (
             (epoch_i + 1) % checkpoint_epoch_interval == 0
@@ -387,38 +377,35 @@ def train(
         ):
             checkpoint_filepath = os.path.join(checkpoint_dirpath, f"cp-epoch-{epoch_i + 1}")
             _LOGGER.info("Saving checkpoint for epoch %i", epoch_i + 1)
-            save_checkpoint(
-                model,
+            checkpoint_dict: CheckpointData = {
+                "model": model,
+                "optimizer_state_dict": optimizer.state_dict(),
+                "epoch_scores": epoch_scores,
+                "best_model": best_model,
+                "target_filepath": target_filepath,
+                **checkpoint_base_dict,
+            }
+            _save_checkpoint(
                 checkpoint_filepath,
-                epoch_i + 1,
-                batch_size,
                 new_best_score,
                 epoch_i == train_epochs - 1,
-                optimizer_state_dict=optimizer.state_dict(),
-                epoch_scores=epoch_scores,
-                best_model=best_model,
-                target_filepath=target_filepath,
-                **checkpoint_base_dict,
+                checkpoint_dict,
             )
 
-    if best_model[2] is None:
+    if best_model[1] is None:
         raise DeepTrainFailure("No best model found!")
 
     _LOGGER.info(
         "Training complete. Best model found in epoch=%i score=%f. mean-epoch-score=%f",
-        *(*best_model[:2], statistics.mean(epoch_scores)),
+        model.epochs_trained,
+        best_model[0],
+        statistics.mean(epoch_scores),
     )
 
     performance = _calculate_performance(
-        best_model[2], deep_lineup_loss, dataset_paths["test"]["meta"]
+        best_model[1], deep_lineup_loss, dataset_paths["test"]["meta"]
     )
     _LOGGER.info("Best model performance against hold-out: %s", performance["mean-reward"])
-    best_model[2].save(
-        target_filepath,
-        best_model[0],
-        batch_size,
-        dataset,
-        performance,
-    )
+    best_model[1].dump(target_filepath)
 
     return model
