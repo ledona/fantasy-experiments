@@ -343,7 +343,16 @@ def train(
 
     assert optimizer is not None and model.nn_model is not None
 
-    dataloader = DataLoader(dataset, batch_size=model.batch_size)
+    # TODO: play with this to optimize for performance
+    dataloader = DataLoader(
+        dataset,
+        batch_size=model.batch_size,
+        shuffle=False,
+        # num_workers=4
+        # pin_memory=True,
+        # pin_memory_device=device,
+        # generator=torch.Generator(device=device)
+    )
     deep_lineup_loss = DeepLineupLoss(dataset, constraints)
 
     checkpoint_dirpath = target_filepath + "-checkpoints"
@@ -397,7 +406,7 @@ def train(
 
     _LOGGER.info(
         "Training complete. Best model found in epoch=%i score=%f. mean-epoch-score=%f",
-        model.epochs_trained,
+        best_model[1].epochs_trained,
         best_model[0],
         statistics.mean(epoch_scores),
     )

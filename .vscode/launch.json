@@ -73,11 +73,11 @@
                 "train",
                 "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-dataset",
                 "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-lineup",
-                "--epochs", "5",
+                "--epochs", "50",
                 "--batch", "64",
-                "--hidden_size", "512",
-                "--checkpoint_frequency", "5",
-                "--limit", "32",
+                "--hidden_size", "1024",
+                "--checkpoint_frequency", "10",
+                // "--limit", "32",
                 // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-lineup-checkpoints/cp-epoch-5-last.pt"
             ]
         },
