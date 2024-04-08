@@ -77,6 +77,7 @@
                 "--batch", "64",
                 "--hidden_size", "1024",
                 "--checkpoint_frequency", "10",
+                "--early", "10",
                 // "--limit", "32",
                 // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-lineup-checkpoints/cp-epoch-5-last.pt"
             ]

@@ -113,6 +113,7 @@ def _save_checkpoint(
     base_filepath: str,
     new_best_score: bool,
     last_epoch: bool,
+    early_stop: bool,
     checkpoint_data: CheckpointData,
 ):
     """
@@ -124,6 +125,8 @@ def _save_checkpoint(
         checkpoint_filepath += "-best"
     if last_epoch:
         checkpoint_filepath += "-last"
+    if early_stop:
+        checkpoint_filepath += "-early-stop"
 
     checkpoint_filepath += ".pt"
     _LOGGER.info("Saving checkpoint to '%s'", checkpoint_filepath)
@@ -282,6 +285,7 @@ def train(
     checkpoint_epoch_interval: int = 5,
     continue_from_checkpoint_filepath: str | None = None,
     dataset_limit: int | None = None,
+    early_stopping_patience: int | None = None,
 ):
     """
     dataset_dir_base: there should be a training and testing folders named\
@@ -296,12 +300,14 @@ def train(
 
     _LOGGER.info(
         "Training model: data-filepath-base='%s' learning-rate=%f "
-        "hidden-size=%i batch-size=%i checkpoint-epoch-interval=%i",
+        "hidden-size=%i batch-size=%i checkpoint-epoch-interval=%i "
+        "early-stopping-patience=%s",
         dataset_dir_base,
         learning_rate,
         hidden_size,
         batch_size,
         checkpoint_epoch_interval,
+        early_stopping_patience,
     )
     with open(dataset_paths["train"]["meta"], "r") as f_:
         samples_meta = json.load(f_)
@@ -373,15 +379,30 @@ def train(
         epoch_scores.append(epoch_score)
         if new_best_score := epoch_score > best_model[0]:
             _LOGGER.info(
-                "New best model found! score=%f epoch=%i",
+                "*** New best model found! score=%f epoch=%i ***",
                 epoch_score,
                 epoch_i + 1,
             )
             best_model = (epoch_score, copy.deepcopy(model))
 
+        if stop_early := (
+            early_stopping_patience is not None
+            and not new_best_score
+            and best_model[1] is not None
+            and epoch_i + 1 - best_model[1].epochs_trained >= early_stopping_patience
+        ):
+            _LOGGER.info(
+                "Early stopping triggered at epoch=%i. "
+                "Last new best model was %i epochs ago at epoch=%i",
+                epoch_i + 1,
+                early_stopping_patience,
+                best_model[1].epochs_trained,
+            )
+
         if (
             (epoch_i + 1) % checkpoint_epoch_interval == 0
             or new_best_score
+            or stop_early
             or epoch_i == train_epochs - 1
         ):
             checkpoint_filepath = os.path.join(checkpoint_dirpath, f"cp-epoch-{epoch_i + 1}")
@@ -398,14 +419,18 @@ def train(
                 checkpoint_filepath,
                 new_best_score,
                 epoch_i == train_epochs - 1,
+                stop_early,
                 checkpoint_dict,
             )
+
+        if stop_early:
+            break
 
     if best_model[1] is None:
         raise DeepTrainFailure("No best model found!")
 
     _LOGGER.info(
-        "Training complete. Best model found in epoch=%i score=%f. mean-epoch-score=%f",
+        "Training complete. Best model found at epoch=%i score=%f. mean-epoch-score=%f",
         best_model[1].epochs_trained,
         best_model[0],
         statistics.mean(epoch_scores),

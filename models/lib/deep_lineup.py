@@ -75,6 +75,7 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
         continue_from_checkpoint_filepath=args.checkpoint_filepath,
         checkpoint_epoch_interval=args.checkpoint_frequency,
         dataset_limit=args.dataset_limit,
+        early_stopping_patience=args.early_stopping_patience,
     )
 
 
@@ -171,6 +172,12 @@ def main(cmd_line_str=None):
         "--batch_size", type=int, default=32, help="The number of samples/slates per batch"
     )
     train_parser.add_argument("--epochs", type=int, default=10)
+    train_parser.add_argument(
+        "--early_stopping_patience",
+        type=int,
+        help="Number of epochs without improvement to wait before stopping training early. "
+        "Default is no early stopping",
+    )
     train_parser.add_argument("--hidden_size", type=int, default=128, help="Size of hidden layers")
     train_parser.add_argument("--checkpoint_filepath", help="Path to checkpoint to continue from")
     train_parser.add_argument(
