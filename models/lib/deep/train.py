@@ -146,6 +146,7 @@ def _setup_training(
     samples_meta_filepath,
     batch_size: None | int,
     max_epochs: None | int,
+    overwrite: bool,
 ):
     if continue_from_checkpoint_filepath is not None:
         _LOGGER.info(
@@ -219,6 +220,11 @@ def _setup_training(
         )
         optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
 
+    if not overwrite and os.path.exists(target_filepath + ".model"):
+        raise DeepTrainFailure(
+            f"Model file '{target_filepath}.model' already exists. Use --overwrite"
+        )
+
     return (
         model,
         starting_epoch,
@@ -286,6 +292,7 @@ def train(
     continue_from_checkpoint_filepath: str | None = None,
     dataset_limit: int | None = None,
     early_stopping_patience: int | None = None,
+    overwrite: bool = False,
 ):
     """
     dataset_dir_base: there should be a training and testing folders named\
@@ -345,6 +352,7 @@ def train(
         dataset_paths["train"]["meta"],
         batch_size,
         train_epochs,
+        overwrite,
     )
 
     assert optimizer is not None and model.nn_model is not None
@@ -440,6 +448,6 @@ def train(
         best_model[1], deep_lineup_loss, dataset_paths["test"]["meta"]
     )
     _LOGGER.info("Best model performance against hold-out: %s", performance["mean-reward"])
-    best_model[1].dump(target_filepath)
+    best_model[1].dump(target_filepath, overwrite=overwrite)
 
     return model

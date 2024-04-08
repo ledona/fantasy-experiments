@@ -76,6 +76,7 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
         checkpoint_epoch_interval=args.checkpoint_frequency,
         dataset_limit=args.dataset_limit,
         early_stopping_patience=args.early_stopping_patience,
+        overwrite=args.overwrite,
     )
 
 
@@ -194,7 +195,12 @@ def main(cmd_line_str=None):
         "If this is a filename without a path then the model will be written to '[dataset_dir]/[model_filepath]'. "
         "default='[dataset_dir]/../{_DEFAULT_MODEL_FILENAME_FORMAT}'",
     )
-    train_parser.add_argument("--model_dir", help="The directory to")
+    train_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        default=False,
+        help="Overwrite existing model file if one already exists",
+    )
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
