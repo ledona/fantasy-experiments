@@ -1,16 +1,17 @@
 """use this module's functions to train and evaluate models"""
 
-from glob import glob
 import os
 import platform
 import re
 import traceback
 from collections import defaultdict
 from datetime import datetime
+from glob import glob
 from pprint import pprint
 from typing import Literal, cast
 
 # import autosklearn.regression
+import xgboost as xgb
 import dateutil
 import joblib
 import pandas as pd
@@ -29,7 +30,7 @@ from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
-from tpot.config import regressor_config_dict_light
+from tpot.config import regressor_config_dict_light, regressor_config_dict
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -38,7 +39,7 @@ class WildcardFilterFoundNothing(FantasyException):
     """raised if a wildcard feature filter did not match any columns"""
 
 
-def _load_data(filename: str, include_position: bool | None):
+def _load_data(filename: str, include_position: bool | None, col_drop_filters: list[str] | None):
     print(f"Loading data from '{filename}'")
     if filename.endswith(".csv"):
         df_raw = pd.read_csv(filename)
@@ -58,13 +59,21 @@ def _load_data(filename: str, include_position: bool | None):
             "Column 'pos' found in data, 'include_position' kwarg is required!"
         )
 
+    # TODO: wildcard filters don't work yet here
     print(f"Include player position set to {include_position}")
     one_hots = [
-        col for col in df_raw.columns if ":" in col and isinstance(df_raw[col].iloc[0], str)
+        col
+        for col in df_raw.columns
+        if ":" in col
+        and isinstance(df_raw[col].iloc[0], str)
+        and (col_drop_filters is None or col not in col_drop_filters)
     ]
     if "pos" in df_raw:
         df_raw.drop(columns="pos_id", inplace=True)
         if include_position:
+            assert (
+                col_drop_filters is None or "pos" not in col_drop_filters
+            ), "conflicting request for pos and drop pos"
             one_hots.append("pos")
             df_raw.pos = df_raw.pos.astype(str)
 
@@ -139,23 +148,23 @@ def load_data(
     """
     Create train, test and validation data
 
-    target - tuple[stat type, stat name]
-    include_position - If not None a 'pos' column is required in the loaded
-        data and will be included/excluded based on this argument. If None
+    target: tuple[stat type, stat name]
+    include_position: If not None a 'pos' column is required in the loaded\
+        data and will be included/excluded based on this argument. If None\
         and 'pos' is in the loaded data, an exception is raised
-    cols_drop_filters - list of features to remove from data. '*'
-        will be wildcard matched, columns are dropped after filtering_query
+    cols_drop_filters: list of features to remove from data. '*'\
+        will be wildcard matched, columns are dropped after filtering_query\
         is applied and one-hot encoding is performed
-    filtering_query - query to execute (using dataframe.query) to filter
+    filtering_query: query to execute (using dataframe.query) to filter\
         for rows in the input data. Executed before one-hot and column drops
-    missing_data_threshold - warn about feature columns where data is not
-        found for more than this percentage of cases.E.g. 0 = warn in any data is missing
+    missing_data_threshold: warn about feature columns where data is not\
+        found for more than this percentage of cases.E.g. 0 = warn in any data is missing\
         .25 = warn if > 25% of data is missing
     """
     target_col_name = ":".join(target)
     print(f"Target column name set to '{target_col_name}'")
 
-    df_raw, df, one_hot_stats = _load_data(filename, include_position)
+    df_raw, df, one_hot_stats = _load_data(filename, include_position, col_drop_filters)
     if filtering_query:
         df = df.query(filtering_query)
         print(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
@@ -250,11 +259,11 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-AutomlType = Literal["tpot", "tpot-light", "autosk", "dummy"]
+AlgorithmType = Literal["tpot", "tpot-light", "autosk", "dummy", "xgb"]
 
 
 def train_test(
-    type_: AutomlType,
+    type_: AlgorithmType,
     model_name: str,
     target: StatInfo,
     tt_data: TrainTestData,
@@ -270,18 +279,23 @@ def train_test(
     dt_trained = datetime.now()
     print(f"Fitting {model_name=} using {type_}")
     if type_ == "tpot":
-        automl = TPOTRegressor(
+        model = TPOTRegressor(
             verbosity=3,
             **model_init_kwargs,
         )
     elif type_ == "tpot-light":
-        automl = TPOTRegressor(
+        model = TPOTRegressor(
             verbosity=3,
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
         )
+    elif type_ == "xgb":
+        # model = xgb.XGBRegressor(**model_init_kwargs)
+        model = TPOTRegressor(
+            config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
+        )
     elif type_ == "dummy":
-        automl = DummyRegressor(**model_init_kwargs)
+        model = DummyRegressor(**model_init_kwargs)
     # elif type_ == "autosk":
     #     automl = autosklearn.regression.AutoSklearnRegressor(
     #         seed=seed, time_left_for_this_task=training_time, memory_limit=-1
@@ -290,22 +304,26 @@ def train_test(
         raise NotImplementedError(f"automl type {type_} not recognized")
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
-    automl.fit(X_train, y_train)
+    model.fit(X_train, y_train)
 
     if type_.startswith("tpot"):
-        pprint(automl.fitted_pipeline_)
+        pprint(model.fitted_pipeline_)
     # elif type_ == "autosk":
-    #     print(automl.leaderboard())
-    #     pprint(automl.show_models(), indent=4)
-    else:
+    #     print(model.leaderboard())
+    #     pprint(model.show_models(), indent=4)
+    elif type_ == "dummy":
         print("Dummy fitted")
+    elif type_ == "xgb":
+        print("XGB fitted")
+    else:
+        raise NotImplementedError(f"model type {type_} not recognized")
 
-    y_hat = automl.predict(X_test)
+    y_hat = model.predict(X_test)
     r2_test = round(float(sklearn.metrics.r2_score(y_test, y_hat)), 3)
     mae_test = round(float(sklearn.metrics.mean_absolute_error(y_test, y_hat)), 3)
     print(f"Test {r2_test=} {mae_test=}")
 
-    y_hat_val = automl.predict(X_val)
+    y_hat_val = model.predict(X_val)
     r2_val = round(float(sklearn.metrics.r2_score(y_val, y_hat_val)), 3)
     mae_val = round(float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val)), 3)
     print(f"Validation {r2_val=} {mae_val=}")
@@ -315,19 +333,20 @@ def train_test(
         f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}.pkl",
     )
     print(f"Exporting model artifact to '{filepath}'")
-    if type_ in ("autosk", "dummy"):
-        joblib.dump(automl, filepath)
-    elif isinstance(automl, TPOTRegressor):
-        joblib.dump(automl.fitted_pipeline_, filepath)
+    if type_ in ("autosk", "dummy", "xgb"):
+        joblib.dump(model, filepath)
+    elif isinstance(model, TPOTRegressor):
+        joblib.dump(model.fitted_pipeline_, filepath)
     else:
-        raise NotImplementedError(f"automl type {type_} not recognized")
+        raise NotImplementedError(f"model type {type_} not recognized")
 
     return filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
-def create_fantasy_model(
+def _create_fantasy_model(
     name: str,
     model_artifact_path: str,
+    algo_type: AlgorithmType,
     dt_trained: datetime,
     train_df: pd.DataFrame,
     target: StatInfo,
@@ -429,7 +448,7 @@ def create_fantasy_model(
         dt_trained=dt_trained,
         trained_on_uname=uname._asdict(),
         training_data_def=data_def,
-        parameters=model_params,
+        parameters={**model_params, "algo_type": algo_type},
         trained_parameters={"regressor_path": model_artifact_path},
         performance=performance,
         player_positions=target_pos,
@@ -445,11 +464,11 @@ def model_and_test(
     validation_season: int,
     tt_data,
     target,
-    automl_type,
+    algo_type: AlgorithmType,
     p_or_t,
     recent_games,
     training_seasons,
-    automl_kwargs,
+    ml_kwargs,
     target_pos: None | list[str],
     training_pos,
     dest_dir,
@@ -459,7 +478,7 @@ def model_and_test(
     """create or load a model and test it"""
     model = None
     if reuse_most_recent:
-        model_filename_pattern = ".".join([name, target[1], automl_type, "*", "model"])
+        model_filename_pattern = ".".join([name, target[1], algo_type, "*", "model"])
         most_recent_model: tuple[datetime, str] | None = None
         for filename in glob(os.path.join(dest_dir, model_filename_pattern)):
             model_dt = dateutil.parser.parse(filename.split(".")[3])
@@ -473,22 +492,23 @@ def model_and_test(
 
     if model is None:
         final_model_filepath = os.path.join(
-            dest_dir, ".".join([name, target[1], automl_type, dt_to_filename_str(), "model"])
+            dest_dir, ".".join([name, target[1], algo_type, dt_to_filename_str(), "model"])
         )
 
         model_artifact_path, performance, dt_trained = train_test(
-            automl_type,
+            algo_type,
             name,
             target,
             tt_data,
             dest_dir,
-            **automl_kwargs,
+            **ml_kwargs,
         )
         performance["season"] = validation_season
 
-        model = create_fantasy_model(
+        model = _create_fantasy_model(
             name,
             model_artifact_path,
+            algo_type,
             dt_trained,
             tt_data[0],
             target,
@@ -498,7 +518,7 @@ def model_and_test(
             training_seasons,
             target_pos,
             training_pos,
-            automl_kwargs,
+            ml_kwargs,
         )
 
         model.dump(final_model_filepath, overwrite=not reuse_most_recent)

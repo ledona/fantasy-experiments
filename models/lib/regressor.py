@@ -2,12 +2,14 @@
 import argparse
 import glob
 import json
+import math
 import os
 import shlex
 import sys
 from pprint import pprint
 from typing import Literal, TypedDict, cast
 
+import dask
 import dateutil
 import pandas as pd
 from fantasy_py import (
@@ -18,7 +20,7 @@ from fantasy_py import (
 )
 from ledona import process_timer
 
-from .train_test import AutomlType, load_data, model_and_test
+from .train_test import AlgorithmType, load_data, model_and_test
 
 _EXPECTED_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
 
@@ -111,7 +113,7 @@ class TrainingDefinitionFile:
     def _train_and_test(
         self,
         model_name: str,
-        automl_type: AutomlType,
+        automl_type: AlgorithmType,
         dest_dir: str | None,
         error_data: bool,
         reuse_existing_models: bool,
@@ -174,18 +176,22 @@ class TrainingDefinitionFile:
             params["training_pos"] or params["target_pos"],
             dest_dir,
             reuse_existing_models,
-            raw_df=raw_df,
         )
 
         return model
 
 
-_DEFAULT_AUTOML_TYPE: AutomlType = "tpot"
+_DEFAULT_AUTOML_TYPE: AlgorithmType = "tpot"
 _DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 
 def _handle_train(args):
     tdf = TrainingDefinitionFile(args.train_file)
+
+    if not os.path.isdir(args.dest_dir):
+        print(f"Destination directory '{args.dest_dir}' does not exist.")
+        sys.exit(0)
+
     if not args.model:
         print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
         sys.exit(0)
@@ -201,14 +207,28 @@ def _handle_train(args):
         pprint(tdf.get_params(args.model))
         sys.exit(0)
 
+    if args.dask:
+        print("tpot dask enabled")
+        dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
+
     if args.automl_type.startswith("tpot"):
-        modeler_init_kwargs = {}
+        modeler_init_kwargs = {"use_dask": args.dask}
         if args.n_jobs:
             modeler_init_kwargs["n_jobs"] = args.n_jobs
         if args.training_mins:
             modeler_init_kwargs["max_time_mins"] = args.training_mins
         if args.training_iter_mins:
             modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
+    elif args.automl_type == "xgb":
+        # device = "cuda" if torch.cuda.is_available() else "cpu"
+        modeler_init_kwargs = {
+            # "device": device,
+            "verbosity": 2,
+        }
+        if args.n_jobs:
+            modeler_init_kwargs["n_jobs"] = args.n_jobs
+        if args.early_stopping_rounds:
+            modeler_init_kwargs["early_stopping_rounds"] = args.early_stopping_rounds
     elif args.automl_type == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
     else:
@@ -247,7 +267,7 @@ def _add_train_parser(sub_parsers):
         action="store_true",
     )
     train_parser.add_argument(
-        "--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AutomlType.__args__
+        "--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AlgorithmType.__args__
     )
     train_parser.add_argument(
         "--n_jobs", "--tpot_jobs", help="Number of jobs/processors to use during training", type=int
@@ -273,6 +293,8 @@ def _add_train_parser(sub_parsers):
     )
     train_parser.add_argument("--dest_dir", default=".")
     train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
+    train_parser.add_argument("--dask", default=False, action="store_true")
+    train_parser.add_argument("--early_stopping_rounds", type=int)
 
 
 def _model_catalog_func(args):
