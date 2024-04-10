@@ -39,7 +39,7 @@ class _Params(TypedDict):
     p_or_t: PlayerOrTeam | None
     include_pos: bool | None
     cols_to_drop: list[str] | None
-    """columns to drop from inout data. wildcards are accepted"""
+    """columns to drop from training data. wildcards are accepted"""
     missing_data_threshold: float | None
     filtering_query: str | None
     """pandas compatible query string that will be run on the loaded data"""
@@ -118,6 +118,7 @@ class TrainingDefinitionFile:
         error_data: bool,
         reuse_existing_models: bool,
         data_dir: str | None,
+        info: bool,
         **regressor_kwargs,
     ):
         if error_data:
@@ -162,6 +163,12 @@ class TrainingDefinitionFile:
 
         print(f"data load of '{params['data_filename']}' complete. {one_hot_stats=}")
 
+        if info:
+            print(f"model parameters for {model_name}")
+            pprint(params)
+            print(f"Data features (n={len(tt_data[0].columns)}): {sorted(tt_data[0].columns)}")
+            sys.exit(0)
+
         model = model_and_test(
             model_name,
             params["validation_season"],
@@ -202,11 +209,6 @@ def _handle_train(args):
             f"of the following: {tdf.model_names}"
         )
 
-    if args.info:
-        print(f"model parameters for {args.model}")
-        pprint(tdf.get_params(args.model))
-        sys.exit(0)
-
     if args.dask:
         print("tpot dask enabled")
         dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
@@ -241,6 +243,7 @@ def _handle_train(args):
         args.error_analysis_data,
         args.reuse,
         args.data_dir,
+        args.info,
         **modeler_init_kwargs,
     )
 
