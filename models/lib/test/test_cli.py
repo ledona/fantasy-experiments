@@ -142,6 +142,7 @@ def test_training_def_file_train_test(
     params = tdf.get_params(model_name)
 
     expected_tpot_train_params = {
+        "use_dask": False,
         "random_state": params["seed"],
         "max_time_mins": params["train_params"]["max_time_mins"],
         "max_eval_time_mins": params["train_params"]["max_eval_time_mins"],
@@ -198,12 +199,11 @@ def test_training_def_file_train_test(
         params["training_pos"] or params["target_pos"],
         ".",
         expected_reuse,
-        raw_df=fake_raw_df,
     )
 
 
 def _create_expected_model_dict(
-    model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath
+    model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath, algo_type
 ):
     expected_training_data_def = {
         k_: v_
@@ -241,7 +241,7 @@ def _create_expected_model_dict(
     return {
         "name": model_name,
         "dt_trained": dt.isoformat(),
-        "parameters": _DUMMY_REGRESSOR_KWARGS,
+        "parameters": {"algo_type": algo_type, **_DUMMY_REGRESSOR_KWARGS},
         "trained_parameters": {"regressor_path": final_artifact_filepath},
         "training_data_def": expected_training_data_def,
         "func_type": Model.FUNC_TYPE_NAME,
@@ -305,6 +305,6 @@ def test_model_gen(tmpdir, mocker):
 
     del model_dict["model_file_version"]
     expected_model_dict = _create_expected_model_dict(
-        model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath
+        model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath, automl_type
     )
     deep_compare_dicts(model_dict, expected_model_dict)

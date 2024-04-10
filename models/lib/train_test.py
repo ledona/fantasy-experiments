@@ -10,13 +10,14 @@ from glob import glob
 from pprint import pprint
 from typing import Literal, cast
 
-# import autosklearn.regression
-import xgboost as xgb
 import dateutil
 import joblib
 import pandas as pd
 import sklearn.metrics
 import sklearn.model_selection
+
+# import autosklearn.regression
+# import xgboost as xgb
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
@@ -30,7 +31,7 @@ from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
-from tpot.config import regressor_config_dict_light, regressor_config_dict
+from tpot.config import regressor_config_dict, regressor_config_dict_light
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -41,6 +42,7 @@ class WildcardFilterFoundNothing(FantasyException):
 
 def _load_data(filename: str, include_position: bool | None, col_drop_filters: list[str] | None):
     print(f"Loading data from '{filename}'")
+
     if filename.endswith(".csv"):
         df_raw = pd.read_csv(filename)
     elif filename.endswith(".pq") or filename.endswith(".parquet"):
@@ -59,30 +61,48 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
             "Column 'pos' found in data, 'include_position' kwarg is required!"
         )
 
-    # TODO: wildcard filters don't work yet here
-    print(f"Include player position set to {include_position}")
+    if col_drop_filters:
+        cols_to_drop = []
+        regexps = []
+        for filter_ in col_drop_filters:
+            if "*" in filter_:
+                regexps.append(re.compile(filter_.replace("*", ".*")))
+                continue
+            cols_to_drop.append(filter_)
+        if len(regexps) > 0:
+            for regexp in regexps:
+                re_cols_to_drop = [col for col in df_raw if regexp.match(col)]
+                if len(re_cols_to_drop) == 0:
+                    raise WildcardFilterFoundNothing(
+                        f"Filter '{regexp}' did not match any columns: {df_raw.columns}"
+                    )
+                cols_to_drop += re_cols_to_drop
+        print(f"Dropping n={len(cols_to_drop)} columns: {sorted(cols_to_drop)}")
+        df = df_raw.drop(columns=cols_to_drop)
+    else:
+        df = df_raw
+
+    print(f"Include player position = {include_position}")
     one_hots = [
         col
-        for col in df_raw.columns
-        if ":" in col
-        and isinstance(df_raw[col].iloc[0], str)
-        and (col_drop_filters is None or col not in col_drop_filters)
+        for col in df.columns
+        if ":" in col and isinstance(df[col].iloc[0], str) and col not in cols_to_drop
     ]
-    if "pos" in df_raw:
-        df_raw.drop(columns="pos_id", inplace=True)
+    if "pos" in df:
+        df.drop(columns="pos_id", inplace=True)
         if include_position:
             assert (
                 col_drop_filters is None or "pos" not in col_drop_filters
             ), "conflicting request for pos and drop pos"
             one_hots.append("pos")
-            df_raw.pos = df_raw.pos.astype(str)
+            df.pos = df.pos.astype(str)
 
     print(f"One-hot encoding features: {one_hots}")
-    df = pd.get_dummies(df_raw, columns=one_hots)
+    df = pd.get_dummies(df, columns=one_hots)
 
     one_hot_stats = (
         {"extra:venue": [col for col in df.columns if col.startswith("extra:venue_")]}
-        if "extra:venue" in df_raw
+        if "extra:venue" in df
         else None
     )
 
@@ -116,7 +136,9 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
     missing_data_df["%-valid"] = missing_data_df["valid-data"].map(lambda x: 100 * x / len(df))
     warning_df = missing_data_df.query("`%-NA` > (@warning_threshold * 100)")
 
-    print(f"\nMISSING-DATA-REPORT case={len(df)} warning_threshold={warning_threshold * 100:.02f}%")
+    print(
+        f"\nMISSING-DATA-REPORT cases={len(df)} warning_threshold={warning_threshold * 100:.02f}%"
+    )
     if len(warning_df) == 0:
         print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
         return
@@ -196,28 +218,6 @@ def load_data(
         )
     y = train_test_df[target_col_name]
 
-    if col_drop_filters:
-        cols_to_drop = []
-        regexps = []
-        for filter_ in col_drop_filters:
-            if "*" in filter_:
-                regexps.append(re.compile(filter_.replace("*", ".*")))
-                continue
-            cols_to_drop.append(filter_)
-        if len(regexps) > 0:
-            for regexp in regexps:
-                re_cols_to_drop = [col for col in feature_cols if regexp.match(col)]
-                if len(re_cols_to_drop) == 0:
-                    raise WildcardFilterFoundNothing(
-                        f"Filter '{regexp}' did not match any columns: {feature_cols}"
-                    )
-                cols_to_drop += re_cols_to_drop
-        assert len(cols_to_drop) > 0, f"No columns to drop from {col_drop_filters=} {regexps=}"
-        print(f"Dropping the following {len(cols_to_drop)} columns: ", cols_to_drop)
-        X = X.drop(columns=cols_to_drop)
-    else:
-        cols_to_drop = None
-
     _missing_feature_data_report(X, missing_data_threshold)
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
         X, y, random_state=seed
@@ -228,8 +228,6 @@ def load_data(
         raise ValueError("No validation data!")
 
     X_val = validation_df[feature_cols]
-    if cols_to_drop is not None:
-        X_val = X_val.drop(columns=cols_to_drop)
     y_val = validation_df[target_col_name]
     print(
         f"Training will use {len(feature_cols)} features, "
@@ -237,7 +235,11 @@ def load_data(
         f"{len(X_test)} test cases, {len(X_val)} validation test cases from {validation_season=}",
     )
 
-    return df_raw, (X_train, y_train, X_test, y_test, X_val, y_val), one_hot_stats
+    return (
+        df_raw,
+        cast(TrainTestData, (X_train, y_train, X_test, y_test, X_val, y_val)),
+        one_hot_stats,
+    )
 
 
 def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
@@ -473,7 +475,6 @@ def model_and_test(
     training_pos,
     dest_dir,
     reuse_most_recent: bool,
-    raw_df=None,
 ):
     """create or load a model and test it"""
     model = None
@@ -523,15 +524,5 @@ def model_and_test(
 
         model.dump(final_model_filepath, overwrite=not reuse_most_recent)
         print(f"Model file saved to '{final_model_filepath}'")
-
-    if raw_df is not None:
-        try:
-            model.predict(raw_df.sample(10))
-            print("model post testing successful...")
-        except Exception as ex:
-            print(f"post prediction testing failed! '{type(ex).__name__}':")
-            print(traceback.format_exc())
-    else:
-        print("not post testing model ...")
 
     return model
