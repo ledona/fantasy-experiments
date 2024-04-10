@@ -119,6 +119,7 @@ class TrainingDefinitionFile:
         reuse_existing_models: bool,
         data_dir: str | None,
         info: bool,
+        dump_data: str,
         **regressor_kwargs,
     ):
         if error_data:
@@ -162,6 +163,16 @@ class TrainingDefinitionFile:
         )
 
         print(f"data load of '{params['data_filename']}' complete. {one_hot_stats=}")
+
+        if dump_data:
+            print(f"Dumping training data to '{dump_data}'")
+            df = pd.concat(tt_data[0:2], axis=1)
+            if dump_data.endswith(".csv"):
+                df.to_csv(dump_data)
+            elif dump_data.endswith(".pq"):
+                df.to_parquet(dump_data)
+            else:
+                raise ValueError(f"Unknown data dump format: {dump_data}")
 
         if info:
             print(f"model parameters for {model_name}")
@@ -244,6 +255,7 @@ def _handle_train(args):
         args.reuse,
         args.data_dir,
         args.info,
+        args.dump_data,
         **modeler_init_kwargs,
     )
 
@@ -261,6 +273,12 @@ def _add_train_parser(sub_parsers):
         help="Name of the model to train, if not set then model names will be listed",
     )
     train_parser.add_argument("--info", default=False, action="store_true")
+    train_parser.add_argument(
+        "--dump_data",
+        metavar="filepath",
+        help="Dump training data to a file. The file extension defines the format. "
+        "Supported extensions: .csv, .pq",
+    )
     train_parser.add_argument("--reuse", default=False, action="store_true")
     train_parser.add_argument(
         "--error_analysis_data",
