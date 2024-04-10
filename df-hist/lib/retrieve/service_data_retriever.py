@@ -4,14 +4,14 @@ import json
 import logging
 import os
 import random
-import re
 import time
-from abc import ABC, abstractclassmethod, abstractmethod
+from abc import ABC, abstractmethod
 from importlib import import_module
-from typing import Literal, Callable
+from typing import Callable, Literal
 
 import pandas as pd
 import tqdm
+from fantasy_py import sanitize_filename
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -479,7 +479,7 @@ class ServiceDataRetriever(ABC):
         """
         cache_filepath = None
 
-        filename = re.sub(r'[<>:"/\\|?*]', " ", cache_key)
+        filename = sanitize_filename(cache_key)
 
         if self.cache_path is not None:
             cache_filepath = os.path.join(self.cache_path, f"{filename}.{data_type}")
