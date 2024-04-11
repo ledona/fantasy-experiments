@@ -16,7 +16,7 @@ from fantasy_py import (
     log,
 )
 from fantasy_py.inference import ImputeFailure, get_models_by_name
-from fantasy_py.lineup import FantasyService, gen_lineups
+from fantasy_py.lineup import FantasyService, gen_lineups, DEEP_LINEUP_POSITION_REMAPPINGS
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
 from ledona import constant_hasher
@@ -66,10 +66,6 @@ def _prep_dataset_directory(
         raise ValueError(f"Unknown existing_files_mode '{existing_files_mode}'")
 
     return dataset_dest_dir
-
-
-_POS_REMAP = {"nhl": {"RW": "W", "LW": "W", "R": "W", "L": "W"}}
-"""mapping for sport -> position-mapping-dict"""
 
 
 def export(
@@ -184,7 +180,7 @@ def export(
                 "seed": seed,
                 "samples": samples_meta,
                 "service": service_cls.SERVICE_NAME,
-                "style": style.name,
+                "style": style.value,
             },
             f_,
             indent="\t",
@@ -246,7 +242,7 @@ def _get_slate_sample(
         pred_df.set_index(["game_id", "team_id", "player_id"]),
         on=["game_id", "team_id", "player_id"],
     )
-    pos_mapping = _POS_REMAP.get(db_obj.db_manager.ABBR, {})
+    pos_mapping = DEEP_LINEUP_POSITION_REMAPPINGS.get(db_obj.db_manager.ABBR, {})
 
     def cost_func(row):
         if "player_id" not in row or pd.isna(row.player_id):

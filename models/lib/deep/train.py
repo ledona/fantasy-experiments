@@ -6,14 +6,7 @@ from datetime import datetime
 from typing import Literal, TypedDict, cast
 
 import torch
-from fantasy_py import (
-    FANTASY_SERVICE_DOMAIN,
-    CLSRegistry,
-    ContestStyle,
-    FantasyException,
-    dt_to_filename_str,
-    log,
-)
+from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, ContestStyle, FantasyException, log
 from fantasy_py.lineup import DeepLineupDataset, DeepLineupModel, FantasyService
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -22,9 +15,6 @@ from .loss import DeepLineupLoss
 
 log.set_debug_log_level(__name__)
 _LOGGER = log.get_logger(__name__)
-
-
-DEFAULT_MODEL_FILENAME_FORMAT = "dlm.{sport}.{service}.{style}.{datetime}"
 
 
 class DeepTrainFailure(FantasyException):
@@ -137,7 +127,6 @@ def _save_checkpoint(
 def _setup_training(
     continue_from_checkpoint_filepath: None | str,
     target_dir: str,
-    model_filename: str | None,
     learning_rate: float,
     samples_meta: dict,
     dataset_dir: None | str,
@@ -198,19 +187,19 @@ def _setup_training(
         epoch_scores = []
         starting_epoch = 0
         trained_on_dt = datetime.now()
-        if model_filename is None:
-            model_filename = DEFAULT_MODEL_FILENAME_FORMAT.format(
-                sport=samples_meta["sport"],
-                service=samples_meta["service"],
-                style=samples_meta["style"],
-                datetime=dt_to_filename_str(trained_on_dt),
-            )
+        model_filename = DeepLineupModel.default_name(
+            samples_meta["sport"],
+            samples_meta["service"],
+            samples_meta["style"],
+            dt_trained=trained_on_dt,
+        )
         target_filepath = os.path.join(target_dir, model_filename)
 
         model = DeepLineupModel(
             dataset.input_cols,
-            dataset.samples_meta["service"],
             dataset.samples_meta["sport"],
+            dataset.samples_meta["service"],
+            samples_meta["style"],
             dataset.sample_df_len,
             learning_rate,
             batch_size,
@@ -220,6 +209,7 @@ def _setup_training(
         )
         optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
 
+    assert isinstance(target_filepath, str)
     if not overwrite and os.path.exists(target_filepath + ".model"):
         raise DeepTrainFailure(
             f"Model file '{target_filepath}.model' already exists. Use --overwrite"
@@ -285,7 +275,6 @@ def train(
     train_epochs: int,
     batch_size: int | None,
     target_dir: str,
-    model_filename: str | None = None,
     learning_rate=0.001,
     hidden_size=128,
     checkpoint_epoch_interval: int = 5,
@@ -343,7 +332,6 @@ def train(
     ) = _setup_training(
         continue_from_checkpoint_filepath,
         target_dir,
-        model_filename,
         learning_rate,
         samples_meta,
         dataset_dir_base,

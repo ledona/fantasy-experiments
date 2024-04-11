@@ -53,15 +53,15 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
     if not args.model_filepath:
         # write to [dataset_dir]/[default_model_filename]
         target_dir = os.path.join("..", args.dataset_dir)
-        model_filename = None
     elif os.path.isdir(args.model_filepath):
         # write to [model_filepath]/[default_model_filename]
         target_dir = args.model_filepath
-        model_filename = None
     else:
-        # write to [model_filepath]
-        target_dir = os.path.dirname(args.model_filepath)
-        model_filename = os.path.basename(args.model_filepath)
+        parser.error(
+            f"Unable to write to model target directory '{args.model_filepath}'. "
+            "Perhaps this path points to a file?"
+        )
+
     if not os.path.isdir(target_dir):
         parser.error(f"Infered model target directory '{target_dir}' is not a valid directory!")
 
@@ -70,7 +70,6 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
         args.epochs,
         args.batch_size,
         target_dir,
-        model_filename,
         hidden_size=args.hidden_size,
         continue_from_checkpoint_filepath=args.checkpoint_filepath,
         checkpoint_epoch_interval=args.checkpoint_frequency,
