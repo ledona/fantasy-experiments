@@ -61,8 +61,8 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
             "Column 'pos' found in data, 'include_position' kwarg is required!"
         )
 
+    cols_to_drop = []
     if col_drop_filters:
-        cols_to_drop = []
         regexps = []
         for filter_ in col_drop_filters:
             if "*" in filter_:

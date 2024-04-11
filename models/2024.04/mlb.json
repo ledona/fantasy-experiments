@@ -59,7 +59,7 @@
                 "MLB-P-Y": {
                     "target": [
                         "calc",
-                        "dk_score"
+                        "y_score"
                     ]
                 },
                 "MLB-P-K": {
