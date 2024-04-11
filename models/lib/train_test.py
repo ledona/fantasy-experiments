@@ -475,7 +475,6 @@ def model_and_test(
     training_pos,
     dest_dir,
     reuse_most_recent: bool,
-    raw_df=None,
 ):
     """create or load a model and test it"""
     model = None
@@ -525,15 +524,5 @@ def model_and_test(
 
         model.dump(final_model_filepath, overwrite=not reuse_most_recent)
         print(f"Model file saved to '{final_model_filepath}'")
-
-    if raw_df is not None:
-        try:
-            model.predict(raw_df.sample(10))
-            print("model post testing successful...")
-        except Exception as ex:
-            print(f"post prediction testing failed! '{type(ex).__name__}':")
-            print(traceback.format_exc())
-    else:
-        print("not post testing model ...")
 
     return model
