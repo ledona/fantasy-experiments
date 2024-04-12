@@ -6,6 +6,7 @@ from dataclasses import InitVar, dataclass, field
 from random import Random
 from typing import Literal, Type, cast
 
+import numpy as np
 import pandas as pd
 from fantasy_py import (
     CacheMode,
@@ -14,6 +15,7 @@ from fantasy_py import (
     FantasyException,
     GameScheduleEpoch,
     SeasonPart,
+    SlateDict,
     cache_to_file,
     db,
     dt_to_filename_str,
@@ -72,7 +74,20 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
-@cache_to_file()
+def __get_max_slate_games_cache_filename(
+    session: Session, season: int, style: ContestStyle, service_cls: FantasyService
+):
+    filename_parts = [
+        "max_slate_games",
+        session.info["fantasy.db_manager"].ABBR,
+        str(season),
+        service_cls.SERVICE_NAME,
+        style.name,
+    ]
+    return "-".join(filename_parts) + ".cache"
+
+
+@cache_to_file(filename_func=__get_max_slate_games_cache_filename)
 def _get_max_slate_games(
     session: Session, season: int, style: ContestStyle, service_cls: FantasyService
 ):
@@ -292,10 +307,10 @@ def _get_slate_sample(
         random_seed=seed,
     )
 
-    new_slate_info = {
-        "style": style.name,
-        "cost_id": slate_def.slate_info["cost_id"],
-    }
+    cost_id = slate_def.slate_info.get("cost_id")
+    assert cost_id is not None
+
+    new_slate_info = cast(SlateDict, {"style": style.name, "cost_id": cost_id})
 
     # use historic data to generate the best possible lineup
     top_lineup, scores = gen_lineups(
@@ -315,10 +330,17 @@ def _get_slate_sample(
 
     hist_df = scores["historic"].rename(columns={"fpts": "fpts-historic"})
     pred_df = scores["predicted"].rename(columns={"fpts": "fpts-predicted"})
+
+    if hist_df.player_id.isna().any():
+        hist_df.fillna(value={"player_id": -1}, inplace=True)
+    if pred_df.player_id.isna().any():
+        pred_df.fillna(value={"player_id": -1}, inplace=True)
     score_df = hist_df.join(
         pred_df.set_index(["game_id", "team_id", "player_id"]),
         on=["game_id", "team_id", "player_id"],
     )
+    score_df.replace({"player_id": -1}, np.nan, inplace=True)
+
     pos_mapping = DEEP_LINEUP_POSITION_REMAPPINGS.get(db_obj.db_manager.ABBR, {})
 
     def cost_func(row):
@@ -326,19 +348,22 @@ def _get_slate_sample(
             pt_dict = fca.get_mi_team(row.team_id)
         else:
             pt_dict = fca.get_mi_player(row.player_id)
-        dict_ = {
-            "cost": pt_dict["cost"][service_cls.SERVICE_NAME][slate_def.slate_info["cost_id"]],
-        }
-        for pos in pt_dict["positions"]:
-            dict_["pos:" + pos_mapping.get(pos, pos)] = 1
+
+        assert isinstance(pt_dict, dict) and "positions" in pt_dict
+        dict_ = {"pos:" + pos_mapping.get(pos, pos): 1 for pos in pt_dict["positions"]}
+
+        assert isinstance(pt_dict, dict) and "cost" in pt_dict and isinstance(pt_dict["cost"], dict)
+        pt_cost_dict = pt_dict["cost"][service_cls.SERVICE_NAME]
+        assert isinstance(pt_cost_dict, dict)
+        dict_["cost"] = pt_cost_dict.get(cost_id)
         return dict_
 
     cost_pos_df = score_df.apply(cost_func, axis=1, result_type="expand")
 
     def addl_data_func(row):
         ret = {}
-        if pd.isna(row.player_id) and row.team_id in top_lineup[0].team_ids:
-            ret["in-lineup"] = 1
+        if pd.isna(row.player_id):
+            ret["in-lineup"] = row.team_id in top_lineup[0].team_ids
         else:
             ret["in-lineup"] = row.player_id in top_lineup[0].player_ids
         if pd.isna(row.player_id):
