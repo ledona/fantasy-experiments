@@ -6,6 +6,7 @@ from dataclasses import InitVar, dataclass, field
 from random import Random
 from typing import Literal, Type, cast
 
+import numpy as np
 import pandas as pd
 from fantasy_py import (
     CacheMode,
@@ -315,10 +316,17 @@ def _get_slate_sample(
 
     hist_df = scores["historic"].rename(columns={"fpts": "fpts-historic"})
     pred_df = scores["predicted"].rename(columns={"fpts": "fpts-predicted"})
+
+    if hist_df.player_id.isna().any():
+        hist_df.fillna(value={"player_id": -1}, inplace=True)
+    if pred_df.player_id.isna().any():
+        pred_df.fillna(value={"player_id": -1}, inplace=True)
     score_df = hist_df.join(
         pred_df.set_index(["game_id", "team_id", "player_id"]),
         on=["game_id", "team_id", "player_id"],
     )
+    score_df.replace({"player_id": -1}, np.nan, inplace=True)
+
     pos_mapping = DEEP_LINEUP_POSITION_REMAPPINGS.get(db_obj.db_manager.ABBR, {})
 
     def cost_func(row):
@@ -337,8 +345,8 @@ def _get_slate_sample(
 
     def addl_data_func(row):
         ret = {}
-        if pd.isna(row.player_id) and row.team_id in top_lineup[0].team_ids:
-            ret["in-lineup"] = 1
+        if pd.isna(row.player_id):
+            ret["in-lineup"] = row.team_id in top_lineup[0].team_ids
         else:
             ret["in-lineup"] = row.player_id in top_lineup[0].player_ids
         if pd.isna(row.player_id):
