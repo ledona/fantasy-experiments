@@ -206,6 +206,7 @@ def _setup_training(
             hidden_size,
             max_epochs,
             trained_on_dt,
+            model_dependencies=dataset.samples_meta["models"],
         )
         optimizer = torch.optim.Adam(model.nn_model.parameters(), lr=learning_rate)
 
