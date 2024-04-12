@@ -2,8 +2,9 @@ import json
 import os
 import shutil
 import statistics
+from dataclasses import InitVar, dataclass, field
 from random import Random
-from typing import Literal, NamedTuple, Type, cast
+from typing import Literal, Type, cast
 
 import pandas as pd
 from fantasy_py import (
@@ -11,14 +12,17 @@ from fantasy_py import (
     ContestStyle,
     DataNotAvailableException,
     FantasyException,
+    GameScheduleEpoch,
+    SeasonPart,
+    cache_to_file,
     db,
     dt_to_filename_str,
     log,
 )
 from fantasy_py.inference import ImputeFailure, get_models_by_name
-from fantasy_py.lineup import FantasyService, gen_lineups, DEEP_LINEUP_POSITION_REMAPPINGS
+from fantasy_py.lineup import DEEP_LINEUP_POSITION_REMAPPINGS, FantasyService, gen_lineups
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
-from fantasy_py.sport import Starters
+from fantasy_py.sport import DateNotAvailableError, Starters
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
 from tqdm import tqdm
@@ -68,12 +72,30 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
+@cache_to_file()
+def _get_max_slate_games(
+    session: Session, season: int, style: ContestStyle, service_cls: FantasyService
+):
+    """return tuple of the min and max number of games in slates in the requested season"""
+    max_games = 0
+
+    for slate in session.query(db.DailyFantasySlate).filter(
+        db.DailyFantasySlate.season == season,
+        db.DailyFantasySlate._style == style.name,
+        db.DailyFantasySlate.service == service_cls.SERVICE_NAME,
+    ):
+        games_count = len(slate.games)
+        max_games = max(max_games, games_count)
+
+    return max_games
+
+
 def export(
     db_obj: db.FantasySQLAlchemyWrapper,
     dataset_name,
     parent_dest_dir: str,
     requested_seasons: list[int] | None,
-    slate_games_range: tuple[int, int],
+    slate_games_range: tuple[int, int] | None,
     case_count: int,
     existing_files_mode: ExistingFilesMode,
     service_cls: FantasyService,
@@ -102,36 +124,52 @@ def export(
                 raise ExportError(f"Requested seasons {requested_seasons} not supported by sport")
             seasons = requested_seasons
 
+        if slate_games_range is None:
+            _LOGGER.info("Getting max games for slates using season=%i", max(seasons))
+            slate_games_range = 2, _get_max_slate_games(
+                session,
+                max(seasons),
+                style,
+                service_cls,
+                cache_dir=cache_dir,
+                cache_mode=cache_mode,
+            )
+
         _LOGGER.info(
-            "Exporting n=%i for sport=%s seasons=%s to '%s'",
+            "Starting exporting of n=%i cases for sport=%s seasons=%s slate_games_range=%s to '%s'",
             case_count,
             db_obj.db_manager.ABBR,
             seasons,
+            slate_games_range,
             dataset_dest_dir,
         )
 
-        rand_obj = _RandomSlateSelector(session, seasons, slate_games_range, seed)
+        rand_obj = _RandomSlateSelector(
+            session,
+            seasons,
+            slate_games_range,
+            service_cls.SERVICE_NAME,
+            style,
+            seed,
+            cache_dir,
+            cache_mode,
+        )
         expected_cols: list[str] | None = None
         for sample_num in (prog_iter := tqdm(range(case_count), desc=dataset_name)):
             for attempt_num in range(_MAX_SLATE_ATTEMPTS):
                 total_attempts += 1
                 slate_def = rand_obj.next
                 prog_iter.set_postfix(attempts=total_attempts)
-                sample_meta = slate_def._asdict()
-
                 try:
                     df = _get_slate_sample(
                         db_obj,
                         service_cls,
-                        slate_def.game_ids,
+                        slate_def,
                         model_names,
+                        style,
+                        seed,
                         cache_dir,
                         cache_mode,
-                        db_obj.db_manager.epoch_for_game_number(
-                            slate_def.season, slate_def.game_number
-                        ),
-                        seed,
-                        style,
                     )
                     if expected_cols is None:
                         expected_cols = sorted(df.columns)
@@ -139,7 +177,7 @@ def export(
                     elif (df_cols := sorted(df.columns)) != expected_cols:
                         raise ExportError(
                             f"Unexpected cols found For sample #{sample_num + 1}, "
-                            "expected={expected_cols} found={df_cols}"
+                            f"expected={expected_cols} found={df_cols}"
                         )
                     break
                 except (ImputeFailure, DataNotAvailableException) as ex:
@@ -160,11 +198,12 @@ def export(
                     f"after {attempt_num + 1} attempts"
                 )
             successful_attempts.append(slate_def)
-            filename = f"{slate_def.season}-{slate_def.game_number}-{slate_def.game_ids_hash}.pq"
+            filename = (
+                f"{slate_def.epoch.season}-{slate_def.epoch.game_number}-{slate_def.hash_value}.pq"
+            )
             df.to_parquet(os.path.join(dataset_dest_dir, filename))
-            sample_meta["items"] = len(df)
             df_lens.append(len(df))
-            samples_meta.append(sample_meta)
+            samples_meta.append({**slate_def.meta_data, "player_count": len(df)})
 
     models_dict = {
         model.name: model.dt_trained.isoformat()
@@ -194,23 +233,56 @@ def export(
     )
 
 
+@dataclass
+class SlateDef:
+    """a slate definition, used to infer a sample"""
+
+    epoch: GameScheduleEpoch
+    starters: Starters
+    slate: str
+    game_descs: list[str]
+    hash_value: str
+
+    @property
+    def slate_info(self):
+        assert self.starters.slates is not None
+        return self.starters.slates[self.slate]
+
+    @property
+    def meta_data(self):
+        return {
+            "season": self.epoch.season,
+            "game_number": self.epoch.game_number,
+            "game_descs": self.game_descs,
+            "slate": self.slate,
+            "date": self.epoch.date.isoformat(),
+        }
+
+
+def _pick_slate(starters: Starters):
+    """pick the slate with the most games"""
+    max_slate: tuple[None | str, int] = (None, 0)
+    assert starters.slates is not None
+    for slate, slate_info in starters.slates.items():
+        if (games_count := len(slate_info.get("games", []))) > max_slate[1]:
+            max_slate = slate, games_count
+    assert max_slate[0] is not None
+    return max_slate
+
+
 def _get_slate_sample(
     db_obj: db.FantasySQLAlchemyWrapper,
     service_cls: Type[FantasyService],
-    game_ids: list[int],
+    slate_def: SlateDef,
     model_names,
+    style: ContestStyle,
+    seed,
     cache_dir,
     cache_mode,
-    epoch,
-    seed,
-    style: ContestStyle,
 ):
-    starters = Starters.from_historic_data(
-        db_obj, service_cls.SERVICE_NAME, epoch, game_ids=game_ids, style=style
+    fca = db_obj.db_manager.fca_from_starters(
+        db_obj, slate_def.starters, service_cls.SERVICE_NAME, slate=slate_def.slate
     )
-    assert starters is not None and starters.slates is not None and len(starters.slates) == 1
-    slate_info = next(iter(starters.slates.values()))
-    fca = db_obj.db_manager.fca_from_starters(db_obj, starters, service_cls.SERVICE_NAME)
     sport_constraints = service_cls.get_constraints(db_obj.db_manager.ABBR, style=style)
     assert sport_constraints is not None
     solver = MixedIntegerKnapsackSolver(
@@ -220,6 +292,11 @@ def _get_slate_sample(
         random_seed=seed,
     )
 
+    new_slate_info = {
+        "style": style.name,
+        "cost_id": slate_def.slate_info["cost_id"],
+    }
+
     # use historic data to generate the best possible lineup
     top_lineup, scores = gen_lineups(
         db_obj,
@@ -228,8 +305,8 @@ def _get_slate_sample(
         solver,
         service_cls,
         1,
-        slate_info=slate_info,
-        slate_epoch=epoch,
+        slate_info=new_slate_info,
+        slate_epoch=slate_def.epoch,
         cache_dir=cache_dir,
         cache_mode=cache_mode,
         score_data_type="historic",
@@ -250,7 +327,7 @@ def _get_slate_sample(
         else:
             pt_dict = fca.get_mi_player(row.player_id)
         dict_ = {
-            "cost": pt_dict["cost"][service_cls.SERVICE_NAME][slate_info["cost_id"]],
+            "cost": pt_dict["cost"][service_cls.SERVICE_NAME][slate_def.slate_info["cost_id"]],
         }
         for pos in pt_dict["positions"]:
             dict_["pos:" + pos_mapping.get(pos, pos)] = 1
@@ -282,53 +359,108 @@ def _get_slate_sample(
     return df
 
 
+@dataclass
 class _RandomSlateSelector:
-    def __init__(
-        self, session: Session, seasons: list[int], slate_games_range: tuple[int, int], seed
-    ):
-        self._session = session
-        self._seasons = seasons
-        self._slate_games_range = slate_games_range
+    session: Session
+    seasons: list[int]
+    slate_games_range: tuple[int, int]
+    service_name: str
+    style: ContestStyle
+    seed: InitVar[int]
+    cache_dir: str
+    cache_mode: CacheMode
+    season_parts: list[SeasonPart] = field(default_factory=lambda: [SeasonPart.REGULAR])
+
+    _rand_obj: Random = field(init=False)
+    _past_selections: set[int] = field(init=False, default_factory=set)
+    """ past randomly generated slate selections in the form of a 
+    set of sorted tuples of game IDs"""
+
+    def __post_init__(self, seed):
         self._rand_obj = Random(seed)
-
-        self._past_selections: set[int] = set()
-        """ past randomly generated slate selections in the form of a 
-        set of sorted tuples of game IDs"""
-
-    class NextSlateDef(NamedTuple):
-        season: int
-        game_number: int
-        game_ids: list[int]
-        game_ids_hash: int
 
     @property
     def next(self):
         """
         return what the next slate will be based on as a tuple of (season, game_num, game_ids)
         """
-        season = self._rand_obj.choice(self._seasons)
         for _ in range(_MAX_NEXT_FAILURES):
+            season = self._rand_obj.choice(self.seasons)
             game_num = self._rand_obj.randint(
-                1, self._session.info["fantasy.db_manager"].get_max_epochs(season)
+                1, self.session.info["fantasy.db_manager"].get_max_epochs(season)
             )
-            all_game_ids = list(
-                cast(int, row[0])
-                for row in self._session.query(db.Game.id)
-                .filter(db.Game.season == season, db.Game.game_number == game_num)
-                .all()
-            )
-            game_count = self._rand_obj.randint(*self._slate_games_range)
-            if game_count > len(all_game_ids):
+            game_count = self._rand_obj.randint(*self.slate_games_range)
+
+            try:
+                epoch = self.session.info["fantasy.db_manager"].epoch_for_game_number(
+                    season, game_num
+                )
+            except DateNotAvailableError:
+                _LOGGER.info(
+                    "Skipping sample for season=%i, game_num=%i: date not available",
+                    season,
+                    game_num,
+                )
                 continue
-            game_ids = sorted(self._rand_obj.sample(all_game_ids, game_count))
-            if (game_ids_hash := cast(int, constant_hasher(game_ids))) in self._past_selections:
+            if epoch.season_part not in self.season_parts:
+                _LOGGER.info(
+                    "Skipping sample for epoch=%s: season part %s not in %s",
+                    epoch,
+                    epoch.season_part,
+                    self.season_parts,
+                )
+                continue
+            try:
+                starters = cast(
+                    Starters,
+                    self.session.info["fantasy.db_manager"].get_starters(
+                        self.service_name,
+                        games_date=epoch.date,
+                        db_obj=self.session.info["db_obj"],
+                        remote_allow=False,
+                        style=self.style,
+                        cache_dir=self.cache_dir,
+                        cache_mode=self.cache_mode,
+                    ),
+                )
+            except DataNotAvailableException as ex:
+                _LOGGER.info("Skipping sample for epoch=%s: %s", epoch, ex)
                 continue
 
-            self._past_selections.add(game_ids_hash)
+            assert starters.slates is not None
+            slate_with_most_games, slate_games_count = _pick_slate(starters)
+            if game_count > slate_games_count:
+                _LOGGER.info(
+                    "Skipping sample of season=%i, game_num=%i game_count=%i: "
+                    "slate with most games has only %i games",
+                    season,
+                    game_num,
+                    game_count,
+                    slate_games_count,
+                )
+                continue
+
+            available_slate_games = starters.slates[slate_with_most_games].get("games")
+            assert available_slate_games is not None
+            game_descs = sorted(self._rand_obj.sample(available_slate_games, game_count))
+            filtered_starters = starters.filter_by_slate(
+                slate_with_most_games, game_descs=game_descs
+            )
+
+            if (games_hash := cast(int, constant_hasher(game_descs))) in self._past_selections:
+                _LOGGER.info(
+                    "Skipping sample for epoch=%s game_count=%i: "
+                    "games sample for this slate have already been used.",
+                    epoch,
+                    game_count,
+                )
+                continue
+
+            self._past_selections.add(games_hash)
             break
         else:
             raise ExportError(
                 f"After {_MAX_NEXT_FAILURES} tries, failed to find a slate for {season}"
             )
 
-        return self.NextSlateDef(season, game_num, game_ids, game_ids_hash)
+        return SlateDef(epoch, filtered_starters, slate_with_most_games, game_descs, games_hash)

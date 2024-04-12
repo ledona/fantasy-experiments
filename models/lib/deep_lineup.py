@@ -12,7 +12,6 @@ from .deep import ExistingFilesMode, deep_data_export, deep_train
 
 _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
-_DEFAULT_GAMES_PER_SLATE = 4, 6
 
 
 def _data_export_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
@@ -119,16 +118,16 @@ def main(cmd_line_str=None):
     data_parser.add_argument("--style", default=ContestStyle.CLASSIC)
     data_parser.add_argument(
         "--seasons",
-        nargs="+",
+        nargs=2,
         type=int,
-        help="Default is to infer slates from any available season",
+        metavar=("first-season", "last-season"),
+        help="Default is to infer slates from all available seasons",
     )
     data_parser.add_argument(
         "--games_per_slate_range",
-        help=f"Number of games per slate. Default is {_DEFAULT_GAMES_PER_SLATE}",
+        help="Number of games per slate. Default is to infer this from the most recent season.",
         nargs=2,
         type=int,
-        default=_DEFAULT_GAMES_PER_SLATE,
     )
     data_parser.add_argument(
         "--existing_files_mode",

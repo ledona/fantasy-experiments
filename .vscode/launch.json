@@ -55,14 +55,16 @@
                 // "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",
                 // "--name", "mlb-dk-dataset",
                 // "${env:FANTASY_HOME}/mlb_hist_20082023.scored.db",
-                // "--name", "nhl-dk-dataset",
-                // "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
-                "--name", "nfl-dk-dataset",
-                "${env:FANTASY_HOME}/nfl_hist_2009-2022.scored.db",
+                "--name", "nhl-dk-dataset",
+                "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
+                "--seasons", "20152016", "20222023",
+                "--validation", "20222023", ".2",
+                // "--name", "nfl-dk-dataset",
+                // "${env:FANTASY_HOME}/nfl_hist_2009-2022.scored.db",
 
                 "draftkings",
                 // "--skip_training",
-                "--validation", "2023", ".2"
+                // "--validation", "2023", ".2"
             ]
         },
         {
