@@ -186,9 +186,9 @@ def export(
                         "for %i-%i game_ids=%s: %s",
                         attempt_num + 1,
                         sample_num + 1,
-                        slate_def.season,
-                        slate_def.game_number,
-                        slate_def.game_ids,
+                        slate_def.epoch.season,
+                        slate_def.epoch.game_number,
+                        slate_def.game_descs,
                         ex,
                     )
                     failed_attempts.append(slate_def)
