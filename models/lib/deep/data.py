@@ -22,7 +22,12 @@ from fantasy_py import (
     log,
 )
 from fantasy_py.inference import ImputeFailure, get_models_by_name
-from fantasy_py.lineup import DEEP_LINEUP_POSITION_REMAPPINGS, FantasyService, gen_lineups
+from fantasy_py.lineup import (
+    DEEP_LINEUP_POSITION_REMAPPINGS,
+    FantasyService,
+    gen_lineups,
+    LineupGenerationFailure,
+)
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import DateNotAvailableError, Starters
 from ledona import constant_hasher
@@ -197,9 +202,9 @@ def export(
                             f"expected={expected_cols} found={df_cols}"
                         )
                     break
-                except (ImputeFailure, DataNotAvailableException) as ex:
+                except (ImputeFailure, DataNotAvailableException, LineupGenerationFailure) as ex:
                     _LOGGER.warning(
-                        "Attempt %i for sample %i failed to create a slate "
+                        "Attempt %i for sample %i failed to create a sample "
                         "for %i-%i game_ids=%s: %s",
                         attempt_num + 1,
                         sample_num + 1,
