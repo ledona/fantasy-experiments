@@ -131,14 +131,16 @@ def export(
     successful_attempts = []
     failed_attempts = []
     df_lens = []
-    with db_obj.session_scoped() as session:
-        if requested_seasons is None:
-            seasons = [cast(int, row[0]) for row in session.query(db.Game.season).distinct().all()]
-        else:
-            if not set(requested_seasons).issubset(db_obj.db_manager.get_seasons()):
-                raise ExportError(f"Requested seasons {requested_seasons} not supported by sport")
-            seasons = requested_seasons
 
+    seasons = list(db_obj.db_manager.get_seasons())
+    if requested_seasons is not None:
+        seasons = [
+            season for season in seasons if requested_seasons[0] <= season <= requested_seasons[1]
+        ]
+    if len(seasons) == 0:
+        raise ExportError(f"Requested seasons {requested_seasons} resulted in no seasons selected")
+
+    with db_obj.session_scoped() as session:
         if slate_games_range is None:
             _LOGGER.info("Getting max games for slates using season=%i", max(seasons))
             slate_games_range = 2, _get_max_slate_games(
@@ -375,12 +377,21 @@ def _get_slate_sample(
 
     addl_df = score_df.apply(addl_data_func, axis=1, result_type="expand")
 
-    df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df, addl_df], axis=1)
+    df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df, addl_df], axis=1).query(
+        "cost.notna()"
+    )
 
+    pos_cols_to_drop: list[str] = []
     for col in df.columns:
         if not col.startswith("pos:"):
             continue
+        if df[col].isna().all():
+            pos_cols_to_drop.append(col)
+            continue
         df[col] = df[col].fillna(0)
+
+    if len(pos_cols_to_drop) > 0:
+        df.drop(columns=pos_cols_to_drop, inplace=True)
     return df
 
 
@@ -388,6 +399,7 @@ def _get_slate_sample(
 class _RandomSlateSelector:
     session: Session
     seasons: list[int]
+    """list of seasons to select slates from"""
     slate_games_range: tuple[int, int]
     service_name: str
     style: ContestStyle
