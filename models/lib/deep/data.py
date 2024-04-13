@@ -15,6 +15,7 @@ from fantasy_py import (
     FantasyException,
     GameScheduleEpoch,
     SeasonPart,
+    SlateDict,
     cache_to_file,
     db,
     dt_to_filename_str,
@@ -73,7 +74,20 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
-@cache_to_file()
+def __get_max_slate_games_cache_filename(
+    session: Session, season: int, style: ContestStyle, service_cls: FantasyService
+):
+    filename_parts = [
+        "max_slate_games",
+        session.info["fantasy.db_manager"].ABBR,
+        str(season),
+        service_cls.SERVICE_NAME,
+        style.name,
+    ]
+    return "-".join(filename_parts) + ".cache"
+
+
+@cache_to_file(filename_func=__get_max_slate_games_cache_filename)
 def _get_max_slate_games(
     session: Session, season: int, style: ContestStyle, service_cls: FantasyService
 ):
@@ -117,14 +131,16 @@ def export(
     successful_attempts = []
     failed_attempts = []
     df_lens = []
-    with db_obj.session_scoped() as session:
-        if requested_seasons is None:
-            seasons = [cast(int, row[0]) for row in session.query(db.Game.season).distinct().all()]
-        else:
-            if not set(requested_seasons).issubset(db_obj.db_manager.get_seasons()):
-                raise ExportError(f"Requested seasons {requested_seasons} not supported by sport")
-            seasons = requested_seasons
 
+    seasons = list(db_obj.db_manager.get_seasons())
+    if requested_seasons is not None:
+        seasons = [
+            season for season in seasons if requested_seasons[0] <= season <= requested_seasons[1]
+        ]
+    if len(seasons) == 0:
+        raise ExportError(f"Requested seasons {requested_seasons} resulted in no seasons selected")
+
+    with db_obj.session_scoped() as session:
         if slate_games_range is None:
             _LOGGER.info("Getting max games for slates using season=%i", max(seasons))
             slate_games_range = 2, _get_max_slate_games(
@@ -293,10 +309,10 @@ def _get_slate_sample(
         random_seed=seed,
     )
 
-    new_slate_info = {
-        "style": style.name,
-        "cost_id": slate_def.slate_info["cost_id"],
-    }
+    cost_id = slate_def.slate_info.get("cost_id")
+    assert cost_id is not None
+
+    new_slate_info = cast(SlateDict, {"style": style.name, "cost_id": cost_id})
 
     # use historic data to generate the best possible lineup
     top_lineup, scores = gen_lineups(
@@ -334,11 +350,14 @@ def _get_slate_sample(
             pt_dict = fca.get_mi_team(row.team_id)
         else:
             pt_dict = fca.get_mi_player(row.player_id)
-        dict_ = {
-            "cost": pt_dict["cost"][service_cls.SERVICE_NAME][slate_def.slate_info["cost_id"]],
-        }
-        for pos in pt_dict["positions"]:
-            dict_["pos:" + pos_mapping.get(pos, pos)] = 1
+
+        assert isinstance(pt_dict, dict) and "positions" in pt_dict
+        dict_ = {"pos:" + pos_mapping.get(pos, pos): 1 for pos in pt_dict["positions"]}
+
+        assert isinstance(pt_dict, dict) and "cost" in pt_dict and isinstance(pt_dict["cost"], dict)
+        pt_cost_dict = pt_dict["cost"][service_cls.SERVICE_NAME]
+        assert isinstance(pt_cost_dict, dict)
+        dict_["cost"] = pt_cost_dict.get(cost_id)
         return dict_
 
     cost_pos_df = score_df.apply(cost_func, axis=1, result_type="expand")
@@ -358,12 +377,21 @@ def _get_slate_sample(
 
     addl_df = score_df.apply(addl_data_func, axis=1, result_type="expand")
 
-    df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df, addl_df], axis=1)
+    df = pd.concat([score_df.drop("game_id", axis=1), cost_pos_df, addl_df], axis=1).query(
+        "cost.notna()"
+    )
 
+    pos_cols_to_drop: list[str] = []
     for col in df.columns:
         if not col.startswith("pos:"):
             continue
+        if df[col].isna().all():
+            pos_cols_to_drop.append(col)
+            continue
         df[col] = df[col].fillna(0)
+
+    if len(pos_cols_to_drop) > 0:
+        df.drop(columns=pos_cols_to_drop, inplace=True)
     return df
 
 
@@ -371,6 +399,7 @@ def _get_slate_sample(
 class _RandomSlateSelector:
     session: Session
     seasons: list[int]
+    """list of seasons to select slates from"""
     slate_games_range: tuple[int, int]
     service_name: str
     style: ContestStyle
