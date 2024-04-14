@@ -244,7 +244,11 @@ def export(
             filename = (
                 f"{slate_def.epoch.season}-{slate_def.epoch.game_number}-{slate_def.hash_value}.pq"
             )
-            df.to_parquet(os.path.join(dataset_dest_dir, filename))
+            dataset_filepath = os.path.join(dataset_dest_dir, filename)
+            df.to_parquet(dataset_filepath)
+            _LOGGER.info(
+                "Sample #%i successfully created. Written to '%s'", sample_num + 1, dataset_filepath
+            )
             df_lens.append(len(df))
             samples_meta.append({**slate_def.meta_data, "player_count": len(df)})
 
