@@ -25,8 +25,8 @@ from fantasy_py.inference import ImputeFailure, get_models_by_name
 from fantasy_py.lineup import (
     DEEP_LINEUP_POSITION_REMAPPINGS,
     FantasyService,
-    gen_lineups,
     LineupGenerationFailure,
+    gen_lineups,
 )
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import DateNotAvailableError, Starters
@@ -114,7 +114,7 @@ def export(
     db_obj: db.FantasySQLAlchemyWrapper,
     dataset_name,
     parent_dest_dir: str,
-    requested_seasons: list[int] | None,
+    requested_seasons: tuple[int, int] | int | None,
     slate_games_range: tuple[int, int] | None,
     case_count: int,
     existing_files_mode: ExistingFilesMode,
@@ -124,6 +124,10 @@ def export(
     cache_dir,
     cache_mode: CacheMode,
 ):
+    """
+    requested_seasons: tuple of (start, end) seasons, inclusive, to choose from,\
+        or a single seasons, or None for all seasons
+    """
     _LOGGER.info("Starting export")
     model_names = service_cls.DEFAULT_MODEL_NAMES.get(db_obj.db_manager.ABBR)
     if model_names is None or len(model_names) == 0:
@@ -137,11 +141,20 @@ def export(
     failed_attempts = []
     df_lens = []
 
-    seasons = list(db_obj.db_manager.get_seasons())
-    if requested_seasons is not None:
-        seasons = [
-            season for season in seasons if requested_seasons[0] <= season <= requested_seasons[1]
-        ]
+    if requested_seasons is None or not isinstance(requested_seasons, int):
+        seasons = list(db_obj.db_manager.get_seasons())
+        if requested_seasons is not None:
+            seasons = [
+                season
+                for season in seasons
+                if requested_seasons[0] <= season <= requested_seasons[1]
+            ]
+    else:
+        seasons = [requested_seasons]
+        if requested_seasons not in db_obj.db_manager.get_seasons():
+            raise ExportError(
+                f"Requested season {requested_seasons} is not supported for this sport"
+            )
     if len(seasons) == 0:
         raise ExportError(f"Requested seasons {requested_seasons} resulted in no seasons selected")
 

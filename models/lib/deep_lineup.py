@@ -20,14 +20,14 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
         FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, args.service)
     )
 
-    iters: list[tuple[list[int], int, str]] = []
+    iters: list[tuple[tuple[int, int] | int, int, str]] = []
     if not args.skip_training:
         iters.append((args.seasons, args.samples, "-train"))
     if args.validation is not None:
         try:
             season, cases = args.validation
             cases = int(args.samples * float(cases) if "." in cases else cases)
-            iters.append(([int(season)], cases, "-test"))
+            iters.append((int(season), cases, "-test"))
         except ValueError as ex:
             parser.error(f"Failed to parse --validation argument: {ex}")
 
