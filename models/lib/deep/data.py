@@ -194,6 +194,14 @@ def export(
             for attempt_num in range(_MAX_SLATE_ATTEMPTS):
                 total_attempts += 1
                 slate_def = rand_obj.next
+                _LOGGER.info(
+                    "Sample #%i try #%i: %s '%s' (%i games)",
+                    sample_num + 1,
+                    attempt_num + 1,
+                    slate_def.epoch,
+                    slate_def.slate,
+                    len(slate_def.game_descs),
+                )
                 prog_iter.set_postfix(attempts=total_attempts)
                 try:
                     df = _get_slate_sample(
@@ -439,7 +447,7 @@ class _RandomSlateSelector:
         """
         return what the next slate will be based on as a tuple of (season, game_num, game_ids)
         """
-        for _ in range(_MAX_NEXT_FAILURES):
+        for attempt in range(_MAX_NEXT_FAILURES):
             season = self._rand_obj.choice(self.seasons)
             game_num = self._rand_obj.randint(
                 1, self.session.info["fantasy.db_manager"].get_max_epochs(season)
@@ -447,21 +455,24 @@ class _RandomSlateSelector:
             game_count = self._rand_obj.randint(*self.slate_games_range)
 
             try:
-                epoch = self.session.info["fantasy.db_manager"].epoch_for_game_number(
-                    season, game_num
+                epoch = cast(
+                    GameScheduleEpoch,
+                    self.session.info["fantasy.db_manager"].epoch_for_game_number(season, game_num),
                 )
             except DateNotAvailableError:
                 _LOGGER.info(
-                    "Skipping sample for season=%i, game_num=%i: date not available",
+                    "Skipping sample candidate %i season=%i, game_num=%i: date not available",
+                    attempt + 1,
                     season,
                     game_num,
                 )
                 continue
             if epoch.season_part not in self.season_parts:
                 _LOGGER.info(
-                    "Skipping sample for epoch=%s: season part %s not in %s",
+                    "Skipping sample candidate %i epoch=%s: season part %s not in %s",
+                    attempt + 1,
                     epoch,
-                    epoch.season_part,
+                    epoch.season_part.name,
                     self.season_parts,
                 )
                 continue
@@ -479,17 +490,17 @@ class _RandomSlateSelector:
                     ),
                 )
             except DataNotAvailableException as ex:
-                _LOGGER.info("Skipping sample for epoch=%s: %s", epoch, ex)
+                _LOGGER.info("Skipping sample candidate %i epoch=%s: %s", attempt + 1, epoch, ex)
                 continue
 
             assert starters.slates is not None
             slate_with_most_games, slate_games_count = _pick_slate(starters)
             if game_count > slate_games_count:
                 _LOGGER.info(
-                    "Skipping sample of season=%i, game_num=%i game_count=%i: "
-                    "slate with most games has only %i games",
-                    season,
-                    game_num,
+                    "Skipping sample candidate %i epoch=%s: game_count=%i is too high "
+                    "for largest slate with %i games",
+                    attempt + 1,
+                    epoch,
                     game_count,
                     slate_games_count,
                 )
@@ -504,10 +515,11 @@ class _RandomSlateSelector:
 
             if (games_hash := cast(int, constant_hasher(game_descs))) in self._past_selections:
                 _LOGGER.info(
-                    "Skipping sample for epoch=%s game_count=%i: "
-                    "games sample for this slate have already been used.",
+                    "Skipping sample candidate %i epoch=%s: "
+                    "random slate games sample already used. %s",
+                    attempt + 1,
                     epoch,
-                    game_count,
+                    game_descs,
                 )
                 continue
 
@@ -515,7 +527,9 @@ class _RandomSlateSelector:
             break
         else:
             raise ExportError(
-                f"After {_MAX_NEXT_FAILURES} tries, failed to find a slate for {season}"
+                f"Failed to find a viable slate candidate for {season} after {_MAX_NEXT_FAILURES} failures"
             )
 
-        return SlateDef(epoch, filtered_starters, slate_with_most_games, game_descs, games_hash)
+        return SlateDef(
+            epoch, filtered_starters, slate_with_most_games, game_descs, str(games_hash)
+        )
