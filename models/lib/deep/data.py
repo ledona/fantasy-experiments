@@ -324,7 +324,12 @@ def _get_slate_sample(
     cache_mode,
 ):
     fca = db_obj.db_manager.fca_from_starters(
-        db_obj, slate_def.starters, service_cls.SERVICE_NAME, slate=slate_def.slate
+        db_obj,
+        slate_def.starters,
+        service_cls.SERVICE_NAME,
+        slate=slate_def.slate,
+        cache_dir=cache_dir,
+        cache_mode=cache_mode,
     )
     sport_constraints = service_cls.get_constraints(db_obj.db_manager.ABBR, style=style)
     assert sport_constraints is not None
