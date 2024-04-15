@@ -55,6 +55,15 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
     elif os.path.isdir(args.model_filepath):
         # write to [model_filepath]/[default_model_filename]
         target_dir = args.model_filepath
+    elif not os.path.exists(args.model_filepath):
+        create_dir = input(
+            f"Model target directory '{args.model_filepath}' does not exist. Try and create? [y/N] "
+        )
+        if create_dir != "y":
+            parser.error(f"Model target directory '{args.model_filepath}' does not exist.")
+        os.mkdir(args.model_filepath)
+        print(f"Created model target directory '{args.model_filepath}'")
+        target_dir = args.model_filepath
     else:
         parser.error(
             f"Unable to write to model target directory '{args.model_filepath}'. "

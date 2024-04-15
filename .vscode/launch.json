@@ -48,7 +48,7 @@
             "args": [
                 "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup",
                 "data",
-                "--samples", "50",
+                "--samples", "100",
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/cache",
 
                 // "--name", "nba-dk-dataset",
@@ -86,10 +86,10 @@
                 "--verbose",
                 "train",
                 "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nhl-dk-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nhl-dk-lineup-2048",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nhl-dk-lineup-small",
                 "--epochs", "50",
-                "--batch", "64",
-                "--hidden_size", "2048",
+                "--batch", "16",
+                "--hidden_size", "512",
                 "--checkpoint_frequency", "10",
                 "--early", "10",
                 // "--limit", "32",

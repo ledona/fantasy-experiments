@@ -313,7 +313,7 @@ def train(
         FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, samples_meta["service"])
     )
     constraints = service_cls.get_constraints(
-        samples_meta["sport"], style=ContestStyle[samples_meta["style"]]
+        samples_meta["sport"], style=ContestStyle(samples_meta["style"])
     )
     if constraints is None:
         raise DeepTrainFailure(

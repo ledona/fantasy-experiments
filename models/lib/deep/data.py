@@ -303,6 +303,7 @@ class SlateDef:
             "game_descs": self.game_descs,
             "slate": self.slate,
             "date": self.epoch.date.isoformat(),
+            "games_hash": self.hash_value,
         }
 
 
