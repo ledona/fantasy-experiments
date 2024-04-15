@@ -482,7 +482,7 @@ class _RandomSlateSelector:
                     attempt + 1,
                     epoch,
                     epoch.season_part.name,
-                    self.season_parts,
+                    [part.name for part in self.season_parts],
                 )
                 continue
             try:
