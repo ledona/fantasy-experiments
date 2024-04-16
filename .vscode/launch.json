@@ -48,7 +48,7 @@
             "args": [
                 "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup",
                 "data",
-                "--samples", "100",
+                "--samples", "500",
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/cache",
 
                 // "--name", "nba-dk-dataset",
@@ -56,20 +56,20 @@
                 // "--seasons", "20152016", "20222023",
                 // "--validation", "20222023", ".2",
 
-                // "--name", "mlb-dk-dataset",
-                // "${env:FANTASY_HOME}/mlb_hist_20082023.scored.db",
-                // "--seasons", "2016", "2023",
-                // "--validation", "2023", ".2",
+                "--name", "mlb-dk-dataset",
+                "${env:FANTASY_HOME}/mlb_hist_20082023.scored.db",
+                "--seasons", "2016", "2023",
+                "--validation", "2023", ".2",
 
                 // "--name", "nhl-dk-dataset",
                 // "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
                 // "--seasons", "20152016", "20222023",
                 // "--validation", "20222023", ".2",
 
-                "--name", "nfl-dk-dataset",
-                "${env:FANTASY_HOME}/nfl_hist_2009-2022.scored.db",
-                "--seasons", "2017", "2022",
-                "--validation", "2022", ".2",
+                // "--name", "nfl-dk-dataset",
+                // "${env:FANTASY_HOME}/nfl_hist_2009-2022.scored.db",
+                // "--seasons", "2017", "2022",
+                // "--validation", "2022", ".2",
 
                 "draftkings",
                 // "--skip_training",
@@ -88,8 +88,8 @@
                 "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nhl-dk-dataset",
                 "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nhl-dk-lineup-small",
                 "--epochs", "50",
-                "--batch", "16",
-                "--hidden_size", "512",
+                "--batch", "32",
+                "--hidden_size", "1024",
                 "--checkpoint_frequency", "10",
                 "--early", "10",
                 // "--limit", "32",

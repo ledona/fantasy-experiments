@@ -163,7 +163,7 @@ def best_possible_lineup_score(
     )
     args, fca = db_obj.db_manager.gen_lineups_preprocess(
         db_obj, args, None, game_date, starters=starters, print_slate_info=False
-    )
+    )[:2]
 
     service_cls = cast(FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service))
 
