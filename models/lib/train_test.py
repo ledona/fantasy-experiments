@@ -3,7 +3,6 @@
 import os
 import platform
 import re
-import traceback
 from collections import defaultdict
 from datetime import datetime
 from glob import glob
@@ -16,8 +15,6 @@ import pandas as pd
 import sklearn.metrics
 import sklearn.model_selection
 
-# import autosklearn.regression
-# import xgboost as xgb
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
@@ -27,7 +24,7 @@ from fantasy_py import (
     UnexpectedValueError,
     dt_to_filename_str,
 )
-from fantasy_py.inference import Model, Performance, SKLModel, StatInfo
+from fantasy_py.inference import Model, Performance, SKLModel, StatInfo, NNRegressor
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
@@ -261,11 +258,11 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-AlgorithmType = Literal["tpot", "tpot-light", "autosk", "dummy", "xgb"]
+ArchitectureType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
 
 
 def train_test(
-    type_: AlgorithmType,
+    type_: ArchitectureType,
     model_name: str,
     target: StatInfo,
     tt_data: TrainTestData,
@@ -291,32 +288,28 @@ def train_test(
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
         )
-    elif type_ == "xgb":
-        # model = xgb.XGBRegressor(**model_init_kwargs)
+    elif type_ == "auto-xgb":
         model = TPOTRegressor(
             config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
         )
     elif type_ == "dummy":
         model = DummyRegressor(**model_init_kwargs)
-    # elif type_ == "autosk":
-    #     automl = autosklearn.regression.AutoSklearnRegressor(
-    #         seed=seed, time_left_for_this_task=training_time, memory_limit=-1
-    #     )
+    elif type_ == "nn":
+        model = NNRegressor(**model_init_kwargs)
     else:
-        raise NotImplementedError(f"automl type {type_} not recognized")
+        raise NotImplementedError(f"architecture {type_} not recognized")
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
     model.fit(X_train, y_train)
 
     if type_.startswith("tpot"):
         pprint(model.fitted_pipeline_)
-    # elif type_ == "autosk":
-    #     print(model.leaderboard())
-    #     pprint(model.show_models(), indent=4)
     elif type_ == "dummy":
         print("Dummy fitted")
-    elif type_ == "xgb":
+    elif type_ == "auto-xgb":
         print("XGB fitted")
+    elif type_ == "nn":
+        print("NN fitted")
     else:
         raise NotImplementedError(f"model type {type_} not recognized")
 
@@ -335,10 +328,12 @@ def train_test(
         f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}.pkl",
     )
     print(f"Exporting model artifact to '{filepath}'")
-    if type_ in ("autosk", "dummy", "xgb"):
+    if type_ in ("dummy", "auto-xgb"):
         joblib.dump(model, filepath)
     elif isinstance(model, TPOTRegressor):
         joblib.dump(model.fitted_pipeline_, filepath)
+    elif isinstance(model, NNRegressor):
+        raise NotImplementedError()
     else:
         raise NotImplementedError(f"model type {type_} not recognized")
 
@@ -348,7 +343,7 @@ def train_test(
 def _create_fantasy_model(
     name: str,
     model_artifact_path: str,
-    algo_type: AlgorithmType,
+    algo_type: ArchitectureType,
     dt_trained: datetime,
     train_df: pd.DataFrame,
     target: StatInfo,
@@ -466,7 +461,7 @@ def model_and_test(
     validation_season: int,
     tt_data,
     target,
-    algo_type: AlgorithmType,
+    algo_type: ArchitectureType,
     p_or_t,
     recent_games,
     training_seasons,

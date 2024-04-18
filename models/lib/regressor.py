@@ -12,6 +12,7 @@ from typing import Literal, TypedDict, cast
 import dask
 import dateutil
 import pandas as pd
+import torch
 from fantasy_py import (
     JSONWithCommentsDecoder,
     PlayerOrTeam,
@@ -20,9 +21,9 @@ from fantasy_py import (
 )
 from ledona import process_timer
 
-from .train_test import AlgorithmType, load_data, model_and_test
+from .train_test import ArchitectureType, load_data, model_and_test
 
-_EXPECTED_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
+_EXPECTED_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs", "nn_hidden_size"]
 
 
 class _Params(TypedDict):
@@ -113,7 +114,7 @@ class TrainingDefinitionFile:
     def _train_and_test(
         self,
         model_name: str,
-        automl_type: AlgorithmType,
+        arch_type: ArchitectureType,
         dest_dir: str | None,
         error_data: bool,
         reuse_existing_models: bool,
@@ -127,7 +128,7 @@ class TrainingDefinitionFile:
         params = self.get_params(model_name)
 
         # for any regressor kwarg not already set, fill in with model params
-        if automl_type.startswith("tpot"):
+        if arch_type.startswith("tpot") or arch_type == "nn":
             if not regressor_kwargs.get("random_state") and params["seed"]:
                 regressor_kwargs["random_state"] = params["seed"]
             if params["train_params"]:
@@ -146,7 +147,7 @@ class TrainingDefinitionFile:
 
         print("Training will proceed with the following parameters:")
         pprint(params)
-        print(f"Fitting model {model_name} with {automl_type} using {regressor_kwargs=}")
+        print(f"Fitting model {model_name} with {arch_type} using {regressor_kwargs=}")
 
         data_filepath = params["data_filename"]
         if data_dir is not None:
@@ -185,7 +186,7 @@ class TrainingDefinitionFile:
             params["validation_season"],
             tt_data,
             params["target"],
-            automl_type,
+            arch_type,
             params["p_or_t"],
             params["recent_games"],
             params["training_seasons"],
@@ -199,7 +200,7 @@ class TrainingDefinitionFile:
         return model
 
 
-_DEFAULT_AUTOML_TYPE: AlgorithmType = "tpot"
+_DEFAULT_ARCHITECTURE: ArchitectureType = "tpot"
 _DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 
@@ -224,7 +225,7 @@ def _handle_train(args):
         print("tpot dask enabled")
         dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 
-    if args.automl_type.startswith("tpot"):
+    if args.arch.startswith("tpot"):
         modeler_init_kwargs = {"use_dask": args.dask}
         if args.n_jobs:
             modeler_init_kwargs["n_jobs"] = args.n_jobs
@@ -232,24 +233,23 @@ def _handle_train(args):
             modeler_init_kwargs["max_time_mins"] = args.training_mins
         if args.training_iter_mins:
             modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
-    elif args.automl_type == "xgb":
-        # device = "cuda" if torch.cuda.is_available() else "cpu"
-        modeler_init_kwargs = {
-            # "device": device,
-            "verbosity": 2,
-        }
+    elif args.arch == "nn":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        modeler_init_kwargs = {"device": device}
+    elif args.arch == "automl-xgb":
+        modeler_init_kwargs = {"verbosity": 2}
         if args.n_jobs:
             modeler_init_kwargs["n_jobs"] = args.n_jobs
         if args.early_stopping_rounds:
             modeler_init_kwargs["early_stopping_rounds"] = args.early_stopping_rounds
-    elif args.automl_type == "dummy":
+    elif args.arch == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
     else:
         raise NotImplementedError()
 
     tdf._train_and_test(
         args.model,
-        args.automl_type,
+        args.arch,
         args.dest_dir,
         args.error_analysis_data,
         args.reuse,
@@ -288,7 +288,10 @@ def _add_train_parser(sub_parsers):
         action="store_true",
     )
     train_parser.add_argument(
-        "--automl_type", default=_DEFAULT_AUTOML_TYPE, choices=AlgorithmType.__args__
+        "--arch",
+        default=_DEFAULT_ARCHITECTURE,
+        choices=ArchitectureType.__args__,
+        help="model architecture",
     )
     train_parser.add_argument(
         "--n_jobs", "--tpot_jobs", help="Number of jobs/processors to use during training", type=int

@@ -14,7 +14,7 @@ from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
 from ..regressor import (
-    _DEFAULT_AUTOML_TYPE,
+    _DEFAULT_ARCHITECTURE,
     _DUMMY_REGRESSOR_KWARGS,
     TrainingDefinitionFile,
     _Params,
@@ -163,7 +163,7 @@ def test_training_def_file_train_test(
     if "--automl_type" in cmdline_strs:
         automl_type = cmdline_strs[cmdline_strs.index("--automl_type") + 1]
     else:
-        automl_type = _DEFAULT_AUTOML_TYPE
+        automl_type = _DEFAULT_ARCHITECTURE
 
     fake_raw_df = mocker.Mock()
     fake_tt_data = mocker.Mock()
