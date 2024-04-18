@@ -15,8 +15,7 @@
         ],
         "missing_data_threshold": 0.1,
         "train_params": {
-            "max_time_mins": 20,
-            "nn_hidden_size": 128
+            "max_time_mins": 20
         }
     },
     "model_groups": [
@@ -103,13 +102,13 @@
                         "calc",
                         "dk_score"
                     ],
-                    "include_pos": false,
-                    "cols_to_drop": [
-                        "extra:*",
-                        "*recent-[1-9]*",
-                        "*(player|opp)-team",
-                        "*std-mean"
-                    ],
+                    // "include_pos": false,
+                    // "cols_to_drop": [
+                    //     "extra:*",
+                    //     "*recent-[1-9]*",
+                    //     "*(player|opp)-team",
+                    //     "*std-mean"
+                    // ],
                     "filtering_query": "`calc:dk_score`.notna()"
                 },
                 "MLB-H-Y": {

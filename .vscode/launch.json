@@ -20,7 +20,7 @@
             "justMyCode": true
         },
         {
-            "name": "model train-test regresssor",
+            "name": "pt-model train-test regresssor",
             "type": "debugpy",
             "request": "launch",
             "module": "lib.regressor",

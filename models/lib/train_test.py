@@ -14,7 +14,7 @@ import joblib
 import pandas as pd
 import sklearn.metrics
 import sklearn.model_selection
-
+import torch
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
@@ -24,7 +24,7 @@ from fantasy_py import (
     UnexpectedValueError,
     dt_to_filename_str,
 )
-from fantasy_py.inference import Model, Performance, SKLModel, StatInfo, NNRegressor
+from fantasy_py.inference import Model, NNRegressor, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
@@ -80,6 +80,8 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
         df = df_raw
 
     print(f"Include player position = {include_position}")
+
+    # one-hot encode anything where the first value is a string
     one_hots = [
         col
         for col in df.columns
@@ -97,16 +99,16 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
     print(f"One-hot encoding features: {one_hots}")
     df = pd.get_dummies(df, columns=one_hots)
 
-    one_hot_stats = (
-        {"extra:venue": [col for col in df.columns if col.startswith("extra:venue_")]}
-        if "extra:venue" in df
-        else None
-    )
+    # one_hot_stats = (
+    #     {"extra:venue": [col for col in df.columns if col.startswith("extra:venue_")]}
+    #     if "extra:venue" in df
+    #     else None
+    # )
 
     if "extra:is_home" in df:
         df["extra:is_home"] = df["extra:is_home"].astype(int)
 
-    return df_raw, df, one_hot_stats
+    return df_raw, df, one_hots
 
 
 def infer_feature_cols(df: pd.DataFrame, include_position: bool):
@@ -179,6 +181,8 @@ def load_data(
     missing_data_threshold: warn about feature columns where data is not\
         found for more than this percentage of cases.E.g. 0 = warn in any data is missing\
         .25 = warn if > 25% of data is missing
+
+    returns tuple of (raw data, {train, test and validation data}, stats that are one-hot-transformed)
     """
     target_col_name = ":".join(target)
     print(f"Target column name set to '{target_col_name}'")
@@ -277,6 +281,10 @@ def train_test(
     """
     dt_trained = datetime.now()
     print(f"Fitting {model_name=} using {type_}")
+
+    (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
+    fit_addl_args = None
+
     if type_ == "tpot":
         model = TPOTRegressor(
             verbosity=3,
@@ -295,12 +303,13 @@ def train_test(
     elif type_ == "dummy":
         model = DummyRegressor(**model_init_kwargs)
     elif type_ == "nn":
-        model = NNRegressor(**model_init_kwargs)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = NNRegressor(**model_init_kwargs).to(device)
+        fit_addl_args = (X_test, y_test)
     else:
         raise NotImplementedError(f"architecture {type_} not recognized")
 
-    (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
-    model.fit(X_train, y_train)
+    model.fit(X_train, y_train, *(fit_addl_args or []))
 
     if type_.startswith("tpot"):
         pprint(model.fitted_pipeline_)

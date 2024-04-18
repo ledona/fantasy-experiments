@@ -12,7 +12,6 @@ from typing import Literal, TypedDict, cast
 import dask
 import dateutil
 import pandas as pd
-import torch
 from fantasy_py import (
     JSONWithCommentsDecoder,
     PlayerOrTeam,
@@ -23,7 +22,7 @@ from ledona import process_timer
 
 from .train_test import ArchitectureType, load_data, model_and_test
 
-_EXPECTED_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs", "nn_hidden_size"]
+_TPOT_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
 
 
 class _Params(TypedDict):
@@ -46,7 +45,7 @@ class _Params(TypedDict):
     """pandas compatible query string that will be run on the loaded data"""
     target_pos: list[str] | None
     training_pos: list[str] | None
-    train_params: dict[_EXPECTED_TRAINING_PARAMS, int | str | float | bool] | None
+    train_params: dict[_TPOT_TRAINING_PARAMS, int | str | float | bool] | None
     """params passed to the training algorithm (likely as kwargs)"""
 
 
@@ -110,6 +109,21 @@ class TrainingDefinitionFile:
             )
         return cast(_Params, param_dict)
 
+    @staticmethod
+    def _get_regressor_kwargs(regressor_kwargs, params, expected_param_names: set[str]):
+        if not regressor_kwargs.get("random_state") and params["seed"]:
+            regressor_kwargs["random_state"] = params["seed"]
+        if params["train_params"]:
+            if not set(params["train_params"].keys()) <= expected_param_names:
+                raise ValueError(
+                    "unexpected training parameters found in model definition file",
+                    set(params["train_params"].keys()) - expected_param_names,
+                )
+            for arg in expected_param_names:
+                if regressor_kwargs.get(arg) or not params["train_params"].get(arg):
+                    continue
+                regressor_kwargs[arg] = params["train_params"][arg]
+
     @process_timer
     def _train_and_test(
         self,
@@ -127,32 +141,10 @@ class TrainingDefinitionFile:
             raise NotImplementedError()
         params = self.get_params(model_name)
 
-        # for any regressor kwarg not already set, fill in with model params
-        if arch_type.startswith("tpot") or arch_type == "nn":
-            if not regressor_kwargs.get("random_state") and params["seed"]:
-                regressor_kwargs["random_state"] = params["seed"]
-            if params["train_params"]:
-                if not set(params["train_params"].keys()) <= set(
-                    _EXPECTED_TRAINING_PARAMS.__args__
-                ):
-                    raise ValueError(
-                        "unexpected training parameters found in model definition file",
-                        set(params["train_params"].keys())
-                        - set(_EXPECTED_TRAINING_PARAMS.__args__),
-                    )
-                for arg in _EXPECTED_TRAINING_PARAMS.__args__:
-                    if regressor_kwargs.get(arg) or not params["train_params"].get(arg):
-                        continue
-                    regressor_kwargs[arg] = params["train_params"][arg]
-
-        print("Training will proceed with the following parameters:")
-        pprint(params)
-        print(f"Fitting model {model_name} with {arch_type} using {regressor_kwargs=}")
-
         data_filepath = params["data_filename"]
         if data_dir is not None:
             data_filepath = os.path.join(data_dir, data_filepath)
-        raw_df, tt_data, one_hot_stats = load_data(
+        _, tt_data, one_hot_stats = load_data(
             data_filepath,
             params["target"],
             params["validation_season"],
@@ -164,7 +156,6 @@ class TrainingDefinitionFile:
         )
 
         print(f"data load of '{params['data_filename']}' complete. {one_hot_stats=}")
-
         if dump_data:
             print(f"Dumping training data to '{dump_data}'")
             df = pd.concat(tt_data[0:2], axis=1)
@@ -174,6 +165,23 @@ class TrainingDefinitionFile:
                 df.to_parquet(dump_data)
             else:
                 raise ValueError(f"Unknown data dump format: {dump_data}")
+
+        # for any regressor kwarg not already set, fill in with model params
+        if arch_type.startswith("tpot"):
+            final_regressor_kwargs = self._get_regressor_kwargs(
+                regressor_kwargs, params, set(_TPOT_TRAINING_PARAMS.__args__)
+            )
+        elif arch_type == "nn":
+            assert len(regressor_kwargs) == 0
+            final_regressor_kwargs = {
+                "input_size": len(tt_data[0].columns),
+                "hidden_size": 2 ** int(math.log2(len(tt_data[0].columns))),
+            }
+        else:
+            final_regressor_kwargs = regressor_kwargs
+        print("Training will proceed with the following parameters:")
+        pprint(params)
+        print(f"Fitting model {model_name} with {arch_type} using {final_regressor_kwargs=}")
 
         if info:
             print(f"model parameters for {model_name}")
@@ -190,7 +198,7 @@ class TrainingDefinitionFile:
             params["p_or_t"],
             params["recent_games"],
             params["training_seasons"],
-            regressor_kwargs,
+            final_regressor_kwargs,
             params["target_pos"],
             params["training_pos"] or params["target_pos"],
             dest_dir,
@@ -234,8 +242,9 @@ def _handle_train(args):
         if args.training_iter_mins:
             modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
     elif args.arch == "nn":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        modeler_init_kwargs = {"device": device}
+        # device = "cuda" if torch.cuda.is_available() else "cpu"
+        # modeler_init_kwargs = {"device": device}
+        modeler_init_kwargs = {}
     elif args.arch == "automl-xgb":
         modeler_init_kwargs = {"verbosity": 2}
         if args.n_jobs:
