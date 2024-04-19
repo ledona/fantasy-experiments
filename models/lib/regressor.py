@@ -16,13 +16,26 @@ from fantasy_py import (
     JSONWithCommentsDecoder,
     PlayerOrTeam,
     dt_to_filename_str,
+    log,
     typed_dict_validate,
 )
 from ledona import process_timer
 
 from .train_test import ArchitectureType, load_data, model_and_test
 
+log.enable_progress()
+_LOGGER = log.get_logger(__name__)
+
 _TPOT_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
+_NN_TRAINING_PARAMS = Literal[
+    "input_size",
+    "hidden_size",
+    "batch_size",
+    "epochs_max",
+    "early_stop_epochs",
+    "learning_rate",
+    "shuffle",
+]
 
 
 class _Params(TypedDict):
@@ -45,7 +58,7 @@ class _Params(TypedDict):
     """pandas compatible query string that will be run on the loaded data"""
     target_pos: list[str] | None
     training_pos: list[str] | None
-    train_params: dict[_TPOT_TRAINING_PARAMS, int | str | float | bool] | None
+    train_params: dict[_TPOT_TRAINING_PARAMS | _NN_TRAINING_PARAMS, int | str | float | bool] | None
     """params passed to the training algorithm (likely as kwargs)"""
 
 
@@ -111,18 +124,21 @@ class TrainingDefinitionFile:
 
     @staticmethod
     def _get_regressor_kwargs(regressor_kwargs, params, expected_param_names: set[str]):
-        if not regressor_kwargs.get("random_state") and params["seed"]:
-            regressor_kwargs["random_state"] = params["seed"]
+        new_kwargs = {}
+        if not new_kwargs.get("random_state") and params["seed"]:
+            new_kwargs["random_state"] = params["seed"]
         if params["train_params"]:
             if not set(params["train_params"].keys()) <= expected_param_names:
-                raise ValueError(
-                    "unexpected training parameters found in model definition file",
+                _LOGGER.warning(
+                    "Ignoring following parameters not used by NN models: %s",
                     set(params["train_params"].keys()) - expected_param_names,
                 )
             for arg in expected_param_names:
-                if regressor_kwargs.get(arg) or not params["train_params"].get(arg):
+                if new_kwargs.get(arg) or not params["train_params"].get(arg):
                     continue
-                regressor_kwargs[arg] = params["train_params"][arg]
+                new_kwargs[arg] = params["train_params"][arg]
+
+        return new_kwargs
 
     @process_timer
     def _train_and_test(
@@ -155,9 +171,9 @@ class TrainingDefinitionFile:
             filtering_query=params["filtering_query"],
         )
 
-        print(f"data load of '{params['data_filename']}' complete. {one_hot_stats=}")
+        _LOGGER.info(f"data load of '{params['data_filename']}' complete. {one_hot_stats=}")
         if dump_data:
-            print(f"Dumping training data to '{dump_data}'")
+            _LOGGER.info(f"Dumping training data to '{dump_data}'")
             df = pd.concat(tt_data[0:2], axis=1)
             if dump_data.endswith(".csv"):
                 df.to_csv(dump_data)
@@ -172,19 +188,25 @@ class TrainingDefinitionFile:
                 regressor_kwargs, params, set(_TPOT_TRAINING_PARAMS.__args__)
             )
         elif arch_type == "nn":
-            assert len(regressor_kwargs) == 0
-            final_regressor_kwargs = {
-                "input_size": len(tt_data[0].columns),
-                "hidden_size": 2 ** int(math.log2(len(tt_data[0].columns))),
-            }
+            final_regressor_kwargs = self._get_regressor_kwargs(
+                regressor_kwargs,
+                params,
+                set(_NN_TRAINING_PARAMS.__args__),
+            )
         else:
             final_regressor_kwargs = regressor_kwargs
-        print("Training will proceed with the following parameters:")
+        print("\nTraining will proceed with the following parameters:")
         pprint(params)
-        print(f"Fitting model {model_name} with {arch_type} using {final_regressor_kwargs=}")
+        print()
+        _LOGGER.info(
+            "Fitting model '%s' with arch=%s using final_regressor_kwargs=%s",
+            model_name,
+            arch_type,
+            final_regressor_kwargs,
+        )
 
         if info:
-            print(f"model parameters for {model_name}")
+            print(f"\nModel parameters for {model_name}")
             pprint(params)
             print(f"Data features (n={len(tt_data[0].columns)}): {sorted(tt_data[0].columns)}")
             sys.exit(0)
@@ -216,7 +238,7 @@ def _handle_train(args):
     tdf = TrainingDefinitionFile(args.train_file)
 
     if not os.path.isdir(args.dest_dir):
-        print(f"Destination directory '{args.dest_dir}' does not exist.")
+        _LOGGER.critical("Destination directory '%s' does not exist.", args.dest_dir)
         sys.exit(0)
 
     if not args.model:
@@ -230,7 +252,7 @@ def _handle_train(args):
         )
 
     if args.dask:
-        print("tpot dask enabled")
+        _LOGGER.info("tpot dask enabled")
         dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 
     if args.arch.startswith("tpot"):
@@ -336,7 +358,7 @@ def _model_catalog_func(args):
 
     glob_pattern = os.path.join(args.root, "**", "*.model")
     for model_filepath in glob.glob(glob_pattern, recursive=True):
-        print(f"parsing '{model_filepath}'")
+        _LOGGER.info("parsing '%s'", model_filepath)
         with open(model_filepath, "r") as f_:
             model_data = json.load(f_)
 

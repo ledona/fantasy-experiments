@@ -8,6 +8,7 @@ from datetime import datetime
 from glob import glob
 from pprint import pprint
 from typing import Literal, cast
+import math
 
 import dateutil
 import joblib
@@ -23,6 +24,7 @@ from fantasy_py import (
     PlayerOrTeam,
     UnexpectedValueError,
     dt_to_filename_str,
+    log,
 )
 from fantasy_py.inference import Model, NNRegressor, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
@@ -32,13 +34,15 @@ from tpot.config import regressor_config_dict, regressor_config_dict_light
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
+_LOGGER = log.get_logger(__name__)
+
 
 class WildcardFilterFoundNothing(FantasyException):
     """raised if a wildcard feature filter did not match any columns"""
 
 
 def _load_data(filename: str, include_position: bool | None, col_drop_filters: list[str] | None):
-    print(f"Loading data from '{filename}'")
+    _LOGGER.info(f"Loading data from '{filename}'")
 
     if filename.endswith(".csv"):
         df_raw = pd.read_csv(filename)
@@ -74,12 +78,12 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
                         f"Filter '{regexp}' did not match any columns: {df_raw.columns}"
                     )
                 cols_to_drop += re_cols_to_drop
-        print(f"Dropping n={len(cols_to_drop)} columns: {sorted(cols_to_drop)}")
+        _LOGGER.info(f"Dropping n={len(cols_to_drop)} columns: {sorted(cols_to_drop)}")
         df = df_raw.drop(columns=cols_to_drop)
     else:
         df = df_raw
 
-    print(f"Include player position = {include_position}")
+    _LOGGER.info(f"Include player position = {include_position}")
 
     # one-hot encode anything where the first value is a string
     one_hots = [
@@ -96,7 +100,7 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
             one_hots.append("pos")
             df.pos = df.pos.astype(str)
 
-    print(f"One-hot encoding features: {one_hots}")
+    _LOGGER.info(f"One-hot encoding features: {one_hots}")
     df = pd.get_dummies(df, columns=one_hots)
 
     # one_hot_stats = (
@@ -185,12 +189,12 @@ def load_data(
     returns tuple of (raw data, {train, test and validation data}, stats that are one-hot-transformed)
     """
     target_col_name = ":".join(target)
-    print(f"Target column name set to '{target_col_name}'")
+    _LOGGER.info(f"Target column name set to '{target_col_name}'")
 
     df_raw, df, one_hot_stats = _load_data(filename, include_position, col_drop_filters)
     if filtering_query:
         df = df.query(filtering_query)
-        print(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
+        _LOGGER.info(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
     feature_cols = [
         col
         for col in df.columns
@@ -230,7 +234,7 @@ def load_data(
 
     X_val = validation_df[feature_cols]
     y_val = validation_df[target_col_name]
-    print(
+    _LOGGER.info(
         f"Training will use {len(feature_cols)} features, "
         f"{len(X_train)} training cases, "
         f"{len(X_test)} test cases, {len(X_val)} validation test cases from {validation_season=}",
@@ -254,7 +258,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
         if (":std-mean" in col or col.startswith("extra:"))
     }
     if len(impute_values) == 0:
-        print(
+        _LOGGER.info(
             "No season to date features found in data. "
             "Impute data will not be included in model."
         )
@@ -280,7 +284,7 @@ def train_test(
     returns the filepath to the model
     """
     dt_trained = datetime.now()
-    print(f"Fitting {model_name=} using {type_}")
+    _LOGGER.info(f"Fitting {model_name=} using {type_}")
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
     fit_addl_args = None
@@ -304,7 +308,9 @@ def train_test(
         model = DummyRegressor(**model_init_kwargs)
     elif type_ == "nn":
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = NNRegressor(**model_init_kwargs).to(device)
+        hidden_size = 2 ** int(math.log2(len(tt_data[0].columns)))
+        input_size = len(tt_data[0].columns)
+        model = NNRegressor(input_size, hidden_size=hidden_size, **model_init_kwargs).to(device)
         fit_addl_args = (X_test, y_test)
     else:
         raise NotImplementedError(f"architecture {type_} not recognized")
@@ -312,37 +318,41 @@ def train_test(
     model.fit(X_train, y_train, *(fit_addl_args or []))
 
     if type_.startswith("tpot"):
+        _LOGGER.info("TPOT fitted")
         pprint(model.fitted_pipeline_)
     elif type_ == "dummy":
-        print("Dummy fitted")
+        _LOGGER.info("Dummy fitted")
     elif type_ == "auto-xgb":
-        print("XGB fitted")
+        _LOGGER.info("XGB fitted")
     elif type_ == "nn":
-        print("NN fitted")
+        _LOGGER.info("NN fitted")
     else:
         raise NotImplementedError(f"model type {type_} not recognized")
 
     y_hat = model.predict(X_test)
     r2_test = round(float(sklearn.metrics.r2_score(y_test, y_hat)), 3)
     mae_test = round(float(sklearn.metrics.mean_absolute_error(y_test, y_hat)), 3)
-    print(f"Test {r2_test=} {mae_test=}")
+    _LOGGER.info(f"Test {r2_test=} {mae_test=}")
 
     y_hat_val = model.predict(X_val)
     r2_val = round(float(sklearn.metrics.r2_score(y_val, y_hat_val)), 3)
     mae_val = round(float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val)), 3)
-    print(f"Validation {r2_val=} {mae_val=}")
+    _LOGGER.info(f"Validation {r2_val=} {mae_val=}")
 
     filepath = os.path.join(
         dest_dir,
-        f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}.pkl",
+        f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}",
     )
-    print(f"Exporting model artifact to '{filepath}'")
+    _LOGGER.info(f"Exporting model artifact to '{filepath}'")
     if type_ in ("dummy", "auto-xgb"):
+        filepath += ".pkl"
         joblib.dump(model, filepath)
     elif isinstance(model, TPOTRegressor):
+        filepath += ".pkl"
         joblib.dump(model.fitted_pipeline_, filepath)
     elif isinstance(model, NNRegressor):
-        raise NotImplementedError()
+        filepath += ".pt"
+        torch.save(model, filepath)
     else:
         raise NotImplementedError(f"model type {type_} not recognized")
 
@@ -369,7 +379,7 @@ def _create_fantasy_model(
     only_starters: bool | None = None,
 ) -> Model:
     """Create a model object based"""
-    print(f"Creating fantasy model for {name=}")
+    _LOGGER.info(f"Creating fantasy model for {name=}")
     assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
@@ -411,7 +421,7 @@ def _create_fantasy_model(
                         "Can't figure out which of the following extra stats to use: "
                         f"{possible_1_hot_extras}"
                     )
-                print(
+                _LOGGER.info(
                     f"One hotted extra stat '{extra_name}' assigned to original "
                     f"extra stat '{possible_1_hot_extras[0]}'"
                 )
@@ -492,7 +502,7 @@ def model_and_test(
 
         if most_recent_model is not None:
             final_model_filepath = most_recent_model[1]
-            print(f"Reusing model at '{final_model_filepath}'")
+            _LOGGER.info(f"Reusing model at '{final_model_filepath}'")
             model = Model.load(final_model_filepath)
 
     if model is None:
@@ -527,6 +537,6 @@ def model_and_test(
         )
 
         model.dump(final_model_filepath, overwrite=not reuse_most_recent)
-        print(f"Model file saved to '{final_model_filepath}'")
+        _LOGGER.info(f"Model file saved to '{final_model_filepath}'")
 
     return model

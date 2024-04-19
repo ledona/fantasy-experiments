@@ -102,6 +102,9 @@
                         "calc",
                         "dk_score"
                     ],
+                    "train_params": {
+                        "batch_size": 64
+                    },
                     // "include_pos": false,
                     // "cols_to_drop": [
                     //     "extra:*",
