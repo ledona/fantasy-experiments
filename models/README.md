@@ -49,7 +49,7 @@ python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
 # get model create params for a model
 python -m lib.regressor train {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
 # create model using defaults
-python -m lib.regressor train --n_jobs 4 [--automl_type MODEL_TYPE] {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {MODEL_DIR}
+python -m lib.regressor train --n_jobs 4 [--automl_type MODEL_TYPE] {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {DEST_MODEL_DIR}
 
 # for example
 python -O -m lib.regressor train --n_jobs 4 --automl_type tpot 2024.02/nba.json NBA-DK \

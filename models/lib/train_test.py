@@ -1,5 +1,6 @@
 """use this module's functions to train and evaluate models"""
 
+import math
 import os
 import platform
 import re
@@ -7,18 +8,21 @@ from collections import defaultdict
 from datetime import datetime
 from glob import glob
 from pprint import pprint
-from typing import Literal, cast
-import math
+from tempfile import gettempdir
+from typing import Literal, Type, cast
 
 import dateutil
 import joblib
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 import sklearn.metrics
 import sklearn.model_selection
 import torch
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
+    DataNotAvailableException,
     FantasyException,
     FeatureDict,
     PlayerOrTeam,
@@ -26,7 +30,7 @@ from fantasy_py import (
     dt_to_filename_str,
     log,
 )
-from fantasy_py.inference import Model, NNRegressor, Performance, SKLModel, StatInfo
+from fantasy_py.inference import Model, NNModel, NNRegressor, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
@@ -41,13 +45,49 @@ class WildcardFilterFoundNothing(FantasyException):
     """raised if a wildcard feature filter did not match any columns"""
 
 
-def _load_data(filename: str, include_position: bool | None, col_drop_filters: list[str] | None):
-    _LOGGER.info(f"Loading data from '{filename}'")
-
+def _load_data(
+    filename: str,
+    include_position: bool | None,
+    col_drop_filters: list[str] | None,
+    limit: int | None,
+    validation_season: int,
+):
+    """
+    validation_season: make sure that there is some validation data, even if\
+        there is a limit. If there is a limit and no validation data is retrieved\
+        when pulling data up to the limit then perform a subsequent retrieval of\
+        at most 10% of the limit from the validation season
+    """
     if filename.endswith(".csv"):
-        df_raw = pd.read_csv(filename)
+        df_raw = pd.read_csv(filename, nrows=limit)
+        if len(df_raw.query("season == @validation_season")) == 0:
+            raise DataNotAvailableException(
+                "Limited load of data from csv file failed to retrieve data from "
+                "validation season. Try again without limit, or try a different "
+                "the validation season."
+            )
     elif filename.endswith(".pq") or filename.endswith(".parquet"):
-        df_raw = pd.read_parquet(filename)
+        pf = pq.ParquetFile(filename)
+        if limit is not None:
+            first_n_rows = next(pf.iter_batches(batch_size=limit))
+            df_raw = pa.Table.from_batches([first_n_rows]).to_pandas()
+            if len(df_raw.query("season == @validation_season")) == 0:
+                df_validation = pd.read_parquet(
+                    filename, filters=[("season", "=", validation_season)]
+                )
+                df_raw = pd.concat([df_raw, df_validation])
+                _LOGGER.info(
+                    "Loaded %i rows from '%s' but no validation data from "
+                    "season %i was loaded. Additional load for "
+                    "validation data was done resulting in total (limit+validation) of "
+                    "%i rows.",
+                    limit,
+                    filename,
+                    validation_season,
+                    len(df_raw),
+                )
+        else:
+            df_raw = pf.read().to_pandas()
     else:
         raise NotImplementedError(
             f"Don't know how to load data files with extension {filename.rsplit('.', 1)[-1]}"
@@ -78,12 +118,12 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
                         f"Filter '{regexp}' did not match any columns: {df_raw.columns}"
                     )
                 cols_to_drop += re_cols_to_drop
-        _LOGGER.info(f"Dropping n={len(cols_to_drop)} columns: {sorted(cols_to_drop)}")
+        _LOGGER.info("Dropping n=%i columns: %s", len(cols_to_drop), sorted(cols_to_drop))
         df = df_raw.drop(columns=cols_to_drop)
     else:
         df = df_raw
 
-    _LOGGER.info(f"Include player position = {include_position}")
+    _LOGGER.info("Include player position = %s", include_position)
 
     # one-hot encode anything where the first value is a string
     one_hots = [
@@ -100,7 +140,7 @@ def _load_data(filename: str, include_position: bool | None, col_drop_filters: l
             one_hots.append("pos")
             df.pos = df.pos.astype(str)
 
-    _LOGGER.info(f"One-hot encoding features: {one_hots}")
+    _LOGGER.info("One-hot encoding features: %s", one_hots)
     df = pd.get_dummies(df, columns=one_hots)
 
     # one_hot_stats = (
@@ -169,6 +209,7 @@ def load_data(
     col_drop_filters: None | list[str] = None,
     filtering_query: None | str = None,
     missing_data_threshold=0,
+    limit: int | None = None,
 ):
     """
     Create train, test and validation data
@@ -189,9 +230,11 @@ def load_data(
     returns tuple of (raw data, {train, test and validation data}, stats that are one-hot-transformed)
     """
     target_col_name = ":".join(target)
-    _LOGGER.info(f"Target column name set to '{target_col_name}'")
+    _LOGGER.info("Target column name set to '%s'", target_col_name)
 
-    df_raw, df, one_hot_stats = _load_data(filename, include_position, col_drop_filters)
+    df_raw, df, one_hot_stats = _load_data(
+        filename, include_position, col_drop_filters, limit, validation_season
+    )
     if filtering_query:
         df = df.query(filtering_query)
         _LOGGER.info(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
@@ -284,10 +327,10 @@ def train_test(
     returns the filepath to the model
     """
     dt_trained = datetime.now()
-    _LOGGER.info(f"Fitting {model_name=} using {type_}")
+    _LOGGER.info("Fitting model_name=%s using type=%s", model_name, type_)
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
-    fit_addl_args = None
+    fit_addl_args: None | tuple = None
 
     if type_ == "tpot":
         model = TPOTRegressor(
@@ -310,29 +353,35 @@ def train_test(
         device = "cuda" if torch.cuda.is_available() else "cpu"
         hidden_size = 2 ** int(math.log2(len(tt_data[0].columns)))
         input_size = len(tt_data[0].columns)
-        model = NNRegressor(input_size, hidden_size=hidden_size, **model_init_kwargs).to(device)
+        if "checkpoint_dir" not in model_init_kwargs:
+            checkpoint_dir = os.path.join(
+                gettempdir(), "fantasy-nn-checkpoints", model_name + "-" + dt_to_filename_str()
+            )
+            _LOGGER.info("Creating nn checkpoint directory '%s'", checkpoint_dir)
+            os.mkdir(checkpoint_dir)
+        else:
+            checkpoint_dir = model_init_kwargs.pop("checkpoint_dir")
+        model = NNRegressor(
+            input_size, hidden_size=hidden_size, checkpoint_dir=checkpoint_dir, **model_init_kwargs
+        ).to(device)
         fit_addl_args = (X_test, y_test)
     else:
         raise NotImplementedError(f"architecture {type_} not recognized")
 
-    model.fit(X_train, y_train, *(fit_addl_args or []))
+    model = model.fit(X_train, y_train, *(fit_addl_args or []))
 
     if type_.startswith("tpot"):
         _LOGGER.info("TPOT fitted")
-        pprint(model.fitted_pipeline_)
-    elif type_ == "dummy":
-        _LOGGER.info("Dummy fitted")
-    elif type_ == "auto-xgb":
-        _LOGGER.info("XGB fitted")
-    elif type_ == "nn":
-        _LOGGER.info("NN fitted")
+        pprint(cast(TPOTRegressor, model).fitted_pipeline_)
+    elif type_ in ("dummy", "auto-xgb", "nn"):
+        _LOGGER.info("%s fitted", type_)
     else:
         raise NotImplementedError(f"model type {type_} not recognized")
 
     y_hat = model.predict(X_test)
     r2_test = round(float(sklearn.metrics.r2_score(y_test, y_hat)), 3)
     mae_test = round(float(sklearn.metrics.mean_absolute_error(y_test, y_hat)), 3)
-    _LOGGER.info(f"Test {r2_test=} {mae_test=}")
+    _LOGGER.info("Test r2_test=%f mae_test=%f", r2_test, mae_test)
 
     y_hat_val = model.predict(X_val)
     r2_val = round(float(sklearn.metrics.r2_score(y_val, y_hat_val)), 3)
@@ -343,7 +392,7 @@ def train_test(
         dest_dir,
         f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}",
     )
-    _LOGGER.info(f"Exporting model artifact to '{filepath}'")
+    _LOGGER.info("Exporting model artifact to '%s'", filepath)
     if type_ in ("dummy", "auto-xgb"):
         filepath += ".pkl"
         joblib.dump(model, filepath)
@@ -357,6 +406,12 @@ def train_test(
         raise NotImplementedError(f"model type {type_} not recognized")
 
     return filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
+
+
+def _get_model_cls(arch: ArchitectureType) -> Type[Model]:
+    if arch == "nn":
+        return NNModel
+    return SKLModel
 
 
 def _create_fantasy_model(
@@ -379,7 +434,7 @@ def _create_fantasy_model(
     only_starters: bool | None = None,
 ) -> Model:
     """Create a model object based"""
-    _LOGGER.info(f"Creating fantasy model for {name=}")
+    _LOGGER.info("Creating fantasy model for '%s'", name)
     assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
@@ -457,7 +512,8 @@ def _create_fantasy_model(
         data_def["training_pos"] = training_pos
     imputes = _infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM)
     uname = platform.uname()
-    model = SKLModel(
+    model_cls = _get_model_cls(algo_type)
+    model = model_cls(
         name,
         target_info,
         features,
@@ -537,6 +593,6 @@ def model_and_test(
         )
 
         model.dump(final_model_filepath, overwrite=not reuse_most_recent)
-        _LOGGER.info(f"Model file saved to '{final_model_filepath}'")
+        _LOGGER.info("Model file saved to '%s'", final_model_filepath)
 
     return model

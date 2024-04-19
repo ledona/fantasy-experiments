@@ -23,7 +23,6 @@ from ledona import process_timer
 
 from .train_test import ArchitectureType, load_data, model_and_test
 
-log.enable_progress()
 _LOGGER = log.get_logger(__name__)
 
 _TPOT_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
@@ -151,6 +150,7 @@ class TrainingDefinitionFile:
         data_dir: str | None,
         info: bool,
         dump_data: str,
+        limit: None | int,
         **regressor_kwargs,
     ):
         if error_data:
@@ -160,6 +160,11 @@ class TrainingDefinitionFile:
         data_filepath = params["data_filename"]
         if data_dir is not None:
             data_filepath = os.path.join(data_dir, data_filepath)
+
+        _LOGGER.info(
+            "loading data from '%s'%s", data_filepath, f" with limit {limit}" if limit else ""
+        )
+
         _, tt_data, one_hot_stats = load_data(
             data_filepath,
             params["target"],
@@ -167,8 +172,9 @@ class TrainingDefinitionFile:
             params["seed"],
             include_position=params["include_pos"],
             col_drop_filters=params["cols_to_drop"],
-            missing_data_threshold=params["missing_data_threshold"],
+            missing_data_threshold=params.get("missing_data_threshold", 0),
             filtering_query=params["filtering_query"],
+            limit=limit,
         )
 
         _LOGGER.info(f"data load of '{params['data_filename']}' complete. {one_hot_stats=}")
@@ -267,6 +273,8 @@ def _handle_train(args):
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
         modeler_init_kwargs = {}
+        if args.early_stopping_rounds:
+            modeler_init_kwargs["early_stop_epochs"] = args.early_stopping_rounds
     elif args.arch == "automl-xgb":
         modeler_init_kwargs = {"verbosity": 2}
         if args.n_jobs:
@@ -287,6 +295,7 @@ def _handle_train(args):
         args.data_dir,
         args.info,
         args.dump_data,
+        args.limited_data,
         **modeler_init_kwargs,
     )
 
@@ -349,7 +358,15 @@ def _add_train_parser(sub_parsers):
     train_parser.add_argument("--dest_dir", default=".")
     train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
     train_parser.add_argument("--dask", default=False, action="store_true")
-    train_parser.add_argument("--early_stopping_rounds", type=int)
+    train_parser.add_argument(
+        "--limited_data", type=int, help="limit the training data to this many sample"
+    )
+    train_parser.add_argument(
+        "--early_stopping_rounds",
+        "--early_stopping_epochs",
+        type=int,
+        help="number of rounds/epochs of no improvement after which to stop training",
+    )
 
 
 def _model_catalog_func(args):
@@ -449,6 +466,9 @@ def _add_load_actives_parser(sub_parsers):
 
 
 def main(cmd_line_str=None):
+    log.set_default_log_level(only_fantasy=False)
+    log.enable_progress()
+
     parser = argparse.ArgumentParser(
         description="Train and Test CLI for standard regression models"
     )
