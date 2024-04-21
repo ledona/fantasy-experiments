@@ -20,7 +20,7 @@
             "justMyCode": true
         },
         {
-            "name": "pt-model train-test regresssor",
+            "name": "model-pt train-test regresssor",
             "type": "debugpy",
             "request": "launch",
             "module": "lib.regressor",
@@ -32,7 +32,7 @@
                 // "--tpot_jobs", "2",
                 // "--time", "2",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2023.12",
-                "--limit", "100000",
+                "--limit", "10000",
                 "--arch", "nn",
                 "--dest", "/fantasy-isync/fantasy-modeling/2024.04",
                 "2024.04/mlb.json",

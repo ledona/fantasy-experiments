@@ -237,7 +237,7 @@ def load_data(
     )
     if filtering_query:
         df = df.query(filtering_query)
-        _LOGGER.info(f"Filter '{filtering_query}' dropped {len(df_raw) - len(df)} rows")
+        _LOGGER.info("Filter '%s' dropped %i rows", filtering_query, len(df_raw) - len(df))
     feature_cols = [
         col
         for col in df.columns
@@ -249,6 +249,8 @@ def load_data(
             or ":std" in col
         )
     ]
+
+    _LOGGER.info("Final feature cols: %s", sorted(feature_cols))
 
     train_test_df = df[df.season != validation_season]
     if len(train_test_df) == 0:
@@ -558,7 +560,7 @@ def model_and_test(
 
         if most_recent_model is not None:
             final_model_filepath = most_recent_model[1]
-            _LOGGER.info(f"Reusing model at '{final_model_filepath}'")
+            _LOGGER.info("Reusing model at '%s'", final_model_filepath)
             model = Model.load(final_model_filepath)
 
     if model is None:

@@ -29,6 +29,7 @@ _TPOT_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
 _NN_TRAINING_PARAMS = Literal[
     "input_size",
     "hidden_size",
+    "hidden_layers",
     "batch_size",
     "epochs_max",
     "early_stop_epochs",
