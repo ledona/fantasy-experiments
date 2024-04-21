@@ -16,7 +16,7 @@ lineup construction based on lineup strategy/constraints and player predictions.
 To create, archive and use new predictive models perform the following steps
 
 1. Make sure that the fantasy environment is successfully installed and usable, and the 
-database files containing raw and calculated stats are in $FANTASY_HOME.
+database files containing raw and calculated stats are in _$FANTASY_HOME_.
 2. Create a new model folder. Easiest to copy the most recent model folder and rename.
 3. Create/update the data export scripts and model training json files. The training files are json dicts with the following structure (refer to previous files for concrete examples):
 ```
