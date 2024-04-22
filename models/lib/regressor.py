@@ -160,6 +160,7 @@ class TrainingDefinitionFile:
         info: bool,
         dump_data: str,
         limit: None | int,
+        dest_filename: str | None,
         **regressor_kwargs,
     ):
         if error_data:
@@ -230,6 +231,7 @@ class TrainingDefinitionFile:
             params["training_pos"] or params["target_pos"],
             dest_dir,
             reuse_existing_models,
+            model_dest_filename=dest_filename,
         )
 
         return model
@@ -272,22 +274,24 @@ def _handle_train(args):
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
         modeler_init_kwargs = {}
-        if args.early_stopping_rounds:
-            modeler_init_kwargs["early_stop_epochs"] = args.early_stopping_rounds
+        if args.early_stop:
+            modeler_init_kwargs["early_stop_epochs"] = args.early_stop
+        if args.nn_max_epochs:
+            modeler_init_kwargs["epochs_max"] = args.nn_max_epochs
     elif args.arch == "automl-xgb":
         modeler_init_kwargs = {"verbosity": 2}
         if args.n_jobs:
             modeler_init_kwargs["n_jobs"] = args.n_jobs
-        if args.early_stopping_rounds:
-            modeler_init_kwargs["early_stopping_rounds"] = args.early_stopping_rounds
+        if args.early_stop:
+            modeler_init_kwargs["early_stopping_rounds"] = args.early_stop
     elif args.arch == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
     else:
-        raise NotImplementedError()
+        args.parse.error(f"Unknown architecture '{args.arch}' requested")
 
     tdf._train_and_test(
         args.model,
-        args.arch,
+        cast(ArchitectureType, args.arch),
         args.dest_dir,
         args.error_analysis_data,
         args.reuse,
@@ -295,6 +299,7 @@ def _handle_train(args):
         args.info,
         args.dump_data,
         args.limited_data,
+        args.dest_filename,
         **modeler_init_kwargs,
     )
 
@@ -354,17 +359,33 @@ def _add_train_parser(sub_parsers):
         type=int,
         help="override the training iteration time defined in the train_file",
     )
-    train_parser.add_argument("--dest_dir", default=".")
+    train_parser.add_argument(
+        "--dest_dir", default=".", help="directory to write final model and artifact files to"
+    )
+    train_parser.add_argument(
+        "--dest_filename",
+        help="The filename to write the model to. Model filenames will have the extension '.model'. "
+        "If the requested filename does not have this extension it will be appended. "
+        "Default is to use a filename based on the model name and a datetime stamp.",
+    )
     train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
     train_parser.add_argument("--dask", default=False, action="store_true")
     train_parser.add_argument(
-        "--limited_data", type=int, help="limit the training data to this many sample"
+        "--limited_data",
+        "--data_limit",
+        type=int,
+        help="limit the training data to this many sample",
     )
     train_parser.add_argument(
-        "--early_stopping_rounds",
-        "--early_stopping_epochs",
+        "--early_stop",
         type=int,
         help="number of rounds/epochs of no improvement after which to stop training",
+    )
+    train_parser.add_argument(
+        "--nn_max_epochs",
+        "--max_epochs",
+        type=int,
+        help="The maximum number of epochs to train a neural network model",
     )
 
 

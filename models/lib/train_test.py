@@ -25,6 +25,7 @@ from fantasy_py import (
     DataNotAvailableException,
     FantasyException,
     FeatureDict,
+    InvalidArgumentsException,
     PlayerOrTeam,
     UnexpectedValueError,
     dt_to_filename_str,
@@ -390,7 +391,8 @@ def train_test(
     y_hat_val = model.predict(X_val)
     r2_val = round(float(sklearn.metrics.r2_score(y_val, y_hat_val)), 3)
     mae_val = round(float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val)), 3)
-    _LOGGER.info(f"Validation {r2_val=} {mae_val=}")
+
+    _LOGGER.info("Validation r2_val=%f mae_val=%f", r2_val, mae_val)
 
     filepath = os.path.join(
         dest_dir,
@@ -437,7 +439,7 @@ def _create_fantasy_model(
     recent_explode: bool = True,
     only_starters: bool | None = None,
 ) -> Model:
-    """Create a model object based"""
+    """Create a model object"""
     _LOGGER.info("Creating fantasy model for '%s'", name)
     assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
     target_info = StatInfo(target[0], p_or_t, target[1])
@@ -481,8 +483,9 @@ def _create_fantasy_model(
                         f"{possible_1_hot_extras}"
                     )
                 _LOGGER.info(
-                    f"One hotted extra stat '{extra_name}' assigned to original "
-                    f"extra stat '{possible_1_hot_extras[0]}'"
+                    "One hotted extra stat '%s' assigned to original extra stat '%s'",
+                    extra_name,
+                    possible_1_hot_extras[0],
                 )
                 extra_name = possible_1_hot_extras[0]
 
@@ -549,10 +552,22 @@ def model_and_test(
     training_pos,
     dest_dir,
     reuse_most_recent: bool,
+    model_dest_filename: str | None = None,
 ):
-    """create or load a model and test it"""
+    """
+    create or load a model and test it
+    model_dest_filename: name of the file to write the model to. default is to use\
+        the default model filename pattern based on the model name
+    reuse_most_recent: do not create a new model if one already exists that follows\
+        the default model filenaming pattern. If an existing model exists, use the\
+        most recently created version
+    """
     model = None
     if reuse_most_recent:
+        if model_dest_filename is not None:
+            raise InvalidArgumentsException(
+                "reuse_most_recent cannot be used with a model_dest_filename"
+            )
         model_filename_pattern = ".".join([name, target[1], algo_type, "*", "model"])
         most_recent_model: tuple[datetime, str] | None = None
         for filename in glob(os.path.join(dest_dir, model_filename_pattern)):
@@ -566,9 +581,12 @@ def model_and_test(
             model = Model.load(final_model_filepath)
 
     if model is None:
-        final_model_filepath = os.path.join(
-            dest_dir, ".".join([name, target[1], algo_type, dt_to_filename_str(), "model"])
+        filename = model_dest_filename or ".".join(
+            [name, target[1], algo_type, dt_to_filename_str()]
         )
+        if not filename.endswith(".model"):
+            filename += ".model"
+        final_model_filepath = os.path.join(dest_dir, filename)
 
         model_artifact_path, performance, dt_trained = train_test(
             algo_type,

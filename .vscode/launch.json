@@ -32,10 +32,12 @@
                 // "--tpot_jobs", "2",
                 // "--time", "2",
                 "--data_dir", "/fantasy",
+                "--dest_filename", "test",
                 // "--data_dir", "/fantasy-isync/fantasy-modeling/2023.12",
-                // "--limit", "10000",
-                "--arch", "nn",
-                "--dest", "/fantasy-isync/fantasy-modeling/2024.04",
+                "--limit", "10000",
+                "--arch", "nn", "--max_epochs", "20",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04",
+                "--early_stop", "3",
                 "2024.04/mlb.json",
                 "MLB-H-DK"
             ]
