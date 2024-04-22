@@ -127,7 +127,7 @@ def test_training_def_file_model_names(tdf: TrainingDefinitionFile):
     [
         ("", False),
         ("--reuse", True),
-        ("--automl_type tpot-light", False),
+        ("--arch tpot-light", False),
         ("--tpot_jobs 5", False),
         ("--max_time_mins 8 --max_eval_time_mins 4", False),
     ],
@@ -160,10 +160,12 @@ def test_training_def_file_train_test(
         expected_tpot_train_params["max_time_mins"] = int(
             cmdline_strs[cmdline_strs.index("--max_time_mins") + 1]
         )
-    if "--automl_type" in cmdline_strs:
-        automl_type = cmdline_strs[cmdline_strs.index("--automl_type") + 1]
-    else:
-        automl_type = _DEFAULT_ARCHITECTURE
+
+    arch = (
+        cmdline_strs[cmdline_strs.index("--arch") + 1]
+        if "--arch" in cmdline_strs
+        else _DEFAULT_ARCHITECTURE
+    )
 
     fake_raw_df = mocker.Mock()
     fake_tt_data = mocker.Mock()
@@ -183,6 +185,7 @@ def test_training_def_file_train_test(
         col_drop_filters=params["cols_to_drop"],
         missing_data_threshold=params["missing_data_threshold"],
         filtering_query=params["filtering_query"],
+        limit=None,
     )
 
     mock_model_and_test.assert_called_once_with(
@@ -190,7 +193,7 @@ def test_training_def_file_train_test(
         params["validation_season"],
         fake_tt_data,
         params["target"],
-        automl_type,
+        arch,
         params["p_or_t"],
         params["recent_games"],
         params["training_seasons"],
@@ -262,9 +265,9 @@ def test_model_gen(tmpdir, mocker):
     """test that the resulting model file is as expected and that
     the expected calls to fit the model, etc were made"""
     model_name = "p1-stop"
-    automl_type = "dummy"
+    arch = "dummy"
     cmdline = (
-        f"--automl_type {automl_type} --max_time_mins 8 --max_eval_time_mins 4 "
+        f"--arch {arch} --max_time_mins 8 --max_eval_time_mins 4 "
         f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
     )
 
@@ -287,10 +290,10 @@ def test_model_gen(tmpdir, mocker):
         main("train " + cmdline)
 
     model_filepath = os.path.join(
-        tmpdir, f"{model_name}.{target_stat}.{automl_type}.{dt_to_filename_str(dt)}.model"
+        tmpdir, f"{model_name}.{target_stat}.{arch}.{dt_to_filename_str(dt)}.model"
     )
     pkl_filepath = os.path.join(
-        tmpdir, f"{model_name}-{automl_type}-stat.{target_stat}.{dt_to_filename_str(dt)}.pkl"
+        tmpdir, f"{model_name}-{arch}-stat.{target_stat}.{dt_to_filename_str(dt)}.pkl"
     )
     with open(pkl_filepath, "rb") as f_:
         regressor = joblib.load(f_)
@@ -305,6 +308,6 @@ def test_model_gen(tmpdir, mocker):
 
     del model_dict["model_file_version"]
     expected_model_dict = _create_expected_model_dict(
-        model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath, automl_type
+        model_name, feature_stat, feature_col, dt, pkl_filepath, model_filepath, arch
     )
     deep_compare_dicts(model_dict, expected_model_dict)

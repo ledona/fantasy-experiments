@@ -67,8 +67,8 @@ def _load_data(
                 "the validation season."
             )
     elif filename.endswith(".pq") or filename.endswith(".parquet"):
-        pf = pq.ParquetFile(filename)
         if limit is not None:
+            pf = pq.ParquetFile(filename)
             first_n_rows = next(pf.iter_batches(batch_size=limit))
             df_raw = pa.Table.from_batches([first_n_rows]).to_pandas()
             if len(df_raw.query("season == @validation_season")) == 0:
@@ -87,7 +87,7 @@ def _load_data(
                     len(df_raw),
                 )
         else:
-            df_raw = pf.read().to_pandas()
+            df_raw = pd.read_parquet(filename)
     else:
         raise NotImplementedError(
             f"Don't know how to load data files with extension {filename.rsplit('.', 1)[-1]}"
@@ -254,7 +254,8 @@ def load_data(
 
     train_test_df = df[df.season != validation_season]
     if len(train_test_df) == 0:
-        raise ValueError("No training data!")
+        _LOGGER.warning("No training data found for non-validation seasons. Using validation data.")
+        train_test_df = df
     if len(features_not_found := set(feature_cols) - set(train_test_df.columns)) > 0:
         raise ValueError(
             f"Following requested feature models not found in data: {features_not_found}"
@@ -275,7 +276,7 @@ def load_data(
 
     validation_df = df[df.season == validation_season]
     if len(validation_df) == 0:
-        raise ValueError("No validation data!")
+        raise ValueError(f"No validation data from season {validation_season} retrieved!")
 
     X_val = validation_df[feature_cols]
     y_val = validation_df[target_col_name]
@@ -297,8 +298,9 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     returns - a dict mapping column names to impute value to use, None if no
         imputation needed (i.e. no missing values)
     """
+    df = train_df.fillna(0)
     impute_values = {
-        Model.impute_key_for_feature_name(col, team_target): round(train_df[col].median(), 2)
+        Model.impute_key_for_feature_name(col, team_target): round(df[col].median(), 2)
         for col in train_df.columns
         if (":std-mean" in col or col.startswith("extra:"))
     }

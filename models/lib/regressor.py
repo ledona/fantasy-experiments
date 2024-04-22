@@ -123,8 +123,16 @@ class TrainingDefinitionFile:
         return cast(_Params, param_dict)
 
     @staticmethod
-    def _get_regressor_kwargs(regressor_kwargs, params, expected_param_names: set[str]):
-        new_kwargs = {}
+    def _get_regressor_kwargs(arch: ArchitectureType, regressor_kwargs: dict, params: dict):
+        # for any regressor kwarg not already set, fill in with model params
+        if arch.startswith("tpot"):
+            expected_param_names = set(_TPOT_TRAINING_PARAMS.__args__)
+        elif arch == "nn":
+            expected_param_names = set(_NN_TRAINING_PARAMS.__args__)
+        else:
+            return regressor_kwargs
+
+        new_kwargs = regressor_kwargs.copy()
         if not new_kwargs.get("random_state") and params["seed"]:
             new_kwargs["random_state"] = params["seed"]
         if params["train_params"]:
@@ -178,9 +186,11 @@ class TrainingDefinitionFile:
             limit=limit,
         )
 
-        _LOGGER.info(f"data load of '{params['data_filename']}' complete. {one_hot_stats=}")
+        _LOGGER.info(
+            "data load of '%s' complete. one_hot_stats=%s", params["data_filename"], one_hot_stats
+        )
         if dump_data:
-            _LOGGER.info(f"Dumping training data to '{dump_data}'")
+            _LOGGER.info("Dumping training data to '%s'", dump_data)
             df = pd.concat(tt_data[0:2], axis=1)
             if dump_data.endswith(".csv"):
                 df.to_csv(dump_data)
@@ -189,19 +199,7 @@ class TrainingDefinitionFile:
             else:
                 raise ValueError(f"Unknown data dump format: {dump_data}")
 
-        # for any regressor kwarg not already set, fill in with model params
-        if arch_type.startswith("tpot"):
-            final_regressor_kwargs = self._get_regressor_kwargs(
-                regressor_kwargs, params, set(_TPOT_TRAINING_PARAMS.__args__)
-            )
-        elif arch_type == "nn":
-            final_regressor_kwargs = self._get_regressor_kwargs(
-                regressor_kwargs,
-                params,
-                set(_NN_TRAINING_PARAMS.__args__),
-            )
-        else:
-            final_regressor_kwargs = regressor_kwargs
+        final_regressor_kwargs = self._get_regressor_kwargs(arch_type, regressor_kwargs, params)
         print("\nTraining will proceed with the following parameters:")
         pprint(params)
         print()
