@@ -317,50 +317,34 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
 ArchitectureType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
 
 
-def train_test(
-    type_: ArchitectureType,
-    model_name: str,
-    target: StatInfo,
-    tt_data: TrainTestData,
-    dest_dir: str,
-    **model_init_kwargs,
-) -> tuple[str, Performance, datetime]:
-    """
-    train, test and save a model to a pickle
-
-    training_time: max time to train in seconds
-    returns the filepath to the model
-    """
-    dt_trained = datetime.now()
-    _LOGGER.info("Fitting model_name=%s using type=%s", model_name, type_)
-
-    (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
-    fit_addl_args: None | tuple = None
-
-    if type_ == "tpot":
+def _create_model_obj(
+    arch: ArchitectureType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
+):
+    fit_addl_args = None
+    if arch == "tpot":
         model = TPOTRegressor(
             verbosity=3,
             **model_init_kwargs,
         )
-    elif type_ == "tpot-light":
+    elif arch == "tpot-light":
         model = TPOTRegressor(
             verbosity=3,
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
         )
-    elif type_ == "auto-xgb":
+    elif arch == "auto-xgb":
         model = TPOTRegressor(
             config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
         )
-    elif type_ == "dummy":
+    elif arch == "dummy":
         model = DummyRegressor(**model_init_kwargs)
-    elif type_ == "nn":
+    elif arch == "nn":
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        hidden_size = 2 ** int(math.log2(len(tt_data[0].columns)))
-        input_size = len(tt_data[0].columns)
+        hidden_size = 2 ** int(math.log2(len(x.columns)))
+        input_size = len(x.columns)
         if "checkpoint_dir" not in model_init_kwargs:
             checkpoint_dir = os.path.join(
-                gettempdir(), "fantasy-nn-checkpoints", model_name + "-" + dt_to_filename_str()
+                gettempdir(), "fantasy-nn-checkpoints", model_filebase + "-" + dt_to_filename_str()
             )
             _LOGGER.info("Creating nn checkpoint directory '%s'", checkpoint_dir)
             os.mkdir(checkpoint_dir)
@@ -369,10 +353,36 @@ def train_test(
         model = NNRegressor(
             input_size, hidden_size=hidden_size, checkpoint_dir=checkpoint_dir, **model_init_kwargs
         ).to(device)
-        fit_addl_args = (X_test, y_test)
+        fit_addl_args = (x, y)
     else:
-        raise NotImplementedError(f"architecture {type_} not recognized")
+        raise NotImplementedError(f"architecture {arch} not recognized")
 
+    return model, fit_addl_args
+
+
+def train_test(
+    type_: ArchitectureType,
+    model_name: str,
+    target: StatInfo,
+    tt_data: TrainTestData,
+    dest_dir: str,
+    model_filebase: str,
+    **model_init_kwargs,
+) -> tuple[str, Performance, datetime]:
+    """
+    train, test and save a model to a pickle
+
+    model_filebase: basename for model and artifact files
+    training_time: max time to train in seconds
+    returns the filepath to the model
+    """
+    dt_trained = datetime.now()
+    _LOGGER.info("Fitting model_name=%s using type=%s", model_name, type_)
+
+    (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
+    model, fit_addl_args = _create_model_obj(
+        type_, model_init_kwargs, X_test, y_test, model_filebase
+    )
     model = model.fit(X_train, y_train, *(fit_addl_args or []))
 
     if type_.startswith("tpot"):
@@ -394,24 +404,25 @@ def train_test(
 
     _LOGGER.info("Validation r2_val=%f mae_val=%f", r2_val, mae_val)
 
-    filepath = os.path.join(
-        dest_dir,
-        f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}",
+    artifact_filebase = (
+        model_filebase
+        or f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}"
     )
-    _LOGGER.info("Exporting model artifact to '%s'", filepath)
+    artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
+    _LOGGER.info("Exporting model artifact to '%s'", artifact_filebase_path)
     if type_ in ("dummy", "auto-xgb"):
-        filepath += ".pkl"
-        joblib.dump(model, filepath)
+        artifact_filebase_path += ".pkl"
+        joblib.dump(model, artifact_filebase_path)
     elif isinstance(model, TPOTRegressor):
-        filepath += ".pkl"
-        joblib.dump(model.fitted_pipeline_, filepath)
+        artifact_filebase_path += ".pkl"
+        joblib.dump(model.fitted_pipeline_, artifact_filebase_path)
     elif isinstance(model, NNRegressor):
-        filepath += ".pt"
-        torch.save(model, filepath)
+        artifact_filebase_path += ".pt"
+        torch.save(model, artifact_filebase_path)
     else:
         raise NotImplementedError(f"model type {type_} not recognized")
 
-    return filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
+    return artifact_filebase_path, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
 def _get_model_cls(arch: ArchitectureType) -> Type[Model]:
@@ -570,10 +581,10 @@ def model_and_test(
             )
         model_filename_pattern = ".".join([name, target[1], algo_type, "*", "model"])
         most_recent_model: tuple[datetime, str] | None = None
-        for filename in glob(os.path.join(dest_dir, model_filename_pattern)):
-            model_dt = dateutil.parser.parse(filename.split(".")[3])
+        for filebase_name in glob(os.path.join(dest_dir, model_filename_pattern)):
+            model_dt = dateutil.parser.parse(filebase_name.split(".")[3])
             if (most_recent_model is None) or (most_recent_model[0] < model_dt):
-                most_recent_model = (model_dt, filename)
+                most_recent_model = (model_dt, filebase_name)
 
         if most_recent_model is not None:
             final_model_filepath = most_recent_model[1]
@@ -581,12 +592,11 @@ def model_and_test(
             model = Model.load(final_model_filepath)
 
     if model is None:
-        filename = model_dest_filename or ".".join(
+        filebase_name = model_dest_filename or ".".join(
             [name, target[1], algo_type, dt_to_filename_str()]
         )
-        if not filename.endswith(".model"):
-            filename += ".model"
-        final_model_filepath = os.path.join(dest_dir, filename)
+        if filebase_name.endswith(".model"):
+            filebase_name = filebase_name.rsplit(".", 1)[0]
 
         model_artifact_path, performance, dt_trained = train_test(
             algo_type,
@@ -594,6 +604,7 @@ def model_and_test(
             target,
             tt_data,
             dest_dir,
+            filebase_name,
             **ml_kwargs,
         )
         performance["season"] = validation_season
@@ -614,6 +625,7 @@ def model_and_test(
             ml_kwargs,
         )
 
+        final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
         model.dump(final_model_filepath, overwrite=not reuse_most_recent)
         _LOGGER.info("Model file saved to '%s'", final_model_filepath)
 
