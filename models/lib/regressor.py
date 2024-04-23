@@ -263,27 +263,25 @@ def _handle_train(args):
         dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 
     if args.arch.startswith("tpot"):
-        modeler_init_kwargs = {"use_dask": args.dask}
-        if args.n_jobs:
-            modeler_init_kwargs["n_jobs"] = args.n_jobs
-        if args.training_mins:
-            modeler_init_kwargs["max_time_mins"] = args.training_mins
-        if args.training_iter_mins:
-            modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
+        modeler_init_kwargs = {
+            "use_dask": args.dask,
+            "n_jobs": args.n_jobs,
+            "max_time_mins": args.training_mins,
+            "max_eval_time_mins": args.training_iter_mins,
+        }
     elif args.arch == "nn":
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
-        modeler_init_kwargs = {}
-        if args.early_stop:
-            modeler_init_kwargs["early_stop_epochs"] = args.early_stop
-        if args.nn_max_epochs:
-            modeler_init_kwargs["epochs_max"] = args.nn_max_epochs
+        modeler_init_kwargs = {
+            "early_stop_epochs": args.early_stop,
+            **{key_[3:]: value_ for key_, value_ in vars(args).items() if key_.startswith("nn_")},
+        }
     elif args.arch == "automl-xgb":
-        modeler_init_kwargs = {"verbosity": 2}
-        if args.n_jobs:
-            modeler_init_kwargs["n_jobs"] = args.n_jobs
-        if args.early_stop:
-            modeler_init_kwargs["early_stopping_rounds"] = args.early_stop
+        modeler_init_kwargs = {
+            "verbosity": 2,
+            "n_jobs": args.n_jobs,
+            "early_stopping_rounds": args.early_stop,
+        }
     elif args.arch == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
     else:
@@ -382,10 +380,18 @@ def _add_train_parser(sub_parsers):
         help="number of rounds/epochs of no improvement after which to stop training",
     )
     train_parser.add_argument(
-        "--nn_max_epochs",
+        "--nn_epochs_max",
         "--max_epochs",
         type=int,
         help="The maximum number of epochs to train a neural network model",
+    )
+    train_parser.add_argument(
+        "--nn_checkpoint_dir", "--checkpoint_dir", help="The checkpoint directory for nn models"
+    )
+    train_parser.add_argument(
+        "--nn_resume_checkpoint_filepath",
+        "--resume_from",
+        help="resume nn training from this checkpoint",
     )
 
 

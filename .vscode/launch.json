@@ -32,12 +32,14 @@
                 // "--tpot_jobs", "2",
                 // "--time", "2",
                 "--data_dir", "/fantasy",
-                "--dest_filename", "test",
+                // "--dest_filename", "test",
                 // "--data_dir", "/fantasy-isync/fantasy-modeling/2023.12",
                 "--limit", "10000",
-                "--arch", "nn", "--max_epochs", "20",
+                "--arch", "nn", "--max_epochs", "10",
                 "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04",
-                "--early_stop", "3",
+                "--checkpoint_dir", "/tmp/fantasy-test-checks",
+                "--nn_resume", "/tmp/fantasy-test-checks/nn-checkpoint-005.pt",
+                // "--early_stop", "3",
                 "2024.04/mlb.json",
                 "MLB-H-DK"
             ]

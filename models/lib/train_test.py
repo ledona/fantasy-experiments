@@ -320,7 +320,8 @@ ArchitectureType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
 def _create_model_obj(
     arch: ArchitectureType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
 ):
-    fit_addl_args = None
+    fit_addl_args: None | tuple = None
+    fit_kwargs: None | dict = None
     if arch == "tpot":
         model = TPOTRegressor(
             verbosity=3,
@@ -339,25 +340,57 @@ def _create_model_obj(
     elif arch == "dummy":
         model = DummyRegressor(**model_init_kwargs)
     elif arch == "nn":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        # TODO: this should be in the model
         hidden_size = 2 ** int(math.log2(len(x.columns)))
         input_size = len(x.columns)
-        if "checkpoint_dir" not in model_init_kwargs:
-            checkpoint_dir = os.path.join(
-                gettempdir(), "fantasy-nn-checkpoints", model_filebase + "-" + dt_to_filename_str()
-            )
-            _LOGGER.info("Creating nn checkpoint directory '%s'", checkpoint_dir)
-            os.mkdir(checkpoint_dir)
+
+        resume_filepath = model_init_kwargs.pop("resume_checkpoint_filepath")
+        if resume_filepath is not None:
+            model, best_model_info, optimizer_state = NNRegressor.load_checkpoint(resume_filepath)
+            assert model.checkpoint_dir is not None
+            if not os.path.isdir(model.checkpoint_dir):
+                raise FileNotFoundError(
+                    f"Checkpoint model's checkpoint dir '{model.checkpoint_dir}' "
+                    "is not a valid directory"
+                )
+            _LOGGER.info("Resume will continue use of checkpoint dir '%s'", model.checkpoint_dir)
+            fit_kwargs = {
+                "resume_from_checkpoint": True,
+                "resume_best_model_info": best_model_info,
+                "resume_optimizer_state": optimizer_state,
+            }
         else:
-            checkpoint_dir = model_init_kwargs.pop("checkpoint_dir")
-        model = NNRegressor(
-            input_size, hidden_size=hidden_size, checkpoint_dir=checkpoint_dir, **model_init_kwargs
-        ).to(device)
+            if model_init_kwargs.get("checkpoint_dir") is None:
+                model_init_kwargs["checkpoint_dir"] = os.path.join(
+                    gettempdir(),
+                    "fantasy-nn-checkpoints",
+                    model_filebase + "-" + dt_to_filename_str(),
+                )
+
+            if os.path.isfile(model_init_kwargs["checkpoint_dir"]):
+                raise InvalidArgumentsException(
+                    "The checkpoint directory that would be used at "
+                    f"'{model_init_kwargs['checkpoint_dir']}' is a file! "
+                    "Delete it or use another directory"
+                )
+            if not os.path.exists(model_init_kwargs["checkpoint_dir"]):
+                _LOGGER.info(
+                    "Creating nn checkpoint directory '%s'", model_init_kwargs["checkpoint_dir"]
+                )
+                os.mkdir(model_init_kwargs["checkpoint_dir"])
+            model = NNRegressor(
+                input_size,
+                hidden_size=hidden_size,
+                **model_init_kwargs,
+            )
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = model.to(device)
+
         fit_addl_args = (x, y)
     else:
         raise NotImplementedError(f"architecture {arch} not recognized")
 
-    return model, fit_addl_args
+    return model, fit_addl_args, fit_kwargs
 
 
 def train_test(
@@ -380,10 +413,10 @@ def train_test(
     _LOGGER.info("Fitting model_name=%s using type=%s", model_name, type_)
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
-    model, fit_addl_args = _create_model_obj(
+    model, fit_addl_args, fit_kwargs = _create_model_obj(
         type_, model_init_kwargs, X_test, y_test, model_filebase
     )
-    model = model.fit(X_train, y_train, *(fit_addl_args or []))
+    model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
 
     if type_.startswith("tpot"):
         _LOGGER.info("TPOT fitted")
