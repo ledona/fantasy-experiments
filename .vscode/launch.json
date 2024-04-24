@@ -146,8 +146,8 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
-                "--auto", "dummy",
-                "--mode", "reuse", 
+                // "--auto", "dummy",
+                // "--mode", "reuse", 
                 "lol", "nfl", "mlb", "nhl", "nba"
             ]
         },

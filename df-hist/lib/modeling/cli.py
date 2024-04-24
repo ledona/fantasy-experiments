@@ -151,6 +151,8 @@ def _process_cmd_line(cmd_line_str=None):
         parser.error(f"results path folder '{args.results_path}' does not exist")
     if not os.path.isfile(args.model_cfg_file):
         parser.error(f"model cfg file '{args.model_cfg_file}' does not exist")
+    if not os.path.isdir(args.model_path):
+        parser.error(f"model destination path '{args.model_path}' does not exist")
 
     with open(args.model_cfg_file, "r") as f_:
         model_cfg = json.load(f_, cls=JSONWithCommentsDecoder)
