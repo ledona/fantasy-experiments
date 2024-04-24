@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import re
 import time
 from abc import ABC, abstractmethod
 from importlib import import_module
@@ -11,7 +12,6 @@ from typing import Callable, Literal
 
 import pandas as pd
 import tqdm
-from fantasy_py import sanitize_filename
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -256,7 +256,8 @@ class ServiceDataRetriever(ABC):
             )
             return False
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def get_historic_entries_df_from_file(cls, history_file_dir):
         """
         return a dataframe with entries data retrieved from the service's entry history data files
@@ -458,6 +459,11 @@ class ServiceDataRetriever(ABC):
         _LOGGER.info("Getting content at '%s'", url)
         self.browser.get(url)
 
+    @staticmethod
+    def _sanitize_filename(filename: str):
+        """make a string safe for use as a filename"""
+        return re.sub(r'[<>:"/\\|?*]', " ", filename)
+
     def get_data(
         self,
         cache_key: str,
@@ -479,7 +485,7 @@ class ServiceDataRetriever(ABC):
         """
         cache_filepath = None
 
-        filename = sanitize_filename(cache_key)
+        filename = self._sanitize_filename(cache_key)
 
         if self.cache_path is not None:
             cache_filepath = os.path.join(self.cache_path, f"{filename}.{data_type}")
