@@ -148,7 +148,9 @@
             "args": [
                 // "--auto", "dummy",
                 // "--mode", "reuse", 
-                "lol", "nfl", "mlb", "nhl", "nba"
+                "lol", "nfl", "mlb", "nhl", "nba",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2024.04",
+                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results"
             ]
         },
     ]

@@ -6,7 +6,7 @@ models do the following.
 1. Download contest data files from the daily fantasy service.
 1. Retrieve detailed data history using _retrieve_hist_
 1. transform data into a training dataset using _data_xform_
-1. train new models
+1. train new winning score prediction models
 
 ## Data Retrieval (__retrieve_hist__)
 Use _retrieve_hist_ to retrieve contest data from dfs websites. __This is not done from
@@ -41,9 +41,10 @@ python -m lib.xform.cli nfl mlb
 ```
 
 ## Create models
-Review/update _model_cfg.json_ , then run the following. Models will be written to the
-_models_ directory. Evaluation results will be written to a timestamp named file in 
+Review/update _model_cfg.json_ , then run the following. Models will be written to the _./models_ directory by default. Use _--model_path_ to write models to a different directory. Evaluation results will be written to a timestamp named file in 
 _eval\_results_ .
 ```
-python -m lib.modeling.cli nfl nba
+python -m lib.modeling.cli nfl nba \
+   --model_path /fantasy-isync/fantasy-dfs-hist/models/2024.04 \
+   --results_path /fantasy-isync/fantasy-dfs-hist/eval_results
 ```
