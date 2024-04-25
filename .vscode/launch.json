@@ -119,10 +119,10 @@
                 "--history-file-dir", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting",
                 "--cache", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting\\df-hist-cache",
 
-                // "--cache-only", 
+                "--cache-only", 
                 "-o", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting",
                 // "--sports", "nfl", 
-                "--start-date", "20240202", "--end-date", "2024-04-24",
+                // "--start-date", "20240202", "--end-date", "2024-04-24",
             ]
         },
         {
@@ -133,7 +133,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
-                "--services", "draftkings",
+                // "--services", "draftkings",
                 // "--", "--dates", "20200901", "20201101",
                 // "--sports", "nfl",
             ]
@@ -147,10 +147,11 @@
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
                 // "--auto", "dummy",
-                // "--mode", "reuse", 
-                "lol", "nfl", "mlb", "nhl", "nba",
+                "--mode", "reuse", 
+                "nhl", // "lol", "nfl", "mlb", "nhl", "nba",
                 "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2024.04",
-                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results"
+                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results",
+                "--data_path", "/fantasy-isync/fantasy-dfs-hist/data",
             ]
         },
     ]

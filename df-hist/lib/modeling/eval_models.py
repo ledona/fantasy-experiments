@@ -47,7 +47,7 @@ def evaluate_models(
     model_folder="models",
     service=None,
     mode: ExistingModelMode = "fail",
-) -> tuple[dict, list, list[tuple[str, str]]]:
+) -> tuple[dict | None, list | None, list[tuple[str, str]] | None]:
     """
     models_to_test: set/list of the models to test. if None then all models \
         tested. Possible models are if service is None then use all service \

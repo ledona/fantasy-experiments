@@ -292,9 +292,11 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
     draft_df = pd.read_csv(csv_path, parse_dates=["date"]).query(
         "sport == @sport and @min_date <= date < @max_date"
     )
-    assert (
-        len(draft_df) > 0
-    ), f"no draft data found for {sport=}, {service=}, {style=}, {min_date=}, {max_date=}"
+    if len(draft_df) == 0:
+        raise DataNotAvailableException(
+            f"No draft data found for {sport=}, {service=}, {style=}, {min_date=}, {max_date=} in '{csv_path}'. "
+            "Perhaps the last data retrieval run had too many constraints (date for example)?"
+        )
 
     draft_df["service"] = draft_df.contest.map(lambda contest: contest.split("-", 1)[0])
     draft_df.team_abbr = draft_df.team_abbr.str.upper()

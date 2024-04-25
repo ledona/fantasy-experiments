@@ -31,6 +31,7 @@ def _multi_run(
     model_folder,
     mode: ExistingModelMode,
     eval_results_path: str,
+    data_dir: str | None,
 ):
     _LOGGER.info("starting multirun for %s-%s-%s-%s", sports, services, styles, contest_types)
     models = {}
@@ -65,6 +66,7 @@ def _multi_run(
             models_to_test=models_to_test,
             service=service,
             mode=mode,
+            data_folder=data_dir,
         )
         if failed_models:
             all_failed_models += failed_models
@@ -123,6 +125,7 @@ def _process_cmd_line(cmd_line_str=None):
         default=_DEFAULT_MODEL_PATH,
         help=f"path where models will be written to. default={_DEFAULT_MODEL_PATH}",
     )
+    parser.add_argument("--data_dir", "--data_path", help="default is ./data")
     parser.add_argument(
         "--model_cfg_file",
         default=_DEFAULT_CFG_PATH,
@@ -147,6 +150,8 @@ def _process_cmd_line(cmd_line_str=None):
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
+    if args.data_dir is not None and not os.path.isdir(args.data_dir):
+        parser.error(f"data directory '{args.data_dir}' is not a folder")
     if not os.path.isdir(args.results_path):
         parser.error(f"results path folder '{args.results_path}' does not exist")
     if not os.path.isfile(args.model_cfg_file):
@@ -177,6 +182,7 @@ def _process_cmd_line(cmd_line_str=None):
         args.model_path,
         args.existing_model_mode,
         args.results_path,
+        args.data_dir,
     )[1:]
 
     show_eval_results(eval_results, failed_models, args.results_path)
