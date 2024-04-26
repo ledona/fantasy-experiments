@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Literal
 
 import pandas as pd
-
 from fantasy_py import DataNotAvailableException
 
 from .automl import ExistingModelMode, Framework, ModelTarget, create_automl_model

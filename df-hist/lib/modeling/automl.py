@@ -9,6 +9,10 @@ import joblib
 import numpy as np
 import pandas as pd
 import sklearn
+from fantasy_py import DataNotAvailableException
+from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
+    feature_names_from_win_score_model,
+)
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
 
@@ -135,6 +139,25 @@ def create_automl_model(
     else:
         modeler.fit(X_train, y_train, **fit_params)
         model = extract_regressor(modeler)
+        try:
+            feature_names_from_win_score_model(model)
+        except DataNotAvailableException:
+            if model.steps[0][0].startswith("zero"):
+                _LOGGER.info(
+                    "For '%s' adding 'fantasy_features_names' attribute to the "
+                    "estimator that does not implement feature_names_in_",
+                    model_desc,
+                )
+            else:
+                _LOGGER.error(
+                    "Failed to retrieve feature names from model '%s'. "
+                    "Adding a 'fantasy_features_names' attribute to the estimator. "
+                    "Attempt to fix this by explicitly identifying the estimator as "
+                    "not implementing feature_name_in_ or by by figuring out how to "
+                    "get features from the estimator type",
+                    model_desc,
+                )
+            model.fantasy_feature_names = X_train.columns
         _LOGGER.info("writing model to pickled file '%s'", model_filepath)
         joblib.dump(model, model_filepath)
 
