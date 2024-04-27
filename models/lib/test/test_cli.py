@@ -148,10 +148,11 @@ def test_training_def_file_train_test(
         "max_eval_time_mins": params["train_params"]["max_eval_time_mins"],
     }
 
-    if "--tpot_jobs" in cmdline_strs:
-        expected_tpot_train_params["n_jobs"] = int(
-            cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1]
-        )
+    expected_tpot_train_params["n_jobs"] = (
+        int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
+        if "--tpot_jobs" in cmdline_strs
+        else None
+    )
     if "--max_eval_time_mins" in cmdline_strs:
         expected_tpot_train_params["max_eval_time_mins"] = int(
             cmdline_strs[cmdline_strs.index("--max_eval_time_mins") + 1]
@@ -202,6 +203,7 @@ def test_training_def_file_train_test(
         params["training_pos"] or params["target_pos"],
         ".",
         expected_reuse,
+        model_dest_filename=None,
     )
 
 
@@ -293,7 +295,7 @@ def test_model_gen(tmpdir, mocker):
         tmpdir, f"{model_name}.{target_stat}.{arch}.{dt_to_filename_str(dt)}.model"
     )
     pkl_filepath = os.path.join(
-        tmpdir, f"{model_name}-{arch}-stat.{target_stat}.{dt_to_filename_str(dt)}.pkl"
+        tmpdir, f"{model_name}.{target_stat}.{arch}.{dt_to_filename_str(dt)}.pkl"
     )
     with open(pkl_filepath, "rb") as f_:
         regressor = joblib.load(f_)

@@ -282,9 +282,13 @@ def load_data(
     X_val = validation_df[feature_cols]
     y_val = validation_df[target_col_name]
     _LOGGER.info(
-        f"Training will use {len(feature_cols)} features, "
-        f"{len(X_train)} training cases, "
-        f"{len(X_test)} test cases, {len(X_val)} validation test cases from {validation_season=}",
+        "Training will use %i features, %i training cases, "
+        "%i test cases, %i validation test cases from validation_season=%i",
+        len(feature_cols),
+        len(X_train),
+        len(X_test),
+        len(X_val),
+        validation_season,
     )
 
     return (
@@ -438,24 +442,23 @@ def train_test(
     _LOGGER.info("Validation r2_val=%f mae_val=%f", r2_val, mae_val)
 
     artifact_filebase = (
-        model_filebase
-        or f"{model_name}-{type_}-{target[0]}.{target[1]}.{dt_to_filename_str(dt_trained)}"
+        model_filebase or f"{model_name}.{type_}.{target[1]}.{dt_to_filename_str(dt_trained)}"
     )
     artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
-    _LOGGER.info("Exporting model artifact to '%s'", artifact_filebase_path)
     if type_ in ("dummy", "auto-xgb"):
-        artifact_filebase_path += ".pkl"
-        joblib.dump(model, artifact_filebase_path)
+        artifact_filepath = artifact_filebase_path + ".pkl"
+        joblib.dump(model, artifact_filepath)
     elif isinstance(model, TPOTRegressor):
-        artifact_filebase_path += ".pkl"
-        joblib.dump(model.fitted_pipeline_, artifact_filebase_path)
+        artifact_filepath = artifact_filebase_path + ".pkl"
+        joblib.dump(model.fitted_pipeline_, artifact_filepath)
     elif isinstance(model, NNRegressor):
-        artifact_filebase_path += ".pt"
-        torch.save(model, artifact_filebase_path)
+        artifact_filepath = artifact_filebase_path + ".pt"
+        torch.save(model, artifact_filepath)
     else:
         raise NotImplementedError(f"model type {type_} not recognized")
 
-    return artifact_filebase_path, {"r2": r2_val, "mae": mae_val}, dt_trained
+    _LOGGER.info("Exported model artifact to '%s'", artifact_filepath)
+    return artifact_filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
 def _get_model_cls(arch: ArchitectureType) -> Type[Model]:
@@ -600,6 +603,7 @@ def model_and_test(
 ):
     """
     create or load a model and test it
+    
     model_dest_filename: name of the file to write the model to. default is to use\
         the default model filename pattern based on the model name
     reuse_most_recent: do not create a new model if one already exists that follows\
