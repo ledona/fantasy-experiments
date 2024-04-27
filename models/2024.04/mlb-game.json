@@ -1,0 +1,62 @@
+// configuration for game player/team prediction models
+{
+    "data_filename": "mlb_team.pq",
+    "seed": 1,
+    "validation_season": 2023,
+    "recent_games": 5,
+    "training_seasons": [
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022
+    ],
+    "starters_only": true,
+    "train_params": {
+        "max_time_mins": 20
+    },
+    // All features are duplicated for home and away teams
+    // and will be std and recent mean. 
+    "features": {
+        "team": [
+            "calc:ops",
+            "calc:runs",
+            "calc:whip"
+        ]
+    },
+    // models define a collection of stats that will be predicted per sample
+    // and any additional config for that model
+    "models": {
+        "DK": {
+            "features": {
+                "player": [
+                    "P:calc:dk_score",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:calc:dk_score",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:stat:bo"
+                ]
+            },
+            // for each player/team that produces features, predict the following
+            "targets": {
+                "player": [
+                    "calc:dk_score"
+                ]
+            }
+        },
+        "Y": {
+            "features": {
+                "player": [
+                    "P:calc:y_score",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:calc:y_score"
+                ]
+            },
+            "targets": {
+                "player": [
+                    "calc:y_score"
+                ]
+            }
+        }
+    }
+}

@@ -65,6 +65,13 @@ Generate lineups or run backtesting using one of the debug configurations or lin
 1. Catalog the model
 1. Load the model. See fantasy repository's README for details.
 
+### Game players/teams models
+1. Review data/model configuration file
+2. Create the dataset
+3. Train the model
+4. Catalog the model
+5. Load the model
+
 ## Model Cataloging
 Run the following to create a catalog of the best models currently in the catalog
 ```python -m lib.regressor catalog --best --root {root-model-dir}```
