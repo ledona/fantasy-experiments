@@ -34,7 +34,7 @@ def _data_func(args):
 
 
 def _add_data_parser(sub_parsers):
-    parser = sub_parsers.add_parser("data", help="Create training data")
+    parser = sub_parsers.add_parser("data", help="Transform a data export to model training data")
     parser.set_defaults(func=_data_func, parser=parser)
 
 

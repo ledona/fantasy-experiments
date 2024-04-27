@@ -83,7 +83,7 @@
             }
         },
         {
-            "data_filename": "mlb_hitter-test.pq",
+            "data_filename": "mlb_hitter.pq",
             "p_or_t": "P",
             "include_pos": true,
             "target_pos": [
@@ -106,13 +106,13 @@
                         "batch_size": 64,
                         "hidden_layers": 1
                     },
-                    "include_pos": false,
-                    "cols_to_drop": [
-                        "extra:*",
-                        "*recent-[1-9]*",
-                        "*(player|opp)-team"
-                        // "*std-mean"
-                    ],
+                    // "include_pos": false,
+                    // "cols_to_drop": [
+                    //     "extra:*",
+                    //     "*recent-[1-9]*",
+                    //     "*(player|opp)-team"
+                    //     "*std-mean"
+                    // ],
                     "filtering_query": "`calc:dk_score`.notna()"
                 },
                 "MLB-H-Y": {

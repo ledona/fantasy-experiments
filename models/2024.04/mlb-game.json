@@ -19,12 +19,15 @@
         "max_time_mins": 20
     },
     // All features are duplicated for home and away teams
-    // and will be std and recent mean. 
+    // and will be std and recent mean.
     "features": {
         "team": [
-            "calc:ops",
-            "calc:runs",
-            "calc:whip"
+            "stat:p_runs",
+            "extra:ops_recent",
+            "extra:ops_std",
+            "stat:off_runs",
+            "extra:whip_recent",
+            "extra:whip_std"
         ]
     },
     // models define a collection of stats that will be predicted per sample
@@ -34,8 +37,7 @@
             "features": {
                 "player": [
                     "P:calc:dk_score",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:calc:dk_score",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:stat:bo"
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:calc:dk_score"
                 ]
             },
             // for each player/team that produces features, predict the following
@@ -55,6 +57,34 @@
             "targets": {
                 "player": [
                     "calc:y_score"
+                ]
+            }
+        },
+        "stats": {
+            "features": {
+                "player": [
+                    "P:extra:whip_std",
+                    "P:extra:whip_recent",
+                    "P:stat:p_ip",
+                    "P:stat:p_k",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:stat:off_hit",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:bases_recent",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:bases_std"
+                ],
+                "team": [
+                    "stat:p_win"
+                ]
+            },
+            "targets": {
+                "player": [
+                    "stat:off_hit",
+                    "extra:bases",
+                    "stat:p_ip",
+                    "stat:p_k"
+                ],
+                "team": [
+                    "stat:off_runs",
+                    "stat:p_win"
                 ]
             }
         }
