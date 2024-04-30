@@ -14,9 +14,10 @@ p_ip p_k p_loss p_pc p_qs p_runs p_strikes p_win p_wp"
 
 # dump hitter data
 dumpdata.sc --seasons $SEASONS --only_starters \
-   --pos LF CF RF 1B 2B 3B SS C OF DH PH --no_team \
+   --pos LF CF RF 1B 2B 3B SS C OF DH --no_team --only_starters \
    --stats $HITTER_STATS \
-   --current_extra venue is_home hitting_side bo $OPP_P_EXTRAS \
+   --current_extra bases venue is_home hitting_side bo "ops_*" "slug_*" $OPP_P_EXTRAS \
+   --extra bases \
    --opp_team_stats errors "p_*" --player_team_stats "off_*" \
    --target_calc_stats $FANTASY_TARGETS --target_stats off_hit off_runs \
    --hist_recent_games 5 --hist_recent_mode ma \
@@ -26,7 +27,7 @@ dumpdata.sc --seasons $SEASONS --only_starters \
 dumpdata.sc --seasons $SEASONS --no_team \
    --only_starters --pos P \
    --stats $PITCHER_STATS \
-   --current_extra venue is_home "hit_*_opp" p_hand $OPP_P_EXTRAS \
+   --current_extra venue is_home "hit_*_opp" p_hand "whip_*" $OPP_P_EXTRAS \
    --opp_team_stats "off_*" win --player_team_stats win "off_*" \
    --target_calc_stats $FANTASY_TARGETS --target_stats p_k p_ip p_hits \
    --hist_recent_games 5 --hist_recent_mode ma \
@@ -35,7 +36,8 @@ dumpdata.sc --seasons $SEASONS --no_team \
 # teams
 dumpdata.sc --seasons $SEASONS --no_player \
    --stats "*" --opp_team_stats "*" \
-   --current_extra venue is_home "*_hand" "hit_*" $OPP_P_EXTRAS \
+   --current_extra venue is_home "*_hand" "hit_*" "whip_*" "slug_*" "ops_*" $OPP_P_EXTRAS \
+   --extra bases \
    --target_stats off_runs win \
    --hist_recent_games 5 --hist_recent_mode ma \
    --progress $DB_FILE --format parquet -f mlb_team.pq
