@@ -49,11 +49,12 @@ python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
 # get model create params for a model
 python -m lib.regressor train {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
 # create model using defaults
-python -m lib.regressor train --n_jobs 4 [--automl_type MODEL_TYPE] {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {DEST_MODEL_DIR}
+python -m lib.regressor train --n_jobs 4 [--arch MODEL_TYPE] {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --dest {DEST_MODEL_DIR}
 
 # for example
-python -O -m lib.regressor train --n_jobs 4 --automl_type tpot 2024.02/nba.json NBA-DK \
-  --data_dir /fantasy-isync/fantasy-modeling/2023.12/ --dest /fantasy-isync/fantasy-modeling/2024.04/
+python -O -m lib.regressor train --n_jobs 4 --arch tpot 2024.02/nba.json NBA-DK \
+  --data_dir /fantasy-isync/fantasy-modeling/2024.04/pt \
+  --dest_dir /fantasy-isync/fantasy-modeling/2024.04/data
 ```
 6. (Optional) Load the models into the sport database and run some tests. Load models using 
 model_manager.py from the fantasy repository (See fantasy repository's README). 

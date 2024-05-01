@@ -22,6 +22,9 @@
         {
             "data_filename": "mlb_team.pq",
             "p_or_t": "T",
+            "cols_to_drop": [
+                "extra:bases"
+            ],
             "models": {
                 "MLB-team-runs": {
                     "target": [
@@ -94,8 +97,15 @@
                 "C",
                 "LF",
                 "RF",
-                "CF"
+                "CF",
+                "OF"
             ],
+            "train_params": {
+                // for tpot
+                "n_jobs": 2,
+                "max_time_mins": 45,
+                "max_eval_time_mins": 15
+            },
             "models": {
                 "MLB-H-DK": {
                     "target": [
@@ -106,6 +116,10 @@
                         "batch_size": 64,
                         "hidden_layers": 1
                     },
+                    "cols_to_drop": [
+                        "extra:bases"
+                    ],
+                    "filtering_query": "`calc:dk_score`.notna()"
                     // "include_pos": false,
                     // "cols_to_drop": [
                     //     "extra:*",
@@ -113,28 +127,36 @@
                     //     "*(player|opp)-team"
                     //     "*std-mean"
                     // ],
-                    "filtering_query": "`calc:dk_score`.notna()"
                 },
                 "MLB-H-Y": {
                     "target": [
                         "calc",
                         "y_score"
                     ],
-                    "filtering_query": "`calc:y_score`.notna()"
+                    "filtering_query": "`calc:y_score`.notna()",
+                    "cols_to_drop": [
+                        "extra:bases"
+                    ]
                 },
                 "MLB-H-hit": {
                     "target": [
                         "stat",
                         "off_hit"
                     ],
-                    "filtering_query": "`stat:off_hit`.notna()"
+                    "filtering_query": "`stat:off_hit`.notna()",
+                    "cols_to_drop": [
+                        "extra:bases"
+                    ]
                 },
                 "MLB-H-runs": {
                     "target": [
                         "stat",
                         "off_runs"
                     ],
-                    "filtering_query": "`stat:off_runs`.notna()"
+                    "filtering_query": "`stat:off_runs`.notna()",
+                    "cols_to_drop": [
+                        "extra:bases"
+                    ]
                 }
             }
         }

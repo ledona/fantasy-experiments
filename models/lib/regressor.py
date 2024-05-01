@@ -52,7 +52,7 @@ class _Params(TypedDict):
     p_or_t: PlayerOrTeam | None
     include_pos: bool | None
     cols_to_drop: list[str] | None
-    """columns to drop from training data. wildcards are accepted"""
+    """columns/features to drop from training data. wildcards are accepted"""
     missing_data_threshold: float | None
     filtering_query: str | None
     """pandas compatible query string that will be run on the loaded data"""

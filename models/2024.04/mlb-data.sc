@@ -15,7 +15,7 @@ p_ip p_k p_loss p_pc p_qs p_runs p_strikes p_win p_wp"
 # dump hitter data
 dumpdata.sc --seasons $SEASONS --only_starters \
    --pos LF CF RF 1B 2B 3B SS C OF DH --no_team --only_starters \
-   --stats $HITTER_STATS \
+   --stats $HITTER_STATS --calc_stats $FANTASY_TARGETS \
    --current_extra bases venue is_home hitting_side bo "ops_*" "slug_*" $OPP_P_EXTRAS \
    --extra bases \
    --opp_team_stats errors "p_*" --player_team_stats "off_*" \
@@ -26,7 +26,7 @@ dumpdata.sc --seasons $SEASONS --only_starters \
 # dump pitchers
 dumpdata.sc --seasons $SEASONS --no_team \
    --only_starters --pos P \
-   --stats $PITCHER_STATS \
+   --stats $PITCHER_STATS --calc_stats $FANTASY_TARGETS \
    --current_extra venue is_home "hit_*_opp" p_hand "whip_*" $OPP_P_EXTRAS \
    --opp_team_stats "off_*" win --player_team_stats win "off_*" \
    --target_calc_stats $FANTASY_TARGETS --target_stats p_k p_ip p_hits \
