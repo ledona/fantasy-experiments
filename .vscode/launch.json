@@ -28,7 +28,7 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "train",
-                // "--info",
+                "--info",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2024.04/data",
 
                 // "--arch", "nn", 
@@ -40,9 +40,10 @@
 
                 "--arch", "tpot",
                 "--n_jobs", "2",
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/pt-mlb-saber",
-                "--max_time_mins", "30", "--max_iter", "10",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/pt-mlb-testing",
+                "--dest_filename", "mlb-h-dk.test",
 
+                // "--max_time_mins", "30", "--max_iter", "10",
                 "2024.04/mlb.json",
                 "MLB-H-DK"
             ]

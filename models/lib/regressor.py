@@ -42,7 +42,7 @@ class _Params(TypedDict):
     """definition of the final parameters used for model training/testing"""
 
     data_filename: str
-    target: tuple[Literal["stat", "calc", "extra"], str]
+    target: tuple[Literal["stat", "calc", "extra"], str] | str
     validation_season: int
     recent_games: int
     training_seasons: list[int]
@@ -113,7 +113,11 @@ class TrainingDefinitionFile:
             if not param_dict["train_params"]:
                 param_dict["train_params"] = {}
             param_dict["train_params"].update(model_train_params)
-        param_dict["target"] = tuple(param_dict["target"])
+        param_dict["target"] = (
+            tuple(param_dict["target"])
+            if isinstance(param_dict["target"], list)
+            else param_dict["target"]
+        )
         param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"]) if param_dict["p_or_t"] else None
 
         if validation_failure_reason := typed_dict_validate(_Params, param_dict):
@@ -138,7 +142,8 @@ class TrainingDefinitionFile:
         if params["train_params"]:
             if not set(params["train_params"].keys()) <= expected_param_names:
                 _LOGGER.warning(
-                    "Ignoring following parameters not used by NN models: %s",
+                    "Ignoring following parameters not used by '%s' models: %s",
+                    arch,
                     set(params["train_params"].keys()) - expected_param_names,
                 )
             for arg in expected_param_names:

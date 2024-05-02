@@ -93,17 +93,25 @@
                         "batch_size": 64,
                         "hidden_layers": 1
                     },
+                    "include_pos": false,
                     "cols_to_drop": [
-                        "extra:bases"
+                        "extra:bases",
+                        "*y_score*",
+                        // *** dk-only
+                        // "extra:*",
+                        // "*(player|opp)-team",
+                        // "*off*"
+                        // *** dk+saber
+                        // "extra:(venue|opp|is_home|hitting|b)*",
+                        // "*(player|opp)-team",
+                        // "*off*"
+                        // *** saber-only
+                        "extra:(venue|opp|is_home|hitting|b)*",
+                        "*(player|opp)-team",
+                        "*off*",
+                        "*dk_score:*"
                     ],
                     "filtering_query": "`calc:dk_score`.notna()"
-                    // "include_pos": false,
-                    // "cols_to_drop": [
-                    //     "extra:*",
-                    //     "*recent-[1-9]*",
-                    //     "*(player|opp)-team"
-                    //     "*std-mean"
-                    // ],
                 },
                 "MLB-H-Y": {
                     "target": "calc:y_score",

@@ -203,7 +203,7 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
 
 def load_data(
     filename: str,
-    target: tuple[str, str],
+    target: tuple[str, str] | str,
     validation_season: int,
     seed: int | None,
     include_position: None | bool = None,
@@ -215,7 +215,7 @@ def load_data(
     """
     Create train, test and validation data
 
-    target: tuple[stat type, stat name]
+    target: tuple[stat type, stat name] or 'stat-type:stat-name'
     include_position: If not None a 'pos' column is required in the loaded\
         data and will be included/excluded based on this argument. If None\
         and 'pos' is in the loaded data, an exception is raised
@@ -230,7 +230,7 @@ def load_data(
 
     returns tuple of (raw data, {train, test and validation data}, stats that are one-hot-transformed)
     """
-    target_col_name = ":".join(target)
+    target_col_name = target if isinstance(target, str) else ":".join(target)
     _LOGGER.info("Target column name set to '%s'", target_col_name)
 
     df_raw, df, one_hot_stats = _load_data(
