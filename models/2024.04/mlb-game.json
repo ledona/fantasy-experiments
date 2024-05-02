@@ -1,4 +1,4 @@
-// configuration for game player/team prediction models
+// configuration for all game player/team prediction models
 {
     "data_filename": "mlb_team.pq",
     "seed": 1,
@@ -21,6 +21,7 @@
     // All features are duplicated for home and away teams
     // and will be std and recent mean.
     "features": {
+        // this applies to home and away
         "team": [
             "stat:p_runs",
             "extra:ops_recent",
@@ -40,7 +41,7 @@
                     "C|1B|2B|3B|SS|OF|LF|CF|RF:calc:dk_score"
                 ]
             },
-            // for each player/team that produces features, predict the following
+            // for each player predict the following
             "targets": {
                 "player": [
                     "calc:dk_score"
@@ -60,6 +61,7 @@
                 ]
             }
         },
+        // a model that predicts other stats
         "stats": {
             "features": {
                 "player": [
@@ -69,10 +71,14 @@
                     "P:stat:p_k",
                     "C|1B|2B|3B|SS|OF|LF|CF|RF:stat:off_hit",
                     "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:bases_recent",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:bases_std"
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:bases_std",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:ops_recent",
+                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:ops_std"
                 ],
                 "team": [
-                    "stat:p_win"
+                    "stat:p_win",
+                    "stat:off_runs",
+                    "stat:ops"
                 ]
             },
             "targets": {

@@ -212,6 +212,10 @@ def main(cmd_line_str=None):
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
+    if not hasattr(args, "func"):
+        parser.print_help()
+        parser.exit(1)
+
     if args.progress:
         log.enable_progress()
 

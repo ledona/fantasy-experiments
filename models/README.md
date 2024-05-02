@@ -7,10 +7,10 @@ generation models. Basic order of operations is:
 1. If new models are good enough then import them for use
 
 ## Model Creation
-There are two different types of models player/team predictive models that predict
-performance for individual player's and teams, and lineup models that predict
-optimal daily fantasy lineups. Note that the later is not the same as optimal
-lineup construction based on lineup strategy/constraints and player predictions.
+There are three different types of models
+1. player/team predictive models that predict performance for individual players and teams
+1. lineup models that predict optimal daily fantasy lineups
+1. full game models that predict all player and team stats for a game in one shot, as opposed to predicting each player/team stat individuals
 
 ### Player/Team predictive models
 To create, archive and use new predictive models perform the following steps
@@ -61,17 +61,20 @@ model_manager.py from the fantasy repository (See fantasy repository's README).
 Generate lineups or run backtesting using one of the debug configurations or lineup.sc or backtest.sc.
 
 ### Deep lineup models
-1. Create the dataset.
-1. Train the model
-1. Catalog the model
-1. Load the model. See fantasy repository's README for details.
+Deep lineup models take as input a slate of games, including all player costs, and predicted scoring. The model output is a lineup to bet. As an intermediate step a DNN is used to take the input and infer player weights which are used along with cost information to create an optimized lineup. To create/use models:
 
-### Game players/teams models
+1. Create the dataset - Each sample in a dataset is a randomly generated slate of games along with starting players, predicted fantasy scores, historic fantasy scores, slate cost and other data describing the slate. Creation of a dataset is done by first creating a player/team predictive model dataset, then using ```python -m lib.deep_lineup data``` to create the deep lineup dataset. 
+1. Train the model - Use ```python -m lib.deep_lineup train``` to train a model.
+1. Catalog the model (see below)
+1. Load the model. See fantasy repository's README for details on using ```model_manager```
+1. To generate a lineup use ```lineup.sc --deep```
+
+### Full Game players/teams models
 1. Review data/model configuration file
-2. Create the dataset
-3. Train the model
-4. Catalog the model
-5. Load the model
+1. Create the dataset
+1. Train the model
+1. Catalog the model (see below)
+1. Load the model. See fantasy repository's README for details on using ```model_manager```
 
 ## Model Cataloging
 Run the following to create a catalog of the best models currently in the catalog

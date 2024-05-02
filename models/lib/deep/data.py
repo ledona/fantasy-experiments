@@ -537,7 +537,8 @@ class _RandomSlateSelector:
             break
         else:
             raise ExportError(
-                f"Failed to find a viable slate candidate for {season} after {_MAX_NEXT_FAILURES} failures"
+                f"Failed to find a viable slate candidate for {season} "
+                "after {_MAX_NEXT_FAILURES} failures"
             )
 
         return SlateDef(
