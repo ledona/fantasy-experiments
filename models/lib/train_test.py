@@ -31,7 +31,7 @@ from fantasy_py import (
     dt_to_filename_str,
     log,
 )
-from fantasy_py.inference import Model, NNModel, NNRegressor, Performance, SKLModel, StatInfo
+from fantasy_py.inference import PTPredictModel, NNModel, NNRegressor, Performance, SKLModel, StatInfo
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
@@ -311,7 +311,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     """
     df = train_df.fillna(0)
     impute_values = {
-        Model.impute_key_for_feature_name(col, team_target): round(df[col].median(), 2)
+        PTPredictModel.impute_key_for_feature_name(col, team_target): round(df[col].median(), 2)
         for col in train_df.columns
         if (":std-mean" in col or col.startswith("extra:"))
     }
@@ -467,7 +467,7 @@ def train_test(
     return artifact_filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
-def _get_model_cls(arch: ArchitectureType) -> Type[Model]:
+def _get_model_cls(arch: ArchitectureType) -> Type[PTPredictModel]:
     if arch == "nn":
         return NNModel
     return SKLModel
@@ -491,7 +491,7 @@ def _create_fantasy_model(
     recent_mean: bool = True,
     recent_explode: bool = True,
     only_starters: bool | None = None,
-) -> Model:
+) -> PTPredictModel:
     """Create a model object"""
     _LOGGER.info("Creating fantasy model for '%s'", name)
     assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
@@ -632,7 +632,7 @@ def model_and_test(
         if most_recent_model is not None:
             final_model_filepath = most_recent_model[1]
             _LOGGER.info("Reusing model at '%s'", final_model_filepath)
-            model = Model.load(final_model_filepath)
+            model = PTPredictModel.load(final_model_filepath)
 
     if model is None:
         filebase_name = model_dest_filename or ".".join(

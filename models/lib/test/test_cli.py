@@ -7,7 +7,7 @@ import joblib
 import pandas as pd
 import pytest
 from fantasy_py import FeatureType, PlayerOrTeam
-from fantasy_py.inference import Model
+from fantasy_py.inference import PTPredictModel
 from freezegun import freeze_time
 from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
@@ -16,7 +16,7 @@ from sklearn.dummy import DummyRegressor
 from ..regressor import (
     _DEFAULT_ARCHITECTURE,
     _DUMMY_REGRESSOR_KWARGS,
-    TrainingDefinitionFile,
+    _TrainingDefinitionFile,
     _Params,
     main,
 )
@@ -105,18 +105,18 @@ _TEST_DEF_FILE_FILEPATH = os.path.join(_DIRNAME, "test.json")
 
 @pytest.fixture(name="tdf", scope="module")
 def _tdf():
-    return TrainingDefinitionFile(_TEST_DEF_FILE_FILEPATH)
+    return _TrainingDefinitionFile(_TEST_DEF_FILE_FILEPATH)
 
 
 @pytest.mark.parametrize("model_name", _EXPECTED_PARAMS.keys())
-def test_training_def_file_params(tdf: TrainingDefinitionFile, model_name):
+def test_training_def_file_params(tdf: _TrainingDefinitionFile, model_name):
     """test that each model defined in the test json generate the
     expected params"""
     params = tdf.get_params(model_name)
     assert params == _EXPECTED_PARAMS[model_name]
 
 
-def test_training_def_file_model_names(tdf: TrainingDefinitionFile):
+def test_training_def_file_model_names(tdf: _TrainingDefinitionFile):
     """test that each model defined in the test json generate the
     expected params"""
     assert set(tdf.model_names) == set(_EXPECTED_PARAMS.keys())
@@ -133,7 +133,7 @@ def test_training_def_file_model_names(tdf: TrainingDefinitionFile):
     ],
 )
 def test_training_def_file_train_test(
-    mocker: MockFixture, cmdline: str, expected_reuse: bool, tdf: TrainingDefinitionFile
+    mocker: MockFixture, cmdline: str, expected_reuse: bool, tdf: _TrainingDefinitionFile
 ):
     """test that the calls to load_data and model_and_test are
     as expected"""
@@ -249,7 +249,7 @@ def _create_expected_model_dict(
         "parameters": {"algo_type": algo_type, **_DUMMY_REGRESSOR_KWARGS},
         "trained_parameters": {"regressor_path": final_artifact_filepath},
         "training_data_def": expected_training_data_def,
-        "func_type": Model.FUNC_TYPE_NAME,
+        "func_type": PTPredictModel.FUNC_TYPE_NAME,
         "meta_extra": {
             "performance": {
                 "mae": 1.5,

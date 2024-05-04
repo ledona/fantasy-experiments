@@ -62,7 +62,7 @@ class _Params(TypedDict):
     """params passed to the training algorithm (likely as kwargs)"""
 
 
-class TrainingDefinitionFile:
+class _TrainingDefinitionFile:
     def __init__(self, file_path: str):
         self._file_path = file_path
         with open(file_path, "r") as f_:
@@ -247,7 +247,7 @@ _DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 
 def _handle_train(args):
-    tdf = TrainingDefinitionFile(args.train_file)
+    tdf = _TrainingDefinitionFile(args.train_file)
 
     if not os.path.isdir(args.dest_dir):
         _LOGGER.critical("Destination directory '%s' does not exist.", args.dest_dir)
