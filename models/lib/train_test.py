@@ -116,7 +116,7 @@ def _load_data(
                 re_cols_to_drop = [col for col in df_raw if regexp.match(col)]
                 if len(re_cols_to_drop) == 0:
                     raise WildcardFilterFoundNothing(
-                        f"Filter '{regexp}' did not match any columns: {df_raw.columns}"
+                        f"Filter '{regexp}' did not match any columns: {list(df_raw.columns)}"
                     )
                 cols_to_drop += re_cols_to_drop
         _LOGGER.info("Dropping n=%i columns: %s", len(cols_to_drop), sorted(cols_to_drop))
@@ -228,7 +228,7 @@ def load_data(
         found for more than this percentage of cases.E.g. 0 = warn in any data is missing\
         .25 = warn if > 25% of data is missing
 
-    returns tuple of (raw data, {train, test and validation data}, stats that are one-hot-transformed)
+    returns tuple of (raw data, {train, test and validation data}, one-hot-transformed stats)
     """
     target_col_name = target if isinstance(target, str) else ":".join(target)
     _LOGGER.info("Target column name set to '%s'", target_col_name)
@@ -237,7 +237,13 @@ def load_data(
         filename, include_position, col_drop_filters, limit, validation_season
     )
     if filtering_query:
-        df = df.query(filtering_query)
+        try:
+            df = df.query(filtering_query)
+        except pd.errors.UndefinedVariableError:
+            _LOGGER.error(
+                "The requested filter likely includes columns that are not in the dataframe"
+            )
+            raise
         _LOGGER.info("Filter '%s' dropped %i rows", filtering_query, len(df_raw) - len(df))
     feature_cols = [
         col
@@ -258,13 +264,13 @@ def load_data(
         _LOGGER.warning("No training data found for non-validation seasons. Using validation data.")
         train_test_df = df
     if len(features_not_found := set(feature_cols) - set(train_test_df.columns)) > 0:
-        raise ValueError(
+        raise UnexpectedValueError(
             f"Following requested feature models not found in data: {features_not_found}"
         )
     X = train_test_df[feature_cols]
     if target_col_name not in train_test_df:
         available_targets = [col for col in train_test_df.columns if len(col.split(":")) == 2]
-        raise ValueError(
+        raise UnexpectedValueError(
             f"Target feature '{target_col_name}' not found in data. "
             f"Available targets are {available_targets}"
         )
@@ -277,7 +283,7 @@ def load_data(
 
     validation_df = df[df.season == validation_season]
     if len(validation_df) == 0:
-        raise ValueError(f"No validation data from season {validation_season} retrieved!")
+        raise UnexpectedValueError(f"No validation data from season {validation_season} retrieved!")
 
     X_val = validation_df[feature_cols]
     y_val = validation_df[target_col_name]
@@ -518,12 +524,12 @@ def _create_fantasy_model(
                     name for name in db_manager.EXTRA_STATS if extra_name.startswith(name)
                 ]
                 if len(possible_1_hot_extras) == 0:
-                    raise ValueError(
+                    raise UnexpectedValueError(
                         f"Unrecognized extra stat '{extra_name}'. For sport={sport_abbr}, "
                         f"valid extra stats are {db_manager.EXTRA_STATS}"
                     )
                 if len(possible_1_hot_extras) > 1:
-                    raise ValueError(
+                    raise UnexpectedValueError(
                         f"Extra stat '{extra_name}' could be a one hot of multiple "
                         f"{sport_abbr} extra stats. "
                         "Can't figure out which of the following extra stats to use: "

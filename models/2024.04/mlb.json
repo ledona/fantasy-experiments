@@ -23,16 +23,19 @@
         {
             "data_filename": "mlb_team.pq",
             "p_or_t": "T",
-            "cols_to_drop": [
-                "extra:bases"
-            ],
             "models": {
                 "MLB-team-runs": {
                     "target": "stat:off_runs",
                     "train_params": {
                         "max_time_mins": 40,
                         "max_eval_time_mins": 15
-                    }
+                    },
+                    "cols_to_drop": [
+                        "extra:(?!whip|slug)*",
+                        "stat:(?!off_run)*",
+                        "*opp-team"
+                        // ":p"
+                    ]
                 },
                 "MLB-team-win": {
                     "target": "stat:win"
@@ -49,7 +52,27 @@
             ],
             "models": {
                 "MLB-P-DK": {
-                    "target": "calc:dk_score"
+                    "target": "calc:dk_score",
+                    "cols_to_drop": [
+                        "*y_score*",
+                        // "stat:*",
+                        // "*p_*",
+                        // "*(player|opp)-team",
+                        // "*dk_score:*"
+                        "*recent-*",
+                        "extra:venue*",
+                        // *** dk-only
+                        // "*off*"
+                        // *** dk+saber
+                        // "extra:(venue|hit|opp|*hand|is)*",
+                        // "*(player|opp)-team",
+                        // "*off*"
+                        // *** saber-only
+                        // "extra:(venue|opp|is_home|hitting|b)*",
+                        // "*(player|opp)-team",
+                        // "*off*",
+                        "*dk_score:*"
+                    ]
                 },
                 "MLB-P-Y": {
                     "target": "calc:y_score"
@@ -93,10 +116,14 @@
                         "batch_size": 64,
                         "hidden_layers": 1
                     },
-                    "include_pos": false,
+                    // "include_pos": false,
+                    "filtering_query": "`calc:dk_score`.notna()",
                     "cols_to_drop": [
                         "extra:bases",
-                        "*y_score*",
+                        "*y_score*"
+                        // "*dk_score:*"
+                        // "*recent-*",
+                        // "extra:venue*"
                         // *** dk-only
                         // "extra:*",
                         // "*(player|opp)-team",
@@ -106,12 +133,11 @@
                         // "*(player|opp)-team",
                         // "*off*"
                         // *** saber-only
-                        "extra:(venue|opp|is_home|hitting|b)*",
-                        "*(player|opp)-team",
-                        "*off*",
-                        "*dk_score:*"
-                    ],
-                    "filtering_query": "`calc:dk_score`.notna()"
+                        // "extra:(venue|opp|is_home|hitting|b)*",
+                        // "*(player|opp)-team",
+                        // "*off*",
+                        // "*dk_score:*"
+                    ]
                 },
                 "MLB-H-Y": {
                     "target": "calc:y_score",

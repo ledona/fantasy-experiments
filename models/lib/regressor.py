@@ -271,9 +271,12 @@ def _handle_train(args):
         modeler_init_kwargs = {
             "use_dask": args.dask,
             "n_jobs": args.n_jobs,
-            "max_time_mins": args.training_mins,
-            "max_eval_time_mins": args.training_iter_mins,
         }
+        if args.training_mins is not None:
+            modeler_init_kwargs["max_time_mins"] = args.training_mins
+        if args.training_iter_mins is not None:
+            modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
+
     elif args.arch == "nn":
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
