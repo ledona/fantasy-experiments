@@ -1,6 +1,11 @@
 // configuration for all game player/team prediction models
 {
-    "data_filename": "mlb_team.pq",
+    // all files with training data for players/teams
+    "datafiles": [
+        "mlb_team.pq",
+        "mlb_hitter.pq",
+        "mlb_pitcher.pq"
+    ],
     "seed": 1,
     "validation_season": 2023,
     "recent_games": 5,
@@ -18,81 +23,53 @@
     "train_params": {
         "max_time_mins": 20
     },
-    // All features are duplicated for home and away teams
-    // and will be std and recent mean.
-    "features": {
-        // this applies to home and away
-        "team": [
-            "stat:p_runs",
-            "extra:ops_recent",
-            "extra:ops_std",
-            "stat:off_runs",
-            "extra:whip_recent",
-            "extra:whip_std"
-        ]
-    },
+    // Features apply to both home and away teams and players
+    // each feature is "(P|T|PT):(stat|calc|extra):name"
+    "features": [
+        "T:stats:p_runs",
+        "T:stats:p_win",
+        "T:stats:off_runs",
+        "PT:extra:ops_recent",
+        "PT:extra:ops_std",
+        "PT:extra:whip_recent",
+        "PT:extra:whip_std"
+    ],
     // models define a collection of stats that will be predicted per sample
     // and any additional config for that model
     "models": {
-        "DK": {
-            "features": {
-                "player": [
-                    "P:calc:dk_score",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:calc:dk_score"
-                ]
-            },
-            // for each player predict the following
-            "targets": {
-                "player": [
-                    "calc:dk_score"
-                ]
-            }
+        "MLB-GAME-DK": {
+            // additional features to the globals
+            "features": [
+                "P:calc:dk_score"
+            ],
+            "targets": [
+                "P:calc:dk_score"
+            ]
         },
-        "Y": {
-            "features": {
-                "player": [
-                    "P:calc:y_score",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:calc:y_score"
-                ]
-            },
-            "targets": {
-                "player": [
-                    "calc:y_score"
-                ]
-            }
+        "MLB-GAME-Y": {
+            "features": [
+                "P:calc:y_score"
+            ],
+            "targets": [
+                "P:calc:dk_score"
+            ]
         },
         // a model that predicts other stats
-        "stats": {
-            "features": {
-                "player": [
-                    "P:extra:whip_std",
-                    "P:extra:whip_recent",
-                    "P:stat:p_ip",
-                    "P:stat:p_k",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:stat:off_hit",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:bases_recent",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:bases_std",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:ops_recent",
-                    "C|1B|2B|3B|SS|OF|LF|CF|RF:extra:ops_std"
-                ],
-                "team": [
-                    "stat:p_win",
-                    "stat:off_runs",
-                    "stat:ops"
-                ]
-            },
-            "targets": {
-                "player": [
-                    "stat:off_hit",
-                    "extra:bases",
-                    "stat:p_ip",
-                    "stat:p_k"
-                ],
-                "team": [
-                    "stat:off_runs",
-                    "stat:p_win"
-                ]
-            }
+        "MLB-GAME-stats": {
+            "features": [
+                "P:stat:p_ip",
+                "P:stat:p_k",
+                "P:stat:off_hit",
+                "P:extra:bases"
+            ],
+            "targets": [
+                "P:stat:off_hit",
+                "P:extra:bases",
+                "P:stat:p_ip",
+                "P:stat:p_k",
+                "T:stat:off_runs",
+                "T:stat:p_win"
+            ]
         }
     }
 }
