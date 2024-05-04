@@ -1,6 +1,12 @@
 // configuration for all game player/team prediction models
 {
-    "data_filename": "mlb_team.pq",
+    "data_files": {
+        "team": "mlb_team.pq",
+        "player": [
+            "mlb-hitter.pq",
+            "mlb-pitcher.pq"
+        ]
+    },
     "seed": 1,
     "validation_season": 2023,
     "recent_games": 5,
@@ -34,7 +40,7 @@
     // models define a collection of stats that will be predicted per sample
     // and any additional config for that model
     "models": {
-        "DK": {
+        "MLB-GAME-DK": {
             "features": {
                 "player": [
                     "P:calc:dk_score",
@@ -48,7 +54,7 @@
                 ]
             }
         },
-        "Y": {
+        "MLB-GAME-Y": {
             "features": {
                 "player": [
                     "P:calc:y_score",
@@ -62,7 +68,7 @@
             }
         },
         // a model that predicts other stats
-        "stats": {
+        "MLB-GAME-stats": {
             "features": {
                 "player": [
                     "P:extra:whip_std",

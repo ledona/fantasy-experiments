@@ -70,11 +70,14 @@ Deep lineup models take as input a slate of games, including all player costs, a
 1. To generate a lineup use ```lineup.sc --deep```
 
 ### Full Game players/teams models
+These models predict outcomes for all players/teams involved in a game. The sample input is historic stats for all players and teams in a game.
+
 1. Review data/model configuration file
-1. Create the dataset
-1. Train the model
+1. Create the dataset - ```python -m lib.all_game_pt [CFG-FILE] [MODEL-NAME] data [INPUT-DATA-DIR] [TRAINING-DATASET-FILEPATH]```
+1. Train the model - ```python -m lib.all_game_pt [CFG-FILE] [MODEL-NAME] train [TRAINING-DATASET-FILEPATH]``` where _TRAINING-DATASET-FILEPATH_ is folder used when creating the dataset
 1. Catalog the model (see below)
 1. Load the model. See fantasy repository's README for details on using ```model_manager```
+1. To generate a lineup use ```lineup.sc --game_model
 
 ## Model Cataloging
 Run the following to create a catalog of the best models currently in the catalog
