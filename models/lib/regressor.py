@@ -13,8 +13,10 @@ import dask
 import dateutil
 import pandas as pd
 from fantasy_py import (
+    FeatureType,
     JSONWithCommentsDecoder,
     PlayerOrTeam,
+    UnexpectedValueError,
     dt_to_filename_str,
     log,
     typed_dict_validate,
@@ -25,7 +27,12 @@ from .train_test import ArchitectureType, load_data, model_and_test
 
 _LOGGER = log.get_logger(__name__)
 
-_TPOT_TRAINING_PARAMS = Literal["max_time_mins", "max_eval_time_mins", "n_jobs"]
+_TPOT_TRAINING_PARAMS = Literal[
+    "max_time_mins", "max_eval_time_mins", "n_jobs", "epochs_max", "early_stop"
+]
+"""names of parameters in a model definition file applicable to tpot"""
+_TPOT_TRAINING_PARAMS_RENAME = {"epochs_max": "generations"}
+"""remapping of model parameter names in definition file to tpot kwarg parameter names"""
 _NN_TRAINING_PARAMS = Literal[
     "input_size",
     "hidden_size",
@@ -36,6 +43,7 @@ _NN_TRAINING_PARAMS = Literal[
     "learning_rate",
     "shuffle",
 ]
+"""names of parameters in a model definition file applicable to NN models"""
 
 
 class _Params(TypedDict):
@@ -43,6 +51,7 @@ class _Params(TypedDict):
 
     data_filename: str
     target: tuple[Literal["stat", "calc", "extra"], str] | str
+    """target stat, either a tuple of (type, name) or string of 'type:name'"""
     validation_season: int
     recent_games: int
     training_seasons: list[int]
@@ -94,7 +103,7 @@ class _TrainingDefinitionFile:
 
         param_dict.update(self._json["global_default"].copy())
         if model_name not in self.model_names:
-            raise ValueError(f"'{model_name}' is not defined")
+            raise UnexpectedValueError(f"'{model_name}' is not defined")
 
         model_group = self._json["model_groups"][self._model_names_to_group_idx[model_name]]
         param_dict.update(
@@ -121,7 +130,7 @@ class _TrainingDefinitionFile:
         param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"]) if param_dict["p_or_t"] else None
 
         if validation_failure_reason := typed_dict_validate(_Params, param_dict):
-            raise ValueError(
+            raise UnexpectedValueError(
                 f"Model training parameter validation failure: {validation_failure_reason}"
             )
         return cast(_Params, param_dict)
@@ -130,8 +139,10 @@ class _TrainingDefinitionFile:
     def _get_regressor_kwargs(arch: ArchitectureType, regressor_kwargs: dict, params: dict):
         # for any regressor kwarg not already set, fill in with model params
         if arch.startswith("tpot"):
+            renamer = _TPOT_TRAINING_PARAMS_RENAME
             expected_param_names = set(_TPOT_TRAINING_PARAMS.__args__)
         elif arch == "nn":
+            renamer: dict = {}
             expected_param_names = set(_NN_TRAINING_PARAMS.__args__)
         else:
             return regressor_kwargs
@@ -149,7 +160,8 @@ class _TrainingDefinitionFile:
             for arg in expected_param_names:
                 if new_kwargs.get(arg) or not params["train_params"].get(arg):
                     continue
-                new_kwargs[arg] = params["train_params"][arg]
+                name = renamer.get(arg, arg)
+                new_kwargs[name] = params["train_params"][arg]
 
         return new_kwargs
 
@@ -203,7 +215,7 @@ class _TrainingDefinitionFile:
             elif dump_data.endswith(".pq"):
                 df.to_parquet(dump_data)
             else:
-                raise ValueError(f"Unknown data dump format: {dump_data}")
+                raise UnexpectedValueError(f"Unknown data dump format: {dump_data}")
 
         final_regressor_kwargs = self._get_regressor_kwargs(arch_type, regressor_kwargs, params)
         print("\nTraining will proceed with the following parameters:")
@@ -222,11 +234,19 @@ class _TrainingDefinitionFile:
             print(f"Data features (n={len(tt_data[0].columns)}): {sorted(tt_data[0].columns)}")
             sys.exit(0)
 
+        target = (
+            params["target"]
+            if isinstance(params["target"], (tuple, list))
+            else params["target"].split(":")
+        )
+        if len(target) != 2 or target[0] not in FeatureType.__args__:
+            raise UnexpectedValueError(f"Invalid model target defined in cfg file: {target}")
+
         model = model_and_test(
             model_name,
             params["validation_season"],
             tt_data,
-            params["target"],
+            cast(tuple[FeatureType, str], target),
             arch_type,
             params["p_or_t"],
             params["recent_games"],
@@ -268,28 +288,34 @@ def _handle_train(args):
         dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 
     if args.arch.startswith("tpot"):
-        modeler_init_kwargs = {
-            "use_dask": args.dask,
-            "n_jobs": args.n_jobs,
-        }
+        modeler_init_kwargs = {"use_dask": args.dask, "n_jobs": args.n_jobs, "verbosity": 3}
         if args.training_mins is not None:
             modeler_init_kwargs["max_time_mins"] = args.training_mins
         if args.training_iter_mins is not None:
             modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
+        if args.early_stop is not None:
+            modeler_init_kwargs["early_stop"] = args.early_stop
+        if args.max_epochs is not None:
+            modeler_init_kwargs["generations"] = args.max_epochs
 
     elif args.arch == "nn":
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
         modeler_init_kwargs = {
-            "early_stop_epochs": args.early_stop,
-            **{key_[3:]: value_ for key_, value_ in vars(args).items() if key_.startswith("nn_")},
+            key_[3:]: value_ for key_, value_ in vars(args).items() if key_.startswith("nn_")
         }
+        if args.early_stop is not None:
+            modeler_init_kwargs["early_stop_epochs"] = args.early_stop
+        if args.max_epochs is not None:
+            modeler_init_kwargs["epochs_max"] = args.max_epochs
+
     elif args.arch == "automl-xgb":
         modeler_init_kwargs = {
             "verbosity": 2,
             "n_jobs": args.n_jobs,
-            "early_stopping_rounds": args.early_stop,
         }
+        if args.early_stop is not None:
+            modeler_init_kwargs["early_stop_epochs"] = args.early_stop
     elif args.arch == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
     else:
@@ -388,7 +414,6 @@ def _add_train_parser(sub_parsers):
         help="number of rounds/epochs of no improvement after which to stop training",
     )
     train_parser.add_argument(
-        "--nn_epochs_max",
         "--max_epochs",
         type=int,
         help="The maximum number of epochs to train a neural network model",

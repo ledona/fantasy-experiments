@@ -25,13 +25,21 @@ from fantasy_py import (
     DataNotAvailableException,
     FantasyException,
     FeatureDict,
+    FeatureType,
     InvalidArgumentsException,
     PlayerOrTeam,
     UnexpectedValueError,
     dt_to_filename_str,
     log,
 )
-from fantasy_py.inference import PTPredictModel, NNModel, NNRegressor, Performance, SKLModel, StatInfo
+from fantasy_py.inference import (
+    NNModel,
+    NNRegressor,
+    Performance,
+    PTPredictModel,
+    SKLModel,
+    StatInfo,
+)
 from fantasy_py.sport import SportDBManager
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
@@ -334,12 +342,10 @@ def _create_model_obj(
     fit_kwargs: None | dict = None
     if arch == "tpot":
         model = TPOTRegressor(
-            verbosity=3,
             **model_init_kwargs,
         )
     elif arch == "tpot-light":
         model = TPOTRegressor(
-            verbosity=3,
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
         )
@@ -406,7 +412,7 @@ def _create_model_obj(
 def train_test(
     type_: ArchitectureType,
     model_name: str,
-    target: StatInfo,
+    target: tuple[FeatureType, str],
     tt_data: TrainTestData,
     dest_dir: str,
     model_filebase: str,
@@ -430,7 +436,8 @@ def train_test(
 
     if type_.startswith("tpot"):
         _LOGGER.info("TPOT fitted")
-        pprint(cast(TPOTRegressor, model).fitted_pipeline_)
+        tpot_model = cast(TPOTRegressor, model)
+        pprint(tpot_model.fitted_pipeline_)
     elif type_ in ("dummy", "auto-xgb", "nn"):
         _LOGGER.info("%s fitted", type_)
     else:
@@ -479,7 +486,7 @@ def _create_fantasy_model(
     algo_type: ArchitectureType,
     dt_trained: datetime,
     train_df: pd.DataFrame,
-    target: StatInfo,
+    target: tuple[FeatureType, str],
     performance: Performance,
     p_or_t: PlayerOrTeam,
     recent_games: int,
@@ -595,7 +602,7 @@ def model_and_test(
     name: str,
     validation_season: int,
     tt_data,
-    target,
+    target: tuple[FeatureType, str],
     algo_type: ArchitectureType,
     p_or_t,
     recent_games,
@@ -609,7 +616,7 @@ def model_and_test(
 ):
     """
     create or load a model and test it
-    
+
     model_dest_filename: name of the file to write the model to. default is to use\
         the default model filename pattern based on the model name
     reuse_most_recent: do not create a new model if one already exists that follows\
