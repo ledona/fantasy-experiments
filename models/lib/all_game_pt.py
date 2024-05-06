@@ -5,12 +5,13 @@ Target is a vector with target stats for game players/teams for the game
 """
 
 import argparse
+import functools
 import json
 import os
 import shlex
-from typing import Literal
 
-from fantasy_py import JSONWithCommentsDecoder, log
+import pandas as pd
+from fantasy_py import JSONWithCommentsDecoder, StatInfo, UnexpectedValueError, log
 
 from .train_test import ArchitectureType
 
@@ -29,29 +30,101 @@ class _ModelDefinitionFile:
         self.model_name = model_name
         """name of the model"""
 
-    @property
-    def xform_src_files(self) -> dict[Literal["team", "player"], list[str]]:
-        """returns the src data files"""
-        return self._def_dict["data_filenames"]
+    @functools.lru_cache
+    def get_xform_src_filepaths(self, dir_path):
+        """returns the src data filepaths"""
+        filepaths: list[str] = []
+        expected_games: set[int] | None = None
+        expected_seasons = set(self.training_seasons + [self.test_season])
+
+        for filename in self._def_dict["datafiles"]:
+            filepath = os.path.join(dir_path, filename)
+            if not os.path.isfile(filepath):
+                raise FileNotFoundError(
+                    f"Input data file '{filename}' not found in data path '{dir_path}'"
+                )
+            filepaths.append(filepath)
+
+            df = pd.read_parquet(filepath)
+            if missing_seasons := len(expected_seasons - set(df.seasons.unique())) > 0:
+                raise UnexpectedValueError(
+                    f"The following required seasons are missing from  '{filename}': {missing_seasons} "
+                )
+            if expected_games is None:
+                expected_games = set(df.game_id.unique())
+            elif not set(df.game_id.unique()) == expected_games:
+                raise UnexpectedValueError(
+                    "the games in input file '{filename}' do not match other input file games!"
+                )
+
+        return filepaths
+
+    @functools.cached_property
+    def features(self) -> list[StatInfo]:
+        """historic and game descriptive stats"""
+        raise NotImplementedError()
+
+    @functools.cached_property
+    def targets(self) -> list[StatInfo]:
+        """values to predict"""
+        raise NotImplementedError()
+
+    @functools.cached_property
+    def training_seasons(self):
+        if "training_seasons" not in self._def_dict:
+            raise UnexpectedValueError("training seasons not found")
+        train_seasons: list[int] = []
+        for season in self._def_dict["training_seasons"]:
+            if not isinstance(season, int):
+                raise UnexpectedValueError("Error parsing training seasons")
+            train_seasons.append(season)
+        return train_seasons
+
+    @functools.cached_property
+    def test_season(self):
+        season = self._def_dict["validation_season"]
+        if not isinstance(season, int):
+            raise UnexpectedValueError("Error parsing test/validation season")
+        return season
+
+
+def _create_dataset(
+    dest_filepath: str,
+    seasons: list[int],
+    features: list[StatInfo],
+    targets: list[StatInfo],
+    data_filepaths: list[str],
+):
+    _LOGGER.info("Creating dataset at '%s' for seasons=%s", dest_filepath, seasons)
+
+    raise NotImplementedError()
 
 
 def _data_func(args, model_def: _ModelDefinitionFile):
     if not os.path.isdir(args.dest_path):
         args.parser.error(f"Dest path '{args.dest_path}' is not a directory.")
-    dest_filepath = os.path.join(args.dest_path, model_def.model_name + ".pq")
+    dest_filepath = os.path.join(args.dest_path, model_def.model_name)
     if not os.path.isdir(args.input_data_dir):
         args.parser.error(f"Input data path '{args.input_data_dir}' does not exist")
 
-    raise NotImplementedError("validate src files, this is a dict of lists of filepaths")
-    src_filepaths = os.path.join(args.input_data_dir, model_def.xform_src_files)
+    src_filepaths = model_def.get_xform_src_filepaths(args.input_data_dir)
+
     _LOGGER.info(
-        "Generating training data for model='%s'. dest-file='%s', src-files=%s",
+        "Generating training data for model='%s'. dest-files='%s-[train|test].pq', src-files=%s",
         model_def.model_name,
         dest_filepath,
         src_filepaths,
     )
-    raise NotImplementedError()
+    _LOGGER.info("model '%s' targets=%s", model_def.model_name, model_def.targets)
+    _LOGGER.info("model '%s' input-features=%s", model_def.model_name, model_def.features)
 
+    _create_dataset(
+        args.dest_filepath + "-train.pq",
+        model_def.training_seasons,
+        model_def.features,
+        model_def.targets,
+        src_filepaths,
+    )
 
 def _add_data_parser(sub_parsers):
     parser = sub_parsers.add_parser("data", help="Transform a data export to model training data")

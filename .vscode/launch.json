@@ -62,6 +62,19 @@
             ]
         },
         {
+            "name": "game-predict - data",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.all_game_pt",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                "2024.04/mlb-game.json", "MLB-GAME-stats", "data",
+                "/fantasy-isync/fantasy-modeling/2024.04/data",
+                "/fantasy-isync/fantasy-modeling/2024.04/game"
+            ]
+        },
+        {
             "name": "deep lineup - data",
             "type": "debugpy",
             "request": "launch",
