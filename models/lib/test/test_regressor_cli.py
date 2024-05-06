@@ -143,6 +143,7 @@ def test_training_def_file_train_test(
 
     expected_tpot_train_params = {
         "use_dask": False,
+        "verbosity": 3,
         "random_state": params["seed"],
         "max_time_mins": params["train_params"]["max_time_mins"],
         "max_eval_time_mins": params["train_params"]["max_eval_time_mins"],

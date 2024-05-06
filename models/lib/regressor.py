@@ -21,6 +21,7 @@ from fantasy_py import (
     log,
     typed_dict_validate,
 )
+from fantasy_py.inference import PTPredictModel
 from ledona import process_timer
 
 from .train_test import ArchitectureType, load_data, model_and_test
@@ -72,8 +73,18 @@ class _Params(TypedDict):
 
 
 class _TrainingDefinitionFile:
-    def __init__(self, file_path: str):
-        self._file_path = file_path
+    # TODO: get rid of alt_def_file after model files are all up to date and contain all training data
+    def __init__(self, file_path: str, alt_def_file: str | None):
+        """
+        file_path: path the the training config file. if the filename has a _model_ extension \
+            then the configuration will be based off of the preexisting model
+        alt_def_file: if file_path is a .model file, then this is used as an alternate cfg\
+            file for any missing setting in the .model file.
+        """
+        if file_path.endswith(".model"):
+            model = PTPredictModel.load(file_path)
+            self._json = self._model_dict_from_model(model, alt_def_file)
+
         with open(file_path, "r") as f_:
             self._json = cast(dict, json.load(f_, cls=JSONWithCommentsDecoder))
 
@@ -81,6 +92,29 @@ class _TrainingDefinitionFile:
         for i, model_group in enumerate(self._json["model_groups"]):
             for model_name in model_group["models"]:
                 self._model_names_to_group_idx[model_name] = i
+
+    @staticmethod
+    def _model_dict_from_model(model: PTPredictModel, data_filename: str) -> dict:
+        """create a model training definition that reflects the model"""
+        cfg_dict: dict = {
+            "global_default": {},
+            "model_groups": [
+                {
+                    "models": [
+                        {
+                            model.name: {
+                                "data_filename": data_filename,
+                                "training_seasons": 
+                                # "missing_data_threshold": params.get("missing_data_threshold", 0),
+                                # "filtering_query": params["filtering_query"],
+                            }
+                        }
+                    ],
+                }
+            ],
+        }
+        raise NotImplementedError()
+        return cfg_dict
 
     @property
     def model_names(self):
@@ -242,6 +276,10 @@ class _TrainingDefinitionFile:
         if len(target) != 2 or target[0] not in FeatureType.__args__:
             raise UnexpectedValueError(f"Invalid model target defined in cfg file: {target}")
 
+        misc_params = {
+            "missing_data_threshold": params.get("missing_data_threshold", 0),"filtering_query": params["filtering_query"]
+        }
+
         model = model_and_test(
             model_name,
             params["validation_season"],
@@ -257,6 +295,7 @@ class _TrainingDefinitionFile:
             dest_dir,
             reuse_existing_models,
             model_dest_filename=dest_filename,
+            misc_params=misc_params,
         )
 
         return model
@@ -267,7 +306,10 @@ _DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 
 def _handle_train(args):
-    tdf = _TrainingDefinitionFile(args.train_file)
+    if args.train_file.endswith(".model") and args.reuse is True:
+        args.parser.error("--reuse cannot be used with a .model file")
+
+    tdf = _TrainingDefinitionFile(args.train_file, args.original_cfg_file)
 
     if not os.path.isdir(args.dest_dir):
         _LOGGER.critical("Destination directory '%s' does not exist.", args.dest_dir)
@@ -342,12 +384,17 @@ _MODEL_CATALOG_PATTERN = "model-catalog.{TIMESTAMP}.csv"
 def _add_train_parser(sub_parsers):
     train_parser = sub_parsers.add_parser("train", help="Train a model")
     train_parser.set_defaults(func=_handle_train, parser=train_parser)
-    train_parser.add_argument("train_file", help="Json file containing training parameters")
+    train_parser.add_argument(
+        "train_file",
+        help="Json file containing training parameters or a .model file for an existing model",
+    )
     train_parser.add_argument(
         "model",
         nargs="?",
-        help="Name of the model to train, if not set then model names will be listed",
+        help="Name of the model to train. If not set then model names will be listed. "
+        "If the train file is a .model file this argument is ignored",
     )
+    train_parser.add_argument("--original_cfg_file", help="if the train_file is a .model file then anything that cannot be inferred from the .model file will be retrieved from here")
     train_parser.add_argument("--info", default=False, action="store_true")
     train_parser.add_argument(
         "--dump_data",
@@ -355,7 +402,12 @@ def _add_train_parser(sub_parsers):
         help="Dump training data to a file. The file extension defines the format. "
         "Supported extensions: .csv, .pq",
     )
-    train_parser.add_argument("--reuse", default=False, action="store_true")
+    train_parser.add_argument(
+        "--reuse",
+        default=False,
+        action="store_true",
+        help="Only useable if the train file is a model config json (not a .model file)",
+    )
     train_parser.add_argument(
         "--error_analysis_data",
         help="Write error analysis data based on validation dataset to a file. "
@@ -396,7 +448,8 @@ def _add_train_parser(sub_parsers):
     )
     train_parser.add_argument(
         "--dest_filename",
-        help="The filename to write the model to. Model filenames will have the extension '.model'. "
+        help="The filename to write the model to. "
+        "Model filenames will have the extension '.model'. "
         "If the requested filename does not have this extension it will be appended. "
         "Default is to use a filename based on the model name and a datetime stamp.",
     )

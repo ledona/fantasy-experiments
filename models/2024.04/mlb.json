@@ -119,7 +119,6 @@
                         "hidden_layers": 1
                     },
                     // "include_pos": false,
-                    "filtering_query": "`calc:dk_score`.notna()",
                     "cols_to_drop": [
                         "extra:bases",
                         "*y_score*"
@@ -143,21 +142,18 @@
                 },
                 "MLB-H-Y": {
                     "target": "calc:y_score",
-                    "filtering_query": "`calc:y_score`.notna()",
                     "cols_to_drop": [
                         "extra:bases"
                     ]
                 },
                 "MLB-H-hit": {
                     "target": "stat:off_hit",
-                    "filtering_query": "`stat:off_hit`.notna()",
                     "cols_to_drop": [
                         "extra:bases"
                     ]
                 },
                 "MLB-H-runs": {
                     "target": "stat:off_runs",
-                    "filtering_query": "`stat:off_runs`.notna()",
                     "cols_to_drop": [
                         "extra:bases"
                     ]

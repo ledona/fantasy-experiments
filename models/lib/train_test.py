@@ -231,7 +231,8 @@ def load_data(
         will be wildcard matched, columns are dropped after filtering_query\
         is applied and one-hot encoding is performed
     filtering_query: query to execute (using dataframe.query) to filter\
-        for rows in the input data. Executed before one-hot and column drops
+        for rows in the input data. Executed before one-hot and column drops.\
+        Data is ALWAYS filtered for notna of target
     missing_data_threshold: warn about feature columns where data is not\
         found for more than this percentage of cases.E.g. 0 = warn in any data is missing\
         .25 = warn if > 25% of data is missing
@@ -275,13 +276,19 @@ def load_data(
         raise UnexpectedValueError(
             f"Following requested feature models not found in data: {features_not_found}"
         )
-    X = train_test_df[feature_cols]
+
     if target_col_name not in train_test_df:
         available_targets = [col for col in train_test_df.columns if len(col.split(":")) == 2]
         raise UnexpectedValueError(
             f"Target feature '{target_col_name}' not found in data. "
             f"Available targets are {available_targets}"
         )
+    if train_test_df[target_col_name].hasnans:
+        pre_drop_len = len(train_test_df)
+        train_test_df = train_test_df.query(f"`{target_col_name}`.notna()")
+        _LOGGER.info("Dropped %i rows where target was nan.", pre_drop_len - len(train_test_df))
+
+    X = train_test_df[feature_cols]
     y = train_test_df[target_col_name]
 
     _missing_feature_data_report(X, missing_data_threshold)
@@ -483,7 +490,6 @@ def _get_model_cls(arch: ArchitectureType) -> Type[PTPredictModel]:
 def _create_fantasy_model(
     name: str,
     model_artifact_path: str,
-    algo_type: ArchitectureType,
     dt_trained: datetime,
     train_df: pd.DataFrame,
     target: tuple[FeatureType, str],
@@ -579,7 +585,7 @@ def _create_fantasy_model(
         data_def["training_pos"] = training_pos
     imputes = _infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM)
     uname = platform.uname()
-    model_cls = _get_model_cls(algo_type)
+    model_cls = _get_model_cls(cast(ArchitectureType, model_params["algo_type"]))
     model = model_cls(
         name,
         target_info,
@@ -587,7 +593,7 @@ def _create_fantasy_model(
         dt_trained=dt_trained,
         trained_on_uname=uname._asdict(),
         training_data_def=data_def,
-        parameters={**model_params, "algo_type": algo_type},
+        parameters=model_params,
         trained_parameters={"regressor_path": model_artifact_path},
         performance=performance,
         player_positions=target_pos,
@@ -613,6 +619,7 @@ def model_and_test(
     dest_dir,
     reuse_most_recent: bool,
     model_dest_filename: str | None = None,
+    misc_params: dict | None = None,
 ):
     """
     create or load a model and test it
@@ -658,11 +665,16 @@ def model_and_test(
             **ml_kwargs,
         )
         performance["season"] = validation_season
+        addl_params = {
+            **ml_kwargs,
+            **(misc_params or {}),
+            "algo_type": algo_type,
+            "training_seasons": training_seasons,
+        }
 
         model = _create_fantasy_model(
             name,
             model_artifact_path,
-            algo_type,
             dt_trained,
             tt_data[0],
             target,
@@ -672,7 +684,7 @@ def model_and_test(
             training_seasons,
             target_pos,
             training_pos,
-            ml_kwargs,
+            addl_params,
         )
 
         final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
