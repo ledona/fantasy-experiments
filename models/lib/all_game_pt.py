@@ -13,7 +13,7 @@ import shlex
 import pandas as pd
 from fantasy_py import JSONWithCommentsDecoder, StatInfo, UnexpectedValueError, log
 
-from .train_test import ArchitectureType
+from .pt_model.train_test import ArchitectureType
 
 _DEFAULT_ARCHITECTURE: ArchitectureType = "tpot"
 

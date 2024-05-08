@@ -27,7 +27,10 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "train",
+                // "train", "lib/test/test.json", "MLB-team-runs",
+                "retrain", "lib/test/test.model",
+                "--orig_cfg_file", "lib/test/test.json",
+
                 // "--info",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2024.04/data",
 
@@ -38,14 +41,12 @@
                 // "--early_stop", "3",
                 // "--checkpoint_dir", "/tmp/fantasy-test-checks",
 
-                "--arch", "tpot",
-                "--n_jobs", "2",
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/pt-mlb-testing",
-                "--dest_filename", "mlb-team-runs.test",
+                "--arch", "dummy",
+                // "--n_jobs", "2",
+                "--dest_dir", "lib/test",
+                "--dest_filename", "test",
 
-                "--max_time_mins", "5", // "--max_iter", "10",
-                "2024.04/mlb.json",
-                "MLB-team-runs"
+                // "--max_time_mins", "5", // "--max_iter", "10",
             ]
         },
         {

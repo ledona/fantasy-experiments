@@ -24,7 +24,6 @@ from fantasy_py import (
     CLSRegistry,
     DataNotAvailableException,
     FantasyException,
-    FeatureDict,
     FeatureType,
     InvalidArgumentsException,
     PlayerOrTeam,
@@ -60,12 +59,19 @@ def _load_data(
     col_drop_filters: list[str] | None,
     limit: int | None,
     validation_season: int,
+    target_col_name: str,
+    original_model_cols: set[str] | None,
 ):
     """
     validation_season: make sure that there is some validation data, even if\
         there is a limit. If there is a limit and no validation data is retrieved\
         when pulling data up to the limit then perform a subsequent retrieval of\
         at most 10% of the limit from the validation season
+    col_drop_filters: list of regex filters to identify columns to drop. only\
+        applied to feature columns and never matches target col. \
+        these are columns that start with a feature type prefix
+    original_model_cols: not none means that we are retraining a model and so\
+        have an expected list of final input cols
     """
     if filename.endswith(".csv"):
         df_raw = pd.read_csv(filename, nrows=limit)
@@ -79,7 +85,7 @@ def _load_data(
         if limit is not None:
             pf = pq.ParquetFile(filename)
             first_n_rows = next(pf.iter_batches(batch_size=limit))
-            df_raw = pa.Table.from_batches([first_n_rows]).to_pandas()
+            df_raw = cast(pd.DataFrame, pa.Table.from_batches([first_n_rows]).to_pandas())
             if len(df_raw.query("season == @validation_season")) == 0:
                 df_validation = pd.read_parquet(
                     filename, filters=[("season", "=", validation_season)]
@@ -102,7 +108,7 @@ def _load_data(
             f"Don't know how to load data files with extension {filename.rsplit('.', 1)[-1]}"
         )
 
-    if include_position is not None and "pos" not in df_raw:
+    if include_position is True and "pos" not in df_raw:
         raise UnexpectedValueError(
             "Column 'pos' not found in data, 'include_position' must be None!"
         )
@@ -111,23 +117,31 @@ def _load_data(
             "Column 'pos' found in data, 'include_position' kwarg is required!"
         )
 
-    cols_to_drop = []
+    cols_to_drop: set[str] = set()
     if col_drop_filters:
-        regexps = []
+        feature_regex = r"^(stat|extra|calc):.*"
         for filter_ in col_drop_filters:
-            if "*" in filter_:
-                regexps.append(re.compile(filter_.replace("*", ".*")))
-                continue
-            cols_to_drop.append(filter_)
-        if len(regexps) > 0:
-            for regexp in regexps:
-                re_cols_to_drop = [col for col in df_raw if regexp.match(col)]
-                if len(re_cols_to_drop) == 0:
-                    raise WildcardFilterFoundNothing(
-                        f"Filter '{regexp}' did not match any columns: {list(df_raw.columns)}"
-                    )
-                cols_to_drop += re_cols_to_drop
-        _LOGGER.info("Dropping n=%i columns: %s", len(cols_to_drop), sorted(cols_to_drop))
+            re_cols_to_drop: set[str] = {
+                col
+                for col in df_raw.columns
+                if re.match(filter_, col)
+                and re.match(feature_regex, col)
+                and col != target_col_name
+            }
+            if len(re_cols_to_drop) == 0:
+                raise WildcardFilterFoundNothing(
+                    f"Filter '{filter_}' did not match any input columns: {list(df_raw.columns)}"
+                )
+            _LOGGER.info(
+                "Column drop filter '%s' matched to %i feature cols", filter_, len(re_cols_to_drop)
+            )
+            cols_to_drop |= re_cols_to_drop
+        _LOGGER.info(
+            "Dropping n=%i of %i columns",  # : %s",
+            len(cols_to_drop),
+            len([col for col in df_raw.columns if ":" in col]),
+            # sorted(cols_to_drop),
+        )
         df = df_raw.drop(columns=cols_to_drop)
     else:
         df = df_raw
@@ -161,6 +175,13 @@ def _load_data(
     if "extra:is_home" in df:
         df["extra:is_home"] = df["extra:is_home"].astype(int)
 
+    if original_model_cols is not None:
+        final_cols = [
+            col
+            for col in df.columns
+            if ":" not in col or col in original_model_cols or col == target_col_name
+        ]
+        df = df[final_cols]
     return df_raw, df, one_hots
 
 
@@ -196,7 +217,8 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
         return
 
     print(
-        f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100:.02f}% missing values."
+        f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100:.02f}% "
+        "missing values."
     )
 
     with pd.option_context(
@@ -217,8 +239,9 @@ def load_data(
     include_position: None | bool = None,
     col_drop_filters: None | list[str] = None,
     filtering_query: None | str = None,
-    missing_data_threshold=0,
+    missing_data_threshold=0.0,
     limit: int | None = None,
+    expected_cols: None | set[str] = None,
 ):
     """
     Create train, test and validation data
@@ -243,7 +266,13 @@ def load_data(
     _LOGGER.info("Target column name set to '%s'", target_col_name)
 
     df_raw, df, one_hot_stats = _load_data(
-        filename, include_position, col_drop_filters, limit, validation_season
+        filename,
+        include_position,
+        col_drop_filters,
+        limit,
+        validation_season,
+        target_col_name,
+        expected_cols,
     )
     if filtering_query:
         try:
@@ -278,6 +307,7 @@ def load_data(
         )
 
     if target_col_name not in train_test_df:
+        # available targets are columns that have a single colon
         available_targets = [col for col in train_test_df.columns if len(col.split(":")) == 2]
         raise UnexpectedValueError(
             f"Target feature '{target_col_name}' not found in data. "
@@ -342,7 +372,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
 ArchitectureType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
 
 
-def _create_model_obj(
+def _instantiate_regressor(
     arch: ArchitectureType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
 ):
     fit_addl_args: None | tuple = None
@@ -369,7 +399,7 @@ def _create_model_obj(
 
         resume_filepath = model_init_kwargs.pop("resume_checkpoint_filepath")
         if resume_filepath is not None:
-            model, best_model_info, optimizer_state = NNRegressor.load_checkpoint(resume_filepath)
+            model, (best_model_info, optimizer_state) = NNRegressor.load_checkpoint(resume_filepath)
             assert model.checkpoint_dir is not None
             if not os.path.isdir(model.checkpoint_dir):
                 raise FileNotFoundError(
@@ -436,7 +466,7 @@ def train_test(
     _LOGGER.info("Fitting model_name=%s using type=%s", model_name, type_)
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
-    model, fit_addl_args, fit_kwargs = _create_model_obj(
+    model, fit_addl_args, fit_kwargs = _instantiate_regressor(
         type_, model_init_kwargs, X_test, y_test, model_filebase
     )
     model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
@@ -510,7 +540,7 @@ def _create_fantasy_model(
     assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
-    features: FeatureDict = defaultdict(set)
+    features_sets: dict[FeatureType, set[str]] = defaultdict(set)
     columns = train_df.columns
     sport_abbr = name.split("-", 1)[0]
     db_manager = cast(
@@ -555,19 +585,19 @@ def _create_fantasy_model(
                 )
                 extra_name = possible_1_hot_extras[0]
 
-            features[extra_type].add(extra_name)
+            features_sets[extra_type].add(extra_name)
             continue
 
         assert col_split[0] in ["calc", "stat"]
         if len(col_split) == 4:
             if col_split[-1] == "player-team":
-                features["player_team_" + col_split[0]].add(col_split[1])
+                features_sets[cast(FeatureType, "player_team_" + col_split[0])].add(col_split[1])
                 continue
             if col_split[-1] == "opp-team":
-                features["opp_team_" + col_split[0]].add(col_split[1])
+                features_sets[cast(FeatureType, "opp_team_" + col_split[0])].add(col_split[1])
                 continue
         if len(col_split) == 3:
-            features[col_split[0]].add(col_split[1])
+            features_sets[cast(FeatureType, col_split[0])].add(col_split[1])
             continue
 
         raise UnexpectedValueError(f"Unknown feature type for data column named col='{col}'")
@@ -589,7 +619,7 @@ def _create_fantasy_model(
     model = model_cls(
         name,
         target_info,
-        features,
+        features_sets,
         dt_trained=dt_trained,
         trained_on_uname=uname._asdict(),
         training_data_def=data_def,
@@ -655,6 +685,15 @@ def model_and_test(
         if filebase_name.endswith(".model"):
             filebase_name = filebase_name.rsplit(".", 1)[0]
 
+        final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
+        if os.path.isfile(final_model_filepath):
+            _LOGGER.info(
+                "A model already exists at '%s'. Adding timestamp to model filename.",
+                final_model_filepath,
+            )
+            filebase_name += "." + dt_to_filename_str()
+            final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
+
         model_artifact_path, performance, dt_trained = train_test(
             algo_type,
             name,
@@ -669,7 +708,6 @@ def model_and_test(
             **ml_kwargs,
             **(misc_params or {}),
             "algo_type": algo_type,
-            "training_seasons": training_seasons,
         }
 
         model = _create_fantasy_model(
@@ -687,8 +725,6 @@ def model_and_test(
             addl_params,
         )
 
-        final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
-        model.dump(final_model_filepath, overwrite=not reuse_most_recent)
-        _LOGGER.info("Model file saved to '%s'", final_model_filepath)
+        model.dump(final_model_filepath)
 
     return model

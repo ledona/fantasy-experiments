@@ -30,13 +30,13 @@
                 "MLB-team-runs": {
                     "target": "stat:off_runs",
                     "cols_to_drop": [
-                        "extra:(whip|venue|opp|hit|is_home)*",
-                        // "extra:(?!ops)*",
-                        // "extra:(?!slug)*",
-                        "stat:*:*", 
-                        // "stat:*(?!off_run)*",
-                        "*opp-team",
-                        "*:p*"
+                        "extra:(whip|venue|opp|hit|is_home)..*",
+                        // "extra:(?!ops)..*",
+                        // "extra:(?!slug)..*",
+                        "stat:..*:..*", 
+                        // "stat:..*(?!off_run)..*",
+                        "..*opp-team",
+                        "..*:p..*"
                     ]
                 },
                 "MLB-team-win": {
@@ -56,24 +56,24 @@
                 "MLB-P-DK": {
                     "target": "calc:dk_score",
                     "cols_to_drop": [
-                        "*y_score*",
-                        // "stat:*",
-                        // "*p_*",
-                        // "*(player|opp)-team",
-                        // "*dk_score:*"
-                        "*recent-*",
-                        "extra:venue*",
-                        // *** dk-only
-                        // "*off*"
-                        // *** dk+saber
-                        // "extra:(venue|hit|opp|*hand|is)*",
-                        // "*(player|opp)-team",
-                        // "*off*"
-                        // *** saber-only
-                        // "extra:(venue|opp|is_home|hitting|b)*",
-                        // "*(player|opp)-team",
-                        // "*off*",
-                        "*dk_score:*"
+                        ".*y_score.*",
+                        // "stat:.*",
+                        // ".*p_.*",
+                        // ".*(player|opp)-team",
+                        // ".*dk_score:.*"
+                        ".*recent-.*",
+                        "extra:venue.*",
+                        // .*.*.* dk-only
+                        // ".*off.*"
+                        // .*.*.* dk+saber
+                        // "extra:(venue|hit|opp|.*hand|is).*",
+                        // ".*(player|opp)-team",
+                        // ".*off.*"
+                        // .*.*.* saber-only
+                        // "extra:(venue|opp|is_home|hitting|b).*",
+                        // ".*(player|opp)-team",
+                        // ".*off.*",
+                        ".*dk_score:.*"
                     ]
                 },
                 "MLB-P-Y": {
@@ -121,23 +121,23 @@
                     // "include_pos": false,
                     "cols_to_drop": [
                         "extra:bases",
-                        "*y_score*"
-                        // "*dk_score:*"
-                        // "*recent-*",
-                        // "extra:venue*"
-                        // *** dk-only
-                        // "extra:*",
-                        // "*(player|opp)-team",
-                        // "*off*"
-                        // *** dk+saber
-                        // "extra:(venue|opp|is_home|hitting|b)*",
-                        // "*(player|opp)-team",
-                        // "*off*"
-                        // *** saber-only
-                        // "extra:(venue|opp|is_home|hitting|b)*",
-                        // "*(player|opp)-team",
-                        // "*off*",
-                        // "*dk_score:*"
+                        ".*y_score.*"
+                        // ".*dk_score:.*"
+                        // ".*recent-.*",
+                        // "extra:venue.*"
+                        // .*.*.* dk-only
+                        // "extra:.*",
+                        // ".*(player|opp)-team",
+                        // ".*off.*"
+                        // .*.*.* dk+saber
+                        // "extra:(venue|opp|is_home|hitting|b).*",
+                        // ".*(player|opp)-team",
+                        // ".*off.*"
+                        // .*.*.* saber-only
+                        // "extra:(venue|opp|is_home|hitting|b).*",
+                        // ".*(player|opp)-team",
+                        // ".*off.*",
+                        // ".*dk_score:.*"
                     ]
                 },
                 "MLB-H-Y": {

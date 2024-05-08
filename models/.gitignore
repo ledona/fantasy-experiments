@@ -1,7 +1,7 @@
-*pkl
-*model
-*csv
-*pq
+*.pkl
+*.model
+*.csv
+*.pq
 
 # default parent folder with deep lineup export data
 deep-lineup-datasets

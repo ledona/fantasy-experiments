@@ -1,82 +1,94 @@
+// individual player/team model
 {
     "global_default": {
         "seed": 1,
-        "validation_season": 2021,
+        "validation_season": 2023,
         "recent_games": 5,
         "training_seasons": [
-            2022,
-            2023
+            2021,
+            2022
         ],
-        "missing_data_threshold": 0.07,
+        "missing_data_threshold": 0.1,
         "train_params": {
-            "max_time_mins": 10,
-            "max_eval_time_mins": 2
-        },
-        "data_filename": "all-data.pq"
+            "epochs_max": 100,
+            "early_stop": 5,
+            "max_eval_time_mins": 15,
+            "max_time_mins": 60
+        }
     },
     "model_groups": [
         {
-            "models": {
-                "win": {
-                    "target": [
-                        "stat",
-                        "win"
-                    ]
-                }
-            }
-        },
-        {
-            "data_filename": "team.pq",
+            "data_filename": "mlb_team.pq",
             "p_or_t": "T",
             "models": {
-                "team-pts": {
-                    "target": [
-                        "stat",
-                        "pts"
+                "MLB-team-runs": {
+                    "target": "stat:off_runs",
+                    "cols_to_drop": [
+                        "extra:(whip|venue|opp|hit|is_home).*",
+                        "stat:.*:.*",
+                        ".*opp-team",
+                        ".*:p.*"
                     ]
-                },
-                "team-pts-allowed": {
-                    "target": [
-                        "stat",
-                        "pts-allowed"
-                    ],
-                    "recent_games": 3
                 }
             }
         },
         {
-            "data_filename": "player.pq",
-            "include_pos": true,
+            "data_filename": "mlb_pitcher.pq",
             "p_or_t": "P",
+            "include_pos": false,
+            "missing_data_threshold": 0.28,
             "target_pos": [
-                "P1",
-                "P2"
+                "P"
             ],
-            "training_pos": [
-                "P3",
-                "P4",
-                "P5"
+            "models": {
+                "MLB-P-DK": {
+                    "target": "calc:dk_score",
+                    "cols_to_drop": [
+                        ".*y_score.*",
+                        ".*recent-.*",
+                        "extra:venue.*",
+                        ".*dk_score:.*"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "mlb_hitter.pq",
+            "p_or_t": "P",
+            "include_pos": true,
+            "target_pos": [
+                "1B",
+                "2B",
+                "3B",
+                "SS",
+                "C",
+                "LF",
+                "RF",
+                "CF",
+                "OF"
             ],
             "train_params": {
-                "max_time_mins": 25
+                "n_jobs": 2,
+                "max_time_mins": 45,
+                "max_eval_time_mins": 15
             },
             "models": {
-                "player-score": {
-                    "target": [
-                        "stat",
-                        "score"
+                "MLB-H-DK": {
+                    "target": "calc:dk_score",
+                    "train_params": {
+                        "batch_size": 64,
+                        "hidden_layers": 1
+                    },
+                    "cols_to_drop": [
+                        "extra:bases",
+                        ".*y_score.*"
                     ]
                 },
-                "p1-stop": {
-                    "target": [
-                        "stat",
-                        "stop"
-                    ],
-                    "train_params": {
-                        "max_eval_time_mins": 5
-                    },
-                    "target_pos": ["P1"],
-                    "include_pos": false
+                "MLB-H-hit": {
+                    "target": "stat:off_hit",
+                    "cols_to_drop": [
+                        "extra:bases"
+                    ]
                 }
             }
         }
