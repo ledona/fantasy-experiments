@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import warnings
 from pprint import pprint
 from typing import Literal, TypedDict, cast
@@ -313,9 +314,20 @@ class TrainingConfiguration:
             "loading data from '%s'%s", data_filepath, f" with limit {limit}" if limit else ""
         )
 
+        target_tuple = cast(
+            tuple[FeatureType, str],
+            (
+                params["target"]
+                if isinstance(params["target"], (tuple, list))
+                else params["target"].split(":")
+            ),
+        )
+        if len(target_tuple) != 2 or target_tuple[0] not in FeatureType.__args__:
+            raise UnexpectedValueError(f"Invalid model target: {target_tuple}")
+
         _, tt_data, one_hot_stats = load_data(
             data_filepath,
-            params["target"],
+            target_tuple,
             params["validation_season"],
             params["seed"],
             include_position=params["include_pos"],
@@ -356,14 +368,6 @@ class TrainingConfiguration:
             print(f"Data features (n={len(tt_data[0].columns)}): {sorted(tt_data[0].columns)}")
             sys.exit(0)
 
-        target = (
-            params["target"]
-            if isinstance(params["target"], (tuple, list))
-            else params["target"].split(":")
-        )
-        if len(target) != 2 or target[0] not in FeatureType.__args__:
-            raise UnexpectedValueError(f"Invalid model target defined in cfg file: {target}")
-
         misc_params = {
             "missing_data_threshold": params.get("missing_data_threshold", 0),
             "filtering_query": params["filtering_query"],
@@ -373,7 +377,7 @@ class TrainingConfiguration:
             model_name,
             params["validation_season"],
             tt_data,
-            cast(tuple[FeatureType, str], target),
+            target_tuple,
             arch_type,
             params["p_or_t"],
             params["recent_games"],

@@ -144,6 +144,52 @@ def test_training_def_file_model_names(tdf: TrainingConfiguration):
     assert set(tdf.model_names) == set(_EXPECTED_TRAINING_CFG_PARAMS.keys())
 
 
+def _finalize_expected_params(params: _TrainingParamsDict, cmdline_strs: list[str]):
+    assert params["train_params"]
+
+    n_jobs = (
+        int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
+        if "--tpot_jobs" in cmdline_strs
+        else params["train_params"]["n_jobs"]
+    )
+    max_eval_time_mins = (
+        int(cmdline_strs[cmdline_strs.index("--max_eval_time_mins") + 1])
+        if "--max_eval_time_mins" in cmdline_strs
+        else params["train_params"]["max_eval_time_mins"]
+    )
+    max_time_mins = (
+        int(cmdline_strs[cmdline_strs.index("--max_time_mins") + 1])
+        if "--max_time_mins" in cmdline_strs
+        else params["train_params"]["max_time_mins"]
+    )
+    generations = (
+        int(cmdline_strs[cmdline_strs.index("--epochs_max") + 1])
+        if "--epochs_max" in cmdline_strs
+        else params["train_params"]["epochs_max"]
+    )
+    early_stop = (
+        int(cmdline_strs[cmdline_strs.index("--early_stop") + 1])
+        if "--early_stop" in cmdline_strs
+        else params["train_params"]["early_stop"]
+    )
+
+    train_params = {
+        # "use_dask": False,
+        # "verbosity": 3,
+        # "random_state": params["seed"],
+        "max_time_mins": max_time_mins,
+        "max_eval_time_mins": max_eval_time_mins,
+        "n_jobs": n_jobs,
+        "generations": generations,
+        "early_stop": early_stop,
+    }
+    target_tuple = (
+        params["target"].split(":") if isinstance(params["target"], str) else params["target"]
+    )
+
+    return train_params, target_tuple
+
+
 @pytest.mark.parametrize(
     "cmdline, expected_reuse",
     [
@@ -161,29 +207,8 @@ def test_training_def_file_train_test(
     as expected"""
     cmdline_strs = cmdline.split(" ")
     model_name = "MLB-H-DK"
-    params = tdf.get_params(model_name)
-
-    expected_tpot_train_params = {
-        "use_dask": False,
-        "verbosity": 3,
-        "random_state": params["seed"],
-        "max_time_mins": params["train_params"]["max_time_mins"],
-        "max_eval_time_mins": params["train_params"]["max_eval_time_mins"],
-    }
-
-    expected_tpot_train_params["n_jobs"] = (
-        int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
-        if "--tpot_jobs" in cmdline_strs
-        else None
-    )
-    if "--max_eval_time_mins" in cmdline_strs:
-        expected_tpot_train_params["max_eval_time_mins"] = int(
-            cmdline_strs[cmdline_strs.index("--max_eval_time_mins") + 1]
-        )
-    if "--max_time_mins" in cmdline_strs:
-        expected_tpot_train_params["max_time_mins"] = int(
-            cmdline_strs[cmdline_strs.index("--max_time_mins") + 1]
-        )
+    expected_params = tdf.get_params(model_name)
+    train_params, target_tuple = _finalize_expected_params(expected_params, cmdline_strs)
 
     arch = (
         cmdline_strs[cmdline_strs.index("--arch") + 1]
@@ -201,32 +226,39 @@ def test_training_def_file_train_test(
     main(f"train {cmdline} {_TEST_DEF_FILE_FILEPATH} {model_name}")
 
     mock_load_data.assert_called_once_with(
-        params["data_filename"],
-        params["target"],
-        params["validation_season"],
-        params["seed"],
-        include_position=params["include_pos"],
-        col_drop_filters=params["cols_to_drop"],
-        missing_data_threshold=params["missing_data_threshold"],
-        filtering_query=params["filtering_query"],
+        expected_params["data_filename"],
+        target_tuple,
+        expected_params["validation_season"],
+        expected_params["seed"],
+        include_position=expected_params["include_pos"],
+        col_drop_filters=expected_params["cols_to_drop"],
+        missing_data_threshold=expected_params["missing_data_threshold"],
+        filtering_query=expected_params["filtering_query"],
         limit=None,
+        expected_cols=None,
     )
+
+    misc_params = {
+        "missing_data_threshold": expected_params["missing_data_threshold"],
+        "filtering_query": expected_params["filtering_query"],
+    }
 
     mock_model_and_test.assert_called_once_with(
         model_name,
-        params["validation_season"],
+        expected_params["validation_season"],
         fake_tt_data,
-        params["target"],
+        target_tuple,
         arch,
-        params["p_or_t"],
-        params["recent_games"],
-        params["training_seasons"],
-        expected_tpot_train_params,
-        params["target_pos"],
-        params["training_pos"] or params["target_pos"],
+        expected_params["p_or_t"],
+        expected_params["recent_games"],
+        expected_params["training_seasons"],
+        train_params,
+        expected_params["target_pos"],
+        expected_params["training_pos"] or expected_params["target_pos"],
         ".",
         expected_reuse,
         model_dest_filename=None,
+        misc_params=misc_params,
     )
 
 
@@ -377,3 +409,8 @@ def test_model_gen(tmpdir, mocker):
         expected_mae,
     )
     deep_compare_dicts(model_dict, expected_model_dict)
+
+
+def test_retrain():
+    """ensure that retraining a model lead to proper model training params"""
+    raise NotImplementedError()
