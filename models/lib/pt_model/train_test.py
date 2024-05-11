@@ -521,7 +521,7 @@ def _create_fantasy_model(
     name: str,
     model_artifact_path: str,
     dt_trained: datetime,
-    train_df: pd.DataFrame,
+    training_features_df: pd.DataFrame,
     target: tuple[FeatureType, str],
     performance: Performance,
     p_or_t: PlayerOrTeam,
@@ -541,7 +541,7 @@ def _create_fantasy_model(
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features_sets: dict[FeatureType, set[str]] = defaultdict(set)
-    columns = train_df.columns
+    columns = training_features_df.columns
     sport_abbr = name.split("-", 1)[0]
     db_manager = cast(
         SportDBManager, CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport_abbr.lower())
@@ -613,7 +613,7 @@ def _create_fantasy_model(
         data_def["only_starters"] = only_starters
     if training_pos is not None:
         data_def["training_pos"] = training_pos
-    imputes = _infer_imputes(train_df, p_or_t == PlayerOrTeam.TEAM)
+    imputes = _infer_imputes(training_features_df, p_or_t == PlayerOrTeam.TEAM)
     uname = platform.uname()
     model_cls = _get_model_cls(cast(ArchitectureType, model_params["algo_type"]))
     model = model_cls(
@@ -649,7 +649,7 @@ def model_and_test(
     dest_dir,
     reuse_most_recent: bool,
     model_dest_filename: str | None = None,
-    misc_params: dict | None = None,
+    data_src_params: dict | None = None,
 ):
     """
     create or load a model and test it
@@ -659,6 +659,7 @@ def model_and_test(
     reuse_most_recent: do not create a new model if one already exists that follows\
         the default model filenaming pattern. If an existing model exists, use the\
         most recently created version
+    data_src_params: parameters describing the data source for model training
     """
     model = None
     if reuse_most_recent:
@@ -706,7 +707,7 @@ def model_and_test(
         performance["season"] = validation_season
         addl_params = {
             **ml_kwargs,
-            **(misc_params or {}),
+            **(data_src_params or {}),
             "algo_type": algo_type,
         }
 

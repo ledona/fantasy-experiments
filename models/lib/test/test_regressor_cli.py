@@ -8,13 +8,14 @@ import pandas as pd
 import pytest
 import sklearn
 from fantasy_py import FeatureType, PlayerOrTeam, dt_to_filename_str
-from fantasy_py.inference import PTPredictModel
+from fantasy_py.inference import PTPredictModel, SKLModel
 from freezegun import freeze_time
 from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
 from ..pt_model import TrainingConfiguration, _TrainingParamsDict
+from ..pt_model.cfg import _DATA_SRC_PARAMS
 from ..regressor import _DEFAULT_ARCHITECTURE, _DUMMY_REGRESSOR_KWARGS, main
 
 _EXPECTED_TRAINING_CFG_PARAMS = {
@@ -238,10 +239,7 @@ def test_training_def_file_train_test(
         expected_cols=None,
     )
 
-    misc_params = {
-        "missing_data_threshold": expected_params["missing_data_threshold"],
-        "filtering_query": expected_params["filtering_query"],
-    }
+    data_src_params = {k_: expected_params[k_] for k_ in _DATA_SRC_PARAMS.__args__}
 
     mock_model_and_test.assert_called_once_with(
         model_name,
@@ -258,7 +256,7 @@ def test_training_def_file_train_test(
         ".",
         expected_reuse,
         model_dest_filename=None,
-        misc_params=misc_params,
+        data_src_params=data_src_params,
     )
 
 
@@ -319,6 +317,7 @@ def _create_expected_model_dict(
             "missing_data_threshold": _EXPECTED_TRAINING_CFG_PARAMS[model_name][
                 "missing_data_threshold"
             ],
+            "data_filename": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["data_filename"],
             **_DUMMY_REGRESSOR_KWARGS,
         },
         "trained_parameters": {"regressor_path": final_artifact_filepath},
@@ -337,7 +336,21 @@ def _create_expected_model_dict(
     }
 
 
-def test_model_gen(tmpdir, mocker):
+@pytest.fixture(name="fake_metrics")
+def _fake_metrics(mocker):
+    """
+    fixture that mocks r2 and mae metrics, returning the expected r2 and mae results
+    """
+    mock_sklearn = mocker.patch("lib.pt_model.train_test.sklearn")
+    mock_sklearn.model_selection.train_test_split = sklearn.model_selection.train_test_split
+    expected_r2 = 0.453
+    expected_mae = 7.379
+    mock_sklearn.metrics.r2_score.return_value = expected_r2
+    mock_sklearn.metrics.mean_absolute_error.return_value = expected_mae
+    return expected_r2, expected_mae
+
+
+def test_model_gen(tmpdir, mocker, fake_metrics):
     """test that the resulting model file is as expected and that
     the expected calls to fit the model, etc were made"""
     model_name = "MLB-H-DK"
@@ -368,13 +381,6 @@ def test_model_gen(tmpdir, mocker):
         }
     )
 
-    mock_sklearn = mocker.patch("lib.pt_model.train_test.sklearn")
-    mock_sklearn.model_selection.train_test_split = sklearn.model_selection.train_test_split
-    expected_r2 = 0.453
-    expected_mae = 7.379
-    mock_sklearn.metrics.r2_score.return_value = expected_r2
-    mock_sklearn.metrics.mean_absolute_error.return_value = expected_mae
-
     dt = datetime(2023, 12, 3, 0, 33)
     with freeze_time(dt):
         main("train " + cmdline)
@@ -396,6 +402,7 @@ def test_model_gen(tmpdir, mocker):
         model_dict = json.load(f_)
 
     del model_dict["model_file_version"]
+    expected_r2, expected_mae = fake_metrics
     expected_model_dict = _create_expected_model_dict(
         model_name,
         feature_stat,
@@ -411,6 +418,31 @@ def test_model_gen(tmpdir, mocker):
     deep_compare_dicts(model_dict, expected_model_dict)
 
 
-def test_retrain():
+def test_retrain(mocker: MockFixture, tmpdir, fake_metrics):
     """ensure that retraining a model lead to proper model training params"""
-    raise NotImplementedError()
+    # mock the training data load
+    fake_raw_df = mocker.Mock(name="fake-raw-training-df")
+    fake_training_features_df = pd.DataFrame({"stat:fake-stat:std": [8, 6, 7, 5], "pos_C": [1] * 4})
+    fake_tt_data = [fake_training_features_df, None, None, None, None, None]
+    mocker.patch("lib.pt_model.cfg.load_data", return_value=(fake_raw_df, fake_tt_data, None))
+
+    # mock the regressor object
+    mocker.patch("lib.pt_model.train_test.DummyRegressor")
+
+    # mocks to skip artifact dumping stuff
+    mocker.patch("lib.pt_model.train_test.joblib")
+    mocker.patch.object(SKLModel, "verify")
+    mocker.patch.object(SKLModel, "update_artifact_path")
+    mocker.patch("fantasy_py.inference.pt_predict_model.os")
+
+    main(
+        "train --arch dummy --dest_filename model-1 "
+        f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} MLB-H-DK"
+    )
+
+    model_1_filepath = os.path.join(tmpdir, "model-1.model")
+    main(f"retrain {model_1_filepath} --dest_filename model-2 " f"--dest_dir {tmpdir}")
+
+    raise NotImplementedError(
+        "compare the first and second model files to ensure they match/differ where they should"
+    )

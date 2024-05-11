@@ -43,10 +43,13 @@ _TPOT_TRAINING_PARAMS_RENAME = {"epochs_max": "generations"}
 
 _DUMMY_TRAINING_PARAMS = Literal["strategy"]
 
+_DATA_SRC_PARAMS = Literal["missing_data_threshold", "filtering_query", "data_filename"]
+"""model parameters describing load and filtering of training data"""
+
 
 def _get_param_keys(arch: ArchitectureType) -> tuple[set[str], None | dict[str, str]]:
     """
-    returns: tuple[expected-arch-param-keys, key-renamer-dict] where the expected keys
+    returns tuple[expected-arch-param-keys, key-renamer-dict] where the expected keys
     are the regressor instantiation kw args required by the architecture, and
     the renamer is a mapping of the expected key to the actual kwarg name used
     when instantiating the regressor. Default (if the expected key is not in the renamer)
@@ -133,7 +136,9 @@ class TrainingConfiguration:
             else None
         )
         cfg_dict = {
-            key: orig_model.data_def[key] for key in ["data_filename"] if key in orig_model.data_def
+            key: orig_model.parameters[key]
+            for key in _DATA_SRC_PARAMS.__args__
+            if key in orig_model.parameters
         }
         cfg_dict.update(
             {
@@ -146,8 +151,6 @@ class TrainingConfiguration:
                 "include_pos": orig_model.data_def["include_pos"],
                 "cols_to_drop": None,
                 "original_model_columns": set(orig_model.data_def["input_cols"]),
-                "missing_data_threshold": orig_model.parameters["missing_data_threshold"],
-                "filtering_query": orig_model.parameters["filtering_query"],
                 "target_pos": orig_model.player_positions,
                 "training_pos": orig_model.player_positions,
                 "train_params": train_params,
@@ -158,12 +161,12 @@ class TrainingConfiguration:
         if len(missing_keys) > 0:
             if training_filepath is None:
                 raise UnexpectedValueError(
-                    f"Configuration file based on model file for '{orig_model.name}' is missing "
-                    f"values. A training cfg file is required! {sorted(missing_keys)=}"
+                    f"Training parameters for model '{orig_model.name}' in '{model_filepath}' "
+                    f"are incomplete. A training cfg file is required! missing_keys={sorted(missing_keys)}"
                 )
             warnings.warn(
                 "Using training cfg file as a fallback for a model with missing parameters "
-                "will be dropped in future versions",
+                "will be dropped in future versions.",
                 DeprecationWarning,
             )
 
@@ -368,9 +371,10 @@ class TrainingConfiguration:
             print(f"Data features (n={len(tt_data[0].columns)}): {sorted(tt_data[0].columns)}")
             sys.exit(0)
 
-        misc_params = {
+        data_src_params: dict[_DATA_SRC_PARAMS, str | float | None] = {
             "missing_data_threshold": params.get("missing_data_threshold", 0),
             "filtering_query": params["filtering_query"],
+            "data_filename": params["data_filename"],
         }
 
         model = model_and_test(
@@ -388,7 +392,7 @@ class TrainingConfiguration:
             dest_dir,
             reuse_existing_models,
             model_dest_filename=dest_filename,
-            misc_params=misc_params,
+            data_src_params=data_src_params,
         )
 
         return model
