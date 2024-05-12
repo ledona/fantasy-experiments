@@ -9,7 +9,7 @@ from datetime import datetime
 from glob import glob
 from pprint import pprint
 from tempfile import gettempdir
-from typing import Literal, Type, cast
+from typing import Literal, cast
 
 import dateutil
 import joblib
@@ -448,7 +448,7 @@ def _instantiate_regressor(
 
 
 def train_test(
-    type_: AlgorithmType,
+    algo: AlgorithmType,
     model_name: str,
     target: tuple[FeatureType, str],
     tt_data: TrainTestData,
@@ -464,22 +464,23 @@ def train_test(
     returns the filepath to the model
     """
     dt_trained = datetime.now()
-    _LOGGER.info("Fitting model_name=%s using type=%s", model_name, type_)
+    _LOGGER.info("Fitting model_name=%s using type=%s", model_name, algo)
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
     model, fit_addl_args, fit_kwargs = _instantiate_regressor(
-        type_, model_init_kwargs, X_test, y_test, model_filebase
+        algo, model_init_kwargs, X_test, y_test, model_filebase
     )
     model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
+    assert model is not None
 
-    if type_.startswith("tpot"):
+    if algo.startswith("tpot"):
         _LOGGER.info("TPOT fitted")
         tpot_model = cast(TPOTRegressor, model)
         pprint(tpot_model.fitted_pipeline_)
-    elif type_ in ("dummy", "auto-xgb", "nn"):
-        _LOGGER.info("%s fitted", type_)
+    elif algo in ("dummy", "auto-xgb", "nn"):
+        _LOGGER.info("%s fitted", algo)
     else:
-        raise NotImplementedError(f"model type {type_} not recognized")
+        raise NotImplementedError(f"model type {algo} not recognized")
 
     y_hat = model.predict(X_test)
     r2_test = round(float(sklearn.metrics.r2_score(y_test, y_hat)), 3)
@@ -493,26 +494,26 @@ def train_test(
     _LOGGER.info("Validation r2_val=%f mae_val=%f", r2_val, mae_val)
 
     artifact_filebase = (
-        model_filebase or f"{model_name}.{type_}.{target[1]}.{dt_to_filename_str(dt_trained)}"
+        model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
     )
     artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
-    if type_ in ("dummy", "auto-xgb"):
+    if algo in ("dummy", "auto-xgb"):
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(model, artifact_filepath)
-    elif isinstance(model, TPOTRegressor):
+    elif algo.startswith("tpot"):
         artifact_filepath = artifact_filebase_path + ".pkl"
-        joblib.dump(model.fitted_pipeline_, artifact_filepath)
-    elif isinstance(model, NNRegressor):
+        joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
+    elif algo == "nn":
         artifact_filepath = artifact_filebase_path + ".pt"
         torch.save(model, artifact_filepath)
     else:
-        raise NotImplementedError(f"model type {type_} not recognized")
+        raise NotImplementedError(f"model {algo=} not recognized")
 
     _LOGGER.info("Exported model artifact to '%s'", artifact_filepath)
     return artifact_filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
-def _get_model_cls(algorithm: AlgorithmType) -> Type[PTPredictModel]:
+def _get_model_cls(algorithm: AlgorithmType):
     if algorithm == "nn":
         return NNModel
     return SKLModel

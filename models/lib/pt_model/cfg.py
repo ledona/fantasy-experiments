@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-import warnings
 from pprint import pprint
 from typing import Literal, TypedDict, cast
 
@@ -27,21 +26,26 @@ _NN_TRAINING_PARAMS = Literal[
     "hidden_layers",
     "batch_size",
     "epochs_max",
-    "early_stop_epochs",
+    "early_stop",
     "learning_rate",
     "shuffle",
+    "resume_checkpoint_filepath",
+    "checkpoint_dir",
 ]
 """names of parameters in a model definition file applicable to NN models"""
+_NN_TRAINING_PARAMS_RENAME = {"early_stop": "early_stop_epochs"}
+"""renames from model definition file params to regressor kwarg"""
 
 _TPOT_TRAINING_PARAMS = Literal[
     "max_time_mins", "max_eval_time_mins", "n_jobs", "epochs_max", "early_stop"
 ]
 """names of parameters in a model definition file applicable to tpot"""
-
 _TPOT_TRAINING_PARAMS_RENAME = {"epochs_max": "generations"}
 """remapping of model parameter names in definition file to tpot kwarg parameter names"""
 
 _DUMMY_TRAINING_PARAMS = Literal["strategy"]
+DEFAULT_DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
+
 
 _DATA_SRC_PARAMS = Literal["missing_data_threshold", "filtering_query", "data_filename"]
 """model parameters describing load and filtering of training data"""
@@ -51,19 +55,24 @@ DEFAULT_ALGORITHM: AlgorithmType = "tpot"
 
 def _get_param_keys(algorithm: AlgorithmType) -> tuple[set[str], None | dict[str, str]]:
     """
-    returns tuple[expected-algorithm-param-keys, key-renamer-dict] where the expected keys
-    are the regressor instantiation kw args required by the algorithm, and
-    the renamer is a mapping of the expected key to the actual kwarg name used
-    when instantiating the regressor. Default (if the expected key is not in the renamer)
-    is to use the expected key name itself. The renamer helps with the reuse of expected
-    key names by multiple algorithms
+    returns tuple[expected-algorithm-param-keys, key-renamer-dict]
+    Expected keys are the keys stored in the model cfg definition file (not the .model file)
+    The renamer dict is the mapping of model cfg param keys to the name
+    of the kw param required by the regressor. The renamer allows multiple algorithms that
+    share common parameter to have a shared value in the model config file even if
+    the algorithm regressor uses different keyword args for that parameter
+
+    E.g. if algorithm A and B both use a model definition parameter x, but the regressor
+    for A requires that x be set in a kwarg foo and B requires the kwarg bar then both
+    A and B will have x in their expected-algorithm-param-keys, and A will have a
+    rename of x->foo, while B has a remap of x->bar.
     """
     if algorithm not in AlgorithmType.__args__:
         raise UnexpectedValueError(f"Param keys unknown for {algorithm=}")
     if algorithm.startswith("tpot"):
         return set(_TPOT_TRAINING_PARAMS.__args__), _TPOT_TRAINING_PARAMS_RENAME
     if algorithm == "nn":
-        return set(_NN_TRAINING_PARAMS.__args__), None
+        return set(_NN_TRAINING_PARAMS.__args__), _NN_TRAINING_PARAMS_RENAME
     if algorithm == "dummy":
         return set(_DUMMY_TRAINING_PARAMS.__args__), None
     return set(), None
@@ -99,6 +108,8 @@ class _TrainingParamsDict(TypedDict):
 
 
 class TrainingConfiguration:
+    algorithm: AlgorithmType
+
     def __init__(
         self,
         filepath: str | None = None,
@@ -131,7 +142,6 @@ class TrainingConfiguration:
             for model_name in model_group["models"]:
                 self._model_names_to_group_idx[model_name] = i
 
-    # TODO: remove training_filepath asap
     @classmethod
     def cfg_from_model(
         cls,
@@ -150,12 +160,22 @@ class TrainingConfiguration:
                 "Retrain unsupported."
             )
 
-        param_keys, _ = _get_param_keys(orig_model.parameters["algorithm"])
-        train_params = (
-            {key: orig_model.parameters[key] for key in param_keys}
-            if param_keys is not None
-            else None
-        )
+        if algorithm is None:
+            algorithm = cast(AlgorithmType, orig_model.parameters["algorithm"])
+        param_keys, param_rename = _get_param_keys(algorithm)
+
+        if algorithm == "dummy":
+            train_params = DEFAULT_DUMMY_REGRESSOR_KWARGS.copy()
+        else:
+            train_params = {}
+
+        if param_keys is not None:
+            for key in param_keys:
+                model_key = param_rename.get(key, key) if param_rename else key
+                if model_key not in orig_model.parameters:
+                    continue
+                train_params[key] = orig_model.parameters[model_key]
+
         model_params_dict = {
             key: orig_model.parameters[key]
             for key in _DATA_SRC_PARAMS.__args__
@@ -163,7 +183,7 @@ class TrainingConfiguration:
         }
         model_params_dict.update(
             {
-                "algorithm": algorithm or orig_model.parameters["algorithm"],
+                "algorithm": algorithm,
                 "target": orig_model.target.type + ":" + orig_model.target.name,
                 "validation_season": cast(int, orig_model.performance["season"]),
                 "recent_games": orig_model.data_def["recent_games"],
@@ -179,38 +199,39 @@ class TrainingConfiguration:
             }
         )
 
-        missing_keys = set(_TrainingParamsDict.__annotations__.keys()) - set(
+        missing_model_param_keys = set(_TrainingParamsDict.__annotations__.keys()) - set(
             model_params_dict.keys()
         )
-        if len(missing_keys) > 0:
+        missing_train_param_keys = param_keys - set(train_params.keys())
+
+        if len(missing_model_param_keys) > 0 or len(missing_train_param_keys) > 0:
             if training_filepath is None:
                 raise UnexpectedValueError(
                     f"Training parameters for model '{orig_model.name}' in '{model_filepath}' "
                     f"are incomplete. A training cfg file is required! "
-                    "missing_keys={sorted(missing_keys)}"
+                    f"missing_model_params={sorted(missing_model_param_keys)} "
+                    f"missing_train_params={sorted(missing_train_param_keys)}"
                 )
-            warnings.warn(
-                "Using training cfg file as a fallback for a model with missing parameters "
-                "will be dropped in future versions.",
-                DeprecationWarning,
-            )
 
-            _LOGGER.info(
-                "Retrieving the following missing training parameters for '%s' from '%s': %s",
-                orig_model.name,
-                training_filepath,
-                missing_keys,
-            )
-            config = TrainingConfiguration(training_filepath)
-            model_params = config.get_params(orig_model.name)
-            for key in missing_keys:
-                model_params_dict[key] = model_params[key]
-
-            if orig_model.target[0] + ":" + orig_model.target[2] != model_params_dict["target"]:
-                raise UnexpectedValueError(
-                    f"target of new configuration is {model_params_dict['target']} does not match "
-                    "old model target {model.target} "
+            if len(missing_model_param_keys) > 0:
+                _LOGGER.info(
+                    "Retrieving the following missing training parameters for '%s' from '%s': %s",
+                    orig_model.name,
+                    training_filepath,
+                    missing_model_param_keys,
                 )
+                config = TrainingConfiguration(training_filepath)
+                model_params = config.get_params(orig_model.name)
+                for key in missing_model_param_keys:
+                    model_params_dict[key] = model_params[key]
+
+                if orig_model.target[0] + ":" + orig_model.target[2] != model_params_dict["target"]:
+                    raise UnexpectedValueError(
+                        f"target of new configuration is {model_params_dict['target']} does not match "
+                        "old model target {model.target} "
+                    )
+            if len(missing_train_param_keys) > 0:
+                raise NotImplementedError()
 
         cfg_dict: dict = {
             "global_default": {},
@@ -292,8 +313,11 @@ class TrainingConfiguration:
             )
             return regressor_kwargs
 
+        # new_kwargs = {
+        #     key: value for key, value in regressor_kwargs.items() if key in expected_param_names
+        # }
         new_kwargs = {
-            key: value for key, value in regressor_kwargs.items() if key in expected_param_names
+            key: regressor_kwargs[key] for key in expected_param_names if key in regressor_kwargs
         }
         if (
             "random_state" in expected_param_names
@@ -380,15 +404,11 @@ class TrainingConfiguration:
                 raise UnexpectedValueError(f"Unknown data dump format: {dump_data}")
 
         final_regressor_kwargs = self._get_regressor_kwargs(regressor_kwargs, params)
-        print("\nTraining will proceed with the following parameters:")
+        print(f"\nTraining of {model_name} will proceed with the following parameters:")
         pprint(params)
         print()
-        _LOGGER.info(
-            "Fitting model '%s' with algorithm=%s using final_regressor_kwargs=%s",
-            model_name,
-            self.algorithm,
-            final_regressor_kwargs,
-        )
+        print(f"Training of {model_name} will proceed with the regressor kwargs:")
+        pprint(final_regressor_kwargs)
 
         if info:
             print(f"\nModel parameters for {model_name}")

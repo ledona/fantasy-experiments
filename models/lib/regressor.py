@@ -14,12 +14,10 @@ import pandas as pd
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from ledona import process_timer
 
-from .pt_model import AlgorithmType, TrainingConfiguration
+from .pt_model import DEFAULT_DUMMY_REGRESSOR_KWARGS, AlgorithmType, TrainingConfiguration
 
 _LOGGER = log.get_logger(__name__)
 
-
-_DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
 
 _CLITrainingParams = Literal[
     "training_mins",
@@ -106,7 +104,7 @@ def _handle_train(args: argparse.Namespace):
         if cli_training_params["early_stop"] is not None:
             modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
     elif tdf.algorithm == "dummy":
-        modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
+        modeler_init_kwargs = DEFAULT_DUMMY_REGRESSOR_KWARGS.copy()
     else:
         args.parse.error(f"Unknown algorithm '{tdf.algorithm}' requested")
 
