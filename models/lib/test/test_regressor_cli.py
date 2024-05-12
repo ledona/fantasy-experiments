@@ -14,9 +14,9 @@ from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
-from ..pt_model import TrainingConfiguration, _TrainingParamsDict
+from ..pt_model import DEFAULT_ALGORITHM, TrainingConfiguration, _TrainingParamsDict
 from ..pt_model.cfg import _DATA_SRC_PARAMS
-from ..regressor import _DEFAULT_ARCHITECTURE, _DUMMY_REGRESSOR_KWARGS, main
+from ..regressor import _DUMMY_REGRESSOR_KWARGS, main
 
 _EXPECTED_TRAINING_CFG_PARAMS = {
     "MLB-team-runs": {
@@ -136,6 +136,7 @@ def test_training_def_file_params(tdf: TrainingConfiguration, model_name):
     expected params
     """
     params = tdf.get_params(model_name)
+    del params["algorithm"]
     assert params == _EXPECTED_TRAINING_CFG_PARAMS[model_name]
 
 
@@ -196,7 +197,7 @@ def _finalize_expected_params(params: _TrainingParamsDict, cmdline_strs: list[st
     [
         ("", False),
         ("--reuse", True),
-        ("--arch tpot-light", False),
+        ("--algorithm tpot-light", False),
         ("--tpot_jobs 5", False),
         ("--max_time_mins 8 --max_eval_time_mins 4", False),
     ],
@@ -211,10 +212,10 @@ def test_training_def_file_train_test(
     expected_params = tdf.get_params(model_name)
     train_params, target_tuple = _finalize_expected_params(expected_params, cmdline_strs)
 
-    arch = (
-        cmdline_strs[cmdline_strs.index("--arch") + 1]
-        if "--arch" in cmdline_strs
-        else _DEFAULT_ARCHITECTURE
+    algorithm = (
+        cmdline_strs[cmdline_strs.index("--algorithm") + 1]
+        if "--algorithm" in cmdline_strs
+        else DEFAULT_ALGORITHM
     )
 
     fake_raw_df = mocker.Mock()
@@ -246,7 +247,7 @@ def test_training_def_file_train_test(
         expected_params["validation_season"],
         fake_tt_data,
         target_tuple,
-        arch,
+        algorithm,
         expected_params["p_or_t"],
         expected_params["recent_games"],
         expected_params["training_seasons"],
@@ -268,7 +269,7 @@ def _create_expected_model_dict(
     dt,
     pkl_filepath,
     model_filepath,
-    algo_type,
+    algorithm,
     expected_r2,
     expected_mae,
 ):
@@ -312,7 +313,7 @@ def _create_expected_model_dict(
         "name": model_name,
         "dt_trained": dt.isoformat(),
         "parameters": {
-            "algo_type": algo_type,
+            "algorithm": algorithm,
             "filtering_query": None,
             "missing_data_threshold": _EXPECTED_TRAINING_CFG_PARAMS[model_name][
                 "missing_data_threshold"
@@ -354,14 +355,14 @@ def test_model_gen(tmpdir, mocker, fake_metrics):
     """test that the resulting model file is as expected and that
     the expected calls to fit the model, etc were made"""
     model_name = "MLB-H-DK"
-    arch = "dummy"
+    algorithm = "dummy"
     target_calc_stat = "dk_score"
     feature_stat = "hits"
     target_col = "calc:" + target_calc_stat
     position = "C"
 
     cmdline = (
-        f"--arch {arch} --max_time_mins 8 --max_eval_time_mins 4 "
+        f"--algorithm {algorithm} --max_time_mins 8 --max_eval_time_mins 4 "
         f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
     )
 
@@ -386,7 +387,7 @@ def test_model_gen(tmpdir, mocker, fake_metrics):
         main("train " + cmdline)
 
     dest_filepath_base = os.path.join(
-        tmpdir, f"{model_name}.{target_calc_stat}.{arch}.{dt_to_filename_str(dt)}"
+        tmpdir, f"{model_name}.{target_calc_stat}.{algorithm}.{dt_to_filename_str(dt)}"
     )
     model_filepath = dest_filepath_base + ".model"
     pkl_filepath = dest_filepath_base + ".pkl"
@@ -411,7 +412,7 @@ def test_model_gen(tmpdir, mocker, fake_metrics):
         dt,
         pkl_filepath,
         model_filepath,
-        arch,
+        algorithm,
         expected_r2,
         expected_mae,
     )
@@ -436,7 +437,7 @@ def test_retrain(mocker: MockFixture, tmpdir, fake_metrics):
     mocker.patch("fantasy_py.inference.pt_predict_model.os")
 
     main(
-        "train --arch dummy --dest_filename model-1 "
+        "train --algorithm dummy --dest_filename model-1 "
         f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} MLB-H-DK"
     )
 
@@ -445,4 +446,7 @@ def test_retrain(mocker: MockFixture, tmpdir, fake_metrics):
 
     raise NotImplementedError(
         "compare the first and second model files to ensure they match/differ where they should"
+    )
+    raise NotImplementedError(
+        "override different things on CLI and make sure the retrain uses the overriden params"
     )

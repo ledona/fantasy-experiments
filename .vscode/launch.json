@@ -34,14 +34,14 @@
                 // "--info",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2024.04/data",
 
-                // "--arch", "nn", 
+                // "--algo", "nn", 
                 // "--max_epochs", "5",
                 // "--limit", "10000",
                 // "--nn_resume", "/tmp/fantasy-test-checks/nn-checkpoint-005.pt",
                 // "--early_stop", "3",
                 // "--checkpoint_dir", "/tmp/fantasy-test-checks",
 
-                "--arch", "dummy",
+                "--algo", "dummy",
                 // "--n_jobs", "2",
                 "--dest_dir", "lib/test",
                 "--dest_filename", "test",

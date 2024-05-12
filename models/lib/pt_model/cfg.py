@@ -17,7 +17,7 @@ from fantasy_py import (
 )
 from fantasy_py.inference import PTPredictModel
 
-from .train_test import ArchitectureType, load_data, model_and_test
+from .train_test import AlgorithmType, load_data, model_and_test
 
 _LOGGER = log.get_logger(__name__)
 
@@ -46,23 +46,25 @@ _DUMMY_TRAINING_PARAMS = Literal["strategy"]
 _DATA_SRC_PARAMS = Literal["missing_data_threshold", "filtering_query", "data_filename"]
 """model parameters describing load and filtering of training data"""
 
+DEFAULT_ALGORITHM: AlgorithmType = "tpot"
 
-def _get_param_keys(arch: ArchitectureType) -> tuple[set[str], None | dict[str, str]]:
+
+def _get_param_keys(algorithm: AlgorithmType) -> tuple[set[str], None | dict[str, str]]:
     """
-    returns tuple[expected-arch-param-keys, key-renamer-dict] where the expected keys
-    are the regressor instantiation kw args required by the architecture, and
+    returns tuple[expected-algorithm-param-keys, key-renamer-dict] where the expected keys
+    are the regressor instantiation kw args required by the algorithm, and
     the renamer is a mapping of the expected key to the actual kwarg name used
     when instantiating the regressor. Default (if the expected key is not in the renamer)
     is to use the expected key name itself. The renamer helps with the reuse of expected
-    key names by multiple architectures
+    key names by multiple algorithms
     """
-    if arch not in ArchitectureType.__args__:
-        raise UnexpectedValueError(f"Param keys unknown for {arch=}")
-    if arch.startswith("tpot"):
+    if algorithm not in AlgorithmType.__args__:
+        raise UnexpectedValueError(f"Param keys unknown for {algorithm=}")
+    if algorithm.startswith("tpot"):
         return set(_TPOT_TRAINING_PARAMS.__args__), _TPOT_TRAINING_PARAMS_RENAME
-    if arch == "nn":
+    if algorithm == "nn":
         return set(_NN_TRAINING_PARAMS.__args__), None
-    if arch == "dummy":
+    if algorithm == "dummy":
         return set(_DUMMY_TRAINING_PARAMS.__args__), None
     return set(), None
 
@@ -76,6 +78,7 @@ class _TrainingParamsDict(TypedDict):
     validation_season: int
     recent_games: int
     training_seasons: list[int]
+    algorithm: AlgorithmType
 
     # nullable/optional values
     seed: None | int
@@ -96,11 +99,18 @@ class _TrainingParamsDict(TypedDict):
 
 
 class TrainingConfiguration:
-    def __init__(self, filepath: str | None = None, cfg_dict: dict | None = None, retrain=False):
+    def __init__(
+        self,
+        filepath: str | None = None,
+        cfg_dict: dict | None = None,
+        algorithm: AlgorithmType | None = None,
+        retrain=False,
+    ):
         """
         filepath: initialize using the contents of the json training configuration file
         cfg_dict: initialize using an existing configuration dict
         retrain: configuration is for retraining an existing model
+        algorithm: default is DEFAULT_ALGORITHM
         """
         if (filepath is None) == (cfg_dict is None):
             raise InvalidArgumentsException("filepath and cfg_dict cannot be both defined or None")
@@ -113,6 +123,9 @@ class TrainingConfiguration:
 
         self.retrain = retrain
         """retraining an existing model"""
+        self.algorithm = algorithm or DEFAULT_ALGORITHM
+        """training algorithm"""
+
         self._model_names_to_group_idx: dict[str, int] = {}
         for i, model_group in enumerate(self._json["model_groups"]):
             for model_name in model_group["models"]:
@@ -120,8 +133,16 @@ class TrainingConfiguration:
 
     # TODO: remove training_filepath asap
     @classmethod
-    def cfg_from_model(cls, model_filepath: str, training_filepath: str | None):
-        """create a model training definition that reflects the model"""
+    def cfg_from_model(
+        cls,
+        model_filepath: str,
+        training_filepath: str | None,
+        algorithm: AlgorithmType | None,
+    ):
+        """
+        create a model training definition that reflects the model
+        algorithm: if None then retrain using the same algorithm as the original model
+        """
         orig_model = PTPredictModel.load(model_filepath)
         if orig_model.parameters is None or orig_model.performance is None:
             raise NotImplementedError(
@@ -129,19 +150,20 @@ class TrainingConfiguration:
                 "Retrain unsupported."
             )
 
-        param_keys, _ = _get_param_keys(orig_model.parameters["algo_type"])
+        param_keys, _ = _get_param_keys(orig_model.parameters["algorithm"])
         train_params = (
             {key: orig_model.parameters[key] for key in param_keys}
             if param_keys is not None
             else None
         )
-        cfg_dict = {
+        model_params_dict = {
             key: orig_model.parameters[key]
             for key in _DATA_SRC_PARAMS.__args__
             if key in orig_model.parameters
         }
-        cfg_dict.update(
+        model_params_dict.update(
             {
+                "algorithm": algorithm or orig_model.parameters["algorithm"],
                 "target": orig_model.target.type + ":" + orig_model.target.name,
                 "validation_season": cast(int, orig_model.performance["season"]),
                 "recent_games": orig_model.data_def["recent_games"],
@@ -157,12 +179,15 @@ class TrainingConfiguration:
             }
         )
 
-        missing_keys = set(_TrainingParamsDict.__annotations__.keys()) - set(cfg_dict.keys())
+        missing_keys = set(_TrainingParamsDict.__annotations__.keys()) - set(
+            model_params_dict.keys()
+        )
         if len(missing_keys) > 0:
             if training_filepath is None:
                 raise UnexpectedValueError(
                     f"Training parameters for model '{orig_model.name}' in '{model_filepath}' "
-                    f"are incomplete. A training cfg file is required! missing_keys={sorted(missing_keys)}"
+                    f"are incomplete. A training cfg file is required! "
+                    "missing_keys={sorted(missing_keys)}"
                 )
             warnings.warn(
                 "Using training cfg file as a fallback for a model with missing parameters "
@@ -179,23 +204,24 @@ class TrainingConfiguration:
             config = TrainingConfiguration(training_filepath)
             model_params = config.get_params(orig_model.name)
             for key in missing_keys:
-                cfg_dict[key] = model_params[key]
+                model_params_dict[key] = model_params[key]
 
-            if orig_model.target[0] + ":" + orig_model.target[2] != cfg_dict["target"]:
+            if orig_model.target[0] + ":" + orig_model.target[2] != model_params_dict["target"]:
                 raise UnexpectedValueError(
-                    f"target of new configuration is {cfg_dict['target']} does not match "
+                    f"target of new configuration is {model_params_dict['target']} does not match "
                     "old model target {model.target} "
                 )
 
         cfg_dict: dict = {
             "global_default": {},
-            "model_groups": [
-                {
-                    "models": {orig_model.name: cfg_dict},
-                }
-            ],
+            "model_groups": [{"models": {orig_model.name: model_params_dict}}],
         }
-        return TrainingConfiguration(cfg_dict=cfg_dict, retrain=True), orig_model
+        return (
+            TrainingConfiguration(
+                cfg_dict=cfg_dict, retrain=True, algorithm=model_params_dict["algorithm"]
+            ),
+            orig_model,
+        )
 
     @property
     def model_names(self):
@@ -246,6 +272,7 @@ class TrainingConfiguration:
             else param_dict["target"]
         )
         param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"]) if param_dict["p_or_t"] else None
+        param_dict["algorithm"] = self.algorithm
 
         if validation_failure_reason := typed_dict_validate(_TrainingParamsDict, param_dict):
             raise UnexpectedValueError(
@@ -255,11 +282,10 @@ class TrainingConfiguration:
             param_dict["training_pos"] = param_dict["target_pos"]
         return cast(_TrainingParamsDict, param_dict)
 
-    @staticmethod
-    def _get_regressor_kwargs(arch: ArchitectureType, regressor_kwargs: dict, params: dict):
+    def _get_regressor_kwargs(self, regressor_kwargs: dict, params: dict):
         # for any regressor kwarg not already set, fill in with model params
         try:
-            expected_param_names, renamer = _get_param_keys(arch)
+            expected_param_names, renamer = _get_param_keys(self.algorithm)
         except UnexpectedValueError as ex:
             _LOGGER.warning(
                 "Failed to get expected param keys, falling back on model params", exc_info=ex
@@ -280,7 +306,7 @@ class TrainingConfiguration:
             if not set(params["train_params"].keys()) <= expected_param_names:
                 _LOGGER.warning(
                     "Ignoring following parameters not used by '%s' models: %s",
-                    arch,
+                    self.algorithm,
                     set(params["train_params"].keys()) - expected_param_names,
                 )
             for arg in expected_param_names:
@@ -294,7 +320,6 @@ class TrainingConfiguration:
     def _train_and_test(
         self,
         model_name: str,
-        arch_type: ArchitectureType,
         dest_dir: str | None,
         error_data: bool,
         reuse_existing_models: bool,
@@ -354,14 +379,14 @@ class TrainingConfiguration:
             else:
                 raise UnexpectedValueError(f"Unknown data dump format: {dump_data}")
 
-        final_regressor_kwargs = self._get_regressor_kwargs(arch_type, regressor_kwargs, params)
+        final_regressor_kwargs = self._get_regressor_kwargs(regressor_kwargs, params)
         print("\nTraining will proceed with the following parameters:")
         pprint(params)
         print()
         _LOGGER.info(
-            "Fitting model '%s' with arch=%s using final_regressor_kwargs=%s",
+            "Fitting model '%s' with algorithm=%s using final_regressor_kwargs=%s",
             model_name,
-            arch_type,
+            self.algorithm,
             final_regressor_kwargs,
         )
 
@@ -382,7 +407,7 @@ class TrainingConfiguration:
             params["validation_season"],
             tt_data,
             target_tuple,
-            arch_type,
+            self.algorithm,
             params["p_or_t"],
             params["recent_games"],
             params["training_seasons"],

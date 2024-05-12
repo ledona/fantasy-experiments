@@ -6,7 +6,7 @@ import math
 import os
 import shlex
 import sys
-from typing import cast
+from typing import Literal, cast
 
 import dask
 import dateutil
@@ -14,23 +14,31 @@ import pandas as pd
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from ledona import process_timer
 
-from .pt_model import ArchitectureType, TrainingConfiguration
+from .pt_model import AlgorithmType, TrainingConfiguration
 
 _LOGGER = log.get_logger(__name__)
 
 
-_DEFAULT_ARCHITECTURE: ArchitectureType = "tpot"
 _DUMMY_REGRESSOR_KWARGS = {"strategy": "median"}
+
+_CLITrainingParams = Literal[
+    "training_mins",
+    "training_iter_mins",
+    "n_jobs",
+    "early_stop",
+    "max_epochs",
+]
+"""training parameters that are set on commandline and can override from command line during retrain"""
 
 
 @process_timer
-def _handle_train(args):
+def _handle_train(args: argparse.Namespace):
     if not os.path.isdir(args.dest_dir):
-        _LOGGER.critical("Destination directory '%s' does not exist.", args.dest_dir)
-        sys.exit(0)
+        args.parser.error(f"Destination directory '{args.dest_dir}' does not exist.")
+    args_dict = vars(args)
 
     if args.op == "train":
-        tdf = TrainingConfiguration(filepath=args.cfg_file)
+        tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
         original_model = None
         model_name = cast(str | None, args.model)
         if model_name is None:
@@ -41,56 +49,72 @@ def _handle_train(args):
                 f"Model '{model_name}' not defined. Try again with one "
                 f"of the following: {tdf.model_names}"
             )
+        assert model_name is not None
+        cli_training_params = cast(
+            dict[_CLITrainingParams, int | None],
+            {k_: args_dict.get(k_) for k_ in _CLITrainingParams.__args__},
+        )
     else:
         tdf, original_model = TrainingConfiguration.cfg_from_model(
-            args.cfg_file, args.orig_cfg_file
+            args.cfg_file, args.orig_cfg_file, algorithm=args.algorithm
         )
         model_name = original_model.name
+        assert original_model.parameters is not None
+        cli_training_params = cast(
+            dict[_CLITrainingParams, int | None],
+            {
+                k_: args_dict.get(k_) or original_model.parameters.get(k_)
+                for k_ in _CLITrainingParams.__args__
+            },
+        )
 
     if args.dask:
         _LOGGER.info("tpot dask enabled")
         dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 
-    if args.arch.startswith("tpot"):
-        modeler_init_kwargs = {"use_dask": args.dask, "n_jobs": args.n_jobs, "verbosity": 3}
-        if args.training_mins is not None:
-            modeler_init_kwargs["max_time_mins"] = args.training_mins
-        if args.training_iter_mins is not None:
-            modeler_init_kwargs["max_eval_time_mins"] = args.training_iter_mins
-        if args.early_stop is not None:
-            modeler_init_kwargs["early_stop"] = args.early_stop
-        if args.max_epochs is not None:
-            modeler_init_kwargs["generations"] = args.max_epochs
+    if tdf.algorithm.startswith("tpot"):
+        modeler_init_kwargs = {
+            "use_dask": args.dask,
+            "n_jobs": cli_training_params["n_jobs"],
+            "verbosity": 3,
+        }
+        if cli_training_params["training_mins"] is not None:
+            modeler_init_kwargs["max_time_mins"] = cli_training_params["training_mins"]
+        if cli_training_params["training_iter_mins"] is not None:
+            modeler_init_kwargs["max_eval_time_mins"] = cli_training_params["training_iter_mins"]
+        if cli_training_params["early_stop"] is not None:
+            modeler_init_kwargs["early_stop"] = cli_training_params["early_stop"]
+        if cli_training_params["max_epochs"] is not None:
+            modeler_init_kwargs["generations"] = cli_training_params["max_epochs"]
 
-    elif args.arch == "nn":
+    elif tdf.algorithm == "nn":
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
         modeler_init_kwargs = {
             key_[3:]: value_ for key_, value_ in vars(args).items() if key_.startswith("nn_")
         }
-        if args.early_stop is not None:
-            modeler_init_kwargs["early_stop_epochs"] = args.early_stop
-        if args.max_epochs is not None:
-            modeler_init_kwargs["epochs_max"] = args.max_epochs
+        if cli_training_params["early_stop"] is not None:
+            modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
+        if cli_training_params["max_epochs"] is not None:
+            modeler_init_kwargs["epochs_max"] = cli_training_params["max_epochs"]
 
-    elif args.arch == "automl-xgb":
+    elif tdf.algorithm == "auto-xgb":
         modeler_init_kwargs = {
             "verbosity": 2,
-            "n_jobs": args.n_jobs,
+            "n_jobs": cli_training_params["n_jobs"],
         }
-        if args.early_stop is not None:
-            modeler_init_kwargs["early_stop_epochs"] = args.early_stop
-    elif args.arch == "dummy":
+        if cli_training_params["early_stop"] is not None:
+            modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
+    elif tdf.algorithm == "dummy":
         modeler_init_kwargs = _DUMMY_REGRESSOR_KWARGS.copy()
     else:
-        args.parse.error(f"Unknown architecture '{args.arch}' requested")
+        args.parse.error(f"Unknown algorithm '{tdf.algorithm}' requested")
 
     new_model = tdf._train_and_test(
         model_name,
-        cast(ArchitectureType, args.arch),
         args.dest_dir,
         args.error_analysis_data,
-        False if args.op == "retrain" else args.reuse,
+        False if tdf.retrain else args.reuse,
         args.data_dir,
         args.info,
         args.dump_data,
@@ -99,7 +123,7 @@ def _handle_train(args):
         **modeler_init_kwargs,
     )
 
-    if args.op == "train":
+    if not tdf.retrain:
         return
 
     assert original_model and new_model._input_cols and original_model._input_cols
@@ -169,10 +193,9 @@ def _add_train_parser(sub_parsers):
             action="store_true",
         )
         train_parser.add_argument(
-            "--arch",
-            default=_DEFAULT_ARCHITECTURE,
-            choices=ArchitectureType.__args__,
-            help="model architecture",
+            "--algorithm",
+            help="Algorithm for model selection/training. default={_DEFAULT_ALGORITHM}",
+            choices=AlgorithmType.__args__,
         )
         train_parser.add_argument(
             "--n_jobs",

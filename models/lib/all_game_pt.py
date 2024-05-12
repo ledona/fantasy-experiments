@@ -13,9 +13,9 @@ import shlex
 import pandas as pd
 from fantasy_py import JSONWithCommentsDecoder, StatInfo, UnexpectedValueError, log
 
-from .pt_model.train_test import ArchitectureType
+from .pt_model.train_test import AlgorithmType
 
-_DEFAULT_ARCHITECTURE: ArchitectureType = "tpot"
+_DEFAULT_ARCHITECTURE: AlgorithmType = "tpot"
 
 _LOGGER = log.get_logger(__name__)
 
@@ -149,10 +149,10 @@ def _add_train_parser(sub_parsers):
     parser = sub_parsers.add_parser("train", help="Train the model")
     parser.set_defaults(func=_train_func, parser=parser)
     parser.add_argument(
-        "--arch",
+        "--algorithm",
         default=_DEFAULT_ARCHITECTURE,
-        choices=ArchitectureType.__args__,
-        help="model architecture",
+        choices=AlgorithmType.__args__,
+        help="model algorithm",
     )
 
 

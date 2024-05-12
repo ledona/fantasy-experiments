@@ -369,30 +369,31 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-ArchitectureType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
+AlgorithmType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
+"""machine learning algorithm used for model selection and training"""
 
 
 def _instantiate_regressor(
-    arch: ArchitectureType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
+    algorithm: AlgorithmType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
 ):
     fit_addl_args: None | tuple = None
     fit_kwargs: None | dict = None
-    if arch == "tpot":
+    if algorithm == "tpot":
         model = TPOTRegressor(
             **model_init_kwargs,
         )
-    elif arch == "tpot-light":
+    elif algorithm == "tpot-light":
         model = TPOTRegressor(
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
         )
-    elif arch == "auto-xgb":
+    elif algorithm == "auto-xgb":
         model = TPOTRegressor(
             config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
         )
-    elif arch == "dummy":
+    elif algorithm == "dummy":
         model = DummyRegressor(**model_init_kwargs)
-    elif arch == "nn":
+    elif algorithm == "nn":
         # TODO: this should be in the model
         hidden_size = 2 ** int(math.log2(len(x.columns)))
         input_size = len(x.columns)
@@ -441,13 +442,13 @@ def _instantiate_regressor(
 
         fit_addl_args = (x, y)
     else:
-        raise NotImplementedError(f"architecture {arch} not recognized")
+        raise NotImplementedError(f"{algorithm=} not recognized")
 
     return model, fit_addl_args, fit_kwargs
 
 
 def train_test(
-    type_: ArchitectureType,
+    type_: AlgorithmType,
     model_name: str,
     target: tuple[FeatureType, str],
     tt_data: TrainTestData,
@@ -511,8 +512,8 @@ def train_test(
     return artifact_filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
 
 
-def _get_model_cls(arch: ArchitectureType) -> Type[PTPredictModel]:
-    if arch == "nn":
+def _get_model_cls(algorithm: AlgorithmType) -> Type[PTPredictModel]:
+    if algorithm == "nn":
         return NNModel
     return SKLModel
 
@@ -615,7 +616,7 @@ def _create_fantasy_model(
         data_def["training_pos"] = training_pos
     imputes = _infer_imputes(training_features_df, p_or_t == PlayerOrTeam.TEAM)
     uname = platform.uname()
-    model_cls = _get_model_cls(cast(ArchitectureType, model_params["algo_type"]))
+    model_cls = _get_model_cls(cast(AlgorithmType, model_params["algorithm"]))
     model = model_cls(
         name,
         target_info,
@@ -639,7 +640,7 @@ def model_and_test(
     validation_season: int,
     tt_data,
     target: tuple[FeatureType, str],
-    algo_type: ArchitectureType,
+    algorithm: AlgorithmType,
     p_or_t,
     recent_games,
     training_seasons,
@@ -667,7 +668,7 @@ def model_and_test(
             raise InvalidArgumentsException(
                 "reuse_most_recent cannot be used with a model_dest_filename"
             )
-        model_filename_pattern = ".".join([name, target[1], algo_type, "*", "model"])
+        model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
         most_recent_model: tuple[datetime, str] | None = None
         for filebase_name in glob(os.path.join(dest_dir, model_filename_pattern)):
             model_dt = dateutil.parser.parse(filebase_name.split(".")[3])
@@ -681,7 +682,7 @@ def model_and_test(
 
     if model is None:
         filebase_name = model_dest_filename or ".".join(
-            [name, target[1], algo_type, dt_to_filename_str()]
+            [name, target[1], algorithm, dt_to_filename_str()]
         )
         if filebase_name.endswith(".model"):
             filebase_name = filebase_name.rsplit(".", 1)[0]
@@ -696,7 +697,7 @@ def model_and_test(
             final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
 
         model_artifact_path, performance, dt_trained = train_test(
-            algo_type,
+            algorithm,
             name,
             target,
             tt_data,
@@ -708,7 +709,7 @@ def model_and_test(
         addl_params = {
             **ml_kwargs,
             **(data_src_params or {}),
-            "algo_type": algo_type,
+            "algorithm": algorithm,
         }
 
         model = _create_fantasy_model(
