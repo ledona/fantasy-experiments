@@ -398,7 +398,11 @@ def _instantiate_regressor(
         hidden_size = 2 ** int(math.log2(len(x.columns)))
         input_size = len(x.columns)
 
-        resume_filepath = model_init_kwargs.pop("resume_checkpoint_filepath")
+        resume_filepath = (
+            model_init_kwargs.pop("resume_checkpoint_filepath")
+            if "resume_checkpoint_filepath" in model_init_kwargs
+            else None
+        )
         if resume_filepath is not None:
             model, (best_model_info, optimizer_state) = NNRegressor.load_checkpoint(resume_filepath)
             assert model.checkpoint_dir is not None

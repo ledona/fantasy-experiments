@@ -14,19 +14,20 @@ import pandas as pd
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from ledona import process_timer
 
-from .pt_model import DEFAULT_DUMMY_REGRESSOR_KWARGS, AlgorithmType, TrainingConfiguration
+from .pt_model import AlgorithmType, TrainingConfiguration, TRAINING_PARAM_DEFAULTS
 
 _LOGGER = log.get_logger(__name__)
 
 
 _CLITrainingParams = Literal[
-    "training_mins",
-    "training_iter_mins",
+    "max_time_mins",
+    "max_eval_time_mins",
     "n_jobs",
     "early_stop",
-    "max_epochs",
+    "epochs_max",
 ]
-"""training parameters that are set on commandline and can override from command line during retrain"""
+"""training parameters that are set on commandline and can override 
+from command line during retrain"""
 
 
 @process_timer
@@ -50,7 +51,7 @@ def _handle_train(args: argparse.Namespace):
         assert model_name is not None
         cli_training_params = cast(
             dict[_CLITrainingParams, int | None],
-            {k_: args_dict.get(k_) for k_ in _CLITrainingParams.__args__},
+            {k_: args_dict.get(k_) for k_ in _CLITrainingParams.__args__ if k_ in args_dict},
         )
     else:
         tdf, original_model = TrainingConfiguration.cfg_from_model(
@@ -58,13 +59,12 @@ def _handle_train(args: argparse.Namespace):
         )
         model_name = original_model.name
         assert original_model.parameters is not None
-        cli_training_params = cast(
-            dict[_CLITrainingParams, int | None],
-            {
-                k_: args_dict.get(k_) or original_model.parameters.get(k_)
-                for k_ in _CLITrainingParams.__args__
-            },
-        )
+        cli_training_params = {}
+        for k_ in _CLITrainingParams.__args__:
+            if k_ in args_dict:
+                cli_training_params[k_] = args_dict[k_]
+            elif k_ in original_model.parameters:
+                cli_training_params[k_] = original_model.parameters[k_]
 
     if args.dask:
         _LOGGER.info("tpot dask enabled")
@@ -73,17 +73,23 @@ def _handle_train(args: argparse.Namespace):
     if tdf.algorithm.startswith("tpot"):
         modeler_init_kwargs = {
             "use_dask": args.dask,
-            "n_jobs": cli_training_params["n_jobs"],
+            # "n_jobs": cli_training_params["n_jobs"],
             "verbosity": 3,
         }
-        if cli_training_params["training_mins"] is not None:
-            modeler_init_kwargs["max_time_mins"] = cli_training_params["training_mins"]
-        if cli_training_params["training_iter_mins"] is not None:
-            modeler_init_kwargs["max_eval_time_mins"] = cli_training_params["training_iter_mins"]
-        if cli_training_params["early_stop"] is not None:
-            modeler_init_kwargs["early_stop"] = cli_training_params["early_stop"]
-        if cli_training_params["max_epochs"] is not None:
-            modeler_init_kwargs["generations"] = cli_training_params["max_epochs"]
+        rename = TRAINING_PARAM_DEFAULTS["tpot"][1] or {}
+        for k_ in _CLITrainingParams.__args__:
+            if k_ not in cli_training_params:
+                continue
+            key = rename.get(k_, k_)
+            modeler_init_kwargs[key] = cli_training_params[k_]
+        # if cli_training_params["training_mins"] is not None:
+        #     modeler_init_kwargs["max_time_mins"] = cli_training_params["training_mins"]
+        # if cli_training_params["training_iter_mins"] is not None:
+        #     modeler_init_kwargs["max_eval_time_mins"] = cli_training_params["training_iter_mins"]
+        # if cli_training_params["early_stop"] is not None:
+        #     modeler_init_kwargs["early_stop"] = cli_training_params["early_stop"]
+        # if cli_training_params["max_epochs"] is not None:
+        #     modeler_init_kwargs["generations"] = cli_training_params["max_epochs"]
 
     elif tdf.algorithm == "nn":
         # device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -91,11 +97,12 @@ def _handle_train(args: argparse.Namespace):
         modeler_init_kwargs = {
             key_[3:]: value_ for key_, value_ in vars(args).items() if key_.startswith("nn_")
         }
-        if cli_training_params["early_stop"] is not None:
-            modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
-        if cli_training_params["max_epochs"] is not None:
-            modeler_init_kwargs["epochs_max"] = cli_training_params["max_epochs"]
-
+        rename = TRAINING_PARAM_DEFAULTS["nn"][1] or {}
+        for k_ in _CLITrainingParams.__args__:
+            if k_ not in cli_training_params:
+                continue
+            key = rename.get(k_, k_)
+            modeler_init_kwargs[key] = cli_training_params[k_]
     elif tdf.algorithm == "auto-xgb":
         modeler_init_kwargs = {
             "verbosity": 2,
@@ -104,7 +111,7 @@ def _handle_train(args: argparse.Namespace):
         if cli_training_params["early_stop"] is not None:
             modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
     elif tdf.algorithm == "dummy":
-        modeler_init_kwargs = DEFAULT_DUMMY_REGRESSOR_KWARGS.copy()
+        modeler_init_kwargs = {}
     else:
         args.parse.error(f"Unknown algorithm '{tdf.algorithm}' requested")
 
@@ -195,29 +202,33 @@ def _add_train_parser(sub_parsers):
             help="Algorithm for model selection/training. default={_DEFAULT_ALGORITHM}",
             choices=AlgorithmType.__args__,
         )
+
         train_parser.add_argument(
             "--n_jobs",
             "--tpot_jobs",
             help="Number of jobs/processors to use during training",
             type=int,
+            default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
+            "--max_time_mins",
             "--training_mins",
             "--mins",
             "--max_train_mins",
             "--time",
             "--max_time",
-            "--max_time_mins",
             type=int,
+            default=argparse.SUPPRESS,
             help="override the training time defined in the train_file",
         )
         train_parser.add_argument(
+            "--max_eval_time_mins",
             "--training_iter_mins",
             "--max_iter_mins",
             "--iter_mins",
             "--iter_time",
-            "--max_eval_time_mins",
             type=int,
+            default=argparse.SUPPRESS,
             help="override the training iteration time defined in the train_file",
         )
         train_parser.add_argument(
@@ -241,19 +252,25 @@ def _add_train_parser(sub_parsers):
         train_parser.add_argument(
             "--early_stop",
             type=int,
+            default=argparse.SUPPRESS,
             help="number of rounds/epochs of no improvement after which to stop training",
         )
         train_parser.add_argument(
-            "--max_epochs",
+            "--epochs_max",
             type=int,
-            help="The maximum number of epochs to train a neural network model",
+            default=argparse.SUPPRESS,
+            help="The maximum number of epochs/generations to train a model",
         )
         train_parser.add_argument(
-            "--nn_checkpoint_dir", "--checkpoint_dir", help="The checkpoint directory for nn models"
+            "--nn_checkpoint_dir",
+            "--checkpoint_dir",
+            help="The checkpoint directory for nn models",
+            default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
             "--nn_resume_checkpoint_filepath",
             "--resume_from",
+            default=argparse.SUPPRESS,
             help="resume nn training from this checkpoint",
         )
 

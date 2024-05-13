@@ -2,7 +2,7 @@
 
 from .cfg import (
     DEFAULT_ALGORITHM,
-    DEFAULT_DUMMY_REGRESSOR_KWARGS,
+    TRAINING_PARAM_DEFAULTS,
     TrainingConfiguration,
     _TrainingParamsDict,
 )
@@ -14,6 +14,6 @@ __all__ = [
     "load_data",
     "model_and_test",
     "_TrainingParamsDict",
+    "TRAINING_PARAM_DEFAULTS",
     "DEFAULT_ALGORITHM",
-    "DEFAULT_DUMMY_REGRESSOR_KWARGS",
 ]

@@ -134,7 +134,7 @@ def _setup_training(
     hidden_size: None | int,
     samples_meta_filepath,
     batch_size: None | int,
-    max_epochs: None | int,
+    epochs_max: None | int,
     overwrite: bool,
 ):
     if continue_from_checkpoint_filepath is not None:
@@ -182,7 +182,7 @@ def _setup_training(
     dataset = DeepLineupDataset(samples_meta_filepath, limit=dataset_limit)
 
     if continue_from_checkpoint_filepath is None:
-        assert batch_size is not None and hidden_size is not None and max_epochs is not None
+        assert batch_size is not None and hidden_size is not None and epochs_max is not None
         best_model = cast(_BestModel, (float("-inf"), None))
         epoch_scores = []
         starting_epoch = 0
@@ -204,7 +204,7 @@ def _setup_training(
             learning_rate,
             batch_size,
             hidden_size,
-            max_epochs,
+            epochs_max,
             trained_on_dt,
             model_dependencies=dataset.samples_meta["models"],
         )
