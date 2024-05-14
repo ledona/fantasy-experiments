@@ -75,6 +75,13 @@ _DATA_SRC_PARAMS = Literal["missing_data_threshold", "filtering_query", "data_fi
 
 DEFAULT_ALGORITHM: AlgorithmType = "tpot"
 
+_IGNORE_ORIGINAL_PARAMS = {"resume_checkpoint_filepath"}
+"""
+model parameters that should not be reused on retrain, these are model parameters
+and match parameter keys BEFORE name remappings, use the rename dict from default
+if after name remapping parameter keys are needed
+"""
+
 
 class _TrainingParamsDict(TypedDict):
     """definition of the final parameters used for model training/testing"""
@@ -148,7 +155,7 @@ class TrainingConfiguration:
         algorithm: AlgorithmType | None,
     ):
         """
-        create a model training definition that reflects the model
+        construct a model training definition that reflects the model
         algorithm: if None then retrain using the same algorithm as the original model
         """
         orig_model = PTPredictModel.load(model_filepath)
@@ -165,7 +172,7 @@ class TrainingConfiguration:
         train_params = {}
         for key in defaults:
             model_key = renamer.get(key, key) if renamer else key
-            if model_key in orig_model.parameters:
+            if model_key in orig_model.parameters and key not in _IGNORE_ORIGINAL_PARAMS:
                 train_params[key] = orig_model.parameters[model_key]
                 continue
             default_value = defaults[key]
@@ -199,13 +206,21 @@ class TrainingConfiguration:
         missing_model_param_keys = set(_TrainingParamsDict.__annotations__.keys()) - set(
             model_params_dict.keys()
         )
-        missing_train_param_keys = set(defaults.keys()) - set(train_params.keys())
+        missing_train_param_keys = (
+            set(defaults.keys()) - set(train_params.keys()) - _IGNORE_ORIGINAL_PARAMS
+        )
+
         if len(missing_model_param_keys) > 0 or len(missing_train_param_keys) > 0:
-            train_cfg = TrainingConfiguration(training_filepath) if training_filepath else None
+            train_cfg_params = (
+                TrainingConfiguration(training_filepath).get_params(orig_model.name)
+                if training_filepath is not None
+                else None
+            )
+
             if len(missing_model_param_keys) > 0:
                 # this should only happen when required common model parameters were not
                 # being saved to .model files at the time the original model was created.
-                if train_cfg is None:
+                if train_cfg_params is None:
                     raise UnexpectedValueError(
                         f"Modeling parameters for original model '{orig_model.name}' in "
                         f"'{model_filepath}' are incomplete. This is caused by the .model "
@@ -219,9 +234,8 @@ class TrainingConfiguration:
                     training_filepath,
                     missing_model_param_keys,
                 )
-                model_params = train_cfg.get_params(orig_model.name)
                 for key in missing_model_param_keys:
-                    model_params_dict[key] = model_params[key]
+                    model_params_dict[key] = train_cfg_params[key]
 
                 if orig_model.target[0] + ":" + orig_model.target[2] != model_params_dict["target"]:
                     raise UnexpectedValueError(
@@ -230,10 +244,14 @@ class TrainingConfiguration:
                     )
 
             if len(missing_train_param_keys) > 0:
-                if train_cfg is not None:
-                    raise NotImplementedError(
-                        "pull parameters from tdf or ignore them so that defaults are used"
-                    )
+                if train_cfg_params is not None:
+                    assert train_cfg_params["train_params"]
+                    for key in missing_train_param_keys:
+                        if key not in train_cfg_params["train_params"]:
+                            continue
+                        model_params_dict["train_params"][key] = train_cfg_params["train_params"][
+                            key
+                        ]
 
         cfg_dict: dict = {
             "global_default": {},

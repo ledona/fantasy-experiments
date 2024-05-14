@@ -489,6 +489,13 @@ def _infer_expected_params(algo: AlgorithmType, tdf_params: dict | None, overrid
     return params
 
 
+_UNSUPPORTED_BY_CLI = {"strategy", "batch_size", "hidden_layers"}
+"""
+model parameters not supported by regression cli, which should therefore not
+by used to create command line args during retry testing
+"""
+
+
 def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
     """
     prep for train/retrain during the retrain test
@@ -499,9 +506,9 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
     artifact_ext = "pkl"
 
     if algo == "nn":
+        mock_pickle_func = mocker.patch("lib.pt_model.train_test.torch").save
         mock_regressor = mocker.patch("lib.pt_model.train_test.NNRegressor")
         mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
-        mock_pickle_func = mocker.patch("lib.pt_model.train_test.torch").save
         artifact_ext = "pt"
     elif algo.startswith("tpot"):
         mock_pickle_func = mocker.patch("lib.pt_model.train_test.joblib").dump
@@ -515,15 +522,15 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         raise NotImplementedError(f"{algo=} not supported")
 
     param_defaults = TRAINING_PARAM_DEFAULTS[algo][0]
-    cli_params = (
-        {k_: params[k_] for k_ in param_defaults if params.get(k_) is not None}
-        if algo != "dummy"
-        else {}
-    )
+    cli_params = {
+        k_: params[k_]
+        for k_ in param_defaults
+        if params.get(k_) is not None and k_ not in _UNSUPPORTED_BY_CLI
+    }
     cli_args = " ".join([f"--{key} {value}" for key, value in cli_params.items()])
 
     r2, mae = _fake_metrics(mocker)
-    expected_model_params = _infer_expected_params(algo, tdf_params, params)
+    expected_train_params = _infer_expected_params(algo, tdf_params, params)
 
     return (
         cli_args,
@@ -533,7 +540,7 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         mock_regressor,
         artifact_ext,
         mock_pickle_func,
-        expected_model_params,
+        expected_train_params,
     )
 
 
@@ -541,24 +548,23 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
     "retrain_algo, retrain_params",
     [
         ("dummy", {}),
-        (
-            "nn",
-            {"early_stop_epochs": 5, "epochs_max": 1000},
-        ),
+        ("nn", {"early_stop_epochs": 10, "epochs_max": 1000}),
         ("tpot-light", {"n_jobs": 2}),
         ("tpot", {"max_time_mins": 120, "max_eval_time_mins": 15}),
     ],
-    ids=["dummy", "nn+earlystop+max-epochs", "tpotlight+jobs", "tpot+max-times"],
+    ids=["ReDummy", "ReNN", "ReTpotlight", "ReTpot"],
 )
 @pytest.mark.parametrize(
     "orig_algo, orig_params",
     [
-        ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2}),
-        ("tpot-light", {"n_jobs": 4, "max_time_mins": 45}),
         ("dummy", {}),
+        ("nn", {"early_stop_epochs": 5, "epochs_max": 500, "checkpoint_dir": "/tmp/check"}),
+        ("tpot-light", {"n_jobs": 4, "max_time_mins": 45}),
+        ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2}),
     ],
-    ids=["tpot", "tpotlight", "dummy"],
+    ids=["dummy", "nn", "tpotlight", "tpot"],
 )
+@pytest.mark.parametrize("retrain_w_tdf", [False, True], ids=["ReWO/Tdf", "ReW/Tdf"])
 def test_retrain(
     mocker: MockFixture,
     tmpdir,
@@ -567,11 +573,13 @@ def test_retrain(
     orig_params: dict,
     retrain_algo: AlgorithmType,
     retrain_params: dict,
+    retrain_w_tdf: bool,
 ):
     """
-    ensure that retraining a model leads to proper model training params
+    Ensure that retraining a model leads to proper model training params by using
+    the cli to train a model, then retrain using different command line args.
+    Test that the resulting models have the expected parameters
     """
-    retrain_w_tdf = False
     model_name = "MLB-H-DK"
     tdf_params = tdf.get_params(model_name)
 
@@ -595,7 +603,7 @@ def test_retrain(
         model_1_regressor,
         expected_artifact_ext,
         mock_pickle_func,
-        expected_model_1_params,
+        expected_train_1_params,
     ) = _train_prep(mocker, orig_params, orig_algo, tdf_params)
 
     main(
@@ -611,12 +619,8 @@ def test_retrain(
         model_1_regressor,
         model_1_fitted,
         expected_artifact_ext,
-        expected_model_1_params,
+        expected_train_1_params,
     )
-
-    # TODO: may not need the resets
-    model_1_regressor.reset_mock()
-    mock_pickle_func.reset_mock()
 
     (
         cli_args,
@@ -626,17 +630,19 @@ def test_retrain(
         model_2_regressor,
         expected_artifact_ext,
         mock_pickle_func,
-        expected_model_2_params,
+        expected_train_2_params,
     ) = _train_prep(
         mocker,
-        {**expected_model_1_params, **retrain_params},
+        {**expected_train_1_params, **retrain_params},
         retrain_algo,
         tdf_params if retrain_w_tdf else None,
     )
 
+    orig_cfg_args = f"--orig_cfg_file {_TEST_DEF_FILE_FILEPATH}" if retrain_w_tdf else ""
+
     main(
         f"retrain {model_1_filepath_base}.model --dest_filename model-2 "
-        f"--algo {retrain_algo} --dest_dir {tmpdir} {cli_args}"
+        f"--algo {retrain_algo} --dest_dir {tmpdir} {orig_cfg_args} {cli_args}"
     )
 
     model_2_dict = _retrain_test_model_check(
@@ -647,7 +653,7 @@ def test_retrain(
         model_2_regressor,
         mock_model_2_fitted,
         expected_artifact_ext,
-        expected_model_2_params,
+        expected_train_2_params,
     )
 
     assert model_1_dict == model_2_dict
