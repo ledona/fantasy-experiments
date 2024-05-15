@@ -394,12 +394,6 @@ def _instantiate_regressor(
     elif algorithm == "dummy":
         model = DummyRegressor(**model_init_kwargs)
     elif algorithm == "nn":
-        # TODO: this should be in the model
-        hidden_size = (
-            model_init_kwargs.pop("hidden_size")
-            if "hidden_size" in model_init_kwargs
-            else 2 ** int(math.log2(len(x.columns)))
-        )
         input_size = len(x.columns)
         resume_filepath = (
             model_init_kwargs.pop("resume_checkpoint_filepath")
@@ -407,14 +401,16 @@ def _instantiate_regressor(
             else None
         )
         if resume_filepath is not None:
-            model, (best_model_info, optimizer_state) = NNRegressor.load_checkpoint(resume_filepath)
+            model, best_model_info, optimizer_state = NNRegressor.load_checkpoint(
+                resume_filepath, input_size, **model_init_kwargs
+            )
+
             assert model.checkpoint_dir is not None
             if not os.path.isdir(model.checkpoint_dir):
                 raise FileNotFoundError(
                     f"Checkpoint model's checkpoint dir '{model.checkpoint_dir}' "
                     "is not a valid directory"
                 )
-            _LOGGER.info("Resume will continue use of checkpoint dir '%s'", model.checkpoint_dir)
             fit_kwargs = {
                 "resume_from_checkpoint": True,
                 "resume_best_model_info": best_model_info,
@@ -441,7 +437,6 @@ def _instantiate_regressor(
                 os.mkdir(model_init_kwargs["checkpoint_dir"])
             model = NNRegressor(
                 input_size,
-                hidden_size=hidden_size,
                 **model_init_kwargs,
             )
         device = "cuda" if torch.cuda.is_available() else "cpu"

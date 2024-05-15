@@ -28,25 +28,26 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 // "train", "lib/test/test.json", "MLB-team-runs",
-                "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt-mlb-testing/mlb-h-dk.all-w-dk.model",
-                "--dest_filename", "mlb-h-dk.all-w-dk.nn",
-                "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
+                "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/NHL-team-win.win.tpot-light.2024-03-31T142129.model",
+                "--dest_filename", "NHL-team-win.nn",
+                "--orig_cfg_file", "/fantasy-experiments/models/2024.04/nhl.json",
+                // "--nn_resume", "/tmp/fantasy-test-checks/nn-checkpoint-1000.pt",
 
                 // "--info",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2024.04/data",
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/pt-mlb-testing/",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2023.12/",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/pt-test-models/",
                 "--exists_mode", "overwrite",
 
                 "--algo", "nn", 
                 "--batch_size", "256",
-                "--hidden_size", "256",
+                // "--hidden_size", "64",
                 "--lr", ".0001",
-                "--layers", "2",
-                // "--max_epochs", "5",
+                "--layers", "3",
+                "--max_epochs", "2000",
                 // "--limit", "10000",
-                // "--nn_resume", "/tmp/fantasy-test-checks/nn-checkpoint-005.pt",
-                "--early_stop", "15",
+                "--early_stop", "20",
                 "--checkpoint_dir", "/tmp/fantasy-test-checks",
+                "--checkpoint_freq", "10"
             ]
         },
         {

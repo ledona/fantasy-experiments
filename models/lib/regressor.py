@@ -269,6 +269,8 @@ def _add_train_parser(sub_parsers):
         )
         train_parser.add_argument(
             "--epochs_max",
+            "--max_epochs",
+            "--generations",
             type=int,
             default=argparse.SUPPRESS,
             help="The maximum number of epochs/generations to train a model",
@@ -303,6 +305,13 @@ def _add_train_parser(sub_parsers):
             "--layers",
             type=int,
             help="nn layers",
+            default=argparse.SUPPRESS,
+        )
+        train_parser.add_argument(
+            "--nn_checkpoint_frequency",
+            "--checkpoint_frequency",
+            type=int,
+            help="How often to save a periodic checkpoint (best models are always checkpointed)",
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(

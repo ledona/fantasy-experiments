@@ -48,6 +48,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
             "shuffle": _NO_DEFAULT,
             "resume_checkpoint_filepath": _NO_DEFAULT,
             "checkpoint_dir": _NO_DEFAULT,
+            "checkpoint_frequency": _NO_DEFAULT,
         },
         {"early_stop": "early_stop_epochs"},
     ),
