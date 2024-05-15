@@ -295,7 +295,7 @@ def load_data(
         )
     ]
 
-    _LOGGER.info("Final feature cols: %s", sorted(feature_cols))
+    _LOGGER.info("Final feature cols (n=%i): %s", len(feature_cols), sorted(feature_cols))
 
     train_test_df = df[df.season != validation_season]
     if len(train_test_df) == 0:
@@ -395,9 +395,12 @@ def _instantiate_regressor(
         model = DummyRegressor(**model_init_kwargs)
     elif algorithm == "nn":
         # TODO: this should be in the model
-        hidden_size = 2 ** int(math.log2(len(x.columns)))
+        hidden_size = (
+            model_init_kwargs.pop("hidden_size")
+            if "hidden_size" in model_init_kwargs
+            else 2 ** int(math.log2(len(x.columns)))
+        )
         input_size = len(x.columns)
-
         resume_filepath = (
             model_init_kwargs.pop("resume_checkpoint_filepath")
             if "resume_checkpoint_filepath" in model_init_kwargs

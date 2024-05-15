@@ -28,23 +28,25 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 // "train", "lib/test/test.json", "MLB-team-runs",
-                "retrain", "lib/test/test.model",
-                "--orig_cfg_file", "lib/test/test.json",
+                "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt-mlb-testing/mlb-h-dk.all-w-dk.model",
+                "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
 
                 // "--info",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2024.04/data",
 
-                // "--algo", "nn", 
+                "--algo", "nn", 
+                "--batch_size", "16",
+                "--hidden_size", "32",
                 // "--max_epochs", "5",
                 // "--limit", "10000",
                 // "--nn_resume", "/tmp/fantasy-test-checks/nn-checkpoint-005.pt",
                 // "--early_stop", "3",
-                // "--checkpoint_dir", "/tmp/fantasy-test-checks",
+                "--checkpoint_dir", "/tmp/fantasy-test-checks",
 
-                "--algo", "dummy",
+                // "--algo", "dummy",
                 // "--n_jobs", "2",
-                "--dest_dir", "lib/test",
-                "--dest_filename", "test",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/pt-mlb-testing/",
+                "--dest_filename", "mlb-h-dk.nn.all-w-dk",
 
                 // "--max_time_mins", "5", // "--max_iter", "10",
             ]

@@ -14,7 +14,7 @@ import pandas as pd
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from ledona import process_timer
 
-from .pt_model import AlgorithmType, TrainingConfiguration, TRAINING_PARAM_DEFAULTS
+from .pt_model import TRAINING_PARAM_DEFAULTS, AlgorithmType, TrainingConfiguration
 
 _LOGGER = log.get_logger(__name__)
 
@@ -26,7 +26,7 @@ _CLITrainingParams = Literal[
     "early_stop",
     "epochs_max",
 ]
-"""training parameters that are set on commandline and can override 
+"""training parameters that are set on commandline and can be overriden
 from command line during retrain"""
 
 
@@ -95,7 +95,7 @@ def _handle_train(args: argparse.Namespace):
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
         modeler_init_kwargs = {
-            key_[3:]: value_ for key_, value_ in vars(args).items() if key_.startswith("nn_")
+            key_[3:]: value_ for key_, value_ in args_dict.items() if key_.startswith("nn_")
         }
         rename = TRAINING_PARAM_DEFAULTS["nn"][1] or {}
         for k_ in _CLITrainingParams.__args__:
@@ -260,6 +260,22 @@ def _add_train_parser(sub_parsers):
             type=int,
             default=argparse.SUPPRESS,
             help="The maximum number of epochs/generations to train a model",
+        )
+
+        # anything starting with nn_ will be for nn algo
+        train_parser.add_argument(
+            "--nn_batch_size",
+            "--batch_size",
+            type=int,
+            help="Neural Network training batch size",
+            default=argparse.SUPPRESS,
+        )
+        train_parser.add_argument(
+            "--nn_hidden_size",
+            "--hidden_size",
+            type=int,
+            help="Neural Network training batch size",
+            default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
             "--nn_checkpoint_dir",

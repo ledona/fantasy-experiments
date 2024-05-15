@@ -431,16 +431,13 @@ class TrainingConfiguration:
         final_regressor_kwargs = self._get_regressor_kwargs(
             self.algorithm, regressor_kwargs, cast(dict, params)
         )
-        print(f"\nTraining of {model_name} will proceed with the following parameters:")
+        print(f"\nTraining of {model_name} will be based on the following parameters:")
         pprint(params)
         print()
-        print(f"Training of {model_name} will proceed with the regressor kwargs:")
+        print(f"Training of {model_name} will proceed with the regressor kwargs (overriding any previous params):")
         pprint(final_regressor_kwargs)
 
         if info:
-            print(f"\nModel parameters for {model_name}")
-            pprint(params)
-            print(f"Data features (n={len(tt_data[0].columns)}): {sorted(tt_data[0].columns)}")
             sys.exit(0)
 
         data_src_params: dict[_DATA_SRC_PARAMS, str | float | None] = {
