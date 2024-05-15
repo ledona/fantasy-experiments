@@ -14,7 +14,12 @@ import pandas as pd
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from ledona import process_timer
 
-from .pt_model import TRAINING_PARAM_DEFAULTS, AlgorithmType, TrainingConfiguration
+from .pt_model import (
+    TRAINING_PARAM_DEFAULTS,
+    AlgorithmType,
+    ModelFileFoundMode,
+    TrainingConfiguration,
+)
 
 _LOGGER = log.get_logger(__name__)
 
@@ -97,6 +102,13 @@ def _handle_train(args: argparse.Namespace):
         modeler_init_kwargs = {
             key_[3:]: value_ for key_, value_ in args_dict.items() if key_.startswith("nn_")
         }
+        assert (
+            len(
+                invalid_args := set(modeler_init_kwargs.keys())
+                - set(TRAINING_PARAM_DEFAULTS["nn"][0].keys())
+            )
+            == 0
+        ), f"nn_ cli args are not all valid. invalid_args={invalid_args}"
         rename = TRAINING_PARAM_DEFAULTS["nn"][1] or {}
         for k_ in _CLITrainingParams.__args__:
             if k_ not in cli_training_params:
@@ -115,11 +127,11 @@ def _handle_train(args: argparse.Namespace):
     else:
         args.parse.error(f"Unknown algorithm '{tdf.algorithm}' requested")
 
-    new_model = tdf._train_and_test(
+    new_model = tdf.train_and_test(
         model_name,
         args.dest_dir,
         args.error_analysis_data,
-        False if tdf.retrain else args.reuse,
+        args.exists_mode,
         args.data_dir,
         args.info,
         args.dump_data,
@@ -166,12 +178,6 @@ def _add_train_parser(sub_parsers):
                 help="Name of the model to train. If not set then model names will be listed. "
                 "If the train file is a .model file this argument is ignored",
             )
-            train_parser.add_argument(
-                "--reuse",
-                default=False,
-                action="store_true",
-                help="Reuse an model if it exists.",
-            )
         else:
             train_parser.add_argument(
                 "--orig_cfg_file",
@@ -183,6 +189,12 @@ def _add_train_parser(sub_parsers):
             default=False,
             action="store_true",
             help="Show final training parameters and stop (do not train)",
+        )
+        train_parser.add_argument(
+            "--exists_mode",
+            choices=ModelFileFoundMode.__args__,
+            default="default",
+            help="What to do about existing model files",
         )
         train_parser.add_argument(
             "--dump_data",
@@ -275,6 +287,22 @@ def _add_train_parser(sub_parsers):
             "--hidden_size",
             type=int,
             help="Neural Network training batch size",
+            default=argparse.SUPPRESS,
+        )
+        train_parser.add_argument(
+            "--nn_learning_rate",
+            "--learning_rate",
+            "--lr",
+            type=float,
+            help="Neural Network training batch size",
+            default=argparse.SUPPRESS,
+        )
+        train_parser.add_argument(
+            "--nn_hidden_layers",
+            "--hidden_layers",
+            "--layers",
+            type=int,
+            help="nn layers",
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(

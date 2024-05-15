@@ -492,13 +492,13 @@ def train_test(
     y_hat = model.predict(X_test)
     r2_test = round(float(sklearn.metrics.r2_score(y_test, y_hat)), 3)
     mae_test = round(float(sklearn.metrics.mean_absolute_error(y_test, y_hat)), 3)
-    _LOGGER.info("Test r2_test=%f mae_test=%f", r2_test, mae_test)
+    _LOGGER.info("Test r2_test=%g mae_test=%g", r2_test, mae_test)
 
     y_hat_val = model.predict(X_val)
     r2_val = round(float(sklearn.metrics.r2_score(y_val, y_hat_val)), 3)
     mae_val = round(float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val)), 3)
 
-    _LOGGER.info("Validation r2_val=%f mae_val=%f", r2_val, mae_val)
+    _LOGGER.info("Validation r2_val=%g mae_val=%g", r2_val, mae_val)
 
     artifact_filebase = (
         model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
@@ -643,6 +643,20 @@ def _create_fantasy_model(
     return model
 
 
+ModelFileFoundMode = Literal["reuse", "overwrite", "default"]
+"""
+'reuse' = do not create a new model if one already exists that follows\
+    the default model filenaming pattern. If an existing model exists, use the\
+    most recently created version.
+
+'overwrite' = create a new model, if one exists as the expected target filepath\
+    then overwrite it.
+
+'default' = create a new model, a model file already exists at the expected\
+    destination filepath then write to a new filepath that includes a timestamp
+"""
+
+
 def model_and_test(
     name: str,
     validation_season: int,
@@ -656,7 +670,7 @@ def model_and_test(
     target_pos: None | list[str],
     training_pos,
     dest_dir,
-    reuse_most_recent: bool,
+    mode: ModelFileFoundMode,
     model_dest_filename: str | None = None,
     data_src_params: dict | None = None,
 ):
@@ -665,16 +679,14 @@ def model_and_test(
 
     model_dest_filename: name of the file to write the model to. default is to use\
         the default model filename pattern based on the model name
-    reuse_most_recent: do not create a new model if one already exists that follows\
-        the default model filenaming pattern. If an existing model exists, use the\
-        most recently created version
+    mode: See ModelFileFoundMode
     data_src_params: parameters describing the data source for model training
     """
     model = None
-    if reuse_most_recent:
+    if mode == "reuse":
         if model_dest_filename is not None:
             raise InvalidArgumentsException(
-                "reuse_most_recent cannot be used with a model_dest_filename"
+                "mode='reuse' cannot be used with a model_dest_filename"
             )
         model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
         most_recent_model: tuple[datetime, str] | None = None
@@ -697,12 +709,15 @@ def model_and_test(
 
         final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
         if os.path.isfile(final_model_filepath):
-            _LOGGER.info(
-                "A model already exists at '%s'. Adding timestamp to model filename.",
-                final_model_filepath,
-            )
-            filebase_name += "." + dt_to_filename_str()
-            final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
+            if mode == "overwrite":
+                _LOGGER.info("Overwriting existing model at '%s'", final_model_filepath)
+            else:
+                _LOGGER.info(
+                    "A model already exists at '%s'. Adding timestamp to model filename.",
+                    final_model_filepath,
+                )
+                filebase_name += "." + dt_to_filename_str()
+                final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
 
         model_artifact_path, performance, dt_trained = train_test(
             algorithm,
@@ -735,6 +750,6 @@ def model_and_test(
             addl_params,
         )
 
-        model.dump(final_model_filepath)
+        model.dump(final_model_filepath, overwrite=mode == "overwrite")
 
     return model

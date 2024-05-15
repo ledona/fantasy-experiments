@@ -16,7 +16,7 @@ from fantasy_py import (
 )
 from fantasy_py.inference import PTPredictModel
 
-from .train_test import AlgorithmType, load_data, model_and_test
+from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
 
 _LOGGER = log.get_logger(__name__)
 
@@ -366,12 +366,12 @@ class TrainingConfiguration:
 
         return new_kwargs
 
-    def _train_and_test(
+    def train_and_test(
         self,
         model_name: str,
         dest_dir: str | None,
         error_data: bool,
-        reuse_existing_models: bool,
+        file_found_mode: ModelFileFoundMode,
         data_dir: str | None,
         info: bool,
         dump_data: str,
@@ -434,7 +434,10 @@ class TrainingConfiguration:
         print(f"\nTraining of {model_name} will be based on the following parameters:")
         pprint(params)
         print()
-        print(f"Training of {model_name} will proceed with the regressor kwargs (overriding any previous params):")
+        print(
+            f"Training of {model_name} will proceed with the regressor "
+            "kwargs (overriding any previous params):"
+        )
         pprint(final_regressor_kwargs)
 
         if info:
@@ -459,7 +462,7 @@ class TrainingConfiguration:
             params["target_pos"],
             params["training_pos"] or params["target_pos"],
             dest_dir,
-            reuse_existing_models,
+            file_found_mode,
             model_dest_filename=dest_filename,
             data_src_params=data_src_params,
         )

@@ -6,7 +6,7 @@ from .cfg import (
     TrainingConfiguration,
     _TrainingParamsDict,
 )
-from .train_test import AlgorithmType, load_data, model_and_test
+from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
 
 __all__ = [
     "TrainingConfiguration",
@@ -16,4 +16,5 @@ __all__ = [
     "_TrainingParamsDict",
     "TRAINING_PARAM_DEFAULTS",
     "DEFAULT_ALGORITHM",
+    "ModelFileFoundMode",
 ]
