@@ -15,6 +15,7 @@ from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from ledona import process_timer
 
 from .pt_model import (
+    DEFAULT_ALGORITHM,
     TRAINING_PARAM_DEFAULTS,
     AlgorithmType,
     ModelFileFoundMode,
@@ -87,14 +88,6 @@ def _handle_train(args: argparse.Namespace):
                 continue
             key = rename.get(k_, k_)
             modeler_init_kwargs[key] = cli_training_params[k_]
-        # if cli_training_params["training_mins"] is not None:
-        #     modeler_init_kwargs["max_time_mins"] = cli_training_params["training_mins"]
-        # if cli_training_params["training_iter_mins"] is not None:
-        #     modeler_init_kwargs["max_eval_time_mins"] = cli_training_params["training_iter_mins"]
-        # if cli_training_params["early_stop"] is not None:
-        #     modeler_init_kwargs["early_stop"] = cli_training_params["early_stop"]
-        # if cli_training_params["max_epochs"] is not None:
-        #     modeler_init_kwargs["generations"] = cli_training_params["max_epochs"]
 
     elif tdf.algorithm == "nn":
         # device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -211,7 +204,7 @@ def _add_train_parser(sub_parsers):
         )
         train_parser.add_argument(
             "--algorithm",
-            help="Algorithm for model selection/training. default={_DEFAULT_ALGORITHM}",
+            help=f"Algorithm for model selection/training. default='{DEFAULT_ALGORITHM}'",
             choices=AlgorithmType.__args__,
         )
 
@@ -348,11 +341,12 @@ def _model_catalog_func(args):
                 "r2": model_data["meta_extra"]["performance"]["r2"],
                 "mae": model_data["meta_extra"]["performance"]["mae"],
                 "target": ":".join(model_data["training_data_def"]["target"]),
-                "file": model_filepath,
+                "algo": model_data["parameters"].get("algorithm", DEFAULT_ALGORITHM),
+                "filepath": model_filepath,
             }
         )
 
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data).sort_values(by=["name", "dt"])
 
     filename = args.csv_filename or _MODEL_CATALOG_PATTERN.format(TIMESTAMP=dt_to_filename_str())
     df.to_csv(os.path.join(args.root, filename), index=False)

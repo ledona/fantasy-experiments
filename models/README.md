@@ -80,8 +80,8 @@ These models predict outcomes for all players/teams involved in a game. The samp
 1. To generate a lineup use ```lineup.sc --game_model
 
 ## Model Cataloging
-Run the following to create a catalog of the best models currently in the catalog
-```python -m lib.regressor catalog --best --root {root-model-dir}```
+Run the following to create a catalog of the models in a directory and its subfolders. The catalog will be written to a csv file in the root-model-dir directory. The filename will be timestamped.
+```python -m lib.regressor catalog --root {root-model-dir} [--best]```
 
 ## Loading Active Models
 TBD
