@@ -51,6 +51,19 @@
             ]
         },
         {
+            "name": "model-pt catalog",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.regressor",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                "catalog",
+                "--best",
+                "--root", "/fantasy-isync/fantasy-modeling/"
+            ]
+        },
+        {
             "name": "game-predict - data",
             "type": "debugpy",
             "request": "launch",

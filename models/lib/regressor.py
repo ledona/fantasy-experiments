@@ -353,7 +353,7 @@ def _model_catalog_func(args):
 
     if args.create_best_models_file:
         top_r2_df = df.groupby("name")["r2"].max().reset_index()
-        best_models_df = df.merge(top_r2_df, on=["name", "r2"])[["name", "r2", "mae", "file"]]
+        best_models_df = df.merge(top_r2_df, on=["name", "r2"])
         best_models_filename = f"best-models.{dt_to_filename_str()}.csv"
         best_models_df.to_csv(os.path.join(args.root, best_models_filename), index=False)
     else:

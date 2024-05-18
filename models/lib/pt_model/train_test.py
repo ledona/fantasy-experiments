@@ -485,15 +485,15 @@ def train_test(
         raise NotImplementedError(f"model type {algo} not recognized")
 
     y_hat = model.predict(X_test)
-    r2_test = round(float(sklearn.metrics.r2_score(y_test, y_hat)), 3)
-    mae_test = round(float(sklearn.metrics.mean_absolute_error(y_test, y_hat)), 3)
-    _LOGGER.info("Test r2_test=%g mae_test=%g", r2_test, mae_test)
+    r2_test = float(sklearn.metrics.r2_score(y_test, y_hat))
+    mae_test = float(sklearn.metrics.mean_absolute_error(y_test, y_hat))
+    _LOGGER.info("Test       r2=%g mae=%g", round(r2_test, 6), round(mae_test, 6))
 
     y_hat_val = model.predict(X_val)
-    r2_val = round(float(sklearn.metrics.r2_score(y_val, y_hat_val)), 3)
-    mae_val = round(float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val)), 3)
+    r2_val = float(sklearn.metrics.r2_score(y_val, y_hat_val))
+    mae_val = float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val))
 
-    _LOGGER.info("Validation r2_val=%g mae_val=%g", r2_val, mae_val)
+    _LOGGER.info("Validation r2=%g mae=%g", round(r2_val, 6), round(mae_val, 6))
 
     artifact_filebase = (
         model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
