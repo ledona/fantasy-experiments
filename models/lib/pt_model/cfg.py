@@ -88,6 +88,7 @@ class _TrainingParamsDict(TypedDict):
     """definition of the final parameters used for model training/testing"""
 
     data_filename: str
+    sport: str
     target: tuple[Literal["stat", "calc", "extra"], str] | str
     """target stat, either a tuple of (type, name) or string of 'type:name'"""
     validation_season: int
@@ -138,6 +139,7 @@ class TrainingConfiguration:
             assert cfg_dict is not None
             self._json = cfg_dict
 
+        self.sport = self._json["sport"]
         self.retrain = retrain
         """retraining an existing model"""
         self.algorithm = algorithm or DEFAULT_ALGORITHM
@@ -147,6 +149,8 @@ class TrainingConfiguration:
         for i, model_group in enumerate(self._json["model_groups"]):
             for model_name in model_group["models"]:
                 self._model_names_to_group_idx[model_name] = i
+
+        raise NotImplementedError("make sure that target is not an untargetable extra stat")
 
     @classmethod
     def cfg_from_model(
@@ -334,7 +338,7 @@ class TrainingConfiguration:
         return the finalized regressor kwargs
         """
         defaults, renamer = TRAINING_PARAM_DEFAULTS[algorithm]
-        new_kwargs = {}
+        new_kwargs: dict = {}
 
         if (
             "random_state" in defaults

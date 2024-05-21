@@ -617,7 +617,7 @@ def _create_fantasy_model(
         data_def["only_starters"] = only_starters
     if training_pos is not None:
         data_def["training_pos"] = training_pos
-    imputes = _infer_imputes(training_features_df, p_or_t == PlayerOrTeam.TEAM)
+    imputes = _infer_imputes(training_features_df, p_or_t.is_team)
     uname = platform.uname()
     model_cls = _get_model_cls(cast(AlgorithmType, model_params["algorithm"]))
     model = model_cls(
