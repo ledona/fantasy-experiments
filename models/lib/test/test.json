@@ -1,5 +1,6 @@
 // individual player/team model
 {
+    "sport": "mlb",
     "global_default": {
         "seed": 1,
         "validation_season": 2023,
