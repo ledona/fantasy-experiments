@@ -54,7 +54,6 @@ def _handle_train(args: argparse.Namespace):
                 f"Model '{model_name}' not defined. Try again with one "
                 f"of the following: {tdf.model_names}"
             )
-        assert model_name is not None
         cli_training_params = cast(
             dict[_CLITrainingParams, int | None],
             {k_: args_dict.get(k_) for k_ in _CLITrainingParams.__args__ if k_ in args_dict},
@@ -74,7 +73,9 @@ def _handle_train(args: argparse.Namespace):
 
     if args.dask:
         _LOGGER.info("tpot dask enabled")
-        dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
+        dask.config.set(
+            scheduler="processes", num_workers=math.floor(cast(int, os.cpu_count()) * 0.75)
+        )
 
     if tdf.algorithm.startswith("tpot"):
         modeler_init_kwargs = {
@@ -120,6 +121,7 @@ def _handle_train(args: argparse.Namespace):
     else:
         args.parse.error(f"Unknown algorithm '{tdf.algorithm}' requested")
 
+    assert model_name is not None
     new_model = tdf.train_and_test(
         model_name,
         args.dest_dir,

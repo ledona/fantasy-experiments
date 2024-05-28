@@ -17,17 +17,17 @@ from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
 from ..pt_model import (
-    DEFAULT_ALGORITHM,
     TRAINING_PARAM_DEFAULTS,
     AlgorithmType,
     TrainingConfiguration,
     _TrainingParamsDict,
 )
-from ..pt_model.cfg import _DATA_SRC_PARAMS, _NO_DEFAULT
+from ..pt_model.cfg import _NO_DEFAULT
 from ..regressor import main
 
 _EXPECTED_TRAINING_CFG_PARAMS = {
     "MLB-team-runs": {
+        "sport": "mlb",
         "seed": 1,
         "p_or_t": PlayerOrTeam.TEAM,
         "cols_to_drop": [
@@ -50,6 +50,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "target": "stat:off_runs",
     },
     "MLB-P-DK": {
+        "sport": "mlb",
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
         "cols_to_drop": [".*y_score.*", ".*recent-.*", "extra:venue.*", ".*dk_score:.*"],
@@ -69,6 +70,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "target_pos": ["P"],
     },
     "MLB-H-DK": {
+        "sport": "mlb",
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
         "cols_to_drop": ["extra:bases", ".*y_score.*"],
@@ -91,6 +93,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "target_pos": ["1B", "2B", "3B", "SS", "C", "LF", "RF", "CF", "OF"],
     },
     "MLB-H-hit": {
+        "sport": "mlb",
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
         "cols_to_drop": ["extra:bases"],
@@ -217,6 +220,7 @@ def _create_expected_model_dict(
         for k_, v_ in _EXPECTED_TRAINING_CFG_PARAMS[model_name].items()
         if k_
         not in [
+            "sport",
             "seed",
             "validation_season",
             "data_filename",
@@ -250,6 +254,7 @@ def _create_expected_model_dict(
     )
     return {
         "name": model_name,
+        "sport": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["sport"],
         "dt_trained": dt.isoformat(),
         "parameters": {
             "algorithm": algorithm,

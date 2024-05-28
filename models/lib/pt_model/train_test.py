@@ -523,6 +523,7 @@ def _get_model_cls(algorithm: AlgorithmType):
 
 def _create_fantasy_model(
     name: str,
+    sport: str,
     model_artifact_path: str,
     dt_trained: datetime,
     training_features_df: pd.DataFrame,
@@ -622,6 +623,7 @@ def _create_fantasy_model(
     model_cls = _get_model_cls(cast(AlgorithmType, model_params["algorithm"]))
     model = model_cls(
         name,
+        sport,
         target_info,
         features_sets,
         dt_trained=dt_trained,
@@ -654,6 +656,7 @@ ModelFileFoundMode = Literal["reuse", "overwrite", "default"]
 
 def model_and_test(
     name: str,
+    sport: str,
     validation_season: int,
     tt_data,
     target: tuple[FeatureType, str],
@@ -732,6 +735,7 @@ def model_and_test(
 
         model = _create_fantasy_model(
             name,
+            sport,
             model_artifact_path,
             dt_trained,
             tt_data[0],

@@ -6,6 +6,8 @@ from typing import Literal, TypedDict, cast
 
 import pandas as pd
 from fantasy_py import (
+    SPORT_DB_MANAGER_DOMAIN,
+    CLSRegistry,
     FeatureType,
     InvalidArgumentsException,
     JSONWithCommentsDecoder,
@@ -15,6 +17,7 @@ from fantasy_py import (
     typed_dict_validate,
 )
 from fantasy_py.inference import PTPredictModel
+from fantasy_py.sport import SportDBManager
 
 from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
 
@@ -139,7 +142,12 @@ class TrainingConfiguration:
             assert cfg_dict is not None
             self._json = cfg_dict
 
-        self.sport = self._json["sport"]
+        if (sport := self._json.get("sport")) is None:
+            raise InvalidArgumentsException(
+                "Unable to create training configuration. sport could not be found!"
+            )
+        self.sport = sport
+
         self.retrain = retrain
         """retraining an existing model"""
         self.algorithm = algorithm or DEFAULT_ALGORITHM
@@ -149,8 +157,6 @@ class TrainingConfiguration:
         for i, model_group in enumerate(self._json["model_groups"]):
             for model_name in model_group["models"]:
                 self._model_names_to_group_idx[model_name] = i
-
-        raise NotImplementedError("make sure that target is not an untargetable extra stat")
 
     @classmethod
     def cfg_from_model(
@@ -192,6 +198,7 @@ class TrainingConfiguration:
         }
         model_params_dict.update(
             {
+                "sport": orig_model.sport,
                 "algorithm": algorithm,
                 "target": orig_model.target.type + ":" + orig_model.target.name,
                 "validation_season": cast(int, orig_model.performance["season"]),
@@ -259,6 +266,7 @@ class TrainingConfiguration:
                         ]
 
         cfg_dict: dict = {
+            "sport": orig_model.sport,
             "global_default": {},
             "model_groups": [{"models": {orig_model.name: model_params_dict}}],
         }
@@ -278,45 +286,55 @@ class TrainingConfiguration:
         return a dict containing the training/evaluation parameters
         for the requested model
         """
+        if model_name not in self.model_names:
+            raise UnexpectedValueError(f"'{model_name}' is not defined")
+
+        # set everything that is Noneable to None
         param_dict: dict = {
             param_key: None
             for param_key, value_type in _TrainingParamsDict.__annotations__.items()
             if hasattr(value_type, "__args__") and type(None) in value_type.__args__
         }
+        param_dict["sport"] = self.sport
         if not self.retrain:
             del param_dict["original_model_columns"]
 
-        assert (
-            param_dict["train_params"] is None
-        ), "If the default for train params is not None then a dict update is needed"
-
         param_dict.update(self._json["global_default"].copy())
-        if model_name not in self.model_names:
-            raise UnexpectedValueError(f"'{model_name}' is not defined")
 
         model_group = self._json["model_groups"][self._model_names_to_group_idx[model_name]]
         param_dict.update(
             {k_: v_ for k_, v_ in model_group.items() if k_ not in ("train_params", "models")}
         )
-        if model_group.get("train_params"):
-            if not param_dict["train_params"]:
-                param_dict["train_params"] = {}
-            param_dict["train_params"].update(model_group["train_params"])
 
         param_dict.update(
             {k_: v_ for k_, v_ in model_group["models"][model_name].items() if k_ != "train_params"}
         )
 
+        train_params: dict = (
+            param_dict["train_params"].copy() if param_dict.get("train_params") else {}
+        )
+        if model_group_train_params := model_group.get("train_params"):
+            train_params.update(model_group_train_params)
         if model_train_params := model_group["models"][model_name].get("train_params"):
-            param_dict["train_params"] = (
-                {} if not param_dict["train_params"] else param_dict["train_params"].copy()
-            )
-            param_dict["train_params"].update(model_train_params)
+            train_params.update(model_train_params)
+        param_dict["train_params"] = train_params
+
         param_dict["target"] = (
             tuple(param_dict["target"])
             if isinstance(param_dict["target"], list)
             else param_dict["target"]
         )
+        if param_dict["target"][0] == "extra":
+            db_manager = cast(
+                SportDBManager, CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, self.sport)
+            )
+            x_def = db_manager.EXTRA_STATS[param_dict["target"][1]]
+            if x_def.get("current_type", "feature") != "target":
+                raise InvalidArgumentsException(
+                    f"model '{model_name}' has target '{param_dict['target']}' which, "
+                    "based on its extra definition, cannot be targetted"
+                )
+
         param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"]) if param_dict["p_or_t"] else None
         param_dict["algorithm"] = self.algorithm
 
@@ -456,6 +474,7 @@ class TrainingConfiguration:
 
         model = model_and_test(
             model_name,
+            params["sport"],
             params["validation_season"],
             tt_data,
             target_tuple,
