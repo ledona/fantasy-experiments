@@ -2,13 +2,11 @@
 import argparse
 import glob
 import json
-import math
 import os
 import shlex
 import sys
 from typing import Literal, cast
 
-import dask
 import dateutil
 import pandas as pd
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
@@ -73,9 +71,6 @@ def _handle_train(args: argparse.Namespace):
 
     if args.dask:
         _LOGGER.info("tpot dask enabled")
-        dask.config.set(
-            scheduler="processes", num_workers=math.floor(cast(int, os.cpu_count()) * 0.75)
-        )
 
     if tdf.algorithm.startswith("tpot"):
         modeler_init_kwargs = {

@@ -1,10 +1,9 @@
 import logging
 import os
 import warnings
-from math import floor, sqrt
+from math import sqrt
 from typing import Literal
 
-import dask
 import joblib
 import numpy as np
 import pandas as pd
@@ -19,8 +18,6 @@ from tpot import TPOTRegressor
 # TODO: check that these are still needed 2023.12.25
 warnings.filterwarnings("ignore", module="sklearn")
 warnings.filterwarnings("ignore", module="dask_ml")
-
-dask.config.set(scheduler="processes", num_workers=floor(os.cpu_count() * 0.75))
 
 _LOGGER = logging.getLogger(__name__)
 

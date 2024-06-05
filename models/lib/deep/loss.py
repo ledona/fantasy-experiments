@@ -1,5 +1,3 @@
-import math
-import os
 import sys
 from itertools import chain
 from typing import cast
@@ -18,7 +16,6 @@ from fantasy_py.lineup.fantasy_cost_aggregate import (
 )
 from fantasy_py.lineup.knapsack import KnapsackConstraint, KnapsackIdentityMapping, KnapsackItem
 
-dask.config.set(scheduler="processes", num_workers=math.floor(os.cpu_count() * 0.75))
 _LOGGER = log.get_logger(__name__)
 
 
