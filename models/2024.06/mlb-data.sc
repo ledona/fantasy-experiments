@@ -19,6 +19,7 @@ dumpdata.sc --seasons $SEASONS --only_starters \
    --opp_team_stats errors "p_*" --player_team_stats "off_*" \
    --target_calc_stats $FANTASY_TARGETS --target_stats off_hit off_runs \
    --hist_recent_games 5 --hist_recent_mode ma \
+   --dask_mode processes --dask_tasks 4 \
    --progress $DB_FILE --format parquet -f mlb_hitter.pq
 
 # dump pitchers
