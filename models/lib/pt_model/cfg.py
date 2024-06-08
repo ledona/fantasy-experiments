@@ -144,7 +144,7 @@ class TrainingConfiguration:
 
         if (sport := self._json.get("sport")) is None:
             raise InvalidArgumentsException(
-                "Unable to create training configuration. sport could not be found!"
+                "Unable to create training configuration. 'sport' key not found in configuration!"
             )
         self.sport = sport
 
