@@ -16,8 +16,9 @@ from fantasy_py import (
     log,
     typed_dict_validate,
 )
-from fantasy_py.inference import PTPredictModel
+from fantasy_py.inference import PTPredictModel, guess_sport_from_path
 from fantasy_py.sport import SportDBManager
+from ledona import slack
 
 from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
 
@@ -37,6 +38,8 @@ _TPOT_PARAM_DEFAULTS_TUPLE = {
     "n_jobs": _NO_DEFAULT,
     "epochs_max": _NO_DEFAULT,
     "early_stop": _NO_DEFAULT,
+    "use_dask": _NO_DEFAULT,
+    "verbosity": _NO_DEFAULT,
 }, {"epochs_max": "generations"}
 TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
     "nn": (
@@ -142,10 +145,20 @@ class TrainingConfiguration:
             assert cfg_dict is not None
             self._json = cfg_dict
 
-        if (sport := self._json.get("sport")) is None:
-            raise InvalidArgumentsException(
-                "Unable to create training configuration. 'sport' key not found in configuration!"
-            )
+        sport = self._json.get("sport")
+        if sport is None:
+            if filepath is not None:
+                _LOGGER.warning(
+                    "Sport was not found in '%s'. This must be an old model/cfg. "
+                    "Attempting to infer sport from filename.",
+                    filepath,
+                )
+                sport = guess_sport_from_path(filepath)
+            if sport is None:
+                raise InvalidArgumentsException(
+                    "Unable to create training configuration. 'sport' key not found in "
+                    "configuration and sport could not be inferred from filename!"
+                )
         self.sport = sport
 
         self.retrain = retrain
@@ -177,6 +190,11 @@ class TrainingConfiguration:
             )
 
         if algorithm is None:
+            if "algorithm" not in orig_model.parameters:
+                raise UnexpectedValueError(
+                    "'algorithm' is not present in the model definition. "
+                    "One must be provided (perhaps on the command line) to proceed"
+                )
             algorithm = cast(AlgorithmType, orig_model.parameters["algorithm"])
         defaults, renamer = TRAINING_PARAM_DEFAULTS[algorithm]
 
@@ -356,6 +374,9 @@ class TrainingConfiguration:
         return the finalized regressor kwargs
         """
         defaults, renamer = TRAINING_PARAM_DEFAULTS[algorithm]
+        assert set(cli_regressor_params.keys()) <= set(
+            defaults.keys()
+        ), "command line params should be a subset of the defaults"
         new_kwargs: dict = {}
 
         if (
@@ -389,6 +410,7 @@ class TrainingConfiguration:
 
         return new_kwargs
 
+    @slack.notify()
     def train_and_test(
         self,
         model_name: str,

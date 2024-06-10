@@ -10,7 +10,7 @@ from typing import Literal, cast
 import dateutil
 import pandas as pd
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
-from ledona import process_timer
+from ledona import process_timer, slack
 
 from .pt_model import (
     DEFAULT_ALGORITHM,
@@ -117,6 +117,10 @@ def _handle_train(args: argparse.Namespace):
         args.parse.error(f"Unknown algorithm '{tdf.algorithm}' requested")
 
     assert model_name is not None
+    if args.slack and not args.info:
+        slack.enable()
+    else:
+        slack.disable()
     new_model = tdf.train_and_test(
         model_name,
         args.dest_dir,
@@ -174,6 +178,12 @@ def _add_train_parser(sub_parsers):
                 help="Original model definition json file. "
                 "Only needed the .model file is missing training parameters",
             )
+        train_parser.add_argument(
+            "--slack",
+            help="send a slack notification on train start/end/fail",
+            default=False,
+            action="store_true",
+        )
         train_parser.add_argument(
             "--info",
             default=False,
