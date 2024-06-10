@@ -148,9 +148,12 @@ def _handle_train(args: argparse.Namespace):
     ):
         missing_cols = orig_model_cols - new_model_cols
         unexpected_cols = new_model_cols - orig_model_cols
-        raise UnexpectedValueError(
-            f"new model cols do not match original model cols! {missing_cols=} "
-            f"{unexpected_cols=}"
+        _LOGGER.warning(
+            "New model cols do not match original model cols! missing_cols (n=%i) = %s unexpected_cols (n=%i) = %s",
+            len(missing_cols),
+            missing_cols,
+            len(unexpected_cols),
+            unexpected_cols,
         )
 
 

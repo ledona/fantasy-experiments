@@ -108,6 +108,14 @@ def _load_data(
             f"Don't know how to load data files with extension {filename.rsplit('.', 1)[-1]}"
         )
 
+    if target_col_name not in df_raw:
+        # available targets are columns that have a single colon
+        available_targets = [col for col in df_raw.columns if len(col.split(":")) == 2]
+        raise UnexpectedValueError(
+            f"Target feature '{target_col_name}' not found in data. "
+            f"Available targets are {available_targets}"
+        )
+
     if include_position is True and "pos" not in df_raw:
         raise UnexpectedValueError(
             "Column 'pos' not found in data, 'include_position' must be None!"
@@ -142,7 +150,7 @@ def _load_data(
             len([col for col in df_raw.columns if ":" in col]),
             # sorted(cols_to_drop),
         )
-        df = df_raw.drop(columns=cols_to_drop)
+        df = df_raw.drop(columns=list(cols_to_drop))
     else:
         df = df_raw
 
@@ -166,12 +174,6 @@ def _load_data(
     _LOGGER.info("One-hot encoding features: %s", one_hots)
     df = pd.get_dummies(df, columns=one_hots)
 
-    # one_hot_stats = (
-    #     {"extra:venue": [col for col in df.columns if col.startswith("extra:venue_")]}
-    #     if "extra:venue" in df
-    #     else None
-    # )
-
     if "extra:is_home" in df:
         df["extra:is_home"] = df["extra:is_home"].astype(int)
 
@@ -182,6 +184,16 @@ def _load_data(
             if ":" not in col or col in original_model_cols or col == target_col_name
         ]
         df = df[final_cols]
+
+    if df[target_col_name].hasnans:
+        pre_drop_len = len(df)
+        df = df.query(f"`{target_col_name}`.notna()")
+        _LOGGER.info(
+            "Dropped %i rows where target col '%s' was nan.",
+            pre_drop_len - len(df),
+            target_col_name,
+        )
+
     return df_raw, df, one_hots
 
 
@@ -305,18 +317,6 @@ def load_data(
         raise UnexpectedValueError(
             f"Following requested feature models not found in data: {features_not_found}"
         )
-
-    if target_col_name not in train_test_df:
-        # available targets are columns that have a single colon
-        available_targets = [col for col in train_test_df.columns if len(col.split(":")) == 2]
-        raise UnexpectedValueError(
-            f"Target feature '{target_col_name}' not found in data. "
-            f"Available targets are {available_targets}"
-        )
-    if train_test_df[target_col_name].hasnans:
-        pre_drop_len = len(train_test_df)
-        train_test_df = train_test_df.query(f"`{target_col_name}`.notna()")
-        _LOGGER.info("Dropped %i rows where target was nan.", pre_drop_len - len(train_test_df))
 
     X = train_test_df[feature_cols]
     y = train_test_df[target_col_name]
