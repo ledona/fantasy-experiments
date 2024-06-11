@@ -1,0 +1,154 @@
+{
+    "sport": "nfl",
+    "global_default": {
+        "seed": 1,
+        "validation_season": 2022,
+        "recent_games": 3,
+        "training_seasons": [
+            2009,
+            2010,
+            2011,
+            2012,
+            2013,
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2019,
+            2020,
+            2021
+        ],
+        "missing_data_threshold": 0.15,
+        "train_params": {
+            "max_time_mins": 10
+        }
+    },
+    "model_groups": [
+        {
+            "data_filename": "nfl_team.csv",
+            "p_or_t": "T",
+            "models": {
+                "NFL-team-pts": {
+                    "target": [
+                        "stat",
+                        "pts"
+                    ]
+                },
+                "NFL-team-win": {
+                    "target": [
+                        "stat",
+                        "win"
+                    ]
+                },
+                "NFL-DEF-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_def"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nfl_QB.csv",
+            "p_or_t": "P",
+            "include_pos": false,
+            "target_pos": [
+                "QB"
+            ],
+            "models": {
+                "NFL-QB-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_off"
+                    ]
+                },
+                "NFL-QB-PASS-CMP": {
+                    "target": [
+                        "stat",
+                        "passing_cmp"
+                    ]
+                },
+                "NFL-QB-PASS-ATT": {
+                    "target": [
+                        "stat",
+                        "passing_att"
+                    ]
+                },
+                "NFL-QB-PASS-YDS": {
+                    "target": [
+                        "stat",
+                        "passing_yds"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nfl_RB.csv",
+            "p_or_t": "P",
+            "target_pos": [
+                "RB"
+            ],
+            "include_pos": false,
+            "models": {
+                "NFL-RB-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_off"
+                    ]
+                },
+                "NFL-RB-RUSHING-YDS": {
+                    "target": [
+                        "stat",
+                        "rushing_yds"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nfl_WRTE.csv",
+            "p_or_t": "P",
+            "target_pos": [
+                "WR",
+                "TE"
+            ],
+            "include_pos": true,
+            "models": {
+                "NFL-WRTE-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_off"
+                    ]
+                },
+                "NFL-WRTE-REC-YDS": {
+                    "target": [
+                        "stat",
+                        "receiving_yds"
+                    ]
+                },
+                "NFL-WRTE-REC": {
+                    "target": [
+                        "stat",
+                        "receiving_rec"
+                    ]
+                }
+            }
+        },
+        {
+            "models": {
+                "NFL-K-FG": {
+                    "target": [
+                        "stat",
+                        "kicking_fgm"
+                    ],
+                    "data_filename": "nfl_K.csv",
+                    "p_or_t": "P",
+                    "include_pos": true,
+                    "target_pos": [
+                        "K"
+                    ]
+                }
+            }
+        }
+    ]
+}

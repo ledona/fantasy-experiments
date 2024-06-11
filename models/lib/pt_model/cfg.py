@@ -191,11 +191,25 @@ class TrainingConfiguration:
 
         if algorithm is None:
             if "algorithm" not in orig_model.parameters:
-                raise UnexpectedValueError(
-                    "'algorithm' is not present in the model definition. "
-                    "One must be provided (perhaps on the command line) to proceed"
+                _LOGGER.warning(
+                    "algorithm was not found in the original model's "
+                    "parameters, attempting to infer from model filename"
                 )
-            algorithm = cast(AlgorithmType, orig_model.parameters["algorithm"])
+                for algo in AlgorithmType.__args__:
+                    if f".{algo}." in model_filepath:
+                        algorithm = algo
+                        _LOGGER.info(
+                            "Based on model filename, will proceed with algorithm='%s'", algorithm
+                        )
+                        break
+                if algorithm is None:
+                    raise UnexpectedValueError(
+                        "'algorithm' is not present in the model definition "
+                        "and could not be inferred from model filename. "
+                        "One must be provided (perhaps on the command line) to proceed"
+                    )
+            else:
+                algorithm = cast(AlgorithmType, orig_model.parameters["algorithm"])
         defaults, renamer = TRAINING_PARAM_DEFAULTS[algorithm]
 
         train_params = {}
