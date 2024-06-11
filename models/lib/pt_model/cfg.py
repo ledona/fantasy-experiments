@@ -38,9 +38,12 @@ _TPOT_PARAM_DEFAULTS_TUPLE = {
     "n_jobs": _NO_DEFAULT,
     "epochs_max": _NO_DEFAULT,
     "early_stop": _NO_DEFAULT,
+    # Following should have no impact on the resulting model
     "use_dask": _NO_DEFAULT,
     "verbosity": _NO_DEFAULT,
 }, {"epochs_max": "generations"}
+"""defaults and renames for all tpot algorithms"""
+
 TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
     "nn": (
         {
@@ -388,9 +391,6 @@ class TrainingConfiguration:
         return the finalized regressor kwargs
         """
         defaults, renamer = TRAINING_PARAM_DEFAULTS[algorithm]
-        assert set(cli_regressor_params.keys()) <= set(
-            defaults.keys()
-        ), "command line params should be a subset of the defaults"
         new_kwargs: dict = {}
 
         if (
@@ -422,6 +422,9 @@ class TrainingConfiguration:
                 set(cfg_params["train_params"].keys()) - default_param_names,
             )
 
+        assert set(new_kwargs.keys()) <= {
+            renamer.get(name, name) if renamer else name for name in defaults
+        }, "finalized kwargs should be a subset of the defaults"
         return new_kwargs
 
     @slack.notify()

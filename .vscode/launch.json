@@ -16,7 +16,7 @@
             "env": {
                 "SQLALCHEMY_WARN_20": "1",
                 "PYDEVD_DISABLE_FILE_VALIDATION": "1",
-                "PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT": "5s"
+                "PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT": "5"
             },
             "justMyCode": true
         },

@@ -368,8 +368,9 @@ def _retrain_test_model_check(
     mock_regressor_cls,
     mock_fit,
     artifact_ext,
-    # TODO: this arg in general does not seem necessary, just get the params from the defaults dict
+    # TODO: rework the test so that the following args can be dropped
     expected_params: dict,
+    ignored_params: list[str],
 ):
     """
     assert various things after training the original or retrained
@@ -386,7 +387,7 @@ def _retrain_test_model_check(
     assert model_dict["trained_parameters"]["regressor_path"].rsplit(".", 1)[0] == filepath_base
     del model_dict["trained_parameters"]["regressor_path"]
 
-    # test and drop relevent parameters
+    # test and drop parameters
     algo_defaults, renames = TRAINING_PARAM_DEFAULTS[expected_params["algorithm"]]
     algo_param_keys = set(algo_defaults.keys())
     algo_param_keys.add("algorithm")
@@ -396,6 +397,9 @@ def _retrain_test_model_check(
         model_key = renames.get(param_key, param_key) if renames else param_key
         assert model_dict["parameters"][model_key] == expected_params[param_key]
         del model_dict["parameters"][model_key]
+    for param_key in ignored_params:
+        if param_key in model_dict["parameters"]:
+            del model_dict["parameters"][param_key]
 
     assert model_dict["meta_extra"]["performance"]["r2"] == expected_r2
     assert model_dict["meta_extra"]["performance"]["mae"] == expected_mae
@@ -516,6 +520,11 @@ def test_retrain(
     the cli to train a model, then retrain using different command line args.
     Test that the resulting models have the expected parameters
     """
+    ignored_params = (
+        ["use_dask", "verbosity"]
+        if orig_algo.startswith("tpot") or retrain_algo.startswith("tpot")
+        else []
+    )
     model_name = "MLB-H-DK"
     tdf_params = tdf.get_params(model_name)
 
@@ -556,6 +565,7 @@ def test_retrain(
         model_1_fitted,
         expected_artifact_ext,
         expected_train_1_params,
+        ignored_params,
     )
 
     (
@@ -590,6 +600,7 @@ def test_retrain(
         mock_model_2_fitted,
         expected_artifact_ext,
         expected_train_2_params,
+        ignored_params,
     )
 
     assert model_1_dict == model_2_dict
