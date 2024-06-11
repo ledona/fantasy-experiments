@@ -212,13 +212,18 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     ]
 
 
-def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
+def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_threshold):
+    assert warning_threshold < fail_threshold
     counts = df.count()
     counts.name = "valid-data"
     counts.index.name = "feature-name"
     missing_data_df = pd.DataFrame(counts).reset_index()
-    missing_data_df["%-NA"] = missing_data_df["valid-data"].map(lambda x: 100 * (1 - x / len(df)))
-    missing_data_df["%-valid"] = missing_data_df["valid-data"].map(lambda x: 100 * x / len(df))
+    missing_data_df = missing_data_df.assign(
+        **{
+            "%-NA": missing_data_df["valid-data"].map(lambda x: 100 * (1 - x / len(df))),
+            "%-valid": missing_data_df["valid-data"].map(lambda x: 100 * x / len(df)),
+        }
+    )
     warning_df = missing_data_df.query("`%-NA` > (@warning_threshold * 100)")
 
     print(
@@ -241,6 +246,11 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold):
                 index=False, formatters={"%-NA": "{:.02f}%".format, "%-valid": "{:.02f}%".format}
             )
         )
+    fail_df = missing_data_df.query("`%-NA` > (@fail_threshold * 100)")
+    if len(fail_df) > 0:
+        raise DataNotAvailableException(
+            f"The following features were below the fail threshold of {fail_threshold}: {fail_df['feature-name'].to_list()}"
+        )
 
 
 def load_data(
@@ -251,7 +261,8 @@ def load_data(
     include_position: None | bool = None,
     col_drop_filters: None | list[str] = None,
     filtering_query: None | str = None,
-    missing_data_threshold=0.0,
+    missing_data_warn_threshold=0.0,
+    missing_data_fail_threshold=0.5,
     limit: int | None = None,
     expected_cols: None | set[str] = None,
 ):
@@ -321,7 +332,7 @@ def load_data(
     X = train_test_df[feature_cols]
     y = train_test_df[target_col_name]
 
-    _missing_feature_data_report(X, missing_data_threshold)
+    _missing_feature_data_report(X, missing_data_warn_threshold, missing_data_fail_threshold)
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
         X, y, random_state=seed
     )

@@ -468,7 +468,7 @@ class TrainingConfiguration:
             params["seed"],
             include_position=params["include_pos"],
             col_drop_filters=params["cols_to_drop"],
-            missing_data_threshold=params.get("missing_data_threshold", 0),
+            missing_data_warn_threshold=params.get("missing_data_threshold", 0),
             filtering_query=params["filtering_query"],
             limit=limit,
             expected_cols=params["original_model_columns"] if self.retrain else None,
