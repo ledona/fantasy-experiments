@@ -15,7 +15,7 @@ dumpdata.sc --seasons $SEASONS --only_starters \
    --current_extra "team_*" "hitter_*" sp_hand venue is_home \
    --current_opp_extra "team_whip*" "sp*" \
    --hist_extra hitter_bases team_bases \
-   --hist_opp_extra hitter_bases team_bases \
+   --hist_opp_extra team_bases \
    --opp_team_stats errors "p_*" --player_team_stats "off_*" \
    --target_calc_stats $FANTASY_TARGETS --target_stats off_hit off_runs \
    --hist_recent_games 5 --hist_recent_mode ma \
