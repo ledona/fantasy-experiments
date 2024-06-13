@@ -20,7 +20,7 @@ dumpdata.sc --seasons $SEASONS --only_starters \
    --target_calc_stats $FANTASY_TARGETS --target_stats off_hit off_runs \
    --hist_recent_games 5 --hist_recent_mode ma \
    --dask_mode processes --dask_tasks 4 \
-   --slack $DB_FILE --format parquet -f mlb_hitter.pq
+   --slack $DB_FILE --format parquet -f mlb_hitter.parquet
 
 # dump pitchers
 dumpdata.sc --seasons $SEASONS --no_team \
@@ -33,7 +33,7 @@ dumpdata.sc --seasons $SEASONS --no_team \
    --player_team_stats "off_*" win \
    --target_calc_stats $FANTASY_TARGETS --target_stats p_k p_ip p_hits \
    --hist_recent_games 5 --hist_recent_mode ma \
-   --slack $DB_FILE --format parquet -f mlb_pitcher.pq
+   --slack $DB_FILE --format parquet -f mlb_pitcher.parquet
 
 # teams
 dumpdata.sc --seasons $SEASONS --no_player \
@@ -44,4 +44,4 @@ dumpdata.sc --seasons $SEASONS --no_player \
    --hist_opp_extra team_bases \
    --target_stats off_runs win \
    --hist_recent_games 5 --hist_recent_mode ma \
-   --progress --slack $DB_FILE --format parquet -f mlb_team.pq
+   --progress --slack $DB_FILE --format parquet -f mlb_team.parquet

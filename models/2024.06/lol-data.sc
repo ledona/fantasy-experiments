@@ -9,7 +9,7 @@ dumpdata.sc --seasons $SEASONS --slack ${DB_FILE} --no_teams \
     --player_team_stats "*" --opp_team_stats "*" \
     --hist_recent_games 3 --hist_recent_mode ma \
     --dask_mode processes --dask_tasks 4 \
-    --format parquet -f lol_player.pq
+    --format parquet -f lol_player.parquet
 
 # team data
 dumpdata.sc --seasons $SEASONS --slack ${DB_FILE} --no_players \
@@ -18,4 +18,4 @@ dumpdata.sc --seasons $SEASONS --slack ${DB_FILE} --no_players \
     --hist_extra match_win --current_extra match_win --hist_opp_extra match_win \
     --hist_recent_games 3 --hist_recent_mode ma \
     --dask_mode processes --dask_tasks 4 \
-    --format parquet -f lol_team.pq
+    --format parquet -f lol_team.parquet

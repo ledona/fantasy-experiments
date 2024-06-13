@@ -20,7 +20,7 @@
     },
     "model_groups": [
         {
-            "data_filename": "nhl_team.pq",
+            "data_filename": "nhl_team.parquet",
             "p_or_t": "T",
             "models": {
                 "NHL-team-goal": {
@@ -38,7 +38,7 @@
             }
         },
         {
-            "data_filename": "nhl_skater.pq",
+            "data_filename": "nhl_skater.parquet",
             "include_pos": true,
             "p_or_t": "P",
             "target_pos": [
@@ -98,7 +98,7 @@
             }
         },
         {
-            "data_filename": "nhl_goalie.pq",
+            "data_filename": "nhl_goalie.parquet",
             "p_or_t": "P",
             "include_pos": false,
             "train_params": {

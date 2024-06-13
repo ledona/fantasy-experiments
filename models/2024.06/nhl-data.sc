@@ -15,7 +15,7 @@ dumpdata.sc --seasons $SEASONS --dask_mode processes --dask_tasks 4 \
     --target_stats shot assist goal --target_calc_stats "*" \
     --player_team_stats "*" --opp_team_stats "*" \
     --hist_recent_games 5 --hist_recent_mode ma \
-    --format parquet -f nhl_skater.pq
+    --format parquet -f nhl_skater.parquet
 
 # goalie data
 dumpdata.sc --seasons $SEASONS --progress --slack \
@@ -26,7 +26,7 @@ dumpdata.sc --seasons $SEASONS --progress --slack \
     --target_calc_stats "*" --target_stats goal_ag save \
     --player_team_stats "*" --opp_team_stats "*" \
     --hist_recent_games 5 --hist_recent_mode ma \
-    --format parquet -f nhl_goalie.pq
+    --format parquet -f nhl_goalie.parquet
 
 # team data
 dumpdata.sc --seasons $SEASONS --progress --slack \
@@ -36,4 +36,4 @@ dumpdata.sc --seasons $SEASONS --progress --slack \
     --current_opp_extra "goal_ag_*" "save_*" \
     --opp_team_stats "*" \
     --hist_recent_games 5 --hist_recent_mode ma \
-    --format parquet -f nhl_team.pq
+    --format parquet -f nhl_team.parquet

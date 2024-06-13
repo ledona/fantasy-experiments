@@ -10,11 +10,11 @@ dumpdata.sc --seasons $SEASONS --slack $DB_FILE --no_teams \
     --player_team_stats "*" --opp_team_stats "*" \
     --hist_recent_games 5 --hist_recent_mode ma \
     --dask_inf_multi_season_mode processes --dask_tasks 4 \
-    --format parquet -f nba_player.pq
+    --format parquet -f nba_player.parquet
 
 # team
 dumpdata.sc --seasons $SEASONS --progress $DB_FILE --no_players \
     --stats "*" --target_stats pts win \
     --opp_team_stats "*" \
     --hist_recent_games 5 --hist_recent_mode ma --current_extra is_home \
-    --slack --format parquet -f nba_team.pq
+    --slack --format parquet -f nba_team.parquet
