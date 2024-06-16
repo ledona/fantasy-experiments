@@ -49,10 +49,10 @@ python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
 # get model create params for a model
 python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
 # create model using defaults
-python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest {DEST_MODEL_DIR} \
+python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
   [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json {MODEL_NAME}
 # create a model based on an existing model 
-python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest {DEST_MODEL_DIR} \
+python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
   [--orig_cfg_file {MODEL_DIR}/{SPORT}.json] [--slack] {EXISTING_MODEL_FILEPATH}
 
 # for example
