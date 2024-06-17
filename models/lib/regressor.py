@@ -3,14 +3,16 @@ import argparse
 import glob
 import json
 import os
+import re
 import shlex
 import sys
 from typing import Literal, cast
 
 import dateutil
 import pandas as pd
+import tqdm
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
-from ledona import process_timer, slack
+from ledona import slack
 
 from .pt_model import (
     DEFAULT_ALGORITHM,
@@ -34,47 +36,40 @@ _CLITrainingParams = Literal[
 from command line during retrain"""
 
 
-@process_timer
-def _handle_train(args: argparse.Namespace):
-    if not os.path.isdir(args.dest_dir):
-        args.parser.error(f"Destination directory '{args.dest_dir}' does not exist.")
-    args_dict = vars(args)
+def _expand_models(
+    tdf: TrainingConfiguration,
+    model_request: str | list[str] | None,
+):
+    """figure out which models match the model requests"""
+    if model_request is None:
+        print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
+        sys.exit(0)
 
-    if args.op == "train":
-        tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
-        original_model = None
-        model_name = cast(str | None, args.model)
-        if model_name is None:
-            print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
-            sys.exit(0)
-        if model_name not in tdf.model_names:
-            args.parser.error(
-                f"Model '{model_name}' not defined. Try again with one "
-                f"of the following: {tdf.model_names}"
+    filters = [model_request] if isinstance(model_request, str) else model_request
+    model_names: list[str] = []
+    for model_filter in filters:
+        if "*" not in model_filter:
+            if model_filter not in tdf.model_names:
+                raise UnexpectedValueError(
+                    f"Model name '{model_filter}' not found. valid models are {tdf.model_names}"
+                )
+            model_names.append(model_filter)
+            continue
+        filter_re = model_filter.replace("*", ".*")
+        matches = [model_name for model_name in tdf.model_names if re.match(filter_re, model_name)]
+        if len(matches) == 0:
+            raise UnexpectedValueError(
+                f"Model request '{model_filter}' did not match to any model names. "
+                f"valid models are {tdf.model_names}"
             )
-        cli_training_params = cast(
-            dict[_CLITrainingParams, int | None],
-            {k_: args_dict.get(k_) for k_ in _CLITrainingParams.__args__ if k_ in args_dict},
-        )
-    else:
-        tdf, original_model = TrainingConfiguration.cfg_from_model(
-            args.cfg_file, args.orig_cfg_file, algorithm=args.algorithm
-        )
-        model_name = original_model.name
-        assert original_model.parameters is not None
-        cli_training_params = {}
-        for k_ in _CLITrainingParams.__args__:
-            if k_ in args_dict:
-                cli_training_params[k_] = args_dict[k_]
-            elif k_ in original_model.parameters:
-                cli_training_params[k_] = original_model.parameters[k_]
+        model_names += matches
+    return model_names
 
-    if args.dask:
-        _LOGGER.info("tpot dask enabled")
 
-    if tdf.algorithm.startswith("tpot"):
+def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: dict):
+    if algo.startswith("tpot"):
         modeler_init_kwargs = {
-            "use_dask": args.dask,
+            "use_dask": use_dask,
             # "n_jobs": cli_training_params["n_jobs"],
             "verbosity": 3,
         }
@@ -84,8 +79,9 @@ def _handle_train(args: argparse.Namespace):
                 continue
             key = rename.get(k_, k_)
             modeler_init_kwargs[key] = cli_training_params[k_]
+        return modeler_init_kwargs
 
-    elif tdf.algorithm == "nn":
+    if algo == "nn":
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         # modeler_init_kwargs = {"device": device}
         modeler_init_kwargs = {
@@ -104,57 +100,135 @@ def _handle_train(args: argparse.Namespace):
                 continue
             key = rename.get(k_, k_)
             modeler_init_kwargs[key] = cli_training_params[k_]
-    elif tdf.algorithm == "auto-xgb":
+        return modeler_init_kwargs
+
+    if algo == "auto-xgb":
         modeler_init_kwargs = {
             "verbosity": 2,
             "n_jobs": cli_training_params["n_jobs"],
         }
         if cli_training_params["early_stop"] is not None:
             modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
-    elif tdf.algorithm == "dummy":
-        modeler_init_kwargs = {}
-    else:
-        args.parse.error(f"Unknown algorithm '{tdf.algorithm}' requested")
+        return modeler_init_kwargs
 
-    assert model_name is not None
+    if algo == "dummy":
+        return {}
+
+    raise UnexpectedValueError(f"Unknown algorithm '{algo}' requested")
+
+
+def _handle_train(args: argparse.Namespace):
+    if not os.path.isdir(args.dest_dir):
+        args.parser.error(f"Destination directory '{args.dest_dir}' does not exist.")
+
+    args_dict = vars(args)
+
+    model_names: list[str]
+    if args.op == "train":
+        tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
+        if args.model is not None and args.models is not None:
+            args.parser.error(
+                f"Because model '{args.model}' was requested, --models cannot be used"
+            )
+        model_names = _expand_models(tdf, args.model or args.models)
+        original_model = None
+        cli_training_params = cast(
+            dict[_CLITrainingParams, int | None],
+            {k_: args_dict.get(k_) for k_ in _CLITrainingParams.__args__ if k_ in args_dict},
+        )
+    else:
+        tdf, original_model = TrainingConfiguration.cfg_from_model(
+            args.cfg_file, args.orig_cfg_file, algorithm=args.algorithm
+        )
+        model_names = [original_model.name]
+        assert original_model.parameters is not None
+        cli_training_params = {}
+        for k_ in _CLITrainingParams.__args__:
+            if k_ in args_dict:
+                cli_training_params[k_] = args_dict[k_]
+            elif k_ in original_model.parameters:
+                cli_training_params[k_] = original_model.parameters[k_]
+
+    _LOGGER.info("Training %i models. info-mode=%s: %s", len(model_names), args.info, model_names)
+
+    if args.dask:
+        _LOGGER.info("tpot dask enabled")
+
+    modeler_init_kwargs = _algo_params(tdf.algorithm, args.dask, cli_training_params, args_dict)
+
     if args.slack and not args.info:
         slack.enable()
     else:
         slack.disable()
-    new_model = tdf.train_and_test(
-        model_name,
-        args.dest_dir,
-        args.error_analysis_data,
-        args.exists_mode,
-        args.data_dir,
-        args.info,
-        args.dump_data,
-        args.limited_data,
-        args.dest_filename,
-        **modeler_init_kwargs,
-    )
 
-    if not tdf.retrain:
-        return
-
-    assert original_model and new_model._input_cols and original_model._input_cols
-    if new_model.target != original_model.target:
-        raise UnexpectedValueError(
-            f"new model target {new_model.target} does not match "
-            f"original model target {original_model.target}!"
-        )
-    if (new_model_cols := set(new_model._input_cols)) != (
-        orig_model_cols := set(original_model._input_cols)
+    progress: dict[str, list] = {"successes": [], "failures": []}
+    for model_name in (
+        p_bar := tqdm.tqdm(model_names, "models", disable=(len(model_names) == 1 or args.info))
     ):
-        missing_cols = orig_model_cols - new_model_cols
-        unexpected_cols = new_model_cols - orig_model_cols
-        _LOGGER.warning(
-            "New model cols do not match original model cols! missing_cols (n=%i) = %s unexpected_cols (n=%i) = %s",
-            len(missing_cols),
-            missing_cols,
-            len(unexpected_cols),
-            unexpected_cols,
+        _LOGGER.info("Training %s", model_name)
+        p_bar.set_postfix_str(
+            f"{model_name} {log.GREEN}\u2714{log.COLOR_RESET}={len(progress['successes'])} "
+            f"{log.RED}\u274C{log.COLOR_RESET}={len(progress['failures'])}"
         )
+        try:
+            new_model = tdf.train_and_test(
+                model_name,
+                args.dest_dir,
+                args.error_analysis_data,
+                args.exists_mode,
+                args.data_dir,
+                args.info,
+                args.dump_data,
+                args.limited_data,
+                args.dest_filename,
+                **modeler_init_kwargs,
+            )
+            progress["successes"].append(model_name)
+        except RuntimeError as ex:
+            # RuntimeError likely means a fail due to tpot
+            _LOGGER.error("Failed to train %s", model_name, exc_info=ex)
+            progress["failures"].append((model_name, ex))
+            continue
+
+        if not tdf.retrain or args.info:
+            continue
+        assert (
+            new_model is not None
+            and original_model
+            and new_model._input_cols
+            and original_model._input_cols
+        )
+        if new_model.target != original_model.target:
+            raise UnexpectedValueError(
+                f"For '{model_name}' new model target {new_model.target} does not match "
+                f"original model target {original_model.target}!"
+            )
+        if (new_model_cols := set(new_model._input_cols)) != (
+            orig_model_cols := set(original_model._input_cols)
+        ):
+            missing_cols = orig_model_cols - new_model_cols
+            unexpected_cols = new_model_cols - orig_model_cols
+            _LOGGER.warning(
+                "For '%s' new model cols do not match original model cols! missing_cols (n=%i) = "
+                "%s unexpected_cols (n=%i) = %s",
+                model_name,
+                len(missing_cols),
+                missing_cols,
+                len(unexpected_cols),
+                unexpected_cols,
+            )
+    if len(progress["failures"]) > 0:
+        msg_prefix = (
+            f"Only {len(model_names) - len(progress['failures'])} of {len(model_names)} "
+            "models trained successfully. failed models="
+        )
+        l_msg = f"{msg_prefix}{progress['failures']}"
+        final_slack_msg = f"{msg_prefix}{[failure[0] for failure in progress['failures']]}"
+        _LOGGER.warning(l_msg)
+    else:
+        final_slack_msg = f"All models trained successfully! {model_names}"
+        _LOGGER.success_info(final_slack_msg)
+    slack.send_slack(final_slack_msg)
 
 
 _MODEL_CATALOG_PATTERN = "model-catalog.{TIMESTAMP}.csv"
@@ -172,8 +246,11 @@ def _add_train_parser(sub_parsers):
             train_parser.add_argument(
                 "model",
                 nargs="?",
-                help="Name of the model to train. If not set then model names will be listed. "
-                "If the train file is a .model file this argument is ignored",
+                help="Name of the model to train. Wildcard '*' is supported and will result "
+                "in multiple models being trained.",
+            )
+            train_parser.add_argument(
+                "--models", nargs="+", help="Models to train. Wildcard '*' is supported"
             )
         else:
             train_parser.add_argument(
@@ -196,7 +273,7 @@ def _add_train_parser(sub_parsers):
         train_parser.add_argument(
             "--exists_mode",
             choices=ModelFileFoundMode.__args__,
-            default="default",
+            default="create-w-ts",
             help="What to do about existing model files",
         )
         train_parser.add_argument(
@@ -247,7 +324,7 @@ def _add_train_parser(sub_parsers):
             help="override the training iteration time defined in the train_file",
         )
         train_parser.add_argument(
-            "--dest_dir", default=".", help="directory to write final model and artifact files to"
+            "--dest_dir", default=".", help="Destination directory for model files"
         )
         train_parser.add_argument(
             "--dest_filename",

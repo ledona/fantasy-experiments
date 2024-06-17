@@ -651,17 +651,18 @@ def _create_fantasy_model(
     return model
 
 
-ModelFileFoundMode = Literal["reuse", "overwrite", "default"]
+ModelFileFoundMode = Literal["reuse", "overwrite", "create-w-ts"]
 """
-'reuse' = do not create a new model if one already exists that follows\
-    the default model filenaming pattern. If an existing model exists, use the\
-    most recently created version.
+'reuse' = If models already exists that follow the default model \
+    filenaming pattern use the most recently created version. If no\
+    models exist then create a new one.
 
-'overwrite' = create a new model, if one exists as the expected target filepath\
+'overwrite' = Create a new model, if one exists at the expected target filepath\
     then overwrite it.
 
-'default' = create a new model, a model file already exists at the expected\
-    destination filepath then write to a new filepath that includes a timestamp
+'create-w-ts' = Create a new model, if a model file already exists at the expected\
+    destination filepath then write the new model to a new filepath that\
+    includes a timestamp
 """
 
 
@@ -700,7 +701,7 @@ def model_and_test(
         model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
         most_recent_model: tuple[datetime, str] | None = None
         for filebase_name in glob(os.path.join(dest_dir, model_filename_pattern)):
-            model_dt = dateutil.parser.parse(filebase_name.split(".")[3])
+            model_dt = dateutil.parser.parse(filebase_name.split(".")[-2])
             if (most_recent_model is None) or (most_recent_model[0] < model_dt):
                 most_recent_model = (model_dt, filebase_name)
 

@@ -18,7 +18,7 @@ from fantasy_py import (
 )
 from fantasy_py.inference import PTPredictModel, guess_sport_from_path
 from fantasy_py.sport import SportDBManager
-from ledona import slack
+from ledona import process_timer, slack
 
 from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
 
@@ -137,7 +137,8 @@ class TrainingConfiguration:
         filepath: initialize using the contents of the json training configuration file
         cfg_dict: initialize using an existing configuration dict
         retrain: configuration is for retraining an existing model
-        algorithm: default is DEFAULT_ALGORITHM
+        algorithm: if not explicitly defined then the global default at\
+            DEFAULT_ALGORITHM is used.
         """
         if (filepath is None) == (cfg_dict is None):
             raise InvalidArgumentsException("filepath and cfg_dict cannot be both defined or None")
@@ -427,7 +428,7 @@ class TrainingConfiguration:
         }, "finalized kwargs should be a subset of the defaults"
         return new_kwargs
 
-    @slack.notify()
+    @process_timer
     def train_and_test(
         self,
         model_name: str,
@@ -450,7 +451,10 @@ class TrainingConfiguration:
             data_filepath = os.path.join(data_dir, data_filepath)
 
         _LOGGER.info(
-            "loading data from '%s'%s", data_filepath, f" with limit {limit}" if limit else ""
+            "For %s loading data from '%s'%s",
+            model_name,
+            data_filepath,
+            f" with limit {limit}" if limit else "",
         )
 
         target_tuple = cast(
@@ -480,7 +484,10 @@ class TrainingConfiguration:
         )
 
         _LOGGER.info(
-            "data load of '%s' complete. one_hot_stats=%s", params["data_filename"], one_hot_stats
+            "for %s data load of '%s' complete. one_hot_stats=%s",
+            model_name,
+            params["data_filename"],
+            one_hot_stats,
         )
         if dump_data:
             _LOGGER.info("Dumping training data to '%s'", dump_data)
@@ -505,7 +512,7 @@ class TrainingConfiguration:
         pprint(final_regressor_kwargs)
 
         if info:
-            sys.exit(0)
+            return None
 
         data_src_params: dict[_DATA_SRC_PARAMS, str | float | None] = {
             "missing_data_threshold": params.get("missing_data_threshold", 0),

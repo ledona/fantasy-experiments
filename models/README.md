@@ -46,11 +46,19 @@ database files containing raw and calculated stats are in _$FANTASY_HOME_.
 ```
 # list models defined in a model definition file
 python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
-# get model create params for a model
+
+# view model create params for a model
 python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
+
 # create model using defaults
 python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
   [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json {MODEL_NAME}
+
+# create multiple models
+python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
+  [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json \
+  ({MODEL_NAME_W_WILDCARDS} | [--models {MODEL_NAME} {MODEL_NAME} ...])
+
 # create a model based on an existing model 
 python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
   [--orig_cfg_file {MODEL_DIR}/{SPORT}.json] [--slack] {EXISTING_MODEL_FILEPATH}
