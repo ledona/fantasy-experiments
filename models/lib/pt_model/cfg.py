@@ -461,7 +461,9 @@ class TrainingConfiguration:
                 else params["target"].split(":")
             ),
         )
-        if len(target_tuple) != 2 or target_tuple[0] not in FeatureType.__args__:
+        if len(target_tuple) != 2 or (
+            target_tuple[0] not in FeatureType.__args__ and target_tuple[0] != "extra"
+        ):
             raise UnexpectedValueError(f"Invalid model target: {target_tuple}")
 
         _, tt_data, one_hot_stats = load_data(
