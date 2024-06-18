@@ -1,13 +1,12 @@
 """use this module's functions to train and evaluate models"""
 
-import math
 import os
 import platform
 import re
 from collections import defaultdict
 from datetime import datetime
 from glob import glob
-from pprint import pprint
+from pprint import pformat, pprint
 from tempfile import gettempdir
 from typing import Literal, cast
 
@@ -40,6 +39,7 @@ from fantasy_py.inference import (
     StatInfo,
 )
 from fantasy_py.sport import SportDBManager
+from ledona import slack
 from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
 from tpot.config import regressor_config_dict, regressor_config_dict_light
@@ -762,5 +762,6 @@ def model_and_test(
         )
 
         model.dump(final_model_filepath, overwrite=mode == "overwrite")
+        slack.send_slack(f"Training done for {name}\n\nPerformance\n{pformat(model.performance)}")
 
     return model
