@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 from pprint import pprint
 from typing import Literal, TypedDict, cast
 
@@ -18,7 +17,7 @@ from fantasy_py import (
 )
 from fantasy_py.inference import PTPredictModel, guess_sport_from_path
 from fantasy_py.sport import SportDBManager
-from ledona import process_timer, slack
+from ledona import process_timer
 
 from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
 

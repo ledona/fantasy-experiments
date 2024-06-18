@@ -67,6 +67,21 @@
             ]
         },
         {
+            "name": "model-pt performance",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.regressor",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                "performance",
+                "/fantasy-isync/fantasy-modeling/2024.06/pt/LOL*model",
+                "/fantasy-experiments/models/2024.06/lol.json",
+                "--data_dir",
+                "/fantasy-isync/fantasy-modeling/2024.06/data"
+            ]
+        },
+        {
             "name": "game-predict - data",
             "type": "debugpy",
             "request": "launch",

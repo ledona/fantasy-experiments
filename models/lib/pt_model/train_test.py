@@ -53,7 +53,7 @@ class WildcardFilterFoundNothing(FantasyException):
     """raised if a wildcard feature filter did not match any columns"""
 
 
-def _load_data(
+def _load_data_local(
     filename: str,
     include_position: bool | None,
     col_drop_filters: list[str] | None,
@@ -212,7 +212,7 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     ]
 
 
-def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_threshold):
+def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_threshold, skip_report):
     assert warning_threshold < fail_threshold
     counts = df.count()
     counts.name = "valid-data"
@@ -226,30 +226,34 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_thres
     )
     warning_df = missing_data_df.query("`%-NA` > (@warning_threshold * 100)")
 
-    print(
-        f"\nMISSING-DATA-REPORT cases={len(df)} warning_threshold={warning_threshold * 100:.02f}%"
-    )
+    if not skip_report:
+        print(
+            f"\nMISSING-DATA-REPORT cases={len(df)} warning_threshold={warning_threshold * 100:.02f}%"
+        )
     if len(warning_df) == 0:
         print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
         return
 
-    print(
-        f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100:.02f}% "
-        "missing values."
-    )
-
-    with pd.option_context(
-        "display.max_rows", None, "display.max_columns", None, "display.max_colwidth", None
-    ):
+    if not skip_report:
         print(
-            warning_df.to_string(
-                index=False, formatters={"%-NA": "{:.02f}%".format, "%-valid": "{:.02f}%".format}
-            )
+            f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100:.02f}% "
+            "missing values."
         )
+
+        with pd.option_context(
+            "display.max_rows", None, "display.max_columns", None, "display.max_colwidth", None
+        ):
+            print(
+                warning_df.to_string(
+                    index=False,
+                    formatters={"%-NA": "{:.02f}%".format, "%-valid": "{:.02f}%".format},
+                )
+            )
     fail_df = missing_data_df.query("`%-NA` > (@fail_threshold * 100)")
     if len(fail_df) > 0:
         raise DataNotAvailableException(
-            f"The following features were below the fail threshold of {fail_threshold}: {fail_df['feature-name'].to_list()}"
+            "The following features were below the fail threshold of "
+            f"{fail_threshold}: {fail_df['feature-name'].to_list()}"
         )
 
 
@@ -265,6 +269,7 @@ def load_data(
     missing_data_fail_threshold=0.5,
     limit: int | None = None,
     expected_cols: None | set[str] = None,
+    skip_data_reports=False,
 ):
     """
     Create train, test and validation data
@@ -288,7 +293,7 @@ def load_data(
     target_col_name = target if isinstance(target, str) else ":".join(target)
     _LOGGER.info("Target column name set to '%s'", target_col_name)
 
-    df_raw, df, one_hot_stats = _load_data(
+    df_raw, df, one_hot_stats = _load_data_local(
         filename,
         include_position,
         col_drop_filters,
@@ -318,7 +323,11 @@ def load_data(
         )
     ]
 
-    _LOGGER.info("Final feature cols (n=%i): %s", len(feature_cols), sorted(feature_cols))
+    _LOGGER.info(
+        "Final feature cols (n=%i)%s",
+        len(feature_cols),
+        (f": {sorted(feature_cols)}") if not skip_data_reports else "",
+    )
 
     train_test_df = df[df.season != validation_season]
     if len(train_test_df) == 0:
@@ -332,7 +341,9 @@ def load_data(
     X = train_test_df[feature_cols]
     y = train_test_df[target_col_name]
 
-    _missing_feature_data_report(X, missing_data_warn_threshold, missing_data_fail_threshold)
+    _missing_feature_data_report(
+        X, missing_data_warn_threshold, missing_data_fail_threshold, skip_data_reports
+    )
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
         X, y, random_state=seed
     )
@@ -344,7 +355,7 @@ def load_data(
     X_val = validation_df[feature_cols]
     y_val = validation_df[target_col_name]
     _LOGGER.info(
-        "Training will use %i features, %i training cases, "
+        "Data contains %i features, %i training cases, "
         "%i test cases, %i validation test cases from validation_season=%i",
         len(feature_cols),
         len(X_train),
@@ -503,7 +514,6 @@ def _train_test(
     y_hat_val = model.predict(X_val)
     r2_val = float(sklearn.metrics.r2_score(y_val, y_hat_val))
     mae_val = float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val))
-
     _LOGGER.info("Validation r2=%g mae=%g", round(r2_val, 6), round(mae_val, 6))
 
     artifact_filebase = (
