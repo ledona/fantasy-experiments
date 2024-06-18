@@ -6,6 +6,7 @@ import os
 import re
 import shlex
 import sys
+import traceback
 from typing import Literal, cast
 
 import dateutil
@@ -158,6 +159,7 @@ def _handle_train(args: argparse.Namespace):
 
     if args.slack and not args.info:
         slack.enable()
+        slack.send_slack(f"Starting batch training for:{model_names}")
     else:
         slack.disable()
 
@@ -186,9 +188,16 @@ def _handle_train(args: argparse.Namespace):
             progress["successes"].append(model_name)
         except RuntimeError as ex:
             # RuntimeError likely means a fail due to tpot
-            _LOGGER.error("Failed to train %s", model_name, exc_info=ex)
+            _LOGGER.error("Failed to train '%s'", model_name, exc_info=ex)
             progress["failures"].append((model_name, ex))
             continue
+        except BaseException as ex:
+            msg = f"Unexpected error while training '{model_name}'. STOPPING"
+            _LOGGER.critical(msg, exc_info=ex)
+            slack.send_slack(
+                msg + f": {ex}\n\n```" + traceback.format_exc(limit=None, chain=True) + "```"
+            )
+            raise
 
         if not tdf.retrain or args.info:
             continue
