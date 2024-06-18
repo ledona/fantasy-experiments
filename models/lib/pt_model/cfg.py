@@ -237,7 +237,7 @@ class TrainingConfiguration:
                 "sport": orig_model.sport,
                 "algorithm": algorithm,
                 "target": orig_model.target.type + ":" + orig_model.target.name,
-                "validation_season": cast(int, orig_model.performance["season"]),
+                "validation_season": orig_model.performance["season_val"],
                 "recent_games": orig_model.data_def["recent_games"],
                 "training_seasons": orig_model.data_def["seasons"],
                 "seed": orig_model.parameters.get("random_state"),

@@ -270,9 +270,11 @@ def _create_expected_model_dict(
         "func_type": PTPredictModel.FUNC_TYPE_NAME,
         "meta_extra": {
             "performance": {
-                "mae": expected_mae,
-                "r2": expected_r2,
-                "season": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["validation_season"],
+                "mae_val": expected_mae,
+                "r2_val": expected_r2,
+                "mae_test": expected_mae,
+                "r2_test": expected_r2,
+                "season_val": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["validation_season"],
             },
             "player_positions": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["target_pos"],
             "type": "sklearn",
@@ -401,8 +403,8 @@ def _retrain_test_model_check(
         if param_key in model_dict["parameters"]:
             del model_dict["parameters"][param_key]
 
-    assert model_dict["meta_extra"]["performance"]["r2"] == expected_r2
-    assert model_dict["meta_extra"]["performance"]["mae"] == expected_mae
+    assert model_dict["meta_extra"]["performance"]["r2_val"] == expected_r2
+    assert model_dict["meta_extra"]["performance"]["mae_val"] == expected_mae
     for param_key in ["performance", "type"]:
         del model_dict["meta_extra"][param_key]
 

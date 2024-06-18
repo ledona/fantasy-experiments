@@ -33,7 +33,7 @@ from fantasy_py import (
 from fantasy_py.inference import (
     NNModel,
     NNRegressor,
-    Performance,
+    PerformanceDict,
     PTPredictModel,
     SKLModel,
     StatInfo,
@@ -460,7 +460,7 @@ def _instantiate_regressor(
     return model, fit_addl_args, fit_kwargs
 
 
-def train_test(
+def _train_test(
     algo: AlgorithmType,
     model_name: str,
     target: tuple[FeatureType, str],
@@ -468,13 +468,13 @@ def train_test(
     dest_dir: str,
     model_filebase: str,
     **model_init_kwargs,
-) -> tuple[str, Performance, datetime]:
+) -> tuple[str, PerformanceDict, datetime]:
     """
     train, test and save a model to a pickle
 
     model_filebase: basename for model and artifact files
     training_time: max time to train in seconds
-    returns the filepath to the model
+    returns tuple[filepath to the model, model performance, dt model was trained]
     """
     dt_trained = datetime.now()
     _LOGGER.info("Fitting model_name=%s using type=%s", model_name, algo)
@@ -523,7 +523,13 @@ def train_test(
         raise NotImplementedError(f"model {algo=} not recognized")
 
     _LOGGER.info("Exported model artifact to '%s'", artifact_filepath)
-    return artifact_filepath, {"r2": r2_val, "mae": mae_val}, dt_trained
+    performance: PerformanceDict = {
+        "r2_val": r2_val,
+        "mae_val": mae_val,
+        "r2_test": r2_test,
+        "mae_test": mae_test,
+    }
+    return artifact_filepath, performance, dt_trained
 
 
 def _get_model_cls(algorithm: AlgorithmType):
@@ -539,7 +545,7 @@ def _create_fantasy_model(
     dt_trained: datetime,
     training_features_df: pd.DataFrame,
     target: tuple[FeatureType, str],
-    performance: Performance,
+    performance: PerformanceDict,
     p_or_t: PlayerOrTeam,
     recent_games: int,
     training_seasons: list[int],
@@ -729,7 +735,7 @@ def model_and_test(
                 filebase_name += "." + dt_to_filename_str()
                 final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
 
-        model_artifact_path, performance, dt_trained = train_test(
+        model_artifact_path, performance, dt_trained = _train_test(
             algorithm,
             name,
             target,
@@ -738,7 +744,7 @@ def model_and_test(
             filebase_name,
             **ml_kwargs,
         )
-        performance["season"] = validation_season
+        performance["season_val"] = validation_season
         addl_params = {
             **ml_kwargs,
             **(data_src_params or {}),

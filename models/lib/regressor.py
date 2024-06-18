@@ -428,17 +428,24 @@ def _model_catalog_func(args):
             model_data = json.load(f_)
 
         p_t = "player" if model_data["training_data_def"]["target"][1] == "P" else "team"
+        r2_test = model_data["meta_extra"]["performance"]["r2_test"]
+        mae_test = model_data["meta_extra"]["performance"]["mae_test"]
+        r2_val = model_data["meta_extra"]["performance"]["r2_val"]
+        mae_val = model_data["meta_extra"]["performance"]["mae_val"]
+
         data.append(
             {
                 "name": model_data["name"],
                 "sport": model_data["name"].split("-", 1)[0],
                 "p/t": p_t,
                 "dt": dateutil.parser.parse(model_data["dt_trained"]),
-                "r2": model_data["meta_extra"]["performance"]["r2"],
-                "mae": model_data["meta_extra"]["performance"]["mae"],
+                "r2-val": r2_val,
+                "mae-val": mae_val,
                 "target": ":".join(model_data["training_data_def"]["target"]),
                 "algo": model_data["parameters"].get("algorithm", DEFAULT_ALGORITHM),
                 "filepath": model_filepath,
+                "r2-test": r2_test,
+                "mae-test": mae_test,
             }
         )
 
@@ -448,8 +455,8 @@ def _model_catalog_func(args):
     df.to_csv(os.path.join(args.root, filename), index=False)
 
     if args.create_best_models_file:
-        top_r2_df = df.groupby("name")["r2"].max().reset_index()
-        best_models_df = df.merge(top_r2_df, on=["name", "r2"])
+        top_r2_df = df.groupby("name")["r2-val"].max().reset_index()
+        best_models_df = df.merge(top_r2_df, on=["name", "r2-val"])
         best_models_filename = f"best-models.{dt_to_filename_str()}.csv"
         best_models_df.to_csv(os.path.join(args.root, best_models_filename), index=False)
     else:
