@@ -62,8 +62,8 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "catalog",
-                "--best",
-                "--root", "/fantasy-isync/fantasy-modeling/"
+                // "--best",
+                "--root", "/fantasy-isync/fantasy-modeling/2024.06"
             ]
         },
         {
@@ -75,10 +75,11 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "performance",
-                "/fantasy-isync/fantasy-modeling/2024.06/pt/LOL*model",
-                "/fantasy-experiments/models/2024.06/lol.json",
-                "--data_dir",
-                "/fantasy-isync/fantasy-modeling/2024.06/data"
+                "/fantasy-isync/fantasy-modeling/2024.04/pt/NBA*model",
+                "--cfg", "/fantasy-experiments/models/2024.06/nba.json",
+                "-op", "repair",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2024.06/data",
+                "--max_missing_infer", "1"
             ]
         },
         {

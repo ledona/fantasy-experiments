@@ -95,5 +95,13 @@ These models predict outcomes for all players/teams involved in a game. The samp
 Run the following to create a catalog of the models in a directory and its subfolders. The catalog will be written to a csv file in the root-model-dir directory. The filename will be timestamped.
 ```python -m lib.regressor catalog --root {root-model-dir} [--best]```
 
+## Model Performance Operations
+Use the following command to repair, update, test or calculate model performance
+```
+python -m lib.regressor performance [MODEL_FILE_PATTERN] \
+  --cfg [model_cfg.json] --data_dir [DATA_DIR] -op [repair|test|update|calc]
+```
+
+
 ## Loading Active Models
 TBD

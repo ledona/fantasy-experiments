@@ -11,7 +11,6 @@ from typing import Literal, cast
 
 import dateutil
 import pandas as pd
-import sklearn
 import tqdm
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from fantasy_py.inference import PTPredictModel
@@ -22,8 +21,9 @@ from .pt_model import (
     TRAINING_PARAM_DEFAULTS,
     AlgorithmType,
     ModelFileFoundMode,
+    PerformanceOperation,
     TrainingConfiguration,
-    load_data,
+    performance_calc,
 )
 
 _LOGGER = log.get_logger(__name__)
@@ -525,6 +525,7 @@ def _add_load_actives_parser(sub_parsers):
 
 
 def _handle_performance(args):
+    """performance recalculation"""
     if "*" in args.model_filepath:
         model_filepaths = glob.glob(args.model_filepath)
         if len(model_filepaths) == 0:
@@ -536,56 +537,23 @@ def _handle_performance(args):
             sys.exit(1)
         model_filepaths = [args.model_filepath]
 
+    if args.max_missing_infer_cols is not None:
+        if args.max_missing_infer_cols < 0 or args.max_missing_infer_cols > 1:
+            args.parser.error("--max_missing_infer_cols must be between 0 and 1")
+        PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL = args.max_missing_infer_cols
+
     _LOGGER.info(
-        "Calculating performance for %i models matching '%s'",
+        "Executing performance op=%s on %i models matching '%s'",
+        args.op,
         len(model_filepaths),
         args.model_filepath,
     )
-    cfg = TrainingConfiguration(args.train_cfg_filepath)
-
-    for model_filepath in tqdm.tqdm(model_filepaths):
-        _LOGGER.info("Calculating performance for '%s'", model_filepath)
-        model = PTPredictModel.load(model_filepath)
-        params = cfg.get_params(model.name)
-
-        data_filepath = params["data_filename"]
-        if args.data_dir is not None:
-            data_filepath = os.path.join(args.data_dir, data_filepath)
-
-        tt_data = load_data(
-            data_filepath,
-            (model.target.type, model.target.name),
-            params["validation_season"],
-            params["seed"],
-            include_position=params["include_pos"],
-            col_drop_filters=params["cols_to_drop"],
-            filtering_query=params["filtering_query"],
-            skip_data_reports=True,
-        )[1]
-
-        (X_test, y_test, X_val, y_val) = tt_data[2:]
-
-        _LOGGER.info("   '%s'-predicting for test", model.name)
-        imputed_x_test = model._impute_missing(X_test)
-        y_hat = model.model_predict(imputed_x_test)
-        r2_test = float(sklearn.metrics.r2_score(y_test, y_hat))
-        mae_test = float(sklearn.metrics.mean_absolute_error(y_test, y_hat))
-
-        _LOGGER.info("   '%s'-predicting for validation", model.name)
-        imputed_x_val = model._impute_missing(X_val)
-        y_hat_val = model.model_predict(imputed_x_val)
-        r2_val = float(sklearn.metrics.r2_score(y_val, y_hat_val))
-        mae_val = float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val))
-
-        _LOGGER.info(
-            "   '%s'-test       r2=%g mae=%g", model.name, round(r2_test, 6), round(mae_test, 6)
-        )
-        _LOGGER.info(
-            "   '%s'-validation r2=%g mae=%g", model.name, round(r2_val, 6), round(mae_val, 6)
-        )
-
-        if args.update:
-            raise NotImplementedError()
+    cfg = (
+        TrainingConfiguration(args.train_cfg_filepath)
+        if args.train_cfg_filepath is not None
+        else None
+    )
+    performance_calc(args.op, model_filepaths, cfg, args.data_dir)
 
 
 def _add_performance_parser(sub_parsers):
@@ -594,13 +562,25 @@ def _add_performance_parser(sub_parsers):
     parser.add_argument(
         "model_filepath", help="path to the model's .model file, wildcard '*' is accepted"
     )
-    parser.add_argument("train_cfg_filepath", help="The training config json file")
+    parser.add_argument(
+        "--train_cfg_filepath", "--cfg_filepath", "--cfg", help="The training config json file"
+    )
     parser.add_argument("--data_dir", help="directory containing data files", default=".")
     parser.add_argument(
-        "--update",
-        action="store_true",
-        default=False,
-        help="Update the model file with the newly calculated performance results",
+        "-op",
+        choices=PerformanceOperation.__args__,
+        default="test",
+        help="calc=calculate and print new metrics; "
+        "update=update model files with new metrics; "
+        "repair=identify and update model files with incomplete metrics; "
+        "test=identify model files with incomplete metrics",
+    )
+    parser.add_argument(
+        "--max_missing_infer_cols",
+        "--max_missing_features",
+        type=float,
+        help="Threshold for maximum percentage of missing inference features above which "
+        f"inference/prediction should fail. Default={PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL}",
     )
 
 
