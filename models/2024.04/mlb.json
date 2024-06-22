@@ -28,7 +28,7 @@
     },
     "model_groups": [
         {
-            "data_filename": "mlb_team.pq",
+            "data_filename": "mlb_team.parquet",
             "p_or_t": "T",
             "models": {
                 "MLB-team-runs": {
@@ -49,7 +49,7 @@
             }
         },
         {
-            "data_filename": "mlb_pitcher.pq",
+            "data_filename": "mlb_pitcher.parquet",
             "p_or_t": "P",
             "include_pos": false,
             "missing_data_threshold": 0.28,
@@ -95,7 +95,7 @@
             }
         },
         {
-            "data_filename": "mlb_hitter.pq",
+            "data_filename": "mlb_hitter.parquet",
             "p_or_t": "P",
             "include_pos": true,
             "target_pos": [

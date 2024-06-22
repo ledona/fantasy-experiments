@@ -2,9 +2,9 @@
 {
     // all files with training data for players/teams
     "datafiles": [
-        "mlb_team.pq",
-        "mlb_hitter.pq",
-        "mlb_pitcher.pq"
+        "mlb_team.parquet",
+        "mlb_hitter.parquet",
+        "mlb_pitcher.parquet"
     ],
     "seed": 1,
     "validation_season": 2023,

@@ -242,7 +242,7 @@ def export(
                 )
             successful_attempts.append(slate_def)
             filename = (
-                f"{slate_def.epoch.season}-{slate_def.epoch.game_number}-{slate_def.hash_value}.pq"
+                f"{slate_def.epoch.season}-{slate_def.epoch.game_number}-{slate_def.hash_value}.parquet"
             )
             dataset_filepath = os.path.join(dataset_dest_dir, filename)
             df.to_parquet(dataset_filepath)

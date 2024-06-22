@@ -81,7 +81,7 @@ def _load_data_local(
                 "validation season. Try again without limit, or try a different "
                 "the validation season."
             )
-    elif filename.endswith(".pq") or filename.endswith(".parquet"):
+    elif filename.endswith(".parquet") or filename.endswith(".parquet"):
         if limit is not None:
             pf = pq.ParquetFile(filename)
             first_n_rows = next(pf.iter_batches(batch_size=limit))

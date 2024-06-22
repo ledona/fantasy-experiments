@@ -11,7 +11,7 @@
     "model_groups": [
         // team models
         {
-            "data_filename": "lol_team.pq",
+            "data_filename": "lol_team.parquet",
             "p_or_t": "T",
             "train_params": {
                 "max_time_mins": 10
@@ -54,7 +54,7 @@
         },
         // player models
         {
-            "data_filename": "lol_player.pq",
+            "data_filename": "lol_player.parquet",
             "p_or_t": "P",
             "include_pos": true,
             "train_params": {

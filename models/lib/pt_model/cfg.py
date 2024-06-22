@@ -493,7 +493,7 @@ class TrainingConfiguration:
             df = pd.concat(tt_data[0:2], axis=1)
             if dump_data.endswith(".csv"):
                 df.to_csv(dump_data)
-            elif dump_data.endswith(".pq"):
+            elif dump_data.endswith(".parquet"):
                 df.to_parquet(dump_data)
             else:
                 raise UnexpectedValueError(f"Unknown data dump format: {dump_data}")

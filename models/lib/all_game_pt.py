@@ -119,7 +119,7 @@ def _data_func(args, model_def: _ModelDefinitionFile):
     _LOGGER.info("model '%s' input-features=%s", model_def.model_name, model_def.features)
 
     _create_dataset(
-        args.dest_filepath + "-train.pq",
+        args.dest_filepath + "-train.parquet",
         model_def.training_seasons,
         model_def.features,
         model_def.targets,

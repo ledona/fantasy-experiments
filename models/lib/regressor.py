@@ -292,7 +292,7 @@ def _add_train_parser(sub_parsers):
             "--dump_data",
             metavar="filepath",
             help="Dump training data to a file. The file extension defines the format. "
-            "Supported extensions: .csv, .pq",
+            "Supported extensions: .csv, .parquet",
         )
         train_parser.add_argument(
             "--error_analysis_data",
