@@ -440,6 +440,12 @@ def _instantiate_regressor(
             }
         else:
             if model_init_kwargs.get("checkpoint_dir") is None:
+                default_checkpoint_root_dir = os.path.join(gettempdir(), "fantasy-nn-checkpoints")
+                if not os.path.isdir(default_checkpoint_root_dir):
+                    _LOGGER.info(
+                        "Creating default checkpoint root dir '%s'", default_checkpoint_root_dir
+                    )
+                    os.mkdir(default_checkpoint_root_dir)
                 model_init_kwargs["checkpoint_dir"] = os.path.join(
                     gettempdir(),
                     "fantasy-nn-checkpoints",
@@ -503,11 +509,11 @@ def _train_test(
     assert model is not None
 
     if algo.startswith("tpot"):
-        _LOGGER.info("TPOT fitted")
+        _LOGGER.success("TPOT fitted")
         tpot_model = cast(TPOTRegressor, model)
         pprint(tpot_model.fitted_pipeline_)
     elif algo in ("dummy", "auto-xgb", "nn"):
-        _LOGGER.info("%s fitted", algo)
+        _LOGGER.success("%s fitted", algo)
     else:
         raise NotImplementedError(f"model type {algo} not recognized")
 
@@ -696,7 +702,7 @@ def _reuse_model_helper(
         )
         final_model_filepath = os.path.join(dest_dir, dest_filename_w_ext)
         if os.path.isfile(final_model_filepath):
-            _LOGGER.info("Reusing model at '%s'", final_model_filepath)
+            _LOGGER.success("Reusing model at '%s'", final_model_filepath)
             return PTPredictModel.load(final_model_filepath)
 
     model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
@@ -708,7 +714,7 @@ def _reuse_model_helper(
 
     if most_recent_model is not None:
         final_model_filepath = most_recent_model[1]
-        _LOGGER.info("Reusing model at '%s'", final_model_filepath)
+        _LOGGER.success("Reusing model at '%s'", final_model_filepath)
         return PTPredictModel.load(final_model_filepath)
 
     return None
