@@ -491,6 +491,11 @@ def _train_test(
     _LOGGER.info("Fitting model_name=%s using type=%s", model_name, algo)
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
+    if len(X_train.columns) == 0 or len(X_train) == 0:
+        raise DataNotAvailableException(
+            "Cannot train because width or length of training data is 0. "
+            f"width={len(X_train.columns)} len={len(X_train)}"
+        )
     model, fit_addl_args, fit_kwargs = _instantiate_regressor(
         algo, model_init_kwargs, X_test, y_test, model_filebase
     )
@@ -669,9 +674,8 @@ def _create_fantasy_model(
 
 ModelFileFoundMode = Literal["reuse", "overwrite", "create-w-ts"]
 """
-'reuse' = If models already exists that follow the default model \
-    filenaming pattern use the most recently created version. If no\
-    models exist then create a new one.
+'reuse' = If a model already exists at the derived or defined destination \
+    filepath, model training will be skipped.
 
 'overwrite' = Create a new model, if one exists at the expected target filepath\
     then overwrite it.
@@ -680,6 +684,34 @@ ModelFileFoundMode = Literal["reuse", "overwrite", "create-w-ts"]
     destination filepath then write the new model to a new filepath that\
     includes a timestamp
 """
+
+
+def _reuse_model_helper(
+    model_dest_filename: str | None, dest_dir: str, name: str, target, algorithm: AlgorithmType
+):
+    """can an existing model be reused? if so return it."""
+    if model_dest_filename is not None:
+        dest_filename_w_ext = (
+            (model_dest_filename + ".model") if not model_dest_filename.endswith(".model") else ""
+        )
+        final_model_filepath = os.path.join(dest_dir, dest_filename_w_ext)
+        if os.path.isfile(final_model_filepath):
+            _LOGGER.info("Reusing model at '%s'", final_model_filepath)
+            return PTPredictModel.load(final_model_filepath)
+
+    model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
+    most_recent_model: tuple[datetime, str] | None = None
+    for filebase_name in glob(os.path.join(dest_dir, model_filename_pattern)):
+        model_dt = dateutil.parser.parse(filebase_name.split(".")[-2])
+        if (most_recent_model is None) or (most_recent_model[0] < model_dt):
+            most_recent_model = (model_dt, filebase_name)
+
+    if most_recent_model is not None:
+        final_model_filepath = most_recent_model[1]
+        _LOGGER.info("Reusing model at '%s'", final_model_filepath)
+        return PTPredictModel.load(final_model_filepath)
+
+    return None
 
 
 def model_and_test(
@@ -695,7 +727,7 @@ def model_and_test(
     ml_kwargs,
     target_pos: None | list[str],
     training_pos,
-    dest_dir,
+    dest_dir: str,
     mode: ModelFileFoundMode,
     model_dest_filename: str | None = None,
     data_src_params: dict | None = None,
@@ -708,23 +740,11 @@ def model_and_test(
     mode: See ModelFileFoundMode
     data_src_params: parameters describing the data source for model training
     """
-    model = None
-    if mode == "reuse":
-        if model_dest_filename is not None:
-            raise InvalidArgumentsException(
-                "mode='reuse' cannot be used with a model_dest_filename"
-            )
-        model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
-        most_recent_model: tuple[datetime, str] | None = None
-        for filebase_name in glob(os.path.join(dest_dir, model_filename_pattern)):
-            model_dt = dateutil.parser.parse(filebase_name.split(".")[-2])
-            if (most_recent_model is None) or (most_recent_model[0] < model_dt):
-                most_recent_model = (model_dt, filebase_name)
-
-        if most_recent_model is not None:
-            final_model_filepath = most_recent_model[1]
-            _LOGGER.info("Reusing model at '%s'", final_model_filepath)
-            model = PTPredictModel.load(final_model_filepath)
+    model = (
+        _reuse_model_helper(model_dest_filename, dest_dir, name, target, algorithm)
+        if mode == "reuse"
+        else None
+    )
 
     if model is None:
         filebase_name = model_dest_filename or ".".join(
@@ -733,17 +753,24 @@ def model_and_test(
         if filebase_name.endswith(".model"):
             filebase_name = filebase_name.rsplit(".", 1)[0]
 
-        final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
+        final_model_filepath = os.path.join(dest_dir, filebase_name) + ".model"
         if os.path.isfile(final_model_filepath):
             if mode == "overwrite":
-                _LOGGER.info("Overwriting existing model at '%s'", final_model_filepath)
-            else:
                 _LOGGER.info(
-                    "A model already exists at '%s'. Adding timestamp to model filename.",
+                    "A new model will be written to '%s'. This will overwriting an existing model",
                     final_model_filepath,
                 )
+            else:
+                existing_model_filepath = final_model_filepath
                 filebase_name += "." + dt_to_filename_str()
-                final_model_filepath = os.path.join(dest_dir, filebase_name + ".model")
+                final_model_filepath = os.path.join(dest_dir, filebase_name) + ".model"
+                _LOGGER.info(
+                    "A model already exists at '%s'. A new model will be saved to '%s'",
+                    existing_model_filepath,
+                    final_model_filepath,
+                )
+        else:
+            _LOGGER.info("A new model will be saved to '%s'", final_model_filepath)
 
         model_artifact_path, performance, dt_trained = _train_test(
             algorithm,

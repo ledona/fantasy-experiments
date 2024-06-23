@@ -431,7 +431,7 @@ class TrainingConfiguration:
     def train_and_test(
         self,
         model_name: str,
-        dest_dir: str | None,
+        dest_dir: str,
         error_data: bool,
         file_found_mode: ModelFileFoundMode,
         data_dir: str | None,
