@@ -257,6 +257,81 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_thres
         )
 
 
+def _summarize_final_feature_cols(
+    df: pd.DataFrame,
+    target_col_name: str,
+    one_hot_stats: list[str],
+    skip_data_reports: bool,
+    include_position: bool,
+):
+    feature_cols = [
+        col
+        for col in df.columns
+        if col != target_col_name
+        and (
+            (col.startswith("pos_") and include_position)
+            or col.startswith("extra")
+            or ":recent" in col
+            or ":std" in col
+        )
+    ]
+
+    _LOGGER.info(
+        "Final feature cols (n=%i)%s",
+        len(feature_cols),
+        (f": {sorted(feature_cols)}") if not skip_data_reports else "",
+    )
+
+    if skip_data_reports:
+        return feature_cols
+
+    features: dict = {}
+    for col in feature_cols:
+        is_one_hot = False
+        for one_hot in one_hot_stats:
+            if not col.startswith(one_hot):
+                continue
+            is_one_hot = True
+            if one_hot not in features:
+                features[one_hot] = {"one-hot": True}
+            break
+        if is_one_hot:
+            continue
+
+        col_strs = col.split(":")
+        feature = ":".join(col_strs[:2])
+        if feature not in features:
+            features[feature] = {}
+        if len(col_strs) == 2:
+            continue
+        features[feature].update({attr: True for attr in col_strs[2:]})
+
+    df = pd.DataFrame.from_dict(features, orient="index").fillna(False)
+    max_recent_explode = 0
+    for col in df.columns:
+        if not col.startswith("recent-"):
+            continue
+        post_fix = col.split("-")[1]
+        if not post_fix.isdecimal():
+            continue
+        max_recent_explode = max(int(post_fix), max_recent_explode)
+    df = df.drop(columns=[f"recent-{n}" for n in range(1, max_recent_explode)])
+
+    print()
+    with pd.option_context(
+        "display.max_rows",
+        None,
+        "display.max_columns",
+        None,
+        "display.max_colwidth",
+        None,
+        "display.width",
+        1000,
+    ):
+        print(df)
+    return feature_cols
+
+
 def load_data(
     filename: str,
     target: tuple[str, str] | str,
@@ -311,22 +386,9 @@ def load_data(
             )
             raise
         _LOGGER.info("Filter '%s' dropped %i rows", filtering_query, len(df_raw) - len(df))
-    feature_cols = [
-        col
-        for col in df.columns
-        if col != target_col_name
-        and (
-            (col.startswith("pos_") and include_position is True)
-            or col.startswith("extra")
-            or ":recent" in col
-            or ":std" in col
-        )
-    ]
 
-    _LOGGER.info(
-        "Final feature cols (n=%i)%s",
-        len(feature_cols),
-        (f": {sorted(feature_cols)}") if not skip_data_reports else "",
+    feature_cols = _summarize_final_feature_cols(
+        df, target_col_name, one_hot_stats, skip_data_reports, include_position is True
     )
 
     train_test_df = df[df.season != validation_season]
