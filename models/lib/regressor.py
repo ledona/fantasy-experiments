@@ -435,10 +435,17 @@ def _model_catalog_func(args):
             model_data = json.load(f_)
 
         p_t = "player" if model_data["training_data_def"]["target"][1] == "P" else "team"
-        r2_test = model_data["meta_extra"]["performance"]["r2_test"]
-        mae_test = model_data["meta_extra"]["performance"]["mae_test"]
-        r2_val = model_data["meta_extra"]["performance"]["r2_val"]
-        mae_val = model_data["meta_extra"]["performance"]["mae_val"]
+        if "r2_test" in model_data["meta_extra"]["performance"]:
+            r2_test = model_data["meta_extra"]["performance"]["r2_test"]
+            mae_test = model_data["meta_extra"]["performance"]["mae_test"]
+            r2_val = model_data["meta_extra"]["performance"]["r2_val"]
+            mae_val = model_data["meta_extra"]["performance"]["mae_val"]
+        else:
+            #TODO: this is for older models and eventually can be dropped
+            r2_test = None
+            mae_test = None
+            r2_val = model_data["meta_extra"]["performance"]["r2"]
+            mae_val = model_data["meta_extra"]["performance"]["mae"]
 
         data.append(
             {
