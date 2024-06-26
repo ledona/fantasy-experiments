@@ -237,14 +237,15 @@ def _handle_train(args: argparse.Namespace):
         l_msg = f"{msg_prefix}{progress['failures']}"
         final_slack_msg = f"{msg_prefix}{[failure[0] for failure in progress['failures']]}"
         _LOGGER.warning(l_msg)
-    else:
+    elif not args.info:
         final_slack_msg = (
             f"All models trained successfully: {model_names}"
             if len(model_names) > 1
             else f"{model_names[0]} trained successfully"
         )
         _LOGGER.success_info(final_slack_msg)
-    slack.send_slack(final_slack_msg)
+    if not args.info:
+        slack.send_slack(final_slack_msg)
 
 
 _MODEL_CATALOG_PATTERN = "model-catalog.{TIMESTAMP}.csv"

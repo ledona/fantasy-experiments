@@ -276,35 +276,52 @@ def _summarize_final_feature_cols(
         )
     ]
 
-    _LOGGER.info(
-        "Final feature cols (n=%i)%s",
-        len(feature_cols),
-        (f": {sorted(feature_cols)}") if not skip_data_reports else "",
-    )
+    _LOGGER.info("Final feature cols n=%i", len(feature_cols))
 
     if skip_data_reports:
         return feature_cols
 
     features: dict = {}
     for col in feature_cols:
-        is_one_hot = False
-        for one_hot in one_hot_stats:
-            if not col.startswith(one_hot):
-                continue
-            is_one_hot = True
-            if one_hot not in features:
-                features[one_hot] = {"one-hot": True}
-            break
-        if is_one_hot:
-            continue
-
         col_strs = col.split(":")
-        feature = ":".join(col_strs[:2])
-        if feature not in features:
-            features[feature] = {}
+        if len(one_hot_stats) > 0:
+            is_one_hot = False
+            one_hot = None
+            for one_hot in one_hot_stats:
+                if col.startswith(one_hot):
+                    is_one_hot = True
+                    break
+            if is_one_hot:
+                assert one_hot is not None
+                if not (
+                    (len(col_strs) == 1 and col.startswith("pos_"))
+                    or len(col_strs) == 2
+                    or (len(col_strs) == 3 and col_strs[2].startswith("opp-team_"))
+                ):
+                    raise UnexpectedValueError(
+                        f"Could not parse one-hot-feature '{col}'. "
+                        "One hot stats should be clean or opp-team."
+                    )
+                row_dict = {"one-hot": True}
+                if len(col_strs) == 3:
+                    assert col_strs[2].startswith("opp-team_"), ""
+                    name = ":".join(col_strs[:2])
+                    row_dict["opp-team"] = True
+                else:
+                    row_dict["clean"] = True
+                    name = one_hot
+                if name in features:
+                    features[name].update(row_dict)
+                else:
+                    features[name] = row_dict
+                continue
+        feature_str = ":".join(col_strs[:2])
+        if feature_str not in features:
+            features[feature_str] = {}
         if len(col_strs) == 2:
+            features[feature_str]["clean"] = True
             continue
-        features[feature].update({attr: True for attr in col_strs[2:]})
+        features[feature_str].update({attr: True for attr in col_strs[2:]})
 
     df = pd.DataFrame.from_dict(features, orient="index").fillna(False)
     max_recent_explode = 0
@@ -315,7 +332,11 @@ def _summarize_final_feature_cols(
         if not post_fix.isdecimal():
             continue
         max_recent_explode = max(int(post_fix), max_recent_explode)
-    df = df.drop(columns=[f"recent-{n}" for n in range(1, max_recent_explode)])
+    df = (
+        df[sorted(df.columns)]
+        .drop(columns=[f"recent-{n}" for n in range(1, max_recent_explode)])
+        .sort_index()
+    )
 
     print()
     with pd.option_context(
