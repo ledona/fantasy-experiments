@@ -60,7 +60,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
         },
         {"early_stop": "early_stop_epochs"},
     ),
-    "dummy": ({"strategy": "median"}, None),
+    "dummy": ({"strategy": "mean"}, None),
     "tpot": _TPOT_PARAM_DEFAULTS_TUPLE,
     "tpot-light": _TPOT_PARAM_DEFAULTS_TUPLE,
 }

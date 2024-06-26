@@ -75,9 +75,9 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "performance",
-                "/fantasy-isync/fantasy-modeling/2024.04/pt/NBA*model",
-                "--cfg", "/fantasy-experiments/models/2024.06/nba.json",
-                "-op", "repair",
+                "/fantasy-isync/fantasy-modeling/2024.06/pt/MLB*.model",
+                "--cfg", "/fantasy-experiments/models/2024.06/mlb.json",
+                "-op", "repair", "--skip_backups",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2024.06/data",
                 "--max_missing_infer", "1"
             ]

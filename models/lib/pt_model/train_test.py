@@ -600,9 +600,14 @@ def _train_test(
     else:
         raise NotImplementedError(f"model type {algo} not recognized")
 
-    y_hat = model.predict(X_test)
-    r2_test = float(sklearn.metrics.r2_score(y_test, y_hat))
-    mae_test = float(sklearn.metrics.mean_absolute_error(y_test, y_hat))
+    y_hat_train = model.predict(X_train)
+    r2_train = float(sklearn.metrics.r2_score(y_train, y_hat_train))
+    mae_train = float(sklearn.metrics.mean_absolute_error(y_train, y_hat_train))
+    _LOGGER.info("Train      r2=%g mae=%g", round(r2_train, 6), round(mae_train, 6))
+
+    y_hat_test = model.predict(X_test)
+    r2_test = float(sklearn.metrics.r2_score(y_test, y_hat_test))
+    mae_test = float(sklearn.metrics.mean_absolute_error(y_test, y_hat_test))
     _LOGGER.info("Test       r2=%g mae=%g", round(r2_test, 6), round(mae_test, 6))
 
     y_hat_val = model.predict(X_val)
@@ -632,6 +637,8 @@ def _train_test(
         "mae_val": mae_val,
         "r2_test": r2_test,
         "mae_test": mae_test,
+        "r2_train": r2_train,
+        "mae_train": mae_train,
     }
     return artifact_filepath, performance, dt_trained
 

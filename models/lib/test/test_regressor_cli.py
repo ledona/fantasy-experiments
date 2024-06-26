@@ -274,6 +274,8 @@ def _create_expected_model_dict(
                 "r2_val": expected_r2,
                 "mae_test": expected_mae,
                 "r2_test": expected_r2,
+                "mae_train": expected_mae,
+                "r2_train": expected_r2,
                 "season_val": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["validation_season"],
             },
             "player_positions": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["target_pos"],

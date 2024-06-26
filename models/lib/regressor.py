@@ -437,14 +437,15 @@ def _model_catalog_func(args):
 
         p_t = "player" if model_data["training_data_def"]["target"][1] == "P" else "team"
         if "r2_test" in model_data["meta_extra"]["performance"]:
+            r2_train = model_data["meta_extra"]["performance"]["r2_train"]
+            mae_train = model_data["meta_extra"]["performance"]["mae_train"]
             r2_test = model_data["meta_extra"]["performance"]["r2_test"]
             mae_test = model_data["meta_extra"]["performance"]["mae_test"]
             r2_val = model_data["meta_extra"]["performance"]["r2_val"]
             mae_val = model_data["meta_extra"]["performance"]["mae_val"]
         else:
-            #TODO: this is for older models and eventually can be dropped
-            r2_test = None
-            mae_test = None
+            # TODO: this is for older models and eventually can be dropped
+            r2_test = r2_train = mae_test = mae_train = None
             r2_val = model_data["meta_extra"]["performance"]["r2"]
             mae_val = model_data["meta_extra"]["performance"]["mae"]
 
@@ -461,6 +462,8 @@ def _model_catalog_func(args):
                 "filepath": model_filepath,
                 "r2-test": r2_test,
                 "mae-test": mae_test,
+                "r2-train": r2_train,
+                "mae-train": mae_train,
             }
         )
 
@@ -495,10 +498,9 @@ def _model_catalog_func(args):
             print(f"BEST MODELS IN CATALOG (n={len(best_models_df)})")
             print(best_models_df.to_string(index=False))
 
-    print()
-    print(f"Catalog written to '{filename}'")
+    _LOGGER.info("Catalog of n=%i models written to '%s'", len(df), filename)
     if best_models_df is not None:
-        print(f"Best models written to '{best_models_filename}'")
+        _LOGGER.info("Best models written to '%s'", best_models_filename)
 
 
 def _add_model_catalog_parser(sub_parsers):
@@ -565,7 +567,7 @@ def _handle_performance(args):
         if args.train_cfg_filepath is not None
         else None
     )
-    performance_calc(args.op, model_filepaths, cfg, args.data_dir)
+    performance_calc(args.op, model_filepaths, cfg, args.data_dir, args.skip_backups)
 
 
 def _add_performance_parser(sub_parsers):
@@ -592,7 +594,14 @@ def _add_performance_parser(sub_parsers):
         "--max_missing_features",
         type=float,
         help="Threshold for maximum percentage of missing inference features above which "
-        f"inference/prediction should fail. Default={PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL}",
+        "inference/prediction should fail. "
+        f"Default={PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL}",
+    )
+    parser.add_argument(
+        "--skip_backups",
+        default=False,
+        action="store_true",
+        help="When updating a model's performance, do not backup the model file",
     )
 
 

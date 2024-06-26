@@ -4,12 +4,12 @@ from typing import Literal
 
 import pandas as pd
 import tqdm
-from fantasy_py import log, InvalidArgumentsException
+from fantasy_py import InvalidArgumentsException, log
 from fantasy_py.inference import PerformanceDict, PTPredictModel
 from sklearn import metrics
 
 from .cfg import TrainingConfiguration
-from .train_test import load_data
+from .train_test import TrainTestData, load_data
 
 _LOGGER = log.get_logger(__name__)
 
@@ -19,12 +19,14 @@ PerformanceOperation = Literal["calc", "update", "repair", "test"]
 _EXPECTED_PERFORMANCE_KEYS = set(PerformanceDict.__annotations__.keys())
 
 
-def _update_models(perf_recs: dict[str, PerformanceDict]):
+def _update_models(perf_recs: dict[str, PerformanceDict], skip_backup: bool):
     """
     for each model that will be updated
     1. rename the original file to [name].model.backup
     2. load the json and update it with the new performance information
     3. save to the original filename
+
+    skip_backup: don't backup the model file, just overwrite it
     """
     for model_filepath, perf in perf_recs.items():
         _LOGGER.info("Updating '%s' with new performance data", model_filepath)
@@ -35,30 +37,37 @@ def _update_models(perf_recs: dict[str, PerformanceDict]):
         model_dict["meta_extra"]["performance"] = perf
 
         backup_filepath = model_filepath + ".backup"
-        if os.path.isfile(backup_filepath):
+        if os.path.isfile(backup_filepath) and not skip_backup:
             raise FileExistsError(
                 f"Could not create a backup for '{model_filepath}' "
-                "because the backup file already exists"
+                "because the backup file already exists. "
+                "Remove the backup or use skip_backup"
             )
-        os.rename(model_filepath, backup_filepath)
+        if not skip_backup:
+            os.rename(model_filepath, backup_filepath)
 
         with open(model_filepath, "w") as mf:
             json.dump(model_dict, mf, indent="\t")
 
 
-def _fix_input_col_names(model: PTPredictModel, X_test: pd.DataFrame, X_val: pd.DataFrame):
+def _fix_input_col_names(model: PTPredictModel, tt_data: TrainTestData):
+    X_train = tt_data[0]
+    X_test = tt_data[2]
+    X_val = tt_data[4]
     if (
         model._input_cols is not None
         and "pos_<NA>" in model._input_cols
-        and "pos_<NA>" not in X_test
-        and "pos_None" in X_test
+        and "pos_<NA>" not in X_train
+        and "pos_None" in X_train
     ):
         _LOGGER.info(" remapping input column 'pos_None' -> 'pos_<NA>'")
-        return X_test.rename(columns={"pos_None": "pos_<NA>"}), X_val.rename(
-            columns={"pos_None": "pos_<NA>"}
+        return (
+            X_train.rename(columns={"pos_None": "pos_<NA>"}),
+            X_test.rename(columns={"pos_None": "pos_<NA>"}),
+            X_val.rename(columns={"pos_None": "pos_<NA>"}),
         )
 
-    return X_test, X_val
+    return X_train, X_test, X_val
 
 
 def performance_calc(
@@ -66,6 +75,7 @@ def performance_calc(
     model_filepaths: list[str],
     cfg: TrainingConfiguration | None,
     data_dir: str | None,
+    skip_update_backup: bool,
 ):
     """performance recalculation"""
     performance_records: dict[str, PerformanceDict] = {}
@@ -111,33 +121,46 @@ def performance_calc(
             skip_data_reports=True,
         )[1]
 
-        (X_test, y_test, X_val, y_val) = tt_data[2:]
+        y_train = tt_data[1]
+        y_test = tt_data[3]
+        y_val = tt_data[5]
 
-        X_test, X_val = _fix_input_col_names(model, X_test, X_val)
+        X_train, X_test, X_val = _fix_input_col_names(model, tt_data)
 
-        _LOGGER.info("   '%s'-predicting for test", model.name)
+        _LOGGER.info("   '%s' predicting for train", model.name)
+        imputed_x_train = model._impute_missing(X_train)
+        y_hat_train = model.model_predict(imputed_x_train)
+        _LOGGER.info("   '%s' predicting for test", model.name)
         imputed_x_test = model._impute_missing(X_test)
-        y_hat = model.model_predict(imputed_x_test)
-        _LOGGER.info("   '%s'-predicting for validation", model.name)
+        y_hat_test = model.model_predict(imputed_x_test)
+        _LOGGER.info("   '%s' predicting for validation", model.name)
         imputed_x_val = model._impute_missing(X_val)
         y_hat_val = model.model_predict(imputed_x_val)
 
         perf_rec: PerformanceDict = {
-            "r2_test": float(metrics.r2_score(y_test, y_hat)),
-            "mae_test": float(metrics.mean_absolute_error(y_test, y_hat)),
+            "r2_train": float(metrics.r2_score(y_train, y_hat_train)),
+            "mae_train": float(metrics.mean_absolute_error(y_train, y_hat_train)),
+            "r2_test": float(metrics.r2_score(y_test, y_hat_test)),
+            "mae_test": float(metrics.mean_absolute_error(y_test, y_hat_test)),
             "r2_val": float(metrics.r2_score(y_val, y_hat_val)),
             "mae_val": float(metrics.mean_absolute_error(y_val, y_hat_val)),
             "season_val": params["validation_season"],
         }
 
         _LOGGER.info(
-            "   '%s'-test       r2=%g mae=%g",
+            "   '%s' train      r2=%g mae=%g",
+            model.name,
+            round(perf_rec["r2_train"], 6),
+            round(perf_rec["mae_train"], 6),
+        )
+        _LOGGER.info(
+            "   '%s' test       r2=%g mae=%g",
             model.name,
             round(perf_rec["r2_test"], 6),
             round(perf_rec["mae_test"], 6),
         )
         _LOGGER.info(
-            "   '%s'-validation r2=%g mae=%g",
+            "   '%s' validation r2=%g mae=%g",
             model.name,
             round(perf_rec["r2_val"], 6),
             round(perf_rec["mae_val"], 6),
@@ -180,4 +203,4 @@ def performance_calc(
     if operation == "calc":
         return
     assert update_models, "Should only get here if we are updating models"
-    _update_models(performance_records)
+    _update_models(performance_records, skip_update_backup)
