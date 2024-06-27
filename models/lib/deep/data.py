@@ -16,6 +16,7 @@ from fantasy_py import (
     GameScheduleEpoch,
     SeasonPart,
     SlateDict,
+    StatDoesNotExist,
     cache_to_file,
     db,
     dt_to_filename_str,
@@ -223,6 +224,8 @@ def export(
                             f"expected={expected_cols} found={df_cols}"
                         )
                     break
+                except StatDoesNotExist:
+                    raise
                 except (ImputeFailure, DataNotAvailableException, LineupGenerationFailure) as ex:
                     _LOGGER.warning(
                         "Attempt %i for sample %i failed to create a sample "
@@ -241,9 +244,7 @@ def export(
                     f"after {attempt_num + 1} attempts"
                 )
             successful_attempts.append(slate_def)
-            filename = (
-                f"{slate_def.epoch.season}-{slate_def.epoch.game_number}-{slate_def.hash_value}.parquet"
-            )
+            filename = f"{slate_def.epoch.season}-{slate_def.epoch.game_number}-{slate_def.hash_value}.parquet"
             dataset_filepath = os.path.join(dataset_dest_dir, filename)
             df.to_parquet(dataset_filepath)
             _LOGGER.info(
@@ -494,6 +495,7 @@ class _RandomSlateSelector:
                         games_date=epoch.date,
                         db_obj=self.session.info["db_obj"],
                         remote_allow=False,
+                        skip_roto=True,
                         style=self.style,
                         cache_dir=self.cache_dir,
                         cache_mode=self.cache_mode,

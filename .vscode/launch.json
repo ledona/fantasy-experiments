@@ -76,9 +76,9 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "performance",
-                "/fantasy-isync/fantasy-modeling/2024.02/NHL-skater-Y.y_score.tpot.2024-02-04T013242.model",
-                "--cfg", "/fantasy-experiments/models/2024.06/nhl.json",
-                "-op", "update", // "--skip_backups",
+                "/fantasy/MODELS/MLB-H-DK.model",
+                "--cfg", "/fantasy-experiments/models/2024.06/mlb.json",
+                "-op", "calc", // "--skip_backups",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2024.06/data",
                 "--max_missing_infer", "1"
             ]
@@ -104,10 +104,10 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup",
                 "data",
                 "--samples", "500",
-                "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/cache",
+                "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/cache",
 
                 // "--name", "nba-dk-dataset",
                 // "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",
@@ -143,12 +143,12 @@
             "args": [
                 "--verbose",
                 "train",
-                "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nhl-dk-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nhl-dk-lineup-small",
+                "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-lineup-small",
                 "--epochs", "50",
                 "--batch", "32",
                 "--hidden_size", "1024",
-                "--checkpoint_frequency", "10",
+                "--checkpoint_frequency", "5",
                 "--early", "10",
                 // "--limit", "32",
                 // "--overwrite",
