@@ -7,6 +7,7 @@ import re
 import shlex
 import sys
 import traceback
+from collections import defaultdict
 from typing import Literal, cast
 
 import dateutil
@@ -428,9 +429,28 @@ def _add_train_parser(sub_parsers):
 def _model_catalog_func(args):
     """parser func that creates/updates the model catalog"""
     data = []
+    glob_pattern = (
+        os.path.join(args.root, "**", "*.model")
+        if args.recursive
+        else os.path.join(args.root, "*.model")
+    )
+    excluded_models: dict[str, list[str]] | None = defaultdict(list) if args.exclude_r else None
 
-    glob_pattern = os.path.join(args.root, "**", "*.model")
-    for model_filepath in glob.glob(glob_pattern, recursive=True):
+    for model_filepath in tqdm.tqdm(glob.glob(glob_pattern, recursive=True)):
+        if excluded_models is not None:
+            exclude = False
+            for x_r in args.exclude_r:
+                if re.match(x_r, model_filepath):
+                    exclude = True
+                    excluded_models[x_r].append(model_filepath)
+                    _LOGGER.info(
+                        "Skipping '%s' because it matches exclude pattern '%s'",
+                        model_filepath,
+                        x_r,
+                    )
+                    break
+            if exclude:
+                continue
         _LOGGER.info("parsing '%s'", model_filepath)
         with open(model_filepath, "r") as f_:
             model_data = json.load(f_)
@@ -474,7 +494,11 @@ def _model_catalog_func(args):
 
     if args.create_best_models_file:
         top_r2_df = df.groupby("name")["r2-val"].max().reset_index()
-        best_models_df = df.merge(top_r2_df, on=["name", "r2-val"])
+        best_models_df = (
+            df.merge(top_r2_df, on=["name", "r2-val"])
+            .sort_values(["name", "dt"], ascending=[True, False])
+            .drop_duplicates("name", keep="first")
+        )
         best_models_filename = f"best-models.{dt_to_filename_str()}.csv"
         best_models_df.to_csv(os.path.join(args.root, best_models_filename), index=False)
     else:
@@ -501,6 +525,21 @@ def _model_catalog_func(args):
     _LOGGER.info("Catalog of n=%i models written to '%s'", len(df), filename)
     if best_models_df is not None:
         _LOGGER.info("Best models written to '%s'", best_models_filename)
+    if excluded_models is not None:
+        if len(excluded_models) == 0:
+            _LOGGER.warning("Exclude patterns did not match any models!")
+        else:
+            _LOGGER.info(
+                "Exclude patterns excluded %i models",
+                sum(map(len, excluded_models.values())),
+            )
+            for x_r in args.exclude_r:
+                if (num_excluded := len(excluded_models[x_r])) == 0:
+                    _LOGGER.warning("  '%s' did not exclude any model files", x_r)
+                    continue
+                _LOGGER.info("  '%s' excluded %i model files", x_r, num_excluded)
+                for model_path in excluded_models[x_r]:
+                    _LOGGER.info("  '%s' excluded '%s'", x_r, model_path)
 
 
 def _add_model_catalog_parser(sub_parsers):
@@ -509,7 +548,8 @@ def _add_model_catalog_parser(sub_parsers):
     parser.add_argument(
         "--root",
         metavar="ROOT_DIRECTORY",
-        help="The root directory to start the search for model files. Default=./",
+        help="The root directory to start the search for model files. "
+        "Search is recursive. Default=./",
         default=".",
     )
     parser.add_argument(
@@ -526,6 +566,20 @@ def _add_model_catalog_parser(sub_parsers):
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--exclude_r",
+        nargs="+",
+        help="Exclude model file paths that match these regular expressions",
+    )
+    parser.add_argument(
+        "--not_recursive",
+        "-nr",
+        dest="recursive",
+        default=True,
+        action="store_false",
+        help="Do not search recursively through directories for model files. "
+        "Default is to search recursively",
+    )
 
 
 def _model_load_actives_func(args):
@@ -541,7 +595,7 @@ def _add_load_actives_parser(sub_parsers):
 def _handle_performance(args):
     """performance recalculation"""
     if "*" in args.model_filepath:
-        model_filepaths = glob.glob(args.model_filepath)
+        model_filepaths = glob.glob(args.model_filepath, recursive=True)
         if len(model_filepaths) == 0:
             _LOGGER.error("No model files matched '%s'", args.model_filepath)
             sys.exit(1)

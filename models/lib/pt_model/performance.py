@@ -174,9 +174,11 @@ def performance_calc(
                 len(models_w_invalid_perf),
                 len(model_filepaths),
             )
-            print(f"\nINVALID MODEL FILES (n={len(models_w_invalid_perf)})")
+            print("\n********************************")
+            print("INVALID MODEL FILES:")
             for model_fp in sorted(models_w_invalid_perf):
                 print(model_fp)
+            _LOGGER.warning("INVALID MODEL FILES n=%i", len(models_w_invalid_perf))
         else:
             _LOGGER.info("Test results - All model files are valid")
             return
