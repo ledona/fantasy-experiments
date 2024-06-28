@@ -7,6 +7,7 @@ from typing import cast
 
 from fantasy_py import FANTASY_SERVICE_DOMAIN, CacheMode, CLSRegistry, ContestStyle, db, log
 from fantasy_py.lineup import FantasyService
+from ledona import slack
 
 from .deep import ExistingFilesMode, deep_data_export, deep_train
 
@@ -31,21 +32,31 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
         except ValueError as ex:
             parser.error(f"Failed to parse --validation argument: {ex}")
 
-    for seasons, samples, suffix in iters:
-        deep_data_export(
-            db_obj,
-            args.name + suffix,
-            args.dest_dir,
-            seasons,
-            args.games_per_slate_range,
-            samples,
-            args.existing_files_mode,
-            service_class,
-            args.style,
-            args.seed,
-            args.cache_dir,
-            args.cache_mode if args.cache_dir else "disable",
-        )
+    if args.slack:
+        slack.enable()
+        slack.send_slack(f"Starting deep-lineup data export name={args.name}")
+    else:
+        slack.disable()
+    try:
+        for seasons, samples, suffix in iters:
+            deep_data_export(
+                db_obj,
+                args.name + suffix,
+                args.dest_dir,
+                seasons,
+                args.games_per_slate_range,
+                samples,
+                args.existing_files_mode,
+                service_class,
+                args.style,
+                args.seed,
+                args.cache_dir,
+                args.cache_mode if args.cache_dir else "disable",
+            )
+    except Exception as ex:
+        slack.send_slack(f"Failure during deep-lineup data export name={args.name}: {ex}")
+        raise
+    slack.send_slack(f"Successful completion for deep-lineup data export name={args.name}")
 
 
 def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser):
@@ -156,6 +167,13 @@ def main(cmd_line_str=None):
     data_parser.add_argument(
         "--skip_training", action="store_true", help="Skip training data creation", default=False
     )
+    data_parser.add_argument(
+        "--slack",
+        help="send a slack notification on data generation start/end/fail",
+        default=False,
+        action="store_true",
+    )
+
     data_parser.add_argument("db_file")
 
     service_names = CLSRegistry.get_names(FANTASY_SERVICE_DOMAIN)
@@ -198,8 +216,10 @@ def main(cmd_line_str=None):
     train_parser.add_argument(
         "--model_filepath",
         help="Filename to write model to. Default is to write to. "
-        "If this is a directory then the model will be written to '[model_filepath]/{_DEFAULT_MODEL_FILENAME_FORMAT}'. "
-        "If this is a filename without a path then the model will be written to '[dataset_dir]/[model_filepath]'. "
+        "If this is a directory then the model will be written to "
+        "'[model_filepath]/{_DEFAULT_MODEL_FILENAME_FORMAT}'. "
+        "If this is a filename without a path then the model will "
+        "be written to '[dataset_dir]/[model_filepath]'. "
         "default='[dataset_dir]/../{_DEFAULT_MODEL_FILENAME_FORMAT}'",
     )
     train_parser.add_argument(
