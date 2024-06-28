@@ -247,7 +247,7 @@ def export(
             filename = f"{slate_def.epoch.season}-{slate_def.epoch.game_number}-{slate_def.hash_value}.parquet"
             dataset_filepath = os.path.join(dataset_dest_dir, filename)
             df.to_parquet(dataset_filepath)
-            _LOGGER.info(
+            _LOGGER.success(
                 "Sample #%i successfully created. Written to '%s'", sample_num + 1, dataset_filepath
             )
             df_lens.append(len(df))
@@ -487,6 +487,7 @@ class _RandomSlateSelector:
                     [part.name for part in self.season_parts],
                 )
                 continue
+            no_data_ex = None
             try:
                 starters = cast(
                     Starters,
@@ -494,15 +495,20 @@ class _RandomSlateSelector:
                         self.service_name,
                         games_date=epoch.date,
                         db_obj=self.session.info["db_obj"],
-                        remote_allow=False,
-                        skip_roto=True,
+                        remote_allowed=False,
                         style=self.style,
                         cache_dir=self.cache_dir,
                         cache_mode=self.cache_mode,
                     ),
                 )
             except DataNotAvailableException as ex:
-                _LOGGER.info("Skipping sample candidate %i epoch=%s: %s", attempt + 1, epoch, ex)
+                starters = None
+                no_data_ex = ex
+
+            if starters is None:
+                _LOGGER.info(
+                    "Skipping sample candidate %i epoch=%s: ex=%s", attempt + 1, epoch, no_data_ex
+                )
                 continue
 
             assert starters.slates is not None
