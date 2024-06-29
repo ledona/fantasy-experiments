@@ -54,7 +54,7 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
                 args.cache_mode if args.cache_dir else "disable",
             )
     except Exception as ex:
-        slack.send_slack(f"Failure during deep-lineup data export name={args.name}: {ex}")
+        slack.send_slack(f"Unhandled failure during deep-lineup data export name={args.name}: {ex}")
         raise
     slack.send_slack(f"Successful completion for deep-lineup data export name={args.name}")
 

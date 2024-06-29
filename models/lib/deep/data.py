@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import statistics
+import traceback
 from dataclasses import InitVar, dataclass, field
 from random import Random
 from typing import Literal, Type, cast
@@ -16,7 +17,6 @@ from fantasy_py import (
     GameScheduleEpoch,
     SeasonPart,
     SlateDict,
-    StatDoesNotExist,
     cache_to_file,
     db,
     dt_to_filename_str,
@@ -25,6 +25,7 @@ from fantasy_py import (
 from fantasy_py.inference import ImputeFailure, get_models_by_name
 from fantasy_py.lineup import (
     DEEP_LINEUP_POSITION_REMAPPINGS,
+    FantasyCostAggregate,
     FantasyService,
     LineupGenerationFailure,
     gen_lineups,
@@ -224,18 +225,16 @@ def export(
                             f"expected={expected_cols} found={df_cols}"
                         )
                     break
-                except StatDoesNotExist:
-                    raise
-                except (ImputeFailure, DataNotAvailableException, LineupGenerationFailure) as ex:
+                except _GenLineupHelperFailure as ex:
                     _LOGGER.warning(
                         "Attempt %i for sample %i failed to create a sample "
-                        "for %i-%i game_ids=%s: %s",
+                        "for %i-%i game_ids=%s ERROR: %s",
                         attempt_num + 1,
                         sample_num + 1,
                         slate_def.epoch.season,
                         slate_def.epoch.game_number,
                         slate_def.game_descs,
-                        ex,
+                        ex.original_ex,
                     )
                     failed_attempts.append(slate_def)
             else:
@@ -319,6 +318,86 @@ def _pick_slate(starters: Starters):
     return max_slate
 
 
+def __gen_lineup_helper_cache_filename(
+    _: db.FantasySQLAlchemyWrapper,
+    fca: FantasyCostAggregate,
+    model_names: list[str],
+    service_cls: Type[FantasyService],
+    epoch: GameScheduleEpoch,
+    seed,
+    style: ContestStyle,
+    cost_id,
+):
+    assert fca.games is not None
+    game_ids = sorted(game['id'] for game in fca.games)
+    hash_val = (sorted(model_names), seed, style, cost_id, game_ids)
+    hashed_val = constant_hasher(hash_val)
+    filename = (
+        f"dd-gen_lineup-{fca.sport_abbr}-{epoch.date.isoformat().replace('-', '')}-"
+        f"{service_cls.ABBR}-{hashed_val}.cache"
+    )
+    return filename
+
+
+class _GenLineupHelperFailure(FantasyException):
+    """returned if the helper fails, picklable to be compatible with file cacher"""
+
+    def __init__(self, original_ex: FantasyException, tb_str: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.original_ex = original_ex
+        self.tb_str = tb_str
+
+    def __reduce__(self):
+        """required code pickling during file caching"""
+        return _GenLineupHelperFailure, (self.original_ex, self.tb_str)
+
+
+@cache_to_file(filename_func=__gen_lineup_helper_cache_filename, timeout=60 * 60 * 24 * 7)
+def _gen_lineup_helper(
+    db_obj: db.FantasySQLAlchemyWrapper,
+    fca: FantasyCostAggregate,
+    model_names: list[str],
+    service_cls: Type[FantasyService],
+    epoch: GameScheduleEpoch,
+    seed,
+    style: ContestStyle,
+    cost_id,
+    cache_dir=None,
+    cache_mode=None,
+):
+    sport_constraints = service_cls.get_constraints(db_obj.db_manager.ABBR, style=style)
+    assert sport_constraints is not None
+    solver = MixedIntegerKnapsackSolver(
+        sport_constraints.lineup_constraints,
+        sport_constraints.budget,
+        fill_all_positions=sport_constraints.fill_all_positions,
+        random_seed=seed,
+    )
+
+    assert cost_id is not None
+
+    new_slate_info = cast(SlateDict, {"style": style.name, "cost_id": cost_id})
+
+    try:
+        top_lineup, scores = gen_lineups(
+            db_obj,
+            fca,
+            model_names,
+            solver,
+            service_cls,
+            1,
+            slate_info=new_slate_info,
+            slate_epoch=epoch,
+            cache_dir=cache_dir,
+            cache_mode=cache_mode,
+            score_data_type="historic",
+            scores_to_include=["predicted"],
+        )
+        return top_lineup, scores
+    except (ImputeFailure, DataNotAvailableException, LineupGenerationFailure) as ex:
+        return _GenLineupHelperFailure(ex, traceback.format_exc(limit=None, chain=True))
+
+
 def _get_slate_sample(
     db_obj: db.FantasySQLAlchemyWrapper,
     service_cls: Type[FantasyService],
@@ -337,35 +416,28 @@ def _get_slate_sample(
         cache_dir=cache_dir,
         cache_mode=cache_mode,
     )
-    sport_constraints = service_cls.get_constraints(db_obj.db_manager.ABBR, style=style)
-    assert sport_constraints is not None
-    solver = MixedIntegerKnapsackSolver(
-        sport_constraints.lineup_constraints,
-        sport_constraints.budget,
-        fill_all_positions=sport_constraints.fill_all_positions,
-        random_seed=seed,
-    )
 
     cost_id = slate_def.slate_info.get("cost_id")
     assert cost_id is not None
 
-    new_slate_info = cast(SlateDict, {"style": style.name, "cost_id": cost_id})
-
     # use historic data to generate the best possible lineup
-    top_lineup, scores = gen_lineups(
+    gen_lineup_result = _gen_lineup_helper(
         db_obj,
         fca,
         model_names,
-        solver,
         service_cls,
-        1,
-        slate_info=new_slate_info,
-        slate_epoch=slate_def.epoch,
+        slate_def.epoch,
+        seed,
+        style,
+        cost_id,
         cache_dir=cache_dir,
         cache_mode=cache_mode,
-        score_data_type="historic",
-        scores_to_include=["predicted"],
     )
+
+    if isinstance(gen_lineup_result, _GenLineupHelperFailure):
+        raise gen_lineup_result
+
+    top_lineup, scores = gen_lineup_result
 
     hist_df = scores["historic"].rename(columns={"fpts": "fpts-historic"})
     pred_df = scores["predicted"].rename(columns={"fpts": "fpts-predicted"})
