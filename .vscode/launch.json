@@ -108,7 +108,7 @@
                 "data",
                 "--samples", "500",
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/cache",
-                // "--slack",
+                "--slack",
 
                 // "--name", "nba-dk-dataset",
                 // "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",

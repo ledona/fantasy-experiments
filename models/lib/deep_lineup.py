@@ -50,6 +50,7 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
                 service_class,
                 args.style,
                 args.seed,
+                args.batch_size,
                 args.cache_dir,
                 args.cache_mode if args.cache_dir else "disable",
             )
@@ -98,7 +99,7 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
     )
 
 
-def main(cmd_line_str=None):
+def _process_cmd_line(cmd_line_str=None):
     log.set_default_log_level(only_fantasy=False)
 
     parser = argparse.ArgumentParser(
@@ -123,7 +124,7 @@ def main(cmd_line_str=None):
     data_parser = sub_parsers.add_parser(
         "data", help="Create training data for deep learning lineup models"
     )
-    data_parser.set_defaults(func=_data_export_parser_func)
+    data_parser.set_defaults(func=_data_export_parser_func, op="data")
     data_parser.add_argument("--cache_dir", default=None, help="Folder to cache to")
     data_parser.add_argument("--cache_mode", choices=CacheMode.__args__)
     data_parser.add_argument(
@@ -149,6 +150,7 @@ def main(cmd_line_str=None):
         nargs=2,
         type=int,
     )
+    data_parser.add_argument("--batch_size", default=10)
     data_parser.add_argument(
         "--existing_files_mode",
         "--file_mode",
@@ -184,7 +186,7 @@ def main(cmd_line_str=None):
     data_parser.add_argument("service", choices=sorted(service_names + list(service_abbrs.keys())))
 
     train_parser = sub_parsers.add_parser("train", help="Train a deep model")
-    train_parser.set_defaults(func=_train_parser_func)
+    train_parser.set_defaults(func=_train_parser_func, op="train")
     train_parser.add_argument(
         "dataset_dir",
         help="Path to the training/testing dataset. "
@@ -242,8 +244,14 @@ def main(cmd_line_str=None):
     if args.verbose:
         log.set_debug_log_level()
 
-    args.func(args, parser)
+    return parser, args
 
 
 if __name__ == "__main__":
-    main()
+    parser_, args_ = _process_cmd_line()
+    if args_.op == "data":
+        print("Starting distributed dask for data export")
+        from dask.distributed import Client
+
+        client = Client(processes=True)
+    args_.func(args_, parser_)
