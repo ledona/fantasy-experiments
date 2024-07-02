@@ -21,7 +21,7 @@ from tqdm import tqdm
 from .best_possible_lineup_score import (
     TopScoreCacheMode,
     best_possible_lineup_score,
-    best_score_cache,
+    best_score_cache_ctx,
     get_stat_names,
 )
 
@@ -521,7 +521,7 @@ def _generate_dataset(
     db_pos_scores_df = _get_position_scores(db_exploded_pos_df, top_player_percentile)
 
     # cache for top scores
-    with best_score_cache(sport, top_score_cache_mode, cache_dir=datapath) as top_score_dict:
+    with best_score_cache_ctx(sport, top_score_cache_mode, cache_dir=datapath) as top_score_dict:
         best_possible_lineup_score_part = partial(
             best_possible_lineup_score,
             cfg["db_filename"],

@@ -500,7 +500,7 @@ def _gen_lineup_helper(
             model_names,
             solver,
             service_cls,
-            1,
+            n_lineups=1,
             slate_info=new_slate_info,
             slate_epoch=epoch,
             cache_dir=cache_dir,

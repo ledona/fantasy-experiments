@@ -38,9 +38,7 @@ def get_stat_names(sport, service_abbr: Literal["dk", "fd", "y"], as_str=False) 
 
 
 @contextmanager
-def best_score_cache(
-    sport: str, top_score_cache_mode: TopScoreCacheMode, cache_dir="."
-) -> dict[int, None | float]:
+def best_score_cache_ctx(sport: str, top_score_cache_mode: TopScoreCacheMode, cache_dir="."):
     if not os.path.isdir(cache_dir):
         raise FileNotFoundError(f"Cache directory '{cache_dir}' does not exist")
     top_score_cache_filename = sport + "-slate.top_score.json"
@@ -149,7 +147,8 @@ def best_possible_lineup_score(
         )
     starters: Starters = starters.filter_by_slate(slate_name)
 
-    # TODO: most of the following should be defaults for the args object and should not be required here
+    # TODO: most of the following should be defaults for the args object and should not be
+    #   required here
     args = Namespace(
         starters_stale_mins=9999999,
         cache_dir=None,
@@ -157,7 +156,6 @@ def best_possible_lineup_score(
         no_fail=False,
         service=service,
         match_threshold=0.5,
-        slate=slate_name,
         no_default_lineup_plans=False,
         lineup_plan_paths=None,
     )
@@ -167,9 +165,9 @@ def best_possible_lineup_score(
 
     service_cls = cast(FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service))
 
-    args = lineup_plan_helper(args, db_obj, starters, service_cls, [])[0]
+    args = lineup_plan_helper(args, db_obj, starters, service_cls, [], slate_name)[0]
     constraints = service_cls.get_constraints(
-        db_obj.db_manager.ABBR, slate=starters.slates[args.slate]
+        db_obj.db_manager.ABBR, slate=starters.slates[slate_name]
     )
     assert constraints is not None
 
@@ -189,7 +187,7 @@ def best_possible_lineup_score(
             service_cls.DEFAULT_MODEL_NAMES.get(sport),
             solver,
             service_cls,
-            1,  # of lineups
+            n_lineups=1, 
             slate=slate_name,
             slate_info=starters.slates[slate_name],
             score_data_type="historic",
@@ -219,7 +217,7 @@ if __name__ == "__main__":
     parser.add_argument("service", help="service abbreviation")
     parser.add_argument("slate_id", help="slate id", type=int)
 
-    args = parser.parse_args()
+    _args = parser.parse_args()
 
-    best_score = best_possible_lineup_score(args.db_filename, args.service, args.slate_id)
+    best_score = best_possible_lineup_score(_args.db_filename, _args.service, _args.slate_id)
     print(f"{best_score=}")
