@@ -71,7 +71,7 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
         create_dir = input(
             f"Model target directory '{args.model_filepath}' does not exist. Try and create? [y/N] "
         )
-        if create_dir != "y":
+        if create_dir.upper() != "Y":
             parser.error(f"Model target directory '{args.model_filepath}' does not exist.")
         os.mkdir(args.model_filepath)
         print(f"Created model target directory '{args.model_filepath}'")

@@ -356,7 +356,7 @@ def train(
         # pin_memory_device=device,
         # generator=torch.Generator(device=device)
     )
-    deep_lineup_loss = DeepLineupLoss(dataset, constraints)
+    deep_lineup_loss = DeepLineupLoss(samples_meta['sport'], dataset, constraints)
 
     checkpoint_dirpath = target_filepath + "-checkpoints"
     if not os.path.isdir(checkpoint_dirpath):

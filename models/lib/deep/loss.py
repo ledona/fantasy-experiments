@@ -21,8 +21,12 @@ _LOGGER = log.get_logger(__name__)
 
 class PTInv(FCAPlayerTeamInventoryMixin):
     def __init__(
-        self, players: None | dict[int, FCAPlayerDict], teams: None | dict[int, FCATeamDict]
+        self,
+        sport: str,
+        players: None | dict[int, FCAPlayerDict],
+        teams: None | dict[int, FCATeamDict],
     ):
+        self.sport_abbr = sport
         self._players = players or {}
         self._teams = teams or {}
 
@@ -66,6 +70,7 @@ class DeepLineupLoss(torch.nn.Module):
 
     def __init__(
         self,
+        sport: str,
         dataset: DeepLineupDataset,
         constraints: SportConstraints,
         *args,
@@ -75,6 +80,7 @@ class DeepLineupLoss(torch.nn.Module):
         cost_penalty_divider: used for the over budget penalty
         """
         super().__init__(*args, **kwargs)
+        self.sport = sport
         self._best_lineupclear_found = ("", -sys.float_info.max)
         self.target_cols = list(dataset.target_cols)
         self.constraints = constraints
@@ -132,7 +138,7 @@ class DeepLineupLoss(torch.nn.Module):
         The returned knapsack input data is in the same order as the probs and target
         tensor
 
-        returns tuple of knapsack input data, player/team FCA inventory
+        returns tuple[knapsack input data, player/team FCA inventory]
         """
         knap_items: list[KnapsackItem] = []
         knap_mappings: list[KnapsackIdentityMapping] = []
@@ -180,7 +186,7 @@ class DeepLineupLoss(torch.nn.Module):
                 }
             knap_mappings.append(knap_mapping)
 
-        mpt_inv = PTInv(players, teams)
+        mpt_inv = PTInv(self.sport, players, teams)
 
         return KnapsackInputData(knap_mappings, knap_items, pid_to_i, tid_to_i), mpt_inv
 
