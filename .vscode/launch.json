@@ -117,6 +117,7 @@
 
                 "--name", "mlb-dk-dataset",
                 "${env:FANTASY_HOME}/mlb_hist_20082023.scored.db",
+                "--min_games", "3",
                 "--seasons", "2016", "2023",
                 "--validation", "2023", ".2",
 

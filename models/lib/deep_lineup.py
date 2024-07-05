@@ -37,6 +37,7 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
         slack.send_slack(f"Starting deep-lineup data export name={args.name}")
     else:
         slack.disable()
+
     try:
         for seasons, samples, suffix in iters:
             deep_data_export(
@@ -44,7 +45,7 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
                 args.name + suffix,
                 args.dest_dir,
                 seasons,
-                args.games_per_slate_range,
+                (args.games_per_slate_min, args.games_per_slate_max),
                 samples,
                 args.existing_files_mode,
                 service_class,
@@ -145,9 +146,15 @@ def _process_cmd_line(cmd_line_str=None):
         help="Default is to infer slates from all available seasons",
     )
     data_parser.add_argument(
-        "--games_per_slate_range",
-        help="Number of games per slate. Default is to infer this from the most recent season.",
-        nargs=2,
+        "--games_per_slate_min",
+        "--min_games",
+        help="minimum number of games per slate. Default is infered from the most recent season.",
+        type=int,
+    )
+    data_parser.add_argument(
+        "--games_per_slate_max",
+        "--max_games",
+        help="maxiumum number of games per slate. Default is infered from the most recent season.",
         type=int,
     )
     data_parser.add_argument("--batch_size", default=10)

@@ -108,11 +108,11 @@ def _prep_dataset_directory(
     return dataset_dest_dir
 
 
-def __get_max_slate_games_cache_filename(
+def __get_minmax_slate_games_cache_filename(
     session: Session, season: int, style: ContestStyle, service_cls: FantasyService
 ):
     filename_parts = [
-        "max_slate_games",
+        "minmax_slate_games",
         session.info["fantasy.db_manager"].ABBR,
         str(season),
         service_cls.SERVICE_NAME,
@@ -121,11 +121,12 @@ def __get_max_slate_games_cache_filename(
     return "-".join(filename_parts) + ".cache"
 
 
-@cache_to_file(filename_func=__get_max_slate_games_cache_filename)
-def _get_max_slate_games(
+@cache_to_file(filename_func=__get_minmax_slate_games_cache_filename)
+def _get_minmax_slate_games(
     session: Session, season: int, style: ContestStyle, service_cls: FantasyService
 ):
     """return tuple of the min and max number of games in slates in the requested season"""
+    min_games = 9999
     max_games = 0
 
     for slate in session.query(db.DailyFantasySlate).filter(
@@ -133,10 +134,16 @@ def _get_max_slate_games(
         db.DailyFantasySlate._style == style.name,
         db.DailyFantasySlate.service == service_cls.SERVICE_NAME,
     ):
-        games_count = len(slate.games)
-        max_games = max(max_games, games_count)
+        games_count = len(slate.team_id_map) / 2
+        if games_count > max_games:
+            max_games = games_count
+            _LOGGER.info("New max games count %i found for slate %s", games_count, slate)
+        if games_count < min_games:
+            min_games = games_count
+            _LOGGER.info("New min games count %i found for slate %s", games_count, slate)
+        min_games = min(min_games, games_count)
 
-    return max_games
+    return int(min_games), int(max_games)
 
 
 def _map_export(
@@ -263,7 +270,7 @@ def export(
     dataset_name,
     parent_dest_dir: str,
     requested_seasons: tuple[int, int] | int | None,
-    slate_games_range: tuple[int, int] | None,
+    req_slate_games_range: tuple[int | None, int | None],
     case_count: int,
     existing_files_mode: ExistingFilesMode,
     service_cls: FantasyService,
@@ -307,9 +314,9 @@ def export(
         raise ExportError(f"Requested seasons {requested_seasons} resulted in no seasons selected")
 
     with db_obj.session_scoped() as session:
-        if slate_games_range is None:
-            _LOGGER.info("Getting max games for slates using season=%i", max(seasons))
-            slate_games_range = 2, _get_max_slate_games(
+        if None in req_slate_games_range:
+            _LOGGER.info("Getting min/max games for slates using season=%i", max(seasons))
+            slate_min, slate_max = _get_minmax_slate_games(
                 session,
                 max(seasons),
                 style,
@@ -317,9 +324,14 @@ def export(
                 cache_dir=cache_dir,
                 cache_mode=cache_mode,
             )
+            slate_games_range = (
+                req_slate_games_range[0] if req_slate_games_range[0] is not None else slate_min
+            ), (req_slate_games_range[0] if req_slate_games_range[1] is not None else slate_max)
+        else:
+            slate_games_range = req_slate_games_range
 
         _LOGGER.info(
-            "Starting exporting of n=%i cases for sport=%s seasons=%s slate_games_range=%s to '%s'",
+            "Starting export of n=%i cases for sport=%s seasons=%s slate_games_range=%s to '%s'",
             case_count,
             db_obj.db_manager.ABBR,
             seasons,
