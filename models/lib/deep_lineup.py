@@ -176,6 +176,7 @@ def _process_cmd_line(cmd_line_str=None):
     data_parser.add_argument(
         "--skip_training", action="store_true", help="Skip training data creation", default=False
     )
+    data_parser.add_argument("--disable_dask", default=False, action="store_true")
     data_parser.add_argument(
         "--slack",
         help="send a slack notification on data generation start/end/fail",
@@ -256,7 +257,7 @@ def _process_cmd_line(cmd_line_str=None):
 
 if __name__ == "__main__":
     parser_, args_ = _process_cmd_line()
-    if args_.op == "data":
+    if args_.op == "data" and not args_.disable_dask:
         print("Starting distributed dask for data export")
         from dask.distributed import Client
 

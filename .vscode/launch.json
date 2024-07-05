@@ -128,10 +128,12 @@
 
                 // "--name", "nfl-dk-dataset",
                 // "${env:FANTASY_HOME}/nfl_hist_2009-2022.scored.db",
+                // "--min_games", "3",
                 // "--seasons", "2017", "2022",
                 // "--validation", "2022", ".2",
 
                 "draftkings",
+                // "--disable_dask",
                 // "--skip_training",
             ]
         },

@@ -124,7 +124,7 @@ def __get_minmax_slate_games_cache_filename(
 @cache_to_file(filename_func=__get_minmax_slate_games_cache_filename)
 def _get_minmax_slate_games(
     session: Session, season: int, style: ContestStyle, service_cls: FantasyService
-):
+) -> tuple[int, int]:
     """return tuple of the min and max number of games in slates in the requested season"""
     min_games = 9999
     max_games = 0
@@ -158,6 +158,9 @@ def _map_export(
     cache_dir,
     cache_mode,
 ):
+    """
+    return None on failure
+    """
     i, slate_def = slate_info
     _LOGGER.info(
         "Attempt to create batch %i sample #%i: %s '%s' (%i games)",
@@ -188,6 +191,18 @@ def _map_export(
             slate_def.epoch.game_number,
             slate_def.game_descs,
             ex.original_ex,
+        )
+        return None
+
+    if df["fpts-predicted"].isna().all():
+        _LOGGER.warning(
+            "Attempt to create batch %i sample #%i failed for %i-%i game_ids=%s "
+            "ERROR: All predictions were NA!?",
+            batch_num,
+            i,
+            slate_def.epoch.season,
+            slate_def.epoch.game_number,
+            slate_def.game_descs,
         )
         return None
 
@@ -349,7 +364,7 @@ def export(
             cache_dir,
             cache_mode,
         )
-        expected_cols: list[str] | None = None
+        expected_cols: set[str] | None = None
         failed_batches_in_a_row = 0
         batch_num = 0
         with tqdm(range(case_count), desc=dataset_name) as samples_prog_iter:
@@ -469,14 +484,17 @@ def __gen_lineup_helper_cache_filename(
 class _GenLineupHelperFailure(FantasyException):
     """returned if the helper fails, picklable to be compatible with file cacher"""
 
-    def __init__(self, original_ex: FantasyException, tb_str: str, *args, **kwargs):
+    def __init__(self, original_ex: FantasyException, traceback_str: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.original_ex = original_ex
-        self.tb_str = tb_str
+        self.traceback_str = traceback_str
 
     def __reduce__(self):
         """required code pickling during file caching"""
-        return _GenLineupHelperFailure, (self.original_ex, self.tb_str)
+        return _GenLineupHelperFailure, (self.original_ex, self.traceback_str)
+
+    def __str__(self):
+        return f"{self.original_ex}\n{self.traceback_str}"
 
 
 @cache_to_file(filename_func=__gen_lineup_helper_cache_filename, timeout=60 * 60 * 24 * 7)
@@ -758,7 +776,7 @@ class _RandomSlateSelector:
 
         params_bag = dask_bag.from_sequence(params)
 
-        with TqdmCallback(desc=f"creating batch #{batch_num}"):
+        with TqdmCallback(desc=f"creating batch {batch_num} candidates"):
             slate_defs = cast(
                 list[None | _SlateDef],
                 params_bag.map(
