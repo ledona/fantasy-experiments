@@ -106,7 +106,7 @@
             "args": [
                 "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup",
                 "data",
-                "--samples", "500",
+                "--samples", "50",
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/cache",
                 "--slack",
 

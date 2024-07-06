@@ -5,6 +5,7 @@ from typing import cast
 import dask
 import torch
 from fantasy_py import log
+from fantasy_py.lineup import FailedToSolveError
 from fantasy_py.lineup.constraint import SportConstraints
 from fantasy_py.lineup.create_lineups import KnapsackInputData
 from fantasy_py.lineup.deep import DeepLineupDataset
@@ -192,18 +193,22 @@ class DeepLineupLoss(torch.nn.Module):
 
     def _calc_slate_score(self, pred: torch.Tensor, target: torch.Tensor):
         knapsack_input, pt_inv = self._gen_knapsack_data(pred, target)
+        try:
+            solutions = self._solver.solve(
+                knapsack_input.data,
+                1,
+                self.constraints.viability_testers,
+                pt_inv,
+                knapsack_input.mappings,
+            )
+        except FailedToSolveError as ftse:
+            raise
+            _LOGGER.warning("Failed to find a solution using model result: %s", ftse)
+            return 0
 
-        solutions = self._solver.solve(
-            knapsack_input.data,
-            1,
-            self.constraints.viability_testers,
-            pt_inv,
-            knapsack_input.mappings,
-        )
-
-        assert len(solutions) == 1
         pt_indices = list(chain(*solutions[0].items))
-        return float(target[pt_indices, self._hist_score_col_idx].sum())
+        true_score = float(target[pt_indices, self._hist_score_col_idx].sum())
+        return true_score
 
     def calc_score(self, pred: torch.Tensor, target: torch.Tensor):
         """
