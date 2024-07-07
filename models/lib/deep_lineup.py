@@ -32,11 +32,7 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
         except ValueError as ex:
             parser.error(f"Failed to parse --validation argument: {ex}")
 
-    if args.slack:
-        slack.enable()
-        slack.send_slack(f"Starting deep-lineup data export name={args.name}")
-    else:
-        slack.disable()
+    slack.send_slack(f"Starting deep-lineup data export name={args.name}")
 
     try:
         for seasons, samples, suffix in iters:
@@ -86,45 +82,32 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
     if not os.path.isdir(target_dir):
         parser.error(f"Infered model target directory '{target_dir}' is not a valid directory!")
 
-    deep_train(
-        args.dataset_dir,
-        args.epochs,
-        args.batch_size,
-        target_dir,
-        hidden_size=args.hidden_size,
-        continue_from_checkpoint_filepath=args.checkpoint_filepath,
-        checkpoint_epoch_interval=args.checkpoint_frequency,
-        dataset_limit=args.dataset_limit,
-        early_stopping_patience=args.early_stopping_patience,
-        overwrite=args.overwrite,
+    slack.send_slack(f"Starting deep-lineup training with dataset '{args.dataset_dir}'")
+
+    try:
+        deep_train(
+            args.dataset_dir,
+            args.epochs,
+            args.batch_size,
+            target_dir,
+            hidden_size=args.hidden_size,
+            continue_from_checkpoint_filepath=args.checkpoint_filepath,
+            checkpoint_epoch_interval=args.checkpoint_frequency,
+            dataset_limit=args.dataset_limit,
+            early_stopping_patience=args.early_stopping_patience,
+            overwrite=args.overwrite,
+        )
+    except Exception as ex:
+        slack.send_slack(
+            f"Unhandled failure during deep-lineup training with dataset '{args.dataset_dir}': {ex}"
+        )
+        raise
+    slack.send_slack(
+        f"Successful completion for deep-lineup training with dataset '{args.dataset_dir}'"
     )
 
 
-def _process_cmd_line(cmd_line_str=None):
-    log.set_default_log_level(only_fantasy=False)
-
-    parser = argparse.ArgumentParser(
-        description="Functions to export data for, train and test deep "
-        "learning lineup generator models"
-    )
-
-    parser.add_argument("--seed", default=0)
-    parser.add_argument("--verbose", action="store_true", default=False)
-    parser.add_argument(
-        "--dest_dir",
-        help="Directory under which dataset directories will be written. "
-        f"Default is '{_DEFAULT_PARENT_DATASET_PATH}'",
-        default=_DEFAULT_PARENT_DATASET_PATH,
-    )
-    parser.add_argument("--no_progress", dest="progress", default=True, action="store_false")
-
-    sub_parsers = parser.add_subparsers(
-        title="operation", help="The deep learning lineup operation to execute"
-    )
-
-    data_parser = sub_parsers.add_parser(
-        "data", help="Create training data for deep learning lineup models"
-    )
+def _add_data_parser_args(data_parser: argparse.ArgumentParser):
     data_parser.set_defaults(func=_data_export_parser_func, op="data")
     data_parser.add_argument("--cache_dir", default=None, help="Folder to cache to")
     data_parser.add_argument("--cache_mode", choices=CacheMode.__args__)
@@ -177,12 +160,6 @@ def _process_cmd_line(cmd_line_str=None):
         "--skip_training", action="store_true", help="Skip training data creation", default=False
     )
     data_parser.add_argument("--disable_dask", default=False, action="store_true")
-    data_parser.add_argument(
-        "--slack",
-        help="send a slack notification on data generation start/end/fail",
-        default=False,
-        action="store_true",
-    )
 
     data_parser.add_argument("db_file")
 
@@ -193,7 +170,8 @@ def _process_cmd_line(cmd_line_str=None):
     }
     data_parser.add_argument("service", choices=sorted(service_names + list(service_abbrs.keys())))
 
-    train_parser = sub_parsers.add_parser("train", help="Train a deep model")
+
+def _add_train_parser_args(train_parser: argparse.ArgumentParser):
     train_parser.set_defaults(func=_train_parser_func, op="train")
     train_parser.add_argument(
         "dataset_dir",
@@ -239,6 +217,43 @@ def _process_cmd_line(cmd_line_str=None):
         help="Overwrite existing model file if one already exists",
     )
 
+
+def _process_cmd_line(cmd_line_str=None):
+    log.set_default_log_level(only_fantasy=False)
+
+    parser = argparse.ArgumentParser(
+        description="Functions to export data for, train and test deep "
+        "learning lineup generator models"
+    )
+
+    parser.add_argument("--seed", default=0)
+    parser.add_argument("--verbose", action="store_true", default=False)
+    parser.add_argument(
+        "--dest_dir",
+        help="Directory under which dataset directories will be written. "
+        f"Default is '{_DEFAULT_PARENT_DATASET_PATH}'",
+        default=_DEFAULT_PARENT_DATASET_PATH,
+    )
+    parser.add_argument("--no_progress", dest="progress", default=True, action="store_false")
+    parser.add_argument(
+        "--slack",
+        help="send a slack notification on data generation start/end/fail",
+        default=False,
+        action="store_true",
+    )
+
+    sub_parsers = parser.add_subparsers(
+        title="operation", help="The deep learning lineup operation to execute"
+    )
+
+    data_parser = sub_parsers.add_parser(
+        "data", help="Create training data for deep learning lineup models"
+    )
+    _add_data_parser_args(data_parser)
+
+    train_parser = sub_parsers.add_parser("train", help="Train a deep model")
+    _add_train_parser_args(train_parser)
+
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
@@ -251,6 +266,11 @@ def _process_cmd_line(cmd_line_str=None):
 
     if args.verbose:
         log.set_debug_log_level()
+
+    if args.slack:
+        slack.enable()
+    else:
+        slack.disable()
 
     return parser, args
 
