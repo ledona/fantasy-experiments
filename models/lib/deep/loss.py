@@ -131,7 +131,7 @@ class DeepLineupLoss(torch.nn.Module):
     def _update_best_lineup(self, reason, score):
         if score <= self._best_lineup_found[1]:
             return
-        _LOGGER.info("New best lineup found. score=%f desc='%s'", score, reason)
+        _LOGGER.success("New best lineup found. score=%f desc='%s'", score, reason)
         self._best_lineup_found = (reason, score)
 
     def _gen_knapsack_data(self, probs: torch.Tensor, target: torch.Tensor):
@@ -202,9 +202,8 @@ class DeepLineupLoss(torch.nn.Module):
                 knapsack_input.mappings,
             )
         except FailedToSolveError as ftse:
+            _LOGGER.critical("Failed to find a solution using model result: %s", ftse)
             raise
-            _LOGGER.warning("Failed to find a solution using model result: %s", ftse)
-            return 0
 
         pt_indices = list(chain(*solutions[0].items))
         true_score = float(target[pt_indices, self._hist_score_col_idx].sum())

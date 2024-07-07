@@ -426,7 +426,7 @@ def train(
     if best_model[1] is None:
         raise DeepTrainFailure("No best model found!")
 
-    _LOGGER.info(
+    _LOGGER.success(
         "Training complete. Best model found at epoch=%i score=%f. mean-epoch-score=%f",
         best_model[1].epochs_trained,
         best_model[0],

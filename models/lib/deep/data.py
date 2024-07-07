@@ -212,12 +212,7 @@ def _map_export(
     )
     dataset_filepath = os.path.join(dataset_dest_dir, filename)
     df.to_parquet(dataset_filepath)
-    _LOGGER.success(
-        "Batch #%i sample #%i successfully created and written to '%s'",
-        batch_num,
-        i,
-        dataset_filepath,
-    )
+    _LOGGER.success("Batch #%i sample #%i written to '%s'", batch_num, i, dataset_filepath)
     return i, {**slate_def.meta_data, "player_count": len(df)}, df_cols
 
 
@@ -419,6 +414,14 @@ def export(
                 assert batch_df_lens is not None
                 df_lens += batch_df_lens
                 samples_meta += new_samples_meta
+                _LOGGER.success(
+                    "Batch #%i completed, %i samples added %i samples failed, progress is %i / %i",
+                    batch_num,
+                    len(new_samples_meta),
+                    batch_size - len(new_samples_meta),
+                    len(samples_meta),
+                    case_count,
+                )
                 samples_prog_iter.update(len(new_samples_meta))
 
     models_dict = {
@@ -440,8 +443,11 @@ def export(
             f_,
             indent="\t",
         )
-    _LOGGER.info(
-        "Meta data written to '%s' min-median-max df lengths = %i %i %i",
+    _LOGGER.success(
+        "Export done. %i batches process, %i samples created. "
+        "Meta data written to '%s'.  min-median-max df lengths = %i %i %i",
+        batch_num,
+        len(samples_meta),
         meta_filepath,
         min(df_lens),
         statistics.median(df_lens),

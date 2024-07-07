@@ -107,7 +107,7 @@
                 "--slack",
                 "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup",
                 "data",
-                "--samples", "50",
+                "--samples", "100",
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/cache",
 
                 // "--name", "nba-dk-dataset",
@@ -148,11 +148,11 @@
                 "--verbose", "--slack",
                 "train",
 
-                // "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-dataset",
-                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-lineup-small",
+                "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-lineup-small",
 
-                "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/nfl-dk-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/nfl-dk-lineup-small",
+                // "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/nfl-dk-dataset",
+                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/nfl-dk-lineup-small",
 
                 "--epochs", "50",
                 "--batch", "32",
