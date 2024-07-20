@@ -105,21 +105,21 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "--slack",
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup",
                 "data",
-                "--samples", "100",
-                "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/cache",
+                "--samples", "500",
+                "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup/cache",
 
-                // "--name", "nba-dk-dataset",
-                // "${env:FANTASY_HOME}/nba_hist_20082009-20222023.scored.db",
-                // "--seasons", "20152016", "20222023",
-                // "--validation", "20222023", ".2",
+                "--name", "nba-dk-dataset",
+                "${env:FANTASY_HOME}/nba_hist_20082009-20232024.scored.db",
+                "--seasons", "20152016", "20232024",
+                "--validation", "20232024", ".2",
 
-                "--name", "mlb-dk-dataset",
-                "${env:FANTASY_HOME}/mlb_hist_20082023.scored.db",
-                "--min_games", "3",
-                "--seasons", "2016", "2023",
-                "--validation", "2023", ".2",
+                // "--name", "mlb-dk-dataset",
+                // "${env:FANTASY_HOME}/mlb_hist_20082023.scored.db",
+                // "--min_games", "3",
+                // "--seasons", "2016", "2023",
+                // "--validation", "2023", ".2",
 
                 // "--name", "nhl-dk-dataset",
                 // "${env:FANTASY_HOME}/nhl_hist_20072008-20222023.scored.db",
@@ -148,11 +148,11 @@
                 "--verbose", "--slack",
                 "train",
 
-                "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-dataset",
-                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/mlb-dk-lineup-small",
+                "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup/mlb-dk-dataset",
+                "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup/mlb-dk-lineup-small",
 
-                // "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/nfl-dk-dataset",
-                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.06/deep-lineup/nfl-dk-lineup-small",
+                // "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup/nfl-dk-dataset",
+                // "--model_filepath", "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup/nfl-dk-lineup-small",
 
                 "--epochs", "50",
                 "--batch", "32",
@@ -161,7 +161,7 @@
                 "--early", "10",
                 // "--limit", "32",
                 // "--overwrite",
-                // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.04/deep-lineup/nba-dk-lineup-checkpoints/cp-epoch-34-early-stop.pt",
+                // "--checkpoint_file", "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup/nba-dk-lineup-checkpoints/cp-epoch-34-early-stop.pt",
             ]
         },
         {

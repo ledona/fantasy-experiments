@@ -375,7 +375,7 @@ def train(
         epoch_score = _eval_epoch(model, epoch_i, rewards)
         epoch_scores.append(epoch_score)
         if new_best_score := epoch_score > best_model[0]:
-            _LOGGER.info(
+            _LOGGER.success(
                 "*** New best model found! score=%f epoch=%i ***",
                 epoch_score,
                 epoch_i + 1,
