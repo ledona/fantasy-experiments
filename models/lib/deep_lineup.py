@@ -12,6 +12,7 @@ from fantasy_py import (
     ContestStyle,
     db,
     log,
+    update_cache_settings,
 )
 from fantasy_py.lineup import FantasyService
 from ledona import slack
@@ -278,6 +279,8 @@ def _process_cmd_line(cmd_line_str=None):
         slack.enable()
     else:
         slack.disable()
+
+    update_cache_settings(args)
 
     return parser, args
 
