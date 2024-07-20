@@ -5,7 +5,14 @@ import os
 import shlex
 from typing import cast
 
-from fantasy_py import FANTASY_SERVICE_DOMAIN, CacheMode, CLSRegistry, ContestStyle, db, log
+from fantasy_py import (
+    FANTASY_SERVICE_DOMAIN,
+    CLSRegistry,
+    ContestStyle,
+    add_parser_cache_args,
+    db,
+    log,
+)
 from fantasy_py.lineup import FantasyService
 from ledona import slack
 
@@ -109,8 +116,7 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
 
 def _add_data_parser_args(data_parser: argparse.ArgumentParser):
     data_parser.set_defaults(func=_data_export_parser_func, op="data")
-    data_parser.add_argument("--cache_dir", default=None, help="Folder to cache to")
-    data_parser.add_argument("--cache_mode", choices=CacheMode.__args__)
+    add_parser_cache_args(data_parser)
     data_parser.add_argument(
         "--samples",
         "--cases",
