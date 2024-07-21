@@ -134,7 +134,9 @@ def _get_minmax_slate_games(
         db.DailyFantasySlate._style == style.name,
         db.DailyFantasySlate.service == service_cls.SERVICE_NAME,
     ):
-        games_count = len(slate.team_id_map) / 2
+        games_count = int(len(slate.team_id_map) / 2)
+        if games_count == 0:
+            continue
         if games_count > max_games:
             max_games = games_count
             _LOGGER.info("New max games count %i found for slate %s", games_count, slate)
