@@ -104,7 +104,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "--slack",
+                // "--slack",
                 "--dest_dir", "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup",
                 "data",
                 "--samples", "500",
@@ -120,15 +120,15 @@
                 // "--seasons", "2016", "2023",
                 // "--validation", "2023", ".2",
 
-                "--name", "nhl-dk-dataset",
-                "${env:FANTASY_HOME}/nhl_hist_20072008-20232024.scored.db",
-                "--seasons", "20152016", "20232024",
-                "--validation", "20232024", ".2",
+                // "--name", "nhl-dk-dataset",
+                // "${env:FANTASY_HOME}/nhl_hist_20072008-20232024.scored.db",
+                // "--seasons", "20152016", "20232024",
+                // "--validation", "20232024", ".2",
 
-                // "--name", "nfl-dk-dataset",
-                // "${env:FANTASY_HOME}/nfl_hist_2009-2022.scored.db",
-                // "--seasons", "2017", "2022",
-                // "--validation", "2022", ".2",
+                "--name", "nfl-dk-dataset",
+                "${env:FANTASY_HOME}/nfl_hist_2009-2023.scored.db",
+                "--seasons", "2017", "2023",
+                "--validation", "2022", ".2",
 
                 "draftkings",
                 "--min_games", "3",

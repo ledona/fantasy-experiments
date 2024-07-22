@@ -493,17 +493,18 @@ def __gen_lineup_helper_cache_filename(
 class _GenLineupHelperFailure(FantasyException):
     """returned if the helper fails, picklable to be compatible with file cacher"""
 
-    def __init__(self, original_ex: FantasyException, traceback_str: str, *args, **kwargs):
+    def __init__(self, original_ex: FantasyException, traceback_strs: list[str], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.original_ex = original_ex
-        self.traceback_str = traceback_str
+        self.traceback_strs = traceback_strs
 
     def __reduce__(self):
         """required code pickling during file caching"""
-        return _GenLineupHelperFailure, (self.original_ex, self.traceback_str)
+        return _GenLineupHelperFailure, (self.original_ex, self.traceback_strs)
 
     def __str__(self):
-        return f"{self.original_ex}\n{self.traceback_str}"
+        tb_str = "".join(self.traceback_strs)
+        return f"{self.original_ex}\n{tb_str}"
 
 
 @cache_to_file(filename_func=__gen_lineup_helper_cache_filename, timeout=60 * 60 * 24 * 7)
@@ -549,7 +550,9 @@ def _gen_lineup_helper(
         )
         return top_lineup, scores
     except (ImputeFailure, DataNotAvailableException, LineupGenerationFailure) as ex:
-        return _GenLineupHelperFailure(ex, traceback.format_exc(limit=None, chain=True))
+        _LOGGER.error("Failed to generate a lineup for %s ex=%s", epoch, ex)
+        tb_strs = traceback.format_exception(ex, limit=None, chain=True)
+        return _GenLineupHelperFailure(ex, tb_strs)
 
 
 def _get_slate_sample(
