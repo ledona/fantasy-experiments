@@ -457,14 +457,15 @@ def export(
     )
 
 
-def _pick_slate(starters: Starters):
+def _pick_slate(starters: Starters, style: ContestStyle):
     """pick the slate with the most games"""
     max_slate: tuple[None | str, int] = (None, 0)
     assert starters.slates is not None
     for slate, slate_info in starters.slates.items():
+        if slate_info["style"] != style:
+            continue
         if (games_count := len(slate_info.get("games", []))) > max_slate[1]:
             max_slate = slate, games_count
-    assert max_slate[0] is not None
     return max_slate
 
 
@@ -718,7 +719,16 @@ def _map_create_def(
         return None
 
     assert starters.slates is not None
-    slate_with_most_games, slate_games_count = _pick_slate(starters)
+    slate_with_most_games, slate_games_count = _pick_slate(starters, style)
+    if slate_with_most_games is None:
+        _LOGGER.info(
+            "Skipping sample candidate %i epoch=%s: no slates of style %s found",
+            attempt,
+            epoch,
+            style,
+        )
+        return None
+
     if game_count > slate_games_count:
         _LOGGER.info(
             "Skipping sample candidate %i epoch=%s: game_count=%i is too high "
