@@ -161,7 +161,7 @@ class DeepLineupLoss(torch.nn.Module):
             ]
             knap_item = KnapsackItem(classes, float(player_info[self._cost_col_idx]), float(value))
             knap_items.append(knap_item)
-            if self._player_idx is not None and not torch.isnan(player_info[self._player_idx]):
+            if self._player_idx is not None and player_info[self._player_idx] != 0:
                 pid = int(player_info[self._player_idx])
                 assert pid not in players and pid not in pid_to_i
                 knap_mapping = KnapsackIdentityMapping.player_mapping(pid, float(value))
