@@ -7,16 +7,16 @@ from typing import cast
 
 from fantasy_py import (
     FANTASY_SERVICE_DOMAIN,
+    CacheSettings,
     CLSRegistry,
     ContestStyle,
-    add_parser_cache_args,
     db,
     log,
 )
 from fantasy_py.lineup import FantasyService
 from ledona import slack
 
-from .deep import ExistingFilesMode, deep_data_export, deep_train
+from .deep import GEN_LINEUP_HELPER_FUNC_LABEL, ExistingFilesMode, deep_data_export, deep_train
 
 _DEFAULT_SAMPLE_COUNT = 10
 _DEFAULT_PARENT_DATASET_PATH = "/fantasy-isync/fantasy-modeling/deep_lineup"
@@ -55,8 +55,6 @@ def _data_export_parser_func(args: argparse.Namespace, parser: argparse.Argument
                 args.style,
                 args.seed,
                 args.batch_size,
-                args.cache_dir,
-                args.cache_mode if args.cache_dir else "disable",
             )
     except Exception as ex:
         slack.send_slack(f"Unhandled failure during deep-lineup data export name={args.name}: {ex}")
@@ -116,7 +114,10 @@ def _train_parser_func(args: argparse.Namespace, parser: argparse.ArgumentParser
 
 def _add_data_parser_args(data_parser: argparse.ArgumentParser):
     data_parser.set_defaults(func=_data_export_parser_func, op="data")
-    add_parser_cache_args(data_parser)
+
+    CacheSettings.update({"timeout": 60 * 60 * 24 * 7}, func_label=GEN_LINEUP_HELPER_FUNC_LABEL)
+    CacheSettings.add_parser_args(data_parser)
+
     data_parser.add_argument(
         "--samples",
         "--cases",
@@ -288,4 +289,6 @@ if __name__ == "__main__":
         from dask.distributed import Client
 
         client = Client(processes=True)
+        CacheSettings.register_dask(client)
+
     args_.func(args_, parser_)

@@ -157,8 +157,6 @@ def _map_export(
     style,
     seed,
     dataset_dest_dir,
-    cache_dir,
-    cache_mode,
 ):
     """
     return None on failure
@@ -181,8 +179,6 @@ def _map_export(
             model_names,
             style,
             seed,
-            cache_dir,
-            cache_mode,
         )
     except _GenLineupHelperFailure as ex:
         _LOGGER.warning(
@@ -228,8 +224,6 @@ def _export_batch(
     seed,
     prev_batch_expected_cols: None | set[str],
     dataset_dest_dir,
-    cache_dir,
-    cache_mode,
 ):
     """
     batch_num: the number of this batch (starting at 1)
@@ -246,8 +240,6 @@ def _export_batch(
         style,
         seed,
         dataset_dest_dir,
-        cache_dir,
-        cache_mode,
     )
     with TqdmCallback(desc=f"processing batch #{batch_num}"):
         samples = cast(
@@ -289,8 +281,6 @@ def export(
     style: ContestStyle,
     seed,
     max_batch_size: int,
-    cache_dir,
-    cache_mode: CacheMode,
 ):
     """
     requested_seasons: tuple of (start, end) seasons, inclusive, to choose from,\
@@ -333,8 +323,6 @@ def export(
                 max(seasons),
                 style,
                 service_cls,
-                cache_dir=cache_dir,
-                cache_mode=cache_mode,
             )
             slate_games_range = (
                 req_slate_games_range[0] if req_slate_games_range[0] is not None else slate_min
@@ -358,8 +346,6 @@ def export(
             service_cls.SERVICE_NAME,
             style,
             seed,
-            cache_dir,
-            cache_mode,
         )
         expected_cols: set[str] | None = None
         failed_batches_in_a_row = 0
@@ -388,8 +374,6 @@ def export(
                         seed,
                         expected_cols,
                         dataset_dest_dir,
-                        cache_dir,
-                        cache_mode,
                     )
                 if new_samples_meta is None or len(new_samples_meta) == 0:
                     failed_batches_in_a_row += 1
@@ -507,7 +491,12 @@ class _GenLineupHelperFailure(FantasyException):
         return f"{self.original_ex}\n{tb_str}"
 
 
-@cache_to_file(filename_func=__gen_lineup_helper_cache_filename, timeout=60 * 60 * 24 * 7)
+GEN_LINEUP_HELPER_FUNC_LABEL = "deep-lineup:gen_lineup_helper"
+
+
+@cache_to_file(
+    filename_func=__gen_lineup_helper_cache_filename, func_label=GEN_LINEUP_HELPER_FUNC_LABEL
+)
 def _gen_lineup_helper(
     db_obj: db.FantasySQLAlchemyWrapper,
     fca: FantasyCostAggregate,
@@ -517,8 +506,6 @@ def _gen_lineup_helper(
     seed,
     style: ContestStyle,
     cost_id,
-    cache_dir=None,
-    cache_mode=None,
 ):
     sport_constraints = service_cls.get_constraints(db_obj.db_manager.ABBR, style=style)
     assert sport_constraints is not None
@@ -543,8 +530,6 @@ def _gen_lineup_helper(
             n_lineups=1,
             slate_info=new_slate_info,
             slate_epoch=epoch,
-            cache_dir=cache_dir,
-            cache_mode=cache_mode,
             score_data_type="historic",
             scores_to_include=["predicted"],
         )
@@ -562,16 +547,12 @@ def _get_slate_sample(
     model_names,
     style: ContestStyle,
     seed,
-    cache_dir,
-    cache_mode,
 ):
     fca = db_obj.db_manager.fca_from_starters(
         db_obj,
         slate_def.starters,
         service_cls.SERVICE_NAME,
         slate=slate_def.slate,
-        cache_dir=cache_dir,
-        cache_mode=cache_mode,
     )
 
     cost_id = slate_def.slate_info.get("cost_id")
@@ -587,8 +568,6 @@ def _get_slate_sample(
         seed,
         style,
         cost_id,
-        cache_dir=cache_dir,
-        cache_mode=cache_mode,
     )
 
     if isinstance(gen_lineup_result, _GenLineupHelperFailure):
@@ -671,8 +650,6 @@ def _map_create_def(
     past_selections,
     service_name,
     style,
-    cache_dir,
-    cache_mode,
 ):
     attempt, season, game_num, game_count, game_descs_rand_seed = slate_def_info
 
@@ -709,8 +686,6 @@ def _map_create_def(
                 db_obj=db_obj,
                 remote_allowed=False,
                 style=style,
-                cache_dir=cache_dir,
-                cache_mode=cache_mode,
             ),
         )
     except DataNotAvailableException as ex:
@@ -771,8 +746,6 @@ class _RandomSlateSelector:
     service_name: str
     style: ContestStyle
     seed: InitVar[int]
-    cache_dir: str
-    cache_mode: CacheMode
     season_parts: list[SeasonPart] = field(default_factory=lambda: [SeasonPart.REGULAR])
 
     _rand_obj: Random = field(init=False)
@@ -807,8 +780,6 @@ class _RandomSlateSelector:
                     self._past_selections,
                     self.service_name,
                     self.style,
-                    self.cache_dir,
-                    self.cache_mode,
                 ).compute(),
             )
 
