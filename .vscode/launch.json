@@ -111,22 +111,22 @@
                 "--cache_dir", "/fantasy-isync/fantasy-modeling/2024.07/deep-lineup/cache",
 
                 // "--name", "nba-dk-dataset",
-                // "${env:FANTASY_HOME}/nba_hist_20082009-20232024.scored.db",
+                // "${env:FANTASY_HOME}/nba.hist.20082009-20232024.scored.db",
                 // "--seasons", "20152016", "20232024",
                 // "--validation", "20232024", ".2",
 
                 // "--name", "mlb-dk-dataset",
-                // "${env:FANTASY_HOME}/mlb_hist_20082023.scored.db",
+                // "${env:FANTASY_HOME}/mlb.hist.2008-2023.scored.db",
                 // "--seasons", "2016", "2023",
                 // "--validation", "2023", ".2",
 
                 // "--name", "nhl-dk-dataset",
-                // "${env:FANTASY_HOME}/nhl_hist_20072008-20232024.scored.db",
+                // "${env:FANTASY_HOME}/nhl.hist.20072008-20232024.scored.db",
                 // "--seasons", "20152016", "20232024",
                 // "--validation", "20232024", ".2",
 
                 "--name", "nfl-dk-dataset",
-                "${env:FANTASY_HOME}/nfl_hist_2009-2023.scored.db",
+                "${env:FANTASY_HOME}/nfl.hist.2009-2023.scored.db",
                 "--seasons", "2017", "2023",
                 "--validation", "2022", ".2",
 
