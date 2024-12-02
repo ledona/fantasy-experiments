@@ -12,13 +12,15 @@ There are three different types of models
 1. lineup models that predict optimal daily fantasy lineups
 1. full game models that predict all player and team stats for a game in one shot, as opposed to predicting each player/team stat individuals
 
-### Player/Team predictive models
+### Creating Player/Team predictive models
 To create, archive and use new predictive models perform the following steps
 
 1. Make sure that the fantasy environment is successfully installed and usable, and the 
 database files containing raw and calculated stats are in _$FANTASY_HOME_.
-2. Create a new model folder. Easiest to copy the most recent model folder and rename.
-3. Create/update the data export scripts and model training json files. The training files are json dicts with the following structure (refer to previous files for concrete examples):
+2. Create a new model folder in this directory. Naming of these folders is _YYYY.MM_. Easiest is to copy the most recent model folder and rename it.
+3. Create/update the data export scripts and model training json files. 
+    - Review the data export scripts to make sure that the data DB name is correct, the seasons to export are correct, and all desired features are targets for all models that will be created are included.
+    - The training files are json dicts with the following structure (refer to previous files for concrete examples):
 ```
 {
   "global_defaults": {
