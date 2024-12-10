@@ -2,8 +2,7 @@
 
 DB_FILE=${FANTASY_HOME}/mlb.hist.2008-2024.scored.db
 DEST=/fantasy-isync/fantasy-modeling/2024.12/data
-# ODDS only go back to 2010
-SEASONS="2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 2024"
+SEASONS="2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 2024"
 
 # dump hitter data, apart from obvious targets, 
 # the extra stat hitter_bases is also possible
@@ -30,7 +29,7 @@ dumpdata.sc --seasons $SEASONS --no_team \
    --stats p_bb p_cg p_er p_hbp p_hits p_hr \
       p_ip p_k p_loss p_pc p_qs p_runs p_strikes p_win p_wp \
    --player_team_stats errors off_runs p_hold p_qs p_runs p_save win \
-   --opp_team_stats errors off_ab off_hit off_hr off_k off_pa off_run off_sb win \
+   --opp_team_stats errors off_ab off_hit off_hr off_k off_pa off_runs off_sb win \
    --calc_stats "*_score" \
    --current_extra elo_win_prob indoors is_home "odds_*" recent_player_win venue "weather_*" \
    --current_opp_extra odds_ml "team_hit*" "team_ops*" "team_slug*" \
@@ -38,7 +37,7 @@ dumpdata.sc --seasons $SEASONS --no_team \
    --target_calc_stats "*_score" \
    --target_stats p_bb p_hits p_hr p_ip p_k p_runs p_win \
    --hist_recent_games 5 --hist_recent_mode ma \
-   --dask_mode processes --dask_tasks 4 \
+   --dask_mode processes --dask_tasks 6 \
    --slack $DB_FILE --format parquet -f ${DEST}/mlb_pitcher.parquet
 
 # teams
@@ -55,5 +54,5 @@ dumpdata.sc --seasons $SEASONS --no_player \
    --hist_opp_extra team_bases \
    --target_stats off_runs win \
    --hist_recent_games 5 --hist_recent_mode ma \
-   --dask_mode processes --dask_tasks 4 \
+   --dask_mode processes --dask_tasks 6 \
    --slack $DB_FILE --format parquet -f ${DEST}/mlb_team.parquet
