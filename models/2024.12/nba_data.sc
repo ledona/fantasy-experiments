@@ -25,5 +25,5 @@ dumpdata.sc --seasons $SEASONS --progress $DB_FILE --no_players \
     --current_extra elo_win_prob is_home "odds_*" \
     --current_opp_extra odds_ml \
     --target_stats pts win \
-    --hist_recent_games 5 --hist_recent_mode ma --current_extra is_home \
+    --hist_recent_games 5 --hist_recent_mode ma \
     --slack --format parquet -f ${DEST}/nba_team.parquet
