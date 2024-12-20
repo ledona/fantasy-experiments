@@ -4,8 +4,8 @@ DB_FILE=${FANTASY_HOME}/nhl.hist.20072008-20232024.scored.db
 DEST=/fantasy-isync/fantasy-modeling/2024.12/data
 SEASONS='20072008 20082009 20092010 20102011 20112012 20122013 20132014 20142015 
 20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024'
-SKATER_STATS=("assist*" "fo*" "*away" "giveaway" "goal" "goal_pp" "goal_sh" 
-    "goal_t" "goal_w" "hit" "p*" "shot*" "takeaway" "toi" "toi_ev" "toi_pp" "toi_sh")
+SKATER_STATS=("assist*" "fo*" "*away" "goal" "goal_pp" "goal_sh" 
+    "goal_t" "goal_w" "hit" "p*" "shot*" "toi" "toi_ev" "toi_pp" "toi_sh")
 GOALIE_STATS='giveaway goal_ag loss save toi_g win'
 
 # skater data
