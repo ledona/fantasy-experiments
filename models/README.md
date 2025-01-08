@@ -53,22 +53,29 @@ python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
 python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
 
 # create model using defaults
-python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
+python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json {MODEL_NAME}
 
 # create multiple models
-python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
+python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json \
   ({MODEL_NAME_W_WILDCARDS} | [--models {MODEL_NAME} {MODEL_NAME} ...])
 
 # create a model based on an existing model 
-python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
+python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--orig_cfg_file {MODEL_DIR}/{SPORT}.json] [--slack] {EXISTING_MODEL_FILEPATH}
 
-# for example
+# example which forces tpot and specifies number of processes
 python -O -m lib.regressor train --n_jobs 4 --algo tpot 2024.02/nba.json NBA-DK \
   --data_dir /fantasy-isync/fantasy-modeling/2024.04/pt \
   --dest_dir /fantasy-isync/fantasy-modeling/2024.04/data
+
+# example that uses a simple NN
+python -m lib.regressor train 2024.12/nfl.json "NFL-QB-
+DK" \
+  --data_dir /fantasy-isync/fantasy-modeling/2024.12/data/ \
+  --dest_dir /fantasy-isync/fantasy-modeling/2024.12/pt \
+  --algo nn --lr .00001 --layers 3 --max_epochs 500 --early 10
 ```
 6. (Optional) Load the models into the sport database and run some tests. Load models using 
 model_manager.py from the fantasy repository (See fantasy repository's README). 
