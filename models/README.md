@@ -81,6 +81,9 @@ DK" \
 model_manager.py from the fantasy repository (See fantasy repository's README). 
 Generate lineups or run backtesting using one of the debug configurations or lineup.sc or backtest.sc.
 
+### NN models
+- If the avg loss from one training iteration to the next is jumping around alot or not changing fast enough, increase/decrease the learning rate. As the learning rate decreases, updates to the model from one iteration to the next should lessen. Increasing the learning rate should cause models to change more from one iteration to the next.
+
 ### Deep lineup models
 Deep lineup models take as input a slate of games, including all player costs, and predicted scoring. The model output is a lineup to bet. As an intermediate step a DNN is used to take the input and infer player weights which are used along with cost information to create an optimized lineup. To create/use models:
 

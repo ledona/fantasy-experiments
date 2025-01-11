@@ -63,6 +63,8 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
     "dummy": ({"strategy": "mean"}, None),
     "tpot": _TPOT_PARAM_DEFAULTS_TUPLE,
     "tpot-light": _TPOT_PARAM_DEFAULTS_TUPLE,
+    "auto-xgb": _TPOT_PARAM_DEFAULTS_TUPLE,
+    "xgboost": ({}, None)
 }
 """
 dict mapping algorithm to (default-regressor-params, param-rename-dict)

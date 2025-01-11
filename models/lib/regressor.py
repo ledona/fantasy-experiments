@@ -72,7 +72,7 @@ def _expand_models(
 
 
 def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: dict):
-    if algo.startswith("tpot"):
+    if algo.startswith("tpot") or algo == "auto-xgb":
         modeler_init_kwargs = {
             "use_dask": use_dask,
             # "n_jobs": cli_training_params["n_jobs"],
@@ -107,13 +107,8 @@ def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: 
             modeler_init_kwargs[key] = cli_training_params[k_]
         return modeler_init_kwargs
 
-    if algo == "auto-xgb":
-        modeler_init_kwargs = {
-            "verbosity": 2,
-            "n_jobs": cli_training_params["n_jobs"],
-        }
-        if cli_training_params["early_stop"] is not None:
-            modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
+    if algo == "xgboost":
+        modeler_init_kwargs = {"verbosity": 2}
         return modeler_init_kwargs
 
     if algo == "dummy":
@@ -313,13 +308,13 @@ def _add_train_parser(sub_parsers):
             choices=AlgorithmType.__args__,
         )
 
-        train_parser.add_argument(
-            "--n_jobs",
-            "--tpot_jobs",
-            help="Number of jobs/processors to use during training",
-            type=int,
-            default=argparse.SUPPRESS,
-        )
+        # train_parser.add_argument(
+        #     "--n_jobs",
+        #     "--tpot_jobs",
+        #     help="Number of jobs/processors to use during training",
+        #     type=int,
+        #     default=argparse.SUPPRESS,
+        # )
         train_parser.add_argument(
             "--max_time_mins",
             "--training_mins",

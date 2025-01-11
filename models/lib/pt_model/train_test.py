@@ -475,7 +475,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-AlgorithmType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
+AlgorithmType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn", "xgboost"]
 """machine learning algorithm used for model selection and training"""
 
 
@@ -496,6 +496,7 @@ def _instantiate_regressor(
     elif algorithm == "auto-xgb":
         model = TPOTRegressor(
             config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
+            **model_init_kwargs,
         )
     elif algorithm == "dummy":
         model = DummyRegressor(**model_init_kwargs)
@@ -620,10 +621,10 @@ def _train_test(
         model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
     )
     artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
-    if algo in ("dummy", "auto-xgb"):
+    if algo == "dummy":
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(model, artifact_filepath)
-    elif algo.startswith("tpot"):
+    elif algo.startswith("tpot") or algo == "auto-xgb":
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
     elif algo == "nn":
