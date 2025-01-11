@@ -20,7 +20,8 @@
             2019,
             2020,
             2021,
-            2022
+            2022,
+            2024
         ],
         "missing_data_threshold": 0.1,
         "train_params": {
