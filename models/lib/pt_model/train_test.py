@@ -475,32 +475,38 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-AlgorithmType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn", "xgboost"]
+AlgorithmType = Literal["tpot", "tpot-light", "dummy", "tpot-xgboost", "nn", "xgboost"]
 """machine learning algorithm used for model selection and training"""
 
 
 def _instantiate_regressor(
     algorithm: AlgorithmType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
 ):
-    fit_addl_args: None | tuple = None
-    fit_kwargs: None | dict = None
     if algorithm == "tpot":
         model = TPOTRegressor(
             **model_init_kwargs,
         )
-    elif algorithm == "tpot-light":
+        return model, None, None
+
+    if algorithm == "tpot-light":
         model = TPOTRegressor(
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
         )
-    elif algorithm == "auto-xgb":
+        return model, None, None
+
+    if algorithm == "tpot-xgboost":
         model = TPOTRegressor(
             config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
             **model_init_kwargs,
         )
-    elif algorithm == "dummy":
+        return model, None, None
+
+    if algorithm == "dummy":
         model = DummyRegressor(**model_init_kwargs)
-    elif algorithm == "nn":
+        return model, None, None
+
+    if algorithm == "nn":
         input_size = len(x.columns)
         resume_filepath = (
             model_init_kwargs.pop("resume_checkpoint_filepath")
@@ -524,6 +530,7 @@ def _instantiate_regressor(
                 "resume_optimizer_state": optimizer_state,
             }
         else:
+            fit_kwargs = None
             if model_init_kwargs.get("checkpoint_dir") is None:
                 default_checkpoint_root_dir = os.path.join(gettempdir(), "fantasy-nn-checkpoints")
                 if not os.path.isdir(default_checkpoint_root_dir):
@@ -554,12 +561,9 @@ def _instantiate_regressor(
             )
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = model.to(device)
+        return model, (x, y), fit_kwargs
 
-        fit_addl_args = (x, y)
-    else:
-        raise NotImplementedError(f"{algorithm=} not recognized")
-
-    return model, fit_addl_args, fit_kwargs
+    raise NotImplementedError(f"{algorithm=} not recognized")
 
 
 def _train_test(
@@ -594,10 +598,11 @@ def _train_test(
     assert model is not None
 
     if algo.startswith("tpot"):
-        _LOGGER.success("TPOT fitted")
         tpot_model = cast(TPOTRegressor, model)
+        max_gen = max(indiv["generation"] for indiv in tpot_model.evaluated_individuals_.values())
+        _LOGGER.success("TPOT fitted over %i generations", max_gen)
         pprint(tpot_model.fitted_pipeline_)
-    elif algo in ("dummy", "auto-xgb", "nn"):
+    elif algo in ("dummy", "nn"):
         _LOGGER.success("%s fitted", algo)
     else:
         raise NotImplementedError(f"model type {algo} not recognized")
@@ -624,7 +629,7 @@ def _train_test(
     if algo == "dummy":
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(model, artifact_filepath)
-    elif algo.startswith("tpot") or algo == "auto-xgb":
+    elif algo.startswith("tpot"):
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
     elif algo == "nn":
