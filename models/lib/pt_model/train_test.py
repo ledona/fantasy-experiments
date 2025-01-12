@@ -229,7 +229,8 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_thres
 
     if not skip_report:
         print(
-            f"\nMISSING-DATA-REPORT cases={len(df)} warning_threshold={warning_threshold * 100:.02f}%"
+            f"\nMISSING-DATA-REPORT cases={len(df)} "
+            "warning_threshold={warning_threshold * 100:.02f}%"
         )
     if len(warning_df) == 0:
         print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
@@ -574,7 +575,7 @@ def _train_test(
     dest_dir: str,
     model_filebase: str,
     **model_init_kwargs,
-) -> tuple[str, PerformanceDict, datetime]:
+) -> tuple[str, PerformanceDict, datetime, dict | None]:
     """
     train, test and save a model to a pickle
 
@@ -596,14 +597,18 @@ def _train_test(
     )
     model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
     assert model is not None
+    training_desc_info: dict = {"time_to_fit": str(datetime.now() - dt_trained)}
 
     if algo.startswith("tpot"):
         tpot_model = cast(TPOTRegressor, model)
         max_gen = max(indiv["generation"] for indiv in tpot_model.evaluated_individuals_.values())
-        _LOGGER.success("TPOT fitted over %i generations", max_gen)
+        training_desc_info["generations_tested"] = max_gen
+        _LOGGER.success("TPOT fitted in %i generation(s)", max_gen)
         pprint(tpot_model.fitted_pipeline_)
     elif algo in ("dummy", "nn"):
         _LOGGER.success("%s fitted", algo)
+        if algo == "nn":
+            training_desc_info["epochs_trained"] = cast(NNRegressor, model).epochs_trained
     else:
         raise NotImplementedError(f"model type {algo} not recognized")
 
@@ -632,9 +637,11 @@ def _train_test(
     elif algo.startswith("tpot"):
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
+        _LOGGER.warning("add info for tpot training")
     elif algo == "nn":
         artifact_filepath = artifact_filebase_path + ".pt"
         torch.save(model, artifact_filepath)
+        _LOGGER.warning("add info for nn training")
     else:
         raise NotImplementedError(f"model {algo=} not recognized")
 
@@ -647,13 +654,15 @@ def _train_test(
         "r2_train": r2_train,
         "mae_train": mae_train,
     }
-    return artifact_filepath, performance, dt_trained
+    return artifact_filepath, performance, dt_trained, training_desc_info
 
 
 def _get_model_cls(algorithm: AlgorithmType):
+    if algorithm.startswith("tpot") or algorithm == "dummy":
+        return SKLModel
     if algorithm == "nn":
         return NNModel
-    return SKLModel
+    raise NotImplementedError(f"Don't know what model class to use for {algorithm=}")
 
 
 def _create_fantasy_model(
@@ -670,6 +679,7 @@ def _create_fantasy_model(
     target_pos: None | list[str],
     training_pos: None | list[str],
     model_params: dict[str, str | int],
+    model_info: None | dict,
     one_hot_stats: dict[str, list[str]] | None = None,
     recent_mean: bool = True,
     recent_explode: bool = True,
@@ -770,6 +780,7 @@ def _create_fantasy_model(
         player_positions=target_pos,
         input_cols=columns.to_list(),
         impute_values=imputes,
+        desc_info=model_info,
     )
 
     return model
@@ -875,7 +886,7 @@ def model_and_test(
         else:
             _LOGGER.info("A new model will be saved to '%s'", final_model_filepath)
 
-        model_artifact_path, performance, dt_trained = _train_test(
+        model_artifact_path, performance, dt_trained, addl_info = _train_test(
             algorithm,
             name,
             target,
@@ -905,6 +916,7 @@ def model_and_test(
             target_pos,
             training_pos,
             addl_params,
+            addl_info,
         )
 
         model.dump(final_model_filepath, overwrite=mode == "overwrite")

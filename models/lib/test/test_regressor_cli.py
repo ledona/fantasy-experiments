@@ -2,7 +2,7 @@ import json
 import os
 import platform
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import cast
 
 import joblib
@@ -281,6 +281,7 @@ def _create_expected_model_dict(
             "player_positions": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["target_pos"],
             "type": "sklearn",
             "trained_on_uname": platform.uname()._asdict(),
+            "desc_info": {"time_to_fit": str(timedelta())},
         },
     }
 
@@ -390,6 +391,7 @@ def _retrain_test_model_check(
 
     assert model_dict["trained_parameters"]["regressor_path"].rsplit(".", 1)[0] == filepath_base
     del model_dict["trained_parameters"]["regressor_path"]
+    del model_dict["meta_extra"]["desc_info"]
 
     # test and drop parameters
     algo_defaults, renames = TRAINING_PARAM_DEFAULTS[expected_params["algorithm"]]
@@ -453,11 +455,14 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         mock_pickle_func = mocker.patch("lib.pt_model.train_test.torch").save
         mock_regressor = mocker.patch("lib.pt_model.train_test.NNRegressor")
         mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
+        mock_fitted.epochs_trained = 5
         artifact_ext = "pt"
     elif algo.startswith("tpot"):
         mock_pickle_func = mocker.patch("lib.pt_model.train_test.joblib").dump
         mock_regressor = mocker.patch("lib.pt_model.train_test.TPOTRegressor")
+        mock_regressor.return_value.fit.return_value.evaluated_individuals_ = {0: {"generation": 1}}
         mock_fitted = mock_regressor.return_value.fit.return_value.fitted_pipeline_
+        mock_fitted.generations_tested = 10
     elif algo == "dummy":
         mock_pickle_func = mocker.patch("lib.pt_model.train_test.joblib").dump
         mock_regressor = mocker.patch("lib.pt_model.train_test.DummyRegressor")
