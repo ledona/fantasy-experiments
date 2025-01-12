@@ -645,9 +645,11 @@ def _train_test(
     elif algo.startswith("tpot"):
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
+        _LOGGER.warning("add info for tpot training")
     elif algo == "nn":
         artifact_filepath = artifact_filebase_path + ".pt"
         torch.save(model, artifact_filepath)
+        _LOGGER.warning("add info for nn training")
     else:
         raise NotImplementedError(f"model {algo=} not recognized")
 
