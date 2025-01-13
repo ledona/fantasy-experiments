@@ -24,13 +24,18 @@
         ],
         "missing_data_threshold": 0.085,
         "train_params": {
-            "max_time_mins": 15
+            "early_stop": 3,
+            "population_size": 50,
+            "max_time_mins": 360
         }
     },
     "model_groups": [
         {
             "data_filename": "nhl_team.parquet",
             "p_or_t": "T",
+            "train_params": {
+                "n_jobs": 8
+            },
             "models": {
                 "NHL-team-goal": {
                     "target": [
@@ -50,6 +55,11 @@
             "data_filename": "nhl_skater.parquet",
             "include_pos": true,
             "p_or_t": "P",
+            "train_params": {
+                "n_jobs": 1,
+                "max_eval_time_mins": 10,
+                "population_size": 10
+            },
             "target_pos": [
                 "LW",
                 "RW",
@@ -64,9 +74,6 @@
                 "C",
                 "D"
             ],
-            "train_params": {
-                "max_time_mins": 30
-            },
             "models": {
                 "NHL-skater-DK": {
                     "target": [
@@ -92,10 +99,7 @@
                     "target": [
                         "stat",
                         "shot"
-                    ],
-                    "train_params": {
-                        "max_eval_time_mins": 10
-                    }
+                    ]
                 },
                 "NHL-skater-assist": {
                     "target": [
@@ -107,10 +111,7 @@
                     "target": [
                         "stat",
                         "goal"
-                    ],
-                    "train_params": {
-                        "max_eval_time_mins": 15
-                    }
+                    ]
                 }
             }
         },
@@ -118,10 +119,6 @@
             "data_filename": "nhl_goalie.parquet",
             "p_or_t": "P",
             "include_pos": false,
-            "train_params": {
-                "max_time_mins": 20,
-                "max_eval_time_mins": 10
-            },
             "target_pos": [
                 "G"
             ],
