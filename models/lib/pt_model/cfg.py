@@ -65,7 +65,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
     "tpot": _TPOT_PARAM_DEFAULTS_TUPLE,
     "tpot-light": _TPOT_PARAM_DEFAULTS_TUPLE,
     "tpot-xgboost": _TPOT_PARAM_DEFAULTS_TUPLE,
-    "xgboost": ({}, None)
+    "xgboost": ({}, None),
 }
 """
 dict mapping algorithm to (default-regressor-params, param-rename-dict)
@@ -539,6 +539,7 @@ class TrainingConfiguration:
             file_found_mode,
             model_dest_filename=dest_filename,
             data_src_params=data_src_params,
+            limit=limit,
         )
 
         return model

@@ -354,7 +354,8 @@ def _add_train_parser(sub_parsers):
             "--limited_data",
             "--data_limit",
             type=int,
-            help="limit the training data to this many sample",
+            help="limit the training data to this many cases, "
+            "validation data will not be limited",
         )
         train_parser.add_argument(
             "--early_stop",

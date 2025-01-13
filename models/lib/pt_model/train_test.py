@@ -82,7 +82,7 @@ def _load_data_local(
                 "validation season. Try again without limit, or try a different "
                 "the validation season."
             )
-    elif filename.endswith(".parquet") or filename.endswith(".parquet"):
+    elif filename.endswith(".parquet") or filename.endswith(".pq"):
         if limit is not None:
             pf = pq.ParquetFile(filename)
             first_n_rows = next(pf.iter_batches(batch_size=limit))
@@ -574,6 +574,7 @@ def _train_test(
     tt_data: TrainTestData,
     dest_dir: str,
     model_filebase: str,
+    limit: None | int,
     **model_init_kwargs,
 ) -> tuple[str, PerformanceDict, datetime, dict | None]:
     """
@@ -597,7 +598,14 @@ def _train_test(
     )
     model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
     assert model is not None
-    training_desc_info: dict = {"time_to_fit": str(datetime.now() - dt_trained)}
+    training_desc_info: dict = {
+        "time_to_fit": str(datetime.now() - dt_trained),
+        "n_train_cases": len(y_train),
+        "n_test_cases": len(y_test),
+        "n_validation_cases": len(y_val),
+    }
+    if limit is not None:
+        training_desc_info["non_validation_data_limit"] = limit
 
     if algo.startswith("tpot"):
         tpot_model = cast(TPOTRegressor, model)
@@ -637,11 +645,9 @@ def _train_test(
     elif algo.startswith("tpot"):
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
-        _LOGGER.warning("add info for tpot training")
     elif algo == "nn":
         artifact_filepath = artifact_filebase_path + ".pt"
         torch.save(model, artifact_filepath)
-        _LOGGER.warning("add info for nn training")
     else:
         raise NotImplementedError(f"model {algo=} not recognized")
 
@@ -845,6 +851,7 @@ def model_and_test(
     mode: ModelFileFoundMode,
     model_dest_filename: str | None = None,
     data_src_params: dict | None = None,
+    limit: int | None = None,
 ):
     """
     create or load a model and test it
@@ -893,6 +900,7 @@ def model_and_test(
             tt_data,
             dest_dir,
             filebase_name,
+            limit,
             **ml_kwargs,
         )
         performance["season_val"] = validation_season
