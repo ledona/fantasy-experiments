@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Literal
 
 import pandas as pd
-from fantasy_py import DataNotAvailableException
+from fantasy_py import DataNotAvailableException, now
 
 from .automl import ExistingModelMode, Framework, ModelTarget, create_automl_model
 from .generate_train_test import generate_train_test, load_csv
@@ -63,7 +63,7 @@ def evaluate_models(
         "Style": style.name,
         "Type": contest_type.NAME,
         "ModelType": framework,
-        "Date": datetime.now().strftime("%Y%m%d"),
+        "Date": now().strftime("%Y%m%d"),
     }
     final_models_to_test = {"all-top", "all-lws"} if models_to_test is None else models_to_test
     model_desc_pre = "-".join([sport, service_name, style.name, contest_type.NAME])

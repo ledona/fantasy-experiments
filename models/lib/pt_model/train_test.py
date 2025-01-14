@@ -29,6 +29,7 @@ from fantasy_py import (
     UnexpectedValueError,
     dt_to_filename_str,
     log,
+    now,
 )
 from fantasy_py.inference import (
     NNModel,
@@ -576,7 +577,7 @@ def _train_test(
     training_time: max time to train in seconds
     returns tuple[filepath to the model, model performance, dt model was trained]
     """
-    dt_trained = datetime.now()
+    dt_trained = now()
     _LOGGER.info("Fitting model_name=%s using type=%s", model_name, algo)
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
