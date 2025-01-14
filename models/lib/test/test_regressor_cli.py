@@ -2,7 +2,7 @@ import json
 import os
 import platform
 import random
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import cast
 
 import joblib
@@ -157,50 +157,50 @@ def test_training_def_file_model_names(tdf: TrainingConfiguration):
     assert set(tdf.model_names) == set(_EXPECTED_TRAINING_CFG_PARAMS.keys())
 
 
-def _finalize_expected_params(params: _TrainingParamsDict, cmdline_strs: list[str]):
-    assert params["train_params"]
+# def _finalize_expected_params(params: _TrainingParamsDict, cmdline_strs: list[str]):
+#     assert params["train_params"]
 
-    n_jobs = (
-        int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
-        if "--tpot_jobs" in cmdline_strs
-        else params["train_params"]["n_jobs"]
-    )
-    max_eval_time_mins = (
-        int(cmdline_strs[cmdline_strs.index("--max_eval_time_mins") + 1])
-        if "--max_eval_time_mins" in cmdline_strs
-        else params["train_params"]["max_eval_time_mins"]
-    )
-    max_time_mins = (
-        int(cmdline_strs[cmdline_strs.index("--max_time_mins") + 1])
-        if "--max_time_mins" in cmdline_strs
-        else params["train_params"]["max_time_mins"]
-    )
-    generations = (
-        int(cmdline_strs[cmdline_strs.index("--epochs_max") + 1])
-        if "--epochs_max" in cmdline_strs
-        else params["train_params"]["epochs_max"]
-    )
-    early_stop = (
-        int(cmdline_strs[cmdline_strs.index("--early_stop") + 1])
-        if "--early_stop" in cmdline_strs
-        else params["train_params"]["early_stop"]
-    )
+#     n_jobs = (
+#         int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
+#         if "--tpot_jobs" in cmdline_strs
+#         else params["train_params"]["n_jobs"]
+#     )
+#     max_eval_time_mins = (
+#         int(cmdline_strs[cmdline_strs.index("--max_eval_time_mins") + 1])
+#         if "--max_eval_time_mins" in cmdline_strs
+#         else params["train_params"]["max_eval_time_mins"]
+#     )
+#     max_time_mins = (
+#         int(cmdline_strs[cmdline_strs.index("--max_time_mins") + 1])
+#         if "--max_time_mins" in cmdline_strs
+#         else params["train_params"]["max_time_mins"]
+#     )
+#     generations = (
+#         int(cmdline_strs[cmdline_strs.index("--epochs_max") + 1])
+#         if "--epochs_max" in cmdline_strs
+#         else params["train_params"]["epochs_max"]
+#     )
+#     early_stop = (
+#         int(cmdline_strs[cmdline_strs.index("--early_stop") + 1])
+#         if "--early_stop" in cmdline_strs
+#         else params["train_params"]["early_stop"]
+#     )
 
-    train_params = {
-        # "use_dask": False,
-        # "verbosity": 3,
-        # "random_state": params["seed"],
-        "max_time_mins": max_time_mins,
-        "max_eval_time_mins": max_eval_time_mins,
-        "n_jobs": n_jobs,
-        "generations": generations,
-        "early_stop": early_stop,
-    }
-    target_tuple = (
-        params["target"].split(":") if isinstance(params["target"], str) else params["target"]
-    )
+#     train_params = {
+#         # "use_dask": False,
+#         # "verbosity": 3,
+#         # "random_state": params["seed"],
+#         "max_time_mins": max_time_mins,
+#         "max_eval_time_mins": max_eval_time_mins,
+#         "n_jobs": n_jobs,
+#         "generations": generations,
+#         "early_stop": early_stop,
+#     }
+#     target_tuple = (
+#         params["target"].split(":") if isinstance(params["target"], str) else params["target"]
+#     )
 
-    return train_params, target_tuple
+#     return train_params, target_tuple
 
 
 def _create_expected_model_dict(
@@ -281,7 +281,12 @@ def _create_expected_model_dict(
             "player_positions": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["target_pos"],
             "type": "sklearn",
             "trained_on_uname": platform.uname()._asdict(),
-            "desc_info": {"time_to_fit": str(timedelta())},
+            "desc_info": {
+                "time_to_fit": str(timedelta()),
+                "n_train_cases": 3,
+                "n_test_cases": 1,
+                "n_validation_cases": 4,
+            },
         },
     }
 
@@ -329,7 +334,7 @@ def test_model_gen(tmpdir, mocker):
         }
     )
 
-    dt = datetime(2023, 12, 3, 0, 33)
+    dt = datetime(2023, 12, 3, 0, 33, tzinfo=UTC)
     with freeze_time(dt):
         main("train " + cmdline)
 
@@ -540,7 +545,7 @@ def test_retrain(
     # mock the training data load
     fake_raw_df = mocker.Mock(name="fake-raw-training-df")
     fake_training_features_df = pd.DataFrame({"stat:fake-stat:std": [8, 6, 7, 5], "pos_C": [1] * 4})
-    fake_tt_data = [fake_training_features_df, None, fake_training_features_df, None, None, None]
+    fake_tt_data = [fake_training_features_df, None, fake_training_features_df, None, [0], None]
     mocker.patch("lib.pt_model.cfg.load_data", return_value=(fake_raw_df, fake_tt_data, None))
 
     # mocks to skip artifact dumping stuff

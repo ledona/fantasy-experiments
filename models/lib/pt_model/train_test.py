@@ -599,10 +599,10 @@ def _train_test(
     model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
     assert model is not None
     training_desc_info: dict = {
-        "time_to_fit": str(datetime.now() - dt_trained),
-        "n_train_cases": len(y_train),
-        "n_test_cases": len(y_test),
-        "n_validation_cases": len(y_val),
+        "time_to_fit": str(now() - dt_trained),
+        "n_train_cases": len(X_train),
+        "n_test_cases": len(X_test),
+        "n_validation_cases": len(X_val),
     }
     if limit is not None:
         training_desc_info["non_validation_data_limit"] = limit
