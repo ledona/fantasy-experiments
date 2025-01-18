@@ -10,7 +10,6 @@ from pprint import pformat, pprint
 from tempfile import gettempdir
 from typing import Literal, cast
 
-import dateutil
 import joblib
 import pandas as pd
 import pyarrow as pa
@@ -18,6 +17,7 @@ import pyarrow.parquet as pq
 import sklearn.metrics
 import sklearn.model_selection
 import torch
+from dateutil import parser as du_parser
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
@@ -574,7 +574,6 @@ def _train_test(
     tt_data: TrainTestData,
     dest_dir: str,
     model_filebase: str,
-    limit: None | int,
     **model_init_kwargs,
 ) -> tuple[str, PerformanceDict, datetime, dict | None]:
     """
@@ -604,8 +603,6 @@ def _train_test(
         "n_test_cases": len(X_test),
         "n_validation_cases": len(X_val),
     }
-    if limit is not None:
-        training_desc_info["non_validation_data_limit"] = limit
 
     if algo.startswith("tpot"):
         tpot_model = cast(TPOTRegressor, model)
@@ -686,6 +683,7 @@ def _create_fantasy_model(
     training_seasons: list[int],
     target_pos: None | list[str],
     training_pos: None | list[str],
+    limit: int | None,
     model_params: dict[str, str | int],
     model_info: None | dict,
     one_hot_stats: dict[str, list[str]] | None = None,
@@ -767,6 +765,8 @@ def _create_fantasy_model(
         "include_pos": include_pos,
         "seasons": training_seasons,
     }
+    if limit is not None:
+        data_def["limit"] = limit
     if only_starters is not None:
         data_def["only_starters"] = only_starters
     if training_pos is not None:
@@ -824,7 +824,7 @@ def _reuse_model_helper(
     model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
     most_recent_model: tuple[datetime, str] | None = None
     for filebase_name in glob(os.path.join(dest_dir, model_filename_pattern)):
-        model_dt = dateutil.parser.parse(filebase_name.split(".")[-2])
+        model_dt = du_parser.parse(filebase_name.split(".")[-2])
         if (most_recent_model is None) or (most_recent_model[0] < model_dt):
             most_recent_model = (model_dt, filebase_name)
 
@@ -851,9 +851,9 @@ def model_and_test(
     training_pos,
     dest_dir: str,
     mode: ModelFileFoundMode,
+    limit: int | None,
     model_dest_filename: str | None = None,
     data_src_params: dict | None = None,
-    limit: int | None = None,
 ):
     """
     create or load a model and test it
@@ -902,7 +902,6 @@ def model_and_test(
             tt_data,
             dest_dir,
             filebase_name,
-            limit,
             **ml_kwargs,
         )
         performance["season_val"] = validation_season
@@ -925,6 +924,7 @@ def model_and_test(
             training_seasons,
             target_pos,
             training_pos,
+            limit,
             addl_params,
             addl_info,
         )

@@ -54,6 +54,7 @@
             "data_filename": "nba_player.parquet",
             "p_or_t": "P",
             "include_pos": true,
+            "limit": 400000,
             "cols_to_drop": [
                 // not enough data for rank stats
                 "extra:game_pos_recent_rank",
@@ -61,7 +62,11 @@
             ],
             "train_params": {
                 "n_jobs": 4,
-                "max_eval_time_mins": 10
+                "population_size": 10,
+                "max_eval_time_mins": 10,
+                // for nn
+                "learning_rate": 0.000001,
+                "hidden_layers": 3
             },
             "models": {
                 "NBA-DK": {

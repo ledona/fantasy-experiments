@@ -123,6 +123,7 @@ class _TrainingParamsDict(TypedDict):
     """params passed to the training algorithm (likely as kwargs)"""
     original_model_columns: set[str] | None
     """for use when retraining a model, the final input cols for the original model"""
+    limit: int | None
 
 
 class TrainingConfiguration:
@@ -132,6 +133,7 @@ class TrainingConfiguration:
         self,
         filepath: str | None = None,
         cfg_dict: dict | None = None,
+        cfg_dict_source: str | None = None,
         algorithm: AlgorithmType | None = None,
         retrain=False,
     ):
@@ -145,11 +147,13 @@ class TrainingConfiguration:
         if (filepath is None) == (cfg_dict is None):
             raise InvalidArgumentsException("filepath and cfg_dict cannot be both defined or None")
         if filepath is not None:
+            self.source = filepath
             with open(filepath, "r") as f_:
                 self._json = cast(dict, json.load(f_, cls=JSONWithCommentsDecoder))
         else:
-            assert cfg_dict is not None
-            self._json = cfg_dict
+            assert cfg_dict_source is not None
+            self.source = cfg_dict_source
+            self._json = cast(dict, cfg_dict)
 
         sport = self._json.get("sport")
         if sport is None:
@@ -250,6 +254,7 @@ class TrainingConfiguration:
                 "target_pos": orig_model.player_positions,
                 "training_pos": orig_model.player_positions,
                 "train_params": train_params,
+                "limit": orig_model.data_def.get("limit"),
             }
         )
 
@@ -310,7 +315,10 @@ class TrainingConfiguration:
         }
         return (
             TrainingConfiguration(
-                cfg_dict=cfg_dict, retrain=True, algorithm=model_params_dict["algorithm"]
+                cfg_dict=cfg_dict,
+                cfg_dict_source=model_filepath,
+                retrain=True,
+                algorithm=model_params_dict["algorithm"],
             ),
             orig_model,
         )
@@ -440,13 +448,14 @@ class TrainingConfiguration:
         data_dir: str | None,
         info: bool,
         dump_data: str,
-        limit: None | int,
+        training_data_limit: None | int,
         dest_filename: str | None,
         **regressor_kwargs,
     ):
         if error_data:
             raise NotImplementedError()
         params = self.get_params(model_name)
+        limit = training_data_limit or params.get("limit")
 
         data_filepath = params["data_filename"]
         if data_dir is not None:
@@ -504,14 +513,15 @@ class TrainingConfiguration:
         final_regressor_kwargs = self._get_regressor_kwargs(
             self.algorithm, regressor_kwargs, cast(dict, params)
         )
-        print(f"\nTraining of {model_name} will be based on the following parameters:")
+        print(f"\nTraining parameters from '{self.source}' for '{model_name}':")
         pprint(params)
-        print()
         print(
-            f"Training of {model_name} will proceed with the regressor "
-            "kwargs (overriding any previous params):"
+            f"\nTraining of '{model_name}' will proceed with the regressor "
+            "kwargs (includes any cmdline overrides):"
         )
         pprint(final_regressor_kwargs)
+        if limit is not None:
+            print(f"with a training data limit of {limit}")
 
         if info:
             return None
@@ -537,9 +547,9 @@ class TrainingConfiguration:
             params["training_pos"] or params["target_pos"],
             dest_dir,
             file_found_mode,
+            limit,
             model_dest_filename=dest_filename,
             data_src_params=data_src_params,
-            limit=limit,
         )
 
         return model

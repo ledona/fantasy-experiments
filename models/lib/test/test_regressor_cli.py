@@ -29,6 +29,9 @@ from ..pt_model import (
 from ..pt_model.cfg import _NO_DEFAULT
 from ..regressor import main
 
+_VALIDATION_SEASON = 2023
+"""validation season, must match the model training definition"""
+
 _EXPECTED_TRAINING_CFG_PARAMS = {
     "MLB-team-runs": {
         "sport": "mlb",
@@ -47,7 +50,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
             "max_eval_time_mins": 15,
             "max_time_mins": 60,
         },
-        "validation_season": 2023,
+        "validation_season": _VALIDATION_SEASON,
         "recent_games": 5,
         "training_seasons": [2021, 2022],
         "data_filename": "mlb_team.parquet",
@@ -66,7 +69,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
             "max_time_mins": 60,
         },
         "include_pos": False,
-        "validation_season": 2023,
+        "validation_season": _VALIDATION_SEASON,
         "recent_games": 5,
         "training_seasons": [2021, 2022],
         "data_filename": "mlb_pitcher.parquet",
@@ -88,7 +91,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
             "max_time_mins": 45,
             "n_jobs": 2,
         },
-        "validation_season": 2023,
+        "validation_season": _VALIDATION_SEASON,
         "recent_games": 5,
         "training_seasons": [2021, 2022],
         "data_filename": "mlb_hitter.parquet",
@@ -109,7 +112,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
             "max_time_mins": 45,
             "n_jobs": 2,
         },
-        "validation_season": 2023,
+        "validation_season": _VALIDATION_SEASON,
         "recent_games": 5,
         "training_seasons": [2021, 2022],
         "data_filename": "mlb_hitter.parquet",
@@ -161,52 +164,6 @@ def test_training_def_file_model_names(tdf: TrainingConfiguration):
     assert set(tdf.model_names) == set(_EXPECTED_TRAINING_CFG_PARAMS.keys())
 
 
-# def _finalize_expected_params(params: _TrainingParamsDict, cmdline_strs: list[str]):
-#     assert params["train_params"]
-
-#     n_jobs = (
-#         int(cmdline_strs[cmdline_strs.index("--tpot_jobs") + 1])
-#         if "--tpot_jobs" in cmdline_strs
-#         else params["train_params"]["n_jobs"]
-#     )
-#     max_eval_time_mins = (
-#         int(cmdline_strs[cmdline_strs.index("--max_eval_time_mins") + 1])
-#         if "--max_eval_time_mins" in cmdline_strs
-#         else params["train_params"]["max_eval_time_mins"]
-#     )
-#     max_time_mins = (
-#         int(cmdline_strs[cmdline_strs.index("--max_time_mins") + 1])
-#         if "--max_time_mins" in cmdline_strs
-#         else params["train_params"]["max_time_mins"]
-#     )
-#     generations = (
-#         int(cmdline_strs[cmdline_strs.index("--epochs_max") + 1])
-#         if "--epochs_max" in cmdline_strs
-#         else params["train_params"]["epochs_max"]
-#     )
-#     early_stop = (
-#         int(cmdline_strs[cmdline_strs.index("--early_stop") + 1])
-#         if "--early_stop" in cmdline_strs
-#         else params["train_params"]["early_stop"]
-#     )
-
-#     train_params = {
-#         # "use_dask": False,
-#         # "verbosity": 3,
-#         # "random_state": params["seed"],
-#         "max_time_mins": max_time_mins,
-#         "max_eval_time_mins": max_eval_time_mins,
-#         "n_jobs": n_jobs,
-#         "generations": generations,
-#         "early_stop": early_stop,
-#     }
-#     target_tuple = (
-#         params["target"].split(":") if isinstance(params["target"], str) else params["target"]
-#     )
-
-#     return train_params, target_tuple
-
-
 def _create_expected_model_dict(
     model_name,
     feature_stat,
@@ -218,6 +175,7 @@ def _create_expected_model_dict(
     algorithm,
     expected_r2,
     expected_mae,
+    limit: int | None,
 ):
     expected_training_data_def = {
         k_: v_
@@ -233,6 +191,7 @@ def _create_expected_model_dict(
             "cols_to_drop",
             "missing_data_threshold",
             "target_pos",
+            "limit",
         ]
     }
     target = expected_training_data_def.pop("target")
@@ -251,11 +210,15 @@ def _create_expected_model_dict(
             "target": [target[0], expected_training_data_def.pop("p_or_t").value, target[1]],
         }
     )
+    if limit is not None:
+        expected_training_data_def["limit"] = limit
+
     artifact_parent_dir, artifact_filename = os.path.split(pkl_filepath)
     model_parent_dir = os.path.dirname(model_filepath)
     final_artifact_filepath = (
         pkl_filepath if model_parent_dir != artifact_parent_dir else artifact_filename
     )
+
     return {
         "name": model_name,
         "sport": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["sport"],
@@ -306,7 +269,8 @@ def _fake_metrics(mocker):
     return expected_r2, expected_mae
 
 
-def test_model_gen(tmpdir, mocker):
+@pytest.mark.parametrize("limit", [None, 10000], ids=["no-limit", "w-limit"])
+def test_model_gen(tmpdir, mocker, limit: int | None):
     """test that the resulting model file is as expected and that
     the expected calls to fit the model, etc were made"""
     model_name = "MLB-H-DK"
@@ -323,9 +287,25 @@ def test_model_gen(tmpdir, mocker):
     )
 
     mock_pd = mocker.patch("lib.pt_model.train_test.pd")
-    mock_pd.read_parquet.return_value = pd.DataFrame(
-        {"pos": [position], "pos_id": [1], "extra:bases": [0], target_col: [0], "calc:y_score": [0]}
+    loaded_data_df = pd.DataFrame(
+        {
+            "pos": [position],
+            "pos_id": [1],
+            "extra:bases": [0],
+            target_col: [0],
+            "calc:y_score": [0],
+            "season": [_VALIDATION_SEASON],
+        }
     )
+
+    if limit is not None:
+        cmdline += f" --limit {limit}"
+        mock_pq = mocker.patch("lib.pt_model.train_test.pq")
+        mock_pq.ParquetFile.return_value.iter_batches.return_value = iter([0])
+        mock_pa = mocker.patch("lib.pt_model.train_test.pa")
+        mock_pa.Table.from_batches.return_value.to_pandas.return_value = loaded_data_df
+    else:
+        mock_pd.read_parquet.return_value = loaded_data_df
 
     feature_col = f"stat:{feature_stat}:std"
     pos_col = f"pos_{position}"
@@ -333,12 +313,12 @@ def test_model_gen(tmpdir, mocker):
         {
             feature_col: [8, 6, 7, 5],
             pos_col: [1] * 4,
-            "season": [2023] * 4,
+            "season": [_VALIDATION_SEASON] * 4,
             target_col: [1, 2, 3, 4],
         }
     )
 
-    dt = datetime(2023, 12, 3, 0, 33, tzinfo=UTC)
+    dt = datetime(_VALIDATION_SEASON, 12, 3, 0, 33, tzinfo=UTC)
     with freeze_time(dt):
         main("train " + cmdline)
 
@@ -370,6 +350,7 @@ def test_model_gen(tmpdir, mocker):
         algorithm,
         expected_r2,
         expected_mae,
+        limit,
     )
     deep_compare_dicts(model_dict, expected_model_dict)
 
