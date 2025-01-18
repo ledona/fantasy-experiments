@@ -112,6 +112,70 @@ def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: 
     raise UnexpectedValueError(f"Unknown algorithm '{algo}' requested")
 
 
+def _train_model(p_bar, model_name, args, tdf, progress, modeler_init_kwargs, original_model):
+    """help to train an individual model"""
+    _LOGGER.info("Training %s", model_name)
+    p_bar.set_postfix_str(
+        f"{model_name} {log.GREEN}\u2714{log.COLOR_RESET}={len(progress['successes'])} "
+        f"{log.RED}\u274C{log.COLOR_RESET}={len(progress['failures'])}"
+    )
+    try:
+        new_model = tdf.train_and_test(
+            model_name,
+            args.dest_dir,
+            args.error_analysis_data,
+            args.exists_mode,
+            args.data_dir,
+            args.info,
+            args.dump_data,
+            args.limited_data,
+            args.dest_filename,
+            **modeler_init_kwargs,
+        )
+        progress["successes"].append(model_name)
+    except RuntimeError as ex:
+        # RuntimeError likely means a fail due to tpot
+        _LOGGER.error("Failed to train '%s'", model_name, exc_info=ex)
+        progress["failures"].append((model_name, ex))
+        return
+    except BaseException as ex:
+        msg = f"Unexpected error while training '{model_name}'. STOPPING"
+        _LOGGER.critical(msg, exc_info=ex)
+        slack.send_slack(
+            msg + f": {ex}\n\n```" + traceback.format_exc(limit=None, chain=True) + "```"
+        )
+        raise
+
+    if not tdf.retrain or args.info:
+        return
+
+    assert (
+        new_model is not None
+        and original_model
+        and new_model._input_cols
+        and original_model._input_cols
+    )
+    if new_model.target != original_model.target:
+        raise UnexpectedValueError(
+            f"For '{model_name}' new model target {new_model.target} does not match "
+            f"original model target {original_model.target}!"
+        )
+    if (new_model_cols := set(new_model._input_cols)) != (
+        orig_model_cols := set(original_model._input_cols)
+    ):
+        missing_cols = orig_model_cols - new_model_cols
+        unexpected_cols = new_model_cols - orig_model_cols
+        _LOGGER.warning(
+            "For '%s' new model cols do not match original model cols! missing_cols (n=%i) = "
+            "%s unexpected_cols (n=%i) = %s",
+            model_name,
+            len(missing_cols),
+            missing_cols,
+            len(unexpected_cols),
+            unexpected_cols,
+        )
+
+
 def _handle_train(args: argparse.Namespace):
     if not os.path.isdir(args.dest_dir):
         args.parser.error(f"Destination directory '{args.dest_dir}' does not exist.")
@@ -161,65 +225,8 @@ def _handle_train(args: argparse.Namespace):
     for model_name in (
         p_bar := tqdm.tqdm(model_names, "models", disable=(len(model_names) == 1 or args.info))
     ):
-        _LOGGER.info("Training %s", model_name)
-        p_bar.set_postfix_str(
-            f"{model_name} {log.GREEN}\u2714{log.COLOR_RESET}={len(progress['successes'])} "
-            f"{log.RED}\u274C{log.COLOR_RESET}={len(progress['failures'])}"
-        )
-        try:
-            new_model = tdf.train_and_test(
-                model_name,
-                args.dest_dir,
-                args.error_analysis_data,
-                args.exists_mode,
-                args.data_dir,
-                args.info,
-                args.dump_data,
-                args.limited_data,
-                args.dest_filename,
-                **modeler_init_kwargs,
-            )
-            progress["successes"].append(model_name)
-        except RuntimeError as ex:
-            # RuntimeError likely means a fail due to tpot
-            _LOGGER.error("Failed to train '%s'", model_name, exc_info=ex)
-            progress["failures"].append((model_name, ex))
-            continue
-        except BaseException as ex:
-            msg = f"Unexpected error while training '{model_name}'. STOPPING"
-            _LOGGER.critical(msg, exc_info=ex)
-            slack.send_slack(
-                msg + f": {ex}\n\n```" + traceback.format_exc(limit=None, chain=True) + "```"
-            )
-            raise
+        _train_model(p_bar, model_name, args, tdf, progress, modeler_init_kwargs, original_model)
 
-        if not tdf.retrain or args.info:
-            continue
-        assert (
-            new_model is not None
-            and original_model
-            and new_model._input_cols
-            and original_model._input_cols
-        )
-        if new_model.target != original_model.target:
-            raise UnexpectedValueError(
-                f"For '{model_name}' new model target {new_model.target} does not match "
-                f"original model target {original_model.target}!"
-            )
-        if (new_model_cols := set(new_model._input_cols)) != (
-            orig_model_cols := set(original_model._input_cols)
-        ):
-            missing_cols = orig_model_cols - new_model_cols
-            unexpected_cols = new_model_cols - orig_model_cols
-            _LOGGER.warning(
-                "For '%s' new model cols do not match original model cols! missing_cols (n=%i) = "
-                "%s unexpected_cols (n=%i) = %s",
-                model_name,
-                len(missing_cols),
-                missing_cols,
-                len(unexpected_cols),
-                unexpected_cols,
-            )
     if len(progress["failures"]) > 0:
         msg_prefix = (
             f"Only {len(model_names) - len(progress['failures'])} of {len(model_names)} "
