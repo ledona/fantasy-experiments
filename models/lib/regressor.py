@@ -112,7 +112,15 @@ def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: 
     raise UnexpectedValueError(f"Unknown algorithm '{algo}' requested")
 
 
-def _train_model(p_bar, model_name, args, tdf, progress, modeler_init_kwargs, original_model):
+def _train_model(
+    p_bar,
+    model_name,
+    args,
+    tdf: TrainingConfiguration,
+    progress,
+    modeler_init_kwargs,
+    original_model,
+):
     """help to train an individual model"""
     _LOGGER.info("Training %s", model_name)
     p_bar.set_postfix_str(

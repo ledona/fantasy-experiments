@@ -481,35 +481,6 @@ class TrainingConfiguration:
         ):
             raise UnexpectedValueError(f"Invalid model target: {target_tuple}")
 
-        _, tt_data, one_hot_stats = load_data(
-            data_filepath,
-            target_tuple,
-            params["validation_season"],
-            params["seed"],
-            include_position=params["include_pos"],
-            col_drop_filters=params["cols_to_drop"],
-            missing_data_warn_threshold=params.get("missing_data_threshold", 0),
-            filtering_query=params["filtering_query"],
-            limit=limit,
-            expected_cols=params["original_model_columns"] if self.retrain else None,
-        )
-
-        _LOGGER.info(
-            "for %s data load of '%s' complete. one_hot_stats=%s",
-            model_name,
-            params["data_filename"],
-            one_hot_stats,
-        )
-        if dump_data:
-            _LOGGER.info("Dumping training data to '%s'", dump_data)
-            df = pd.concat(tt_data[0:2], axis=1)
-            if dump_data.endswith(".csv"):
-                df.to_csv(dump_data)
-            elif dump_data.endswith(".parquet"):
-                df.to_parquet(dump_data)
-            else:
-                raise UnexpectedValueError(f"Unknown data dump format: {dump_data}")
-
         final_regressor_kwargs = self._get_regressor_kwargs(
             self.algorithm, regressor_kwargs, cast(dict, params)
         )
@@ -522,6 +493,39 @@ class TrainingConfiguration:
         pprint(final_regressor_kwargs)
         if limit is not None:
             print(f"with a training data limit of {limit}")
+
+        try:
+            _, tt_data, one_hot_stats = load_data(
+                data_filepath,
+                target_tuple,
+                params["validation_season"],
+                params["seed"],
+                include_position=params["include_pos"],
+                col_drop_filters=params["cols_to_drop"],
+                missing_data_warn_threshold=params.get("missing_data_threshold", 0),
+                filtering_query=params["filtering_query"],
+                limit=limit,
+                expected_cols=params["original_model_columns"] if self.retrain else None,
+            )
+            _LOGGER.info(
+                "for %s data load of '%s' complete. one_hot_stats=%s",
+                model_name,
+                params["data_filename"],
+                one_hot_stats,
+            )
+            if dump_data:
+                _LOGGER.info("Dumping training data to '%s'", dump_data)
+                df = pd.concat(tt_data[0:2], axis=1)
+                if dump_data.endswith(".csv"):
+                    df.to_csv(dump_data)
+                elif dump_data.endswith(".parquet"):
+                    df.to_parquet(dump_data)
+                else:
+                    raise UnexpectedValueError(f"Unknown data dump format: {dump_data}")
+        except FileNotFoundError:
+            if not info:
+                raise
+            _LOGGER.warning("Data file '%s' was not found", data_filepath)
 
         if info:
             return None
