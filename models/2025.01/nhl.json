@@ -1,0 +1,174 @@
+{
+    "sport": "nhl",
+    "global_default": {
+        "seed": 1,
+        "validation_season": 20212022,
+        "recent_games": 5,
+        "training_seasons": [
+            20072008,
+            20082009,
+            20092010,
+            20102011,
+            20112012,
+            20122013,
+            20132014,
+            20142015,
+            20152016,
+            20162017,
+            20172018,
+            20182019,
+            20192020,
+            20202021,
+            20222023,
+            20232024
+        ],
+        "missing_data_threshold": 0.085,
+        "train_params": {
+            "early_stop": 3,
+            "population_size": 50,
+            "max_time_mins": 360
+        }
+    },
+    "model_groups": [
+        {
+            "data_filename": "nhl_team.parquet",
+            "p_or_t": "T",
+            "train_params": {
+                "n_jobs": 8
+            },
+            "cols_to_drop": [
+                ".*-[1-9]"
+            ],
+            "models": {
+                "NHL-team-goal": {
+                    "target": [
+                        "stat",
+                        "goal"
+                    ]
+                },
+                "NHL-team-win": {
+                    "target": [
+                        "stat",
+                        "win"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nhl_skater.parquet",
+            "include_pos": true,
+            "p_or_t": "P",
+            "limit": 400000,
+            "train_params": {
+                "n_jobs": 3,
+                "max_eval_time_mins": 10,
+                "population_size": 10
+            },
+            "target_pos": [
+                "LW",
+                "RW",
+                "W",
+                "C",
+                "D"
+            ],
+            "training_pos": [
+                "LW",
+                "RW",
+                "W",
+                "C",
+                "D"
+            ],
+            "models": {
+                "NHL-skater-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:y_score*"
+                    ]
+                },
+                "NHL-skater-Y": {
+                    "target": [
+                        "calc",
+                        "y_score"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:dk_score*"
+                    ]
+                },
+                "NHL-skater-shot": {
+                    "target": [
+                        "stat",
+                        "shot"
+                    ]
+                },
+                "NHL-skater-assist": {
+                    "target": [
+                        "stat",
+                        "assist"
+                    ]
+                },
+                "NHL-skater-goal": {
+                    "target": [
+                        "stat",
+                        "goal"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nhl_goalie.parquet",
+            "p_or_t": "P",
+            "include_pos": false,
+            "target_pos": [
+                "G"
+            ],
+            "train_params": {
+                "max_eval_time_mins": 10,
+                "n_jobs": 4
+            },
+            "models": {
+                "NHL-goalie-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:y_score*"
+                    ]
+                },
+                "NHL-goalie-Y": {
+                    "target": [
+                        "calc",
+                        "y_score"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:dk_score*"
+                    ]
+                },
+                "NHL-goalie-save": {
+                    "target": [
+                        "stat",
+                        "save"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:y_score*",
+                        ".*-[1-9]"
+                    ]
+                },
+                "NHL-goalie-ag": {
+                    "target": [
+                        "stat",
+                        "goal_ag"
+                    ]
+                }
+            }
+        }
+    ]
+}
