@@ -227,17 +227,18 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_thres
     warning_df = missing_data_df.query("`%-NA` > (@warning_threshold * 100)")
 
     if not skip_report:
-        print(
-            f"\nMISSING-DATA-REPORT cases={len(df)} warning_threshold={warning_threshold * 100:.02f}%"
-        )
+        print("\n   -----  MISSING-DATA-REPORT  -----")
+        print(f"cases={len(df)} warning_threshold={warning_threshold * 100:.02f}%")
+        if len(warning_df) == 0:
+            print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
+
     if len(warning_df) == 0:
-        print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
         return
 
     if not skip_report:
         print(
-            f"{len(counts)} of {len(df.columns)} features have >{warning_threshold * 100:.02f}% "
-            "missing values."
+            f"{len(warning_df)} of {len(df.columns)} features have "
+            f">{warning_threshold * 100:.02f}% missing values."
         )
 
         with pd.option_context(
