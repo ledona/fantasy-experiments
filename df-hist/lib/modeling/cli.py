@@ -123,7 +123,7 @@ def _process_cmd_line(cmd_line_str=None):
     parser.add_argument(
         "--model_path",
         default=_DEFAULT_MODEL_PATH,
-        help=f"path where models will be written to. default={_DEFAULT_MODEL_PATH}",
+        help=f"path where models will be written to. default='{_DEFAULT_MODEL_PATH}'",
     )
     parser.add_argument("--data_dir", "--data_path", help="default is ./data")
     parser.add_argument(

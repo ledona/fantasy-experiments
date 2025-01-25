@@ -1,0 +1,205 @@
+{
+    "sport": "nfl",
+    "global_default": {
+        "seed": 1,
+        "validation_season": 2022,
+        "recent_games": 3,
+        "training_seasons": [
+            2009,
+            2010,
+            2011,
+            2012,
+            2013,
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2019,
+            2020,
+            2021,
+            2022,
+            2023
+        ],
+        "missing_data_threshold": 0.15,
+        "train_params": {
+            "early_stop": 4,
+            "n_jobs": 8,
+            "population_size": 50,
+            "max_time_mins": 360
+        }
+    },
+    "model_groups": [
+        {
+            "data_filename": "nfl_team.csv",
+            "p_or_t": "T",
+            "models": {
+                "NFL-team-pts": {
+                    "target": [
+                        "stat",
+                        "pts"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                },
+                "NFL-team-win": {
+                    "target": [
+                        "stat",
+                        "win"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                },
+                "NFL-DEF-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_def"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:y_score*"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nfl_QB.csv",
+            "p_or_t": "P",
+            "include_pos": false,
+            "target_pos": [
+                "QB"
+            ],
+            "models": {
+                "NFL-QB-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_off"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:y_score*"
+                    ]
+                },
+                "NFL-QB-PASS-CMP": {
+                    "target": [
+                        "stat",
+                        "passing_cmp"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                },
+                "NFL-QB-PASS-ATT": {
+                    "target": [
+                        "stat",
+                        "passing_att"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                },
+                "NFL-QB-PASS-YDS": {
+                    "target": [
+                        "stat",
+                        "passing_yds"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nfl_RB.csv",
+            "p_or_t": "P",
+            "target_pos": [
+                "RB"
+            ],
+            "include_pos": false,
+            "models": {
+                "NFL-RB-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_off"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:y_score*"
+                    ]
+                },
+                "NFL-RB-RUSHING-YDS": {
+                    "target": [
+                        "stat",
+                        "rushing_yds"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                }
+            }
+        },
+        {
+            "data_filename": "nfl_WRTE.csv",
+            "p_or_t": "P",
+            "target_pos": [
+                "WR",
+                "TE"
+            ],
+            "include_pos": true,
+            "train_params": {
+                "max_eval_time_mins": 8
+            },
+            "models": {
+                "NFL-WRTE-DK": {
+                    "target": [
+                        "calc",
+                        "dk_score_off"
+                    ],
+                    "cols_to_drop": [
+                        "calc:fd_score*",
+                        "calc:y_score*"
+                    ]
+                },
+                "NFL-WRTE-REC-YDS": {
+                    "target": [
+                        "stat",
+                        "receiving_yds"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                },
+                "NFL-WRTE-REC": {
+                    "target": [
+                        "stat",
+                        "receiving_rec"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ]
+                }
+            }
+        },
+        {
+            "models": {
+                "NFL-K-FG": {
+                    "target": [
+                        "stat",
+                        "kicking_fgm"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
+                    ],
+                    "data_filename": "nfl_K.csv",
+                    "p_or_t": "P",
+                    "include_pos": true,
+                    "target_pos": [
+                        "K"
+                    ]
+                }
+            }
+        }
+    ]
+}

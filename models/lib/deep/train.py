@@ -2,11 +2,10 @@ import copy
 import json
 import os
 import statistics
-from datetime import datetime
 from typing import Literal, TypedDict, cast
 
 import torch
-from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, ContestStyle, FantasyException, log
+from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, ContestStyle, FantasyException, log, now
 from fantasy_py.lineup import DeepLineupDataset, DeepLineupModel, FantasyService
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -186,7 +185,7 @@ def _setup_training(
         best_model = cast(_BestModel, (float("-inf"), None))
         epoch_scores = []
         starting_epoch = 0
-        trained_on_dt = datetime.now()
+        trained_on_dt = now()
         model_filename = DeepLineupModel.default_name(
             samples_meta["sport"],
             samples_meta["service"],
@@ -356,7 +355,7 @@ def train(
         # pin_memory_device=device,
         # generator=torch.Generator(device=device)
     )
-    deep_lineup_loss = DeepLineupLoss(samples_meta['sport'], dataset, constraints)
+    deep_lineup_loss = DeepLineupLoss(samples_meta["sport"], dataset, constraints)
 
     checkpoint_dirpath = target_filepath + "-checkpoints"
     if not os.path.isdir(checkpoint_dirpath):

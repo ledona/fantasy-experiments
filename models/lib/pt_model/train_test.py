@@ -29,6 +29,7 @@ from fantasy_py import (
     UnexpectedValueError,
     dt_to_filename_str,
     log,
+    now,
 )
 from fantasy_py.inference import (
     NNModel,
@@ -81,7 +82,7 @@ def _load_data_local(
                 "validation season. Try again without limit, or try a different "
                 "the validation season."
             )
-    elif filename.endswith(".parquet") or filename.endswith(".parquet"):
+    elif filename.endswith(".parquet") or filename.endswith(".pq"):
         if limit is not None:
             pf = pq.ParquetFile(filename)
             first_n_rows = next(pf.iter_batches(batch_size=limit))
@@ -475,31 +476,38 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-AlgorithmType = Literal["tpot", "tpot-light", "dummy", "auto-xgb", "nn"]
+AlgorithmType = Literal["tpot", "tpot-light", "dummy", "tpot-xgboost", "nn", "xgboost"]
 """machine learning algorithm used for model selection and training"""
 
 
 def _instantiate_regressor(
     algorithm: AlgorithmType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
 ):
-    fit_addl_args: None | tuple = None
-    fit_kwargs: None | dict = None
     if algorithm == "tpot":
         model = TPOTRegressor(
             **model_init_kwargs,
         )
-    elif algorithm == "tpot-light":
+        return model, None, None
+
+    if algorithm == "tpot-light":
         model = TPOTRegressor(
             config_dict=regressor_config_dict_light,
             **model_init_kwargs,
         )
-    elif algorithm == "auto-xgb":
+        return model, None, None
+
+    if algorithm == "tpot-xgboost":
         model = TPOTRegressor(
             config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
+            **model_init_kwargs,
         )
-    elif algorithm == "dummy":
+        return model, None, None
+
+    if algorithm == "dummy":
         model = DummyRegressor(**model_init_kwargs)
-    elif algorithm == "nn":
+        return model, None, None
+
+    if algorithm == "nn":
         input_size = len(x.columns)
         resume_filepath = (
             model_init_kwargs.pop("resume_checkpoint_filepath")
@@ -523,6 +531,7 @@ def _instantiate_regressor(
                 "resume_optimizer_state": optimizer_state,
             }
         else:
+            fit_kwargs = None
             if model_init_kwargs.get("checkpoint_dir") is None:
                 default_checkpoint_root_dir = os.path.join(gettempdir(), "fantasy-nn-checkpoints")
                 if not os.path.isdir(default_checkpoint_root_dir):
@@ -553,12 +562,9 @@ def _instantiate_regressor(
             )
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = model.to(device)
+        return model, (x, y), fit_kwargs
 
-        fit_addl_args = (x, y)
-    else:
-        raise NotImplementedError(f"{algorithm=} not recognized")
-
-    return model, fit_addl_args, fit_kwargs
+    raise NotImplementedError(f"{algorithm=} not recognized")
 
 
 def _train_test(
@@ -568,8 +574,9 @@ def _train_test(
     tt_data: TrainTestData,
     dest_dir: str,
     model_filebase: str,
+    limit: None | int,
     **model_init_kwargs,
-) -> tuple[str, PerformanceDict, datetime]:
+) -> tuple[str, PerformanceDict, datetime, dict | None]:
     """
     train, test and save a model to a pickle
 
@@ -577,7 +584,7 @@ def _train_test(
     training_time: max time to train in seconds
     returns tuple[filepath to the model, model performance, dt model was trained]
     """
-    dt_trained = datetime.now()
+    dt_trained = now()
     _LOGGER.info("Fitting model_name=%s using type=%s", model_name, algo)
 
     (X_train, y_train, X_test, y_test, X_val, y_val) = tt_data
@@ -591,13 +598,25 @@ def _train_test(
     )
     model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
     assert model is not None
+    training_desc_info: dict = {
+        "time_to_fit": str(now() - dt_trained),
+        "n_train_cases": len(X_train),
+        "n_test_cases": len(X_test),
+        "n_validation_cases": len(X_val),
+    }
+    if limit is not None:
+        training_desc_info["non_validation_data_limit"] = limit
 
     if algo.startswith("tpot"):
-        _LOGGER.success("TPOT fitted")
         tpot_model = cast(TPOTRegressor, model)
+        max_gen = max(indiv["generation"] for indiv in tpot_model.evaluated_individuals_.values())
+        training_desc_info["generations_tested"] = max_gen
+        _LOGGER.success("TPOT fitted in %i generation(s)", max_gen)
         pprint(tpot_model.fitted_pipeline_)
-    elif algo in ("dummy", "auto-xgb", "nn"):
+    elif algo in ("dummy", "nn"):
         _LOGGER.success("%s fitted", algo)
+        if algo == "nn":
+            training_desc_info["epochs_trained"] = cast(NNRegressor, model).epochs_trained
     else:
         raise NotImplementedError(f"model type {algo} not recognized")
 
@@ -620,7 +639,7 @@ def _train_test(
         model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
     )
     artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
-    if algo in ("dummy", "auto-xgb"):
+    if algo == "dummy":
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(model, artifact_filepath)
     elif algo.startswith("tpot"):
@@ -641,13 +660,15 @@ def _train_test(
         "r2_train": r2_train,
         "mae_train": mae_train,
     }
-    return artifact_filepath, performance, dt_trained
+    return artifact_filepath, performance, dt_trained, training_desc_info
 
 
 def _get_model_cls(algorithm: AlgorithmType):
+    if algorithm.startswith("tpot") or algorithm == "dummy":
+        return SKLModel
     if algorithm == "nn":
         return NNModel
-    return SKLModel
+    raise NotImplementedError(f"Don't know what model class to use for {algorithm=}")
 
 
 def _create_fantasy_model(
@@ -664,6 +685,7 @@ def _create_fantasy_model(
     target_pos: None | list[str],
     training_pos: None | list[str],
     model_params: dict[str, str | int],
+    model_info: None | dict,
     one_hot_stats: dict[str, list[str]] | None = None,
     recent_mean: bool = True,
     recent_explode: bool = True,
@@ -764,6 +786,7 @@ def _create_fantasy_model(
         player_positions=target_pos,
         input_cols=columns.to_list(),
         impute_values=imputes,
+        desc_info=model_info,
     )
 
     return model
@@ -828,6 +851,7 @@ def model_and_test(
     mode: ModelFileFoundMode,
     model_dest_filename: str | None = None,
     data_src_params: dict | None = None,
+    limit: int | None = None,
 ):
     """
     create or load a model and test it
@@ -869,13 +893,14 @@ def model_and_test(
         else:
             _LOGGER.info("A new model will be saved to '%s'", final_model_filepath)
 
-        model_artifact_path, performance, dt_trained = _train_test(
+        model_artifact_path, performance, dt_trained, addl_info = _train_test(
             algorithm,
             name,
             target,
             tt_data,
             dest_dir,
             filebase_name,
+            limit,
             **ml_kwargs,
         )
         performance["season_val"] = validation_season
@@ -899,6 +924,7 @@ def model_and_test(
             target_pos,
             training_pos,
             addl_params,
+            addl_info,
         )
 
         model.dump(final_model_filepath, overwrite=mode == "overwrite")

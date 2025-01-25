@@ -12,13 +12,15 @@ There are three different types of models
 1. lineup models that predict optimal daily fantasy lineups
 1. full game models that predict all player and team stats for a game in one shot, as opposed to predicting each player/team stat individuals
 
-### Player/Team predictive models
+### Creating Player/Team predictive models
 To create, archive and use new predictive models perform the following steps
 
 1. Make sure that the fantasy environment is successfully installed and usable, and the 
 database files containing raw and calculated stats are in _$FANTASY_HOME_.
-2. Create a new model folder. Easiest to copy the most recent model folder and rename.
-3. Create/update the data export scripts and model training json files. The training files are json dicts with the following structure (refer to previous files for concrete examples):
+2. Create a new model folder in this directory. Naming of these folders is _YYYY.MM_. Easiest is to copy the most recent model folder and rename it.
+3. Create/update the data export scripts and model training json files. 
+    - Review the data export scripts to make sure that the data DB name is correct, the seasons to export are correct, and all desired features are targets for all models that will be created are included.
+    - The training files are json dicts with the following structure (refer to previous files for concrete examples):
 ```
 {
   "global_defaults": {
@@ -51,26 +53,36 @@ python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
 python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
 
 # create model using defaults
-python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
+python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json {MODEL_NAME}
 
 # create multiple models
-python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
+python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json \
   ({MODEL_NAME_W_WILDCARDS} | [--models {MODEL_NAME} {MODEL_NAME} ...])
 
 # create a model based on an existing model 
-python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --n_jobs 4 --dest_dir {DEST_MODEL_DIR} \
+python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--orig_cfg_file {MODEL_DIR}/{SPORT}.json] [--slack] {EXISTING_MODEL_FILEPATH}
 
-# for example
+# example which forces tpot and specifies number of processes
 python -O -m lib.regressor train --n_jobs 4 --algo tpot 2024.02/nba.json NBA-DK \
   --data_dir /fantasy-isync/fantasy-modeling/2024.04/pt \
   --dest_dir /fantasy-isync/fantasy-modeling/2024.04/data
+
+# example that uses a simple NN
+python -m lib.regressor train 2024.12/nfl.json "NFL-QB-
+DK" \
+  --data_dir /fantasy-isync/fantasy-modeling/2024.12/data/ \
+  --dest_dir /fantasy-isync/fantasy-modeling/2024.12/pt \
+  --algo nn --lr .00001 --layers 3 --max_epochs 500 --early 10
 ```
 6. (Optional) Load the models into the sport database and run some tests. Load models using 
 model_manager.py from the fantasy repository (See fantasy repository's README). 
 Generate lineups or run backtesting using one of the debug configurations or lineup.sc or backtest.sc.
+
+### NN models
+- If the avg loss from one training iteration to the next is jumping around alot or not changing fast enough, increase/decrease the learning rate. As the learning rate decreases, updates to the model from one iteration to the next should lessen. Increasing the learning rate should cause models to change more from one iteration to the next.
 
 ### Deep lineup models
 Deep lineup models take as input a slate of games, including all player costs, and predicted scoring. The model output is a lineup to bet. As an intermediate step a DNN is used to take the input and infer player weights which are used along with cost information to create an optimized lineup. To create/use models:

@@ -37,6 +37,7 @@ _TPOT_PARAM_DEFAULTS_TUPLE = {
     "n_jobs": _NO_DEFAULT,
     "epochs_max": _NO_DEFAULT,
     "early_stop": _NO_DEFAULT,
+    "population_size": _NO_DEFAULT,
     # Following should have no impact on the resulting model
     "use_dask": _NO_DEFAULT,
     "verbosity": _NO_DEFAULT,
@@ -63,6 +64,8 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
     "dummy": ({"strategy": "mean"}, None),
     "tpot": _TPOT_PARAM_DEFAULTS_TUPLE,
     "tpot-light": _TPOT_PARAM_DEFAULTS_TUPLE,
+    "tpot-xgboost": _TPOT_PARAM_DEFAULTS_TUPLE,
+    "xgboost": ({}, None),
 }
 """
 dict mapping algorithm to (default-regressor-params, param-rename-dict)
@@ -536,6 +539,7 @@ class TrainingConfiguration:
             file_found_mode,
             model_dest_filename=dest_filename,
             data_src_params=data_src_params,
+            limit=limit,
         )
 
         return model

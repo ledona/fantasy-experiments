@@ -10,9 +10,9 @@ import traceback
 from collections import defaultdict
 from typing import Literal, cast
 
-import dateutil
 import pandas as pd
 import tqdm
+from dateutil import parser as du_parser
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from fantasy_py.inference import PTPredictModel
 from ledona import slack
@@ -31,11 +31,7 @@ _LOGGER = log.get_logger(__name__)
 
 
 _CLITrainingParams = Literal[
-    "max_time_mins",
-    "max_eval_time_mins",
-    "n_jobs",
-    "early_stop",
-    "epochs_max",
+    "max_time_mins", "max_eval_time_mins", "n_jobs", "early_stop", "epochs_max", "population_size"
 ]
 """training parameters that are set on commandline and can be overriden
 from command line during retrain"""
@@ -75,7 +71,6 @@ def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: 
     if algo.startswith("tpot"):
         modeler_init_kwargs = {
             "use_dask": use_dask,
-            # "n_jobs": cli_training_params["n_jobs"],
             "verbosity": 3,
         }
         rename = TRAINING_PARAM_DEFAULTS["tpot"][1] or {}
@@ -107,13 +102,8 @@ def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: 
             modeler_init_kwargs[key] = cli_training_params[k_]
         return modeler_init_kwargs
 
-    if algo == "auto-xgb":
-        modeler_init_kwargs = {
-            "verbosity": 2,
-            "n_jobs": cli_training_params["n_jobs"],
-        }
-        if cli_training_params["early_stop"] is not None:
-            modeler_init_kwargs["early_stop_epochs"] = cli_training_params["early_stop"]
+    if algo == "xgboost":
+        modeler_init_kwargs = {"verbosity": 2}
         return modeler_init_kwargs
 
     if algo == "dummy":
@@ -315,6 +305,7 @@ def _add_train_parser(sub_parsers):
 
         train_parser.add_argument(
             "--n_jobs",
+            "--njobs",
             "--tpot_jobs",
             help="Number of jobs/processors to use during training",
             type=int,
@@ -342,6 +333,12 @@ def _add_train_parser(sub_parsers):
             help="override the training iteration time defined in the train_file",
         )
         train_parser.add_argument(
+            "--population_size",
+            type=int,
+            default=argparse.SUPPRESS,
+            help="Override population size for relevant models (e.g. tpot)",
+        )
+        train_parser.add_argument(
             "--dest_dir", default=".", help="Destination directory for model files"
         )
         train_parser.add_argument(
@@ -357,18 +354,21 @@ def _add_train_parser(sub_parsers):
             "--limited_data",
             "--data_limit",
             type=int,
-            help="limit the training data to this many sample",
+            help="limit the training data to this many cases, "
+            "validation data will not be limited",
         )
         train_parser.add_argument(
             "--early_stop",
             type=int,
             default=argparse.SUPPRESS,
-            help="number of rounds/epochs of no improvement after which to stop training",
+            help="number of rounds/epochs/generations of no improvement "
+            "after which to stop training",
         )
         train_parser.add_argument(
             "--epochs_max",
             "--max_epochs",
             "--generations",
+            "--gens",
             type=int,
             default=argparse.SUPPRESS,
             help="The maximum number of epochs/generations to train a model",
@@ -474,7 +474,7 @@ def _model_catalog_func(args):
                 "name": model_data["name"],
                 "sport": model_data["name"].split("-", 1)[0],
                 "p/t": p_t,
-                "dt": dateutil.parser.parse(model_data["dt_trained"]),
+                "dt": du_parser.parse(model_data["dt_trained"]),
                 "r2-val": r2_val,
                 "mae-val": mae_val,
                 "target": ":".join(model_data["training_data_def"]["target"]),
