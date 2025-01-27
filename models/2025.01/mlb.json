@@ -1,10 +1,13 @@
-// individual player/team model
 {
     "sport": "mlb",
     "global_default": {
         "seed": 1,
         "validation_season": 2023,
         "recent_games": 5,
+        "cols_to_drop": [
+            ".*-[1-9]",
+            "extra:.*bases.*"
+        ],
         "training_seasons": [
             2008,
             2009,
@@ -27,39 +30,27 @@
         "train_params": {
             "epochs_max": 100,
             "early_stop": 3,
-            "n_jobs": 5,
+            "n_jobs": 6,
             "population_size": 20,
             "max_eval_time_mins": 20,
             "max_time_mins": 360,
             // nn
-            "batch_size": 32,
-            // "hidden_size": 64,
-            "hidden_layers": 1
+            "batch_size": 32
         }
     },
     "model_groups": [
         {
             "data_filename": "mlb_team.parquet",
             "p_or_t": "T",
+            "train_params": {
+                "population_size": 50
+            },
             "models": {
                 "MLB-team-runs": {
-                    "target": "stat:off_runs",
-                    "cols_to_drop": [
-                        "extra:.*bases.*"
-                        // "extra:(whip|venue|opp|hit|is_home)..*",
-                        // "extra:(?!ops)..*",
-                        // "extra:(?!slug)..*",
-                        // "stat:..*:..*", 
-                        // "stat:..*(?!off_run)..*",
-                        // "..*opp-team",
-                        // "..*:p..*"
-                    ]
+                    "target": "stat:off_runs"
                 },
                 "MLB-team-win": {
-                    "target": "stat:win",
-                    "cols_to_drop": [
-                        "extra:.*bases.*"
-                    ]
+                    "target": "stat:win"
                 }
             }
         },
@@ -68,6 +59,9 @@
             "p_or_t": "P",
             "include_pos": false,
             "missing_data_threshold": 0.28,
+            "train_params": {
+                "population_size": 40
+            },
             "target_pos": [
                 "P"
             ],
@@ -75,55 +69,31 @@
                 "MLB-P-DK": {
                     "target": "calc:dk_score",
                     "cols_to_drop": [
-                        ".*y_score.*",
-                        ".*fd_score.*",
-                        "extra:.*bases.*"
-                        // "stat:.*",
-                        // ".*p_.*",
-                        // ".*(player|opp)-team",
-                        // ".*dk_score:.*"
-                        // ".*recent-.*",
-                        // "extra:venue.*",
-                        // .*.*.* dk-only
-                        // ".*off.*"
-                        // .*.*.* dk+saber
-                        // "extra:(venue|hit|opp|.*hand|is).*",
-                        // ".*(player|opp)-team",
-                        // ".*off.*"
-                        // .*.*.* saber-only
-                        // "extra:(venue|opp|is_home|hitting|b).*",
-                        // ".*(player|opp)-team",
-                        // ".*off.*",
-                        // ".*dk_score:.*"
+                        ".*(y|fd)_score.*"
                     ]
                 },
                 "MLB-P-Y": {
                     "target": "calc:y_score",
                     "cols_to_drop": [
-                        ".*dk_score.*",
-                        ".*fd_score.*",
-                        "extra:.*bases.*"
+                        ".*(df|fd)_score.*"
                     ]
                 },
                 "MLB-P-K": {
                     "target": "stat:p_k",
                     "cols_to_drop": [
-                        "calc:.*score.*",
-                        "extra:.*bases.*"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "MLB-P-IP": {
                     "target": "stat:p_ip",
                     "cols_to_drop": [
-                        "calc:.*score.*",
-                        "extra:.*bases.*"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "MLB-P-HITS": {
                     "target": "stat:p_hits",
                     "cols_to_drop": [
-                        "calc:.*score.*",
-                        "extra:.*bases.*"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 }
             }
@@ -134,7 +104,7 @@
             "include_pos": true,
             "train_params": {
                 "learning_rate": 0.0001,
-                "hidden_layers": 3,
+                "hidden_layers": 8,
                 "population_size": 25
             },
             "target_pos": [
@@ -151,51 +121,26 @@
             "models": {
                 "MLB-H-DK": {
                     "target": "calc:dk_score",
-                    // "include_pos": false,
                     "cols_to_drop": [
-                        "extra:.*bases.*",
-                        ".*y_score.*",
-                        ".*fd_score.*",
-                        ".*-[1-9]"
-                        // ".*dk_score:.*"
-                        // ".*recent-.*",
-                        // "extra:venue.*"
-                        // .*.*.* dk-only
-                        // "extra:.*",
-                        // ".*(player|opp)-team",
-                        // ".*off.*"
-                        // .*.*.* dk+saber
-                        // "extra:(venue|opp|is_home|hitting|b).*",
-                        // ".*(player|opp)-team",
-                        // ".*off.*"
-                        // .*.*.* saber-only
-                        // "extra:(venue|opp|is_home|hitting|b).*",
-                        // ".*(player|opp)-team",
-                        // ".*off.*",
-                        // ".*dk_score:.*"
+                        ".*(y|fd)_score.*"
                     ]
                 },
                 "MLB-H-Y": {
                     "target": "calc:y_score",
                     "cols_to_drop": [
-                        "extra:.*bases.*",
-                        ".*fd_score.*",
-                        ".*dk_score.*",
-                        ".*-[1-9]"
+                        ".*(fd|dk)_score.*"
                     ]
                 },
                 "MLB-H-hit": {
                     "target": "stat:off_hit",
                     "cols_to_drop": [
-                        "extra:.*bases.*",
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "MLB-H-runs": {
                     "target": "stat:off_runs",
                     "cols_to_drop": [
-                        "extra:.*bases.*",
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 }
             }

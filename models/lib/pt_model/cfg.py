@@ -329,8 +329,15 @@ class TrainingConfiguration:
 
     def get_params(self, model_name):
         """
-        return a dict containing the training/evaluation parameters
-        for the requested model
+        Return a dict containing the training/evaluation parameters
+        for the requested model. Train parameters and cols_to_drop cascade.
+
+        Train parameters are the union of parameters at all definition levels
+        with the lower/more specific levels (model specific parameters are
+        the most specific) taking precidence.
+
+        cols_to_drop is the union of all cols_to_drop across all model
+        definition levels.
         """
         if model_name not in self.model_names:
             raise UnexpectedValueError(f"'{model_name}' is not defined")
@@ -345,25 +352,48 @@ class TrainingConfiguration:
         if not self.retrain:
             del param_dict["original_model_columns"]
 
+        # first get the globals
         param_dict.update(self._json["global_default"].copy())
+        global_cols_to_drop = param_dict.get("cols_to_drop") or []
+        global_train_params = param_dict.get("train_params") or {}
 
+        # apply the model group settings
         model_group = self._json["model_groups"][self._model_names_to_group_idx[model_name]]
         param_dict.update(
-            {k_: v_ for k_, v_ in model_group.items() if k_ not in ("train_params", "models")}
+            {
+                k_: v_
+                for k_, v_ in model_group.items()
+                if k_ not in ("cols_to_drop", "train_params", "models")
+            }
         )
+        group_cols_to_drop = model_group.get("cols_to_drop") or []
+        group_train_params = model_group.get("train_params") or {}
 
+        model_specific_params = model_group["models"][model_name]
         param_dict.update(
-            {k_: v_ for k_, v_ in model_group["models"][model_name].items() if k_ != "train_params"}
+            {
+                k_: v_
+                for k_, v_ in model_specific_params.items()
+                if k_ not in ("cols_to_drop", "train_params")
+            }
         )
+        model_specific_cols_to_drop = model_group["models"][model_name].get("cols_to_drop") or []
+        model_specific_train_params = model_group["models"][model_name].get("train_params") or {}
 
-        train_params: dict = (
-            param_dict["train_params"].copy() if param_dict.get("train_params") else {}
+        final_train_params = {
+            **global_train_params,
+            **group_train_params,
+            **model_specific_train_params,
+        }
+        param_dict["train_params"] = final_train_params
+        final_cols_to_drop = sorted(
+            {
+                *global_cols_to_drop,
+                *group_cols_to_drop,
+                *model_specific_cols_to_drop,
+            }
         )
-        if model_group_train_params := model_group.get("train_params"):
-            train_params.update(model_group_train_params)
-        if model_train_params := model_group["models"][model_name].get("train_params"):
-            train_params.update(model_train_params)
-        param_dict["train_params"] = train_params
+        param_dict["cols_to_drop"] = final_cols_to_drop
 
         param_dict["target"] = (
             tuple(param_dict["target"])

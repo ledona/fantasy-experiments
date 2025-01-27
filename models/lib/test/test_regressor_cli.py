@@ -2,11 +2,7 @@ import json
 import os
 import platform
 import random
-<<<<<<< HEAD
 from datetime import UTC, datetime, timedelta
-=======
-from datetime import datetime, timedelta
->>>>>>> 31d78ac (add training desc info)
 from typing import cast
 
 import joblib
@@ -38,10 +34,10 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "seed": 1,
         "p_or_t": PlayerOrTeam.TEAM,
         "cols_to_drop": [
+            ".*:p.*",
+            ".*opp-team",
             "extra:(whip|venue|opp|hit|is_home).*",
             "stat:.*:.*",
-            ".*opp-team",
-            ".*:p.*",
         ],
         "missing_data_threshold": 0.1,
         "train_params": {
@@ -60,7 +56,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "sport": "mlb",
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
-        "cols_to_drop": [".*y_score.*", ".*recent-.*", "extra:venue.*", ".*dk_score:.*"],
+        "cols_to_drop": [".*dk_score:.*", ".*recent-.*", ".*y_score.*", "extra:venue.*"],
         "missing_data_threshold": 0.28,
         "train_params": {
             "epochs_max": 100,
@@ -80,7 +76,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "sport": "mlb",
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
-        "cols_to_drop": ["extra:bases", ".*y_score.*"],
+        "cols_to_drop": [".*y_score.*", "extra:bases"],
         "missing_data_threshold": 0.1,
         "train_params": {
             "batch_size": 64,

@@ -4,6 +4,9 @@
         "seed": 1,
         "validation_season": 2022,
         "recent_games": 3,
+        "cols_to_drop": [
+            ".*-[1-9]"
+        ],
         "training_seasons": [
             2009,
             2010,
@@ -40,7 +43,7 @@
                         "pts"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "NFL-team-win": {
@@ -49,7 +52,7 @@
                         "win"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "NFL-DEF-DK": {
@@ -58,8 +61,7 @@
                         "dk_score_def"
                     ],
                     "cols_to_drop": [
-                        "calc:fd_score*",
-                        "calc:y_score*"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 }
             }
@@ -78,8 +80,7 @@
                         "dk_score_off"
                     ],
                     "cols_to_drop": [
-                        "calc:fd_score*",
-                        "calc:y_score*"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "NFL-QB-PASS-CMP": {
@@ -88,7 +89,7 @@
                         "passing_cmp"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "NFL-QB-PASS-ATT": {
@@ -97,7 +98,7 @@
                         "passing_att"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "NFL-QB-PASS-YDS": {
@@ -106,7 +107,7 @@
                         "passing_yds"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 }
             }
@@ -125,8 +126,7 @@
                         "dk_score_off"
                     ],
                     "cols_to_drop": [
-                        "calc:fd_score*",
-                        "calc:y_score*"
+                        "calc:(y|fd)_score.+"
                     ]
                 },
                 "NFL-RB-RUSHING-YDS": {
@@ -135,7 +135,7 @@
                         "rushing_yds"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 }
             }
@@ -158,9 +158,7 @@
                         "dk_score_off"
                     ],
                     "cols_to_drop": [
-                        "calc:fd_score*",
-                        "calc:y_score*",
-                        ".*-[1-9]"
+                        "calc:(y|fd)_score.+"
                     ]
                 },
                 "NFL-WRTE-REC-YDS": {
@@ -169,7 +167,7 @@
                         "receiving_yds"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 },
                 "NFL-WRTE-REC": {
@@ -178,7 +176,7 @@
                         "receiving_rec"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ]
                 }
             }
@@ -191,7 +189,7 @@
                         "kicking_fgm"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:(dk|fd|y)_score.+"
                     ],
                     "data_filename": "nfl_K.csv",
                     "p_or_t": "P",
