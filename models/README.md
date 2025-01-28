@@ -114,6 +114,8 @@ python -m lib.regressor performance [MODEL_FILE_PATTERN] \
   --cfg [model_cfg.json] --data_dir [DATA_DIR] -op [repair|test|update|calc]
 ```
 
-
 ## Loading Active Models
 TBD
+
+## Cloud Training
+1. Follow the instructions in the fantasy repo configuration management folder for setting up an AWS training instance

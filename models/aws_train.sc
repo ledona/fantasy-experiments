@@ -5,7 +5,7 @@ set -e
 
 function usage() {
     echo "AWS Model Trainer
-Usage: $0 [--dryrun] AWS-S3-PATH MODEL-FILE [ARG1 ARG2 ...]
+Usage: $0 [--dryrun] AWS-S3-PATH MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
 
 This script is for training models on an AWS instance. This is done by:
 1) creating a temp destination folder for models
@@ -29,18 +29,19 @@ fi
 
 S3_PATH=$1
 MODEL_FILE=$2
+MODEL_NAME=$3
 
 if [ -z "$S3_PATH" ] || [ -z "$MODEL_FILE" ]; then
     usage
 fi
 
-shift 2  # Remove first two arguments, leaving only optional args
+shift 3  # Remove first two arguments, leaving only optional args
 
 # Create temp directory
 cmd="mktemp -d"
 if [ $DRYRUN = false ]; then
     DEST_DIR=$($cmd)
-    trap 'rm -rf "$DEST_DIR"' EXIT
+    trap 'rm -vrf "$DEST_DIR"' EXIT
     echo "Temp destination directory set to '$DEST_DIR'"
 else
     echo "# create tmpdir"
@@ -56,9 +57,11 @@ if [ $DRYRUN = true ]; then
 elif [ ! -f "$MODEL_FILE" ]; then
     echo "# Model file '$MODEL_FILE' not found, copying from '${S3_PATH}'"
     eval "$cmd"
+else
+    echo "# Model file '$MODEL_FILE' found locally"
 fi
 
-train_cmd="python -m lib.regressor train --dest_dir '$DEST_DIR' $@"
+train_cmd="python -m lib.regressor train '$MODEL_FILE' $MODEL_NAME --dest_dir "$DEST_DIR" $@"
 
 # Run regressor in info mode and capture output
 cmd="$train_cmd --info"
@@ -66,9 +69,11 @@ echo "# run train in info mode to get data filename"
 echo $cmd
 if [ $DRYRUN = false ]; then
     INFO=$($cmd)
+    echo 
     echo ------------------ info output --------------------
     echo $INFO
     echo ---------------------------------------------------
+    echo
     # Extract DATAFILE filename
     DATAFILE=$(echo "$INFO" | grep "'data_filename'" | sed "s/.*'data_filename': '\([^']*\)'.*/\1/")
     if [ -z "$DATAFILE" ]; then
@@ -94,10 +99,11 @@ else
 fi
 
 # Run training with remaining args and temp directory
-echo "# Run training"
+echo
+echo "# ---------- Run training ----------"
 echo $train_cmd
 if [ $DRYRUN = false ]; then
-    eval "$cmd"
+    eval "$train_cmd"
 fi
 
 if [ $DRYRUN = false ]; then
@@ -111,6 +117,7 @@ else
     MODEL_FILES="MODEL-DEF.model MODEL-ARTIFACT.pkl"
 fi
 
+echo
 echo "# Copy model files from temp directory to S3"
 for file in $MODEL_FILES; do
     cmd="aws s3 cp '$file' '${S3_PATH}/'"
@@ -119,3 +126,5 @@ for file in $MODEL_FILES; do
         eval $cmd
     fi
 done
+
+echo "# --------- Training of ${MODEL_NAME} FINISHED! --------"

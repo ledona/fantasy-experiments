@@ -43,7 +43,8 @@
             "data_filename": "mlb_team.parquet",
             "p_or_t": "T",
             "train_params": {
-                "population_size": 50
+                "population_size": 50,
+                "learning_rate": 0.001
             },
             "models": {
                 "MLB-team-runs": {
@@ -60,7 +61,9 @@
             "include_pos": false,
             "missing_data_threshold": 0.28,
             "train_params": {
-                "population_size": 40
+                "population_size": 40,
+                "learning_rate": 0.00001,
+                "hidden_layers": 4
             },
             "target_pos": [
                 "P"
