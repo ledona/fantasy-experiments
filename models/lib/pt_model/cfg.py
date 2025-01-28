@@ -327,6 +327,35 @@ class TrainingConfiguration:
     def model_names(self):
         return list(self._model_names_to_group_idx.keys())
 
+    @staticmethod
+    def _params_from_cfg_levels(
+        algo: str, global_cfg: dict, model_group_cfg: dict, model_cfg: dict
+    ):
+        """return training params for model_name from the global def dict"""
+        global_cols_to_drop = global_cfg.get("cols_to_drop") or []
+        global_train_params = global_cfg.get("train_params") or {}
+
+        group_cols_to_drop = model_group_cfg.get("cols_to_drop") or []
+        group_train_params = model_group_cfg.get("train_params") or {}
+
+        model_specific_cols_to_drop = model_cfg.get("cols_to_drop") or []
+        model_specific_train_params = model_cfg.get("train_params") or {}
+
+        final_train_params = {
+            **global_train_params,
+            **group_train_params,
+            **model_specific_train_params,
+        }
+        final_cols_to_drop = sorted(
+            {
+                *global_cols_to_drop,
+                *group_cols_to_drop,
+                *model_specific_cols_to_drop,
+            }
+        )
+
+        return final_train_params, final_cols_to_drop
+
     def get_params(self, model_name):
         """
         Return a dict containing the training/evaluation parameters
@@ -352,47 +381,27 @@ class TrainingConfiguration:
         if not self.retrain:
             del param_dict["original_model_columns"]
 
-        # first get the globals
-        param_dict.update(self._json["global_default"].copy())
-        global_cols_to_drop = param_dict.get("cols_to_drop") or []
-        global_train_params = param_dict.get("train_params") or {}
+        global_cfg = self._json["global_default"].copy()
+        model_group_cfg = self._json["model_groups"][self._model_names_to_group_idx[model_name]]
+        model_cfg = model_group_cfg["models"][model_name]
 
-        # apply the model group settings
-        model_group = self._json["model_groups"][self._model_names_to_group_idx[model_name]]
+        param_dict.update(self._json["global_default"].copy())
         param_dict.update(
             {
                 k_: v_
-                for k_, v_ in model_group.items()
+                for k_, v_ in model_group_cfg.items()
                 if k_ not in ("cols_to_drop", "train_params", "models")
             }
         )
-        group_cols_to_drop = model_group.get("cols_to_drop") or []
-        group_train_params = model_group.get("train_params") or {}
 
-        model_specific_params = model_group["models"][model_name]
+        final_train_params, final_cols_to_drop = self._params_from_cfg_levels(
+            self.algorithm, global_cfg, model_group_cfg, model_cfg
+        )
         param_dict.update(
-            {
-                k_: v_
-                for k_, v_ in model_specific_params.items()
-                if k_ not in ("cols_to_drop", "train_params")
-            }
+            {k_: v_ for k_, v_ in model_cfg.items() if k_ not in ("cols_to_drop", "train_params")}
         )
-        model_specific_cols_to_drop = model_group["models"][model_name].get("cols_to_drop") or []
-        model_specific_train_params = model_group["models"][model_name].get("train_params") or {}
 
-        final_train_params = {
-            **global_train_params,
-            **group_train_params,
-            **model_specific_train_params,
-        }
         param_dict["train_params"] = final_train_params
-        final_cols_to_drop = sorted(
-            {
-                *global_cols_to_drop,
-                *group_cols_to_drop,
-                *model_specific_cols_to_drop,
-            }
-        )
         param_dict["cols_to_drop"] = final_cols_to_drop
 
         param_dict["target"] = (

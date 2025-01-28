@@ -121,18 +121,18 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
 _DIRNAME = os.path.dirname(os.path.abspath(__file__))
 
 # add keys for Noneable parameters
-for model_params in _EXPECTED_TRAINING_CFG_PARAMS.values():
-    if model_params.get("training_pos") is None and model_params.get("target_pos") is not None:
-        model_params["training_pos"] = model_params.get("target_pos")
+for _model_params in _EXPECTED_TRAINING_CFG_PARAMS.values():
+    if _model_params.get("training_pos") is None and _model_params.get("target_pos") is not None:
+        _model_params["training_pos"] = _model_params.get("target_pos")
     pad_dict = {
         param_key: None
         for param_key, value_type in _TrainingParamsDict.__annotations__.items()
         if hasattr(value_type, "__args__")
         and type(None) in value_type.__args__
-        and param_key not in model_params
+        and param_key not in _model_params
         and param_key != "original_model_columns"
     }
-    model_params.update(pad_dict)
+    _model_params.update(pad_dict)
 
 
 _TEST_DEF_FILE_FILEPATH = os.path.join(_DIRNAME, "test.json")
@@ -152,6 +152,98 @@ def test_training_def_file_params(tdf: TrainingConfiguration, model_name):
     params = tdf.get_params(model_name)
     del cast(dict, params)["algorithm"]
     assert params == _EXPECTED_TRAINING_CFG_PARAMS[model_name]
+
+
+class TestParamCascade:
+
+    _ALGO = "algo"
+    """name of algorithm used by algo specific params test"""
+
+    @pytest.mark.parametrize(
+        "global_params, group_params, model_params, use_algo, expected_params",
+        [
+            ({"a": 1, "b": 2}, {}, {}, False, {"a": 1, "b": 2}),
+            ({"a": 1, "b": 2}, {}, {}, False, {"a": 1, "b": 2}),
+            ({}, {"a": 1, "b": 2}, {}, False, {"a": 1, "b": 2}),
+            ({}, {}, {"a": 1, "b": 2}, False, {"a": 1, "b": 2}),
+            ({"a": 1}, {"b": 2}, {"c": 3}, False, {"a": 1, "b": 2, "c": 3}),
+            ({"a": 1, "b": 2}, {"a": 3, "c": 5}, {"b": 6}, False, {"a": 3, "b": 6, "c": 5}),
+            ({_ALGO + ".a": 1}, {"b": 2}, {"c": 3}, False, {"b": 2, "c": 3}),
+            (
+                {"a": 1, "b": 2},
+                {"a": 3, "c": 5},
+                {_ALGO + ".b": 6},
+                False,
+                {"a": 3, "b": 2, "c": 5},
+            ),
+            (
+                {"a": 1, "b": 2},
+                {"a": 3, "c": 5},
+                {_ALGO + ".b": 6},
+                True,
+                {"a": 3, "b": 6, "c": 5},
+            ),
+            (
+                {"a": 1, _ALGO + ".b": 2},
+                {"a": 3, "c": 5},
+                {"b": 6},
+                True,
+                {"a": 3, "b": 2, "c": 5},
+            ),
+            (
+                {_ALGO + ".a": 1, _ALGO + ".b": 2},
+                {"a": 3, "c": 5},
+                {"b": 6},
+                True,
+                {"a": 1, "b": 2, "c": 5},
+            ),
+            (
+                {_ALGO + ".a": 1, _ALGO + ".b": 2, "c": 10},
+                {"a": 3, "XX.c": 5},
+                {"b": 6},
+                True,
+                {"a": 1, "b": 2, "c": 10},
+            ),
+            (
+                {_ALGO + ".a": 1, _ALGO + ".b": 2, "c": 10},
+                {"a": 3, "XX.c": 5},
+                {_ALGO + ".b": 6},
+                True,
+                {"a": 1, "b": 6, "c": 10},
+            ),
+        ],
+        ids=[
+            "only-globals",
+            "only-globals-w-algo",
+            "only-group",
+            "only-model",
+            "all-levels-disjoint",
+            "mixed",
+            "ignore-algo-1",
+            "ignore-algo-2",
+            "use-algo-1",
+            "use-algo-2",
+            "use-algo-3",
+            "use-algo-use-and-ignore",
+            "use-algo-complex",
+        ],
+    )
+    def test(
+        self,
+        global_params: dict,
+        group_params: dict,
+        model_params: dict,
+        use_algo: bool,
+        expected_params: dict,
+    ):
+        """test that training params are cascaded correctly"""
+        final_params = TrainingConfiguration._params_from_cfg_levels(
+            (self._ALGO if use_algo else "no-algo"),
+            {"train_params": global_params},
+            {"train_params": group_params},
+            {"train_params": model_params},
+        )[0]
+        assert final_params == expected_params
 
 
 def test_training_def_file_model_names(tdf: TrainingConfiguration):
