@@ -61,7 +61,7 @@ else
     echo "# Model file '$MODEL_FILE' found locally"
 fi
 
-train_cmd="python -m lib.regressor train '$MODEL_FILE' $MODEL_NAME --dest_dir "$DEST_DIR" $@"
+train_cmd="python -m lib.regressor train $MODEL_FILE $MODEL_NAME --dest_dir $DEST_DIR $@"
 
 # Run regressor in info mode and capture output
 cmd="$train_cmd --info"
