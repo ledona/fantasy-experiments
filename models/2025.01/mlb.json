@@ -43,15 +43,22 @@
             "data_filename": "mlb_team.parquet",
             "p_or_t": "T",
             "train_params": {
-                "population_size": 50,
-                "learning_rate": 0.001
+                "population_size": 50
             },
             "models": {
                 "MLB-team-runs": {
-                    "target": "stat:off_runs"
+                    "target": "stat:off_runs",
+                    "train_params": {
+                        "learning_rate": 0.0001,
+                        "hidden_layers": 5
+                    }
                 },
                 "MLB-team-win": {
-                    "target": "stat:win"
+                    "target": "stat:win",
+                    "train_params": {
+                        "learning_rate": 0.05,
+                        "hidden_layers": 10
+                    }
                 }
             }
         },
