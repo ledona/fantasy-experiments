@@ -20,19 +20,29 @@ database files containing raw and calculated stats are in _$FANTASY_HOME_.
 2. Create a new model folder in this directory. Naming of these folders is _YYYY.MM_. Easiest is to copy the most recent model folder and rename it.
 3. Create/update the data export scripts and model training json files. 
     - Review the data export scripts to make sure that the data DB name is correct, the seasons to export are correct, and all desired features are targets for all models that will be created are included.
-    - The training files are json dicts with the following structure (refer to previous files for concrete examples):
+    - The training files are json dicts with the following structure. 
+      - The union of _train_params_ are used to train a model. Values set at a lower level, more specific to the model, take precidence.
+      - _train_params_ can be designated as algorithm specific by prefixing the parameter name with "_algorithm._". E.g. a parameter named _param_ that only applies to the _tpot_ algorithm should be named _tpot.param_.Algorithm specific parameters take precidence over none algorithm specific parameters of the same name.
+      - The union of _train_params_ and _cols_to_drop_ are used to train a model. For _train_params_ values from the lowest (most specific to the model) level override parameters with the same name at a higher level.
+      - Refer to previous files for examples.
 ```
 {
   "global_defaults": {
     # dict with default training parameters for all models
     # defined in this configuration file
+    "train_params": { ... },
+    "cols_to_drop": [ ... ]
   },
   "model_groups": [
     {
+      "train_params": { ... },
+      "cols_to_drop": [ ... ]
       "models": {
         "model-name-1": {
           "target": ["stat-type": "stat-name"], # stat-type=stat|calc|extra
           # additional parameters just for this model
+          "train_params": { ... },
+          "cols_to_drop": [ ... ]
         },
         ...
       }

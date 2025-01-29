@@ -155,6 +155,7 @@ def test_training_def_file_params(tdf: TrainingConfiguration, model_name):
 
 
 class TestParamCascade:
+    """test model parameter retrieval"""
 
     _ALGO = "algo"
     """name of algorithm used by algo specific params test"""
@@ -175,6 +176,13 @@ class TestParamCascade:
                 {_ALGO + ".b": 6},
                 False,
                 {"a": 3, "b": 2, "c": 5},
+            ),
+            (
+                {"a": 1.1, _ALGO + ".a": 1, "xx.a": 2},
+                {"b": 3, _ALGO + ".a": 5},
+                {_ALGO + ".b": 6},
+                False,
+                {"a": 1.1, "b": 3},
             ),
             (
                 {"a": 1, "b": 2},
@@ -211,6 +219,20 @@ class TestParamCascade:
                 True,
                 {"a": 1, "b": 6, "c": 10},
             ),
+            (
+                {"a": 1.1, _ALGO + ".a": 1, "xx.a": 2},
+                {"b": 3, "XX.c": 5},
+                {_ALGO + ".b": 6},
+                True,
+                {"a": 1, "b": 6},
+            ),
+            (
+                {"a": 1.1, _ALGO + ".a": 1, "xx.a": 2},
+                {"b": 3, _ALGO + ".a": 5},
+                {_ALGO + ".b": 6},
+                True,
+                {"a": 5, "b": 6},
+            ),
         ],
         ids=[
             "only-globals",
@@ -221,11 +243,14 @@ class TestParamCascade:
             "mixed",
             "ignore-algo-1",
             "ignore-algo-2",
-            "use-algo-1",
-            "use-algo-2",
-            "use-algo-3",
-            "use-algo-use-and-ignore",
-            "use-algo-complex",
+            "ignore-algo-3",
+            "w-algo-1",
+            "w-algo-2",
+            "w-algo-3",
+            "w-algo-use-and-ignore",
+            "w-algo-complex",
+            "w-algo-multi",
+            "w-algo-multi-complex",
         ],
     )
     def test(

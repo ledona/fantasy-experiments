@@ -224,6 +224,10 @@ class TrainingConfiguration:
 
         train_params = {}
         for key in defaults:
+            assert "." not in key, (
+                f"Algorithm '{algorithm}' training parameter name '{key}' is invalid. "
+                "Training parameter keys cannot contain '.'"
+            )
             model_key = renamer.get(key, key) if renamer else key
             if model_key in orig_model.parameters and key not in _IGNORE_ORIGINAL_PARAMS:
                 train_params[key] = orig_model.parameters[model_key]
@@ -331,7 +335,8 @@ class TrainingConfiguration:
     def _params_from_cfg_levels(
         algo: str, global_cfg: dict, model_group_cfg: dict, model_cfg: dict
     ):
-        """return training params for model_name from the global def dict"""
+        """helper that returns training params for model_name
+        from the global def dict"""
         global_cols_to_drop = global_cfg.get("cols_to_drop") or []
         global_train_params = global_cfg.get("train_params") or {}
 
@@ -346,6 +351,24 @@ class TrainingConfiguration:
             **group_train_params,
             **model_specific_train_params,
         }
+
+        # algo specific param handling
+        algo_param_keys = [key for key in final_train_params if "." in key]
+        for algo_param_key in algo_param_keys:
+            param_algo, param_key = algo_param_key.split(".", 1)
+            assert (
+                "." not in param_key
+            ), f"training param {param_key} is invalid. It should not contain '.'"
+
+            if param_algo != algo:
+                # for a different algorithm
+                del final_train_params[algo_param_key]
+                continue
+
+            # this param should be used!
+            final_train_params[param_key] = final_train_params[algo_param_key]
+            del final_train_params[algo_param_key]
+
         final_cols_to_drop = sorted(
             {
                 *global_cols_to_drop,
