@@ -27,6 +27,7 @@
         "missing_data_threshold": 0.15,
         "train_params": {
             "early_stop": 4,
+            "nn.early_stop": 20,
             "n_jobs": 8,
             "population_size": 50,
             "max_time_mins": 360
@@ -149,7 +150,8 @@
             ],
             "include_pos": true,
             "train_params": {
-                "max_eval_time_mins": 8
+                "max_eval_time_mins": 8,
+                "population_size": 30
             },
             "models": {
                 "NFL-WRTE-DK": {

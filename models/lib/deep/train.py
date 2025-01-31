@@ -140,7 +140,7 @@ def _setup_training(
         _LOGGER.info(
             "Resuming training from checkpoint file '%s'", continue_from_checkpoint_filepath
         )
-        checkpoint_data = cast(CheckpointData, torch.load(continue_from_checkpoint_filepath))
+        checkpoint_data = cast(CheckpointData, torch.load(continue_from_checkpoint_filepath, weights_only=False))
         starting_epoch = checkpoint_data["model"].epochs_trained
 
         _checkpoint_cmdline_compare(
