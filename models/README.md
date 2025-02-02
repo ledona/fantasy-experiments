@@ -129,9 +129,18 @@ TBD
 
 ## Cloud Training
 1. Follow the instructions in the fantasy repo configuration management folder for setting up an AWS training instance
-2. Following is an example of how to run the aws_train.sc script. 
+2. To train a model use the _aws_train.sc_ script. For example:
 ```
 # ./aws_train.sc {S3-BUCKET} {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
 # for example
 ./aws_train.sc s3://ledona-fantasy mlb.json MLB-H-DK --algo tpot-xgboost --slack --n_jobs 4
+```
+3. To copy model results from S3 use aws cli.
+```
+# install aws cli
+sudo apt-get install awscli
+# configure/setup security
+aws configure
+# copy
+aws s3 cp s3://ledona-fantasy . --recursive --include "MLB*"
 ```
