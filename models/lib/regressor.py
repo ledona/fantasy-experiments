@@ -8,6 +8,7 @@ import shlex
 import sys
 import traceback
 from collections import defaultdict
+from datetime import UTC
 from typing import Literal, cast
 
 import pandas as pd
@@ -484,12 +485,15 @@ def _model_catalog_func(args):
             r2_val = model_data["meta_extra"]["performance"]["r2"]
             mae_val = model_data["meta_extra"]["performance"]["mae"]
 
+        dt_trained = du_parser.parse(model_data["dt_trained"])
+        if dt_trained.tzinfo is None:
+            dt_trained = dt_trained.replace(tzinfo=UTC)
         data.append(
             {
                 "name": model_data["name"],
                 "sport": model_data["name"].split("-", 1)[0],
                 "p/t": p_t,
-                "dt": du_parser.parse(model_data["dt_trained"]),
+                "dt": dt_trained,
                 "r2-val": r2_val,
                 "mae-val": mae_val,
                 "target": ":".join(model_data["training_data_def"]["target"]),

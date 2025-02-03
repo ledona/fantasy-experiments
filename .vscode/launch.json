@@ -72,9 +72,9 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "catalog",
-                "--best",
+                // "--best",
                 "--root", "/fantasy-isync/fantasy-modeling",
-                "--exclude", ".*2023.12.*"
+                // "--exclude", ".*2023.12.*"
             ]
         },
         {
