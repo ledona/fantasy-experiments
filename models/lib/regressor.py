@@ -14,7 +14,7 @@ from typing import Literal, cast
 import pandas as pd
 import tqdm
 from dateutil import parser as du_parser
-from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
+from fantasy_py import UnexpectedValueError, dt_to_filename_str, log, time_to_secs
 from fantasy_py.inference import PTPredictModel
 from ledona import slack
 
@@ -488,23 +488,44 @@ def _model_catalog_func(args):
         dt_trained = du_parser.parse(model_data["dt_trained"])
         if dt_trained.tzinfo is None:
             dt_trained = dt_trained.replace(tzinfo=UTC)
-        data.append(
-            {
-                "name": model_data["name"],
-                "sport": model_data["name"].split("-", 1)[0],
-                "p/t": p_t,
-                "dt": dt_trained,
-                "r2-val": r2_val,
-                "mae-val": mae_val,
-                "target": ":".join(model_data["training_data_def"]["target"]),
-                "algo": model_data["parameters"].get("algorithm", DEFAULT_ALGORITHM),
-                "filepath": model_filepath,
-                "r2-test": r2_test,
-                "mae-test": mae_test,
-                "r2-train": r2_train,
-                "mae-train": mae_train,
-            }
-        )
+
+        cat_data = {
+            "name": model_data["name"],
+            "sport": model_data["name"].split("-", 1)[0],
+            "p/t": p_t,
+            "dt": dt_trained,
+            "r2-val": r2_val,
+            "mae-val": mae_val,
+            "target": ":".join(model_data["training_data_def"]["target"]),
+            "algo": model_data["parameters"].get("algorithm", DEFAULT_ALGORITHM),
+            "filepath": model_filepath,
+            "r2-test": r2_test,
+            "mae-test": mae_test,
+            "r2-train": r2_train,
+            "mae-train": mae_train,
+            "tags": [],
+        }
+
+        # test for incomplete training
+        if (
+            cat_data["algo"].startswith("tpot")
+            and "meta_extra" in model_data
+            and (desc_info := model_data["meta_extra"].get("desc_info"))
+        ):
+            if (
+                (early_stop := model_data["parameters"].get("early_stop"))
+                and (gens := desc_info["generations_tested"])
+                and gens < early_stop
+            ):
+                cat_data["tags"].append("incomplete-training")
+            elif (max_train_time_mins := model_data["parameters"].get("max_time_mins")) and (
+                ttf := desc_info["time_to_fit"]
+            ):
+                ttf_mins = time_to_secs(ttf) / 60
+                if ttf_mins >= max_train_time_mins:
+                    cat_data["tags"].append("incomplete-training")
+
+        data.append(cat_data)
 
     df = pd.DataFrame(data).sort_values(by=["name", "dt"])
 
