@@ -28,7 +28,7 @@
         "missing_data_threshold": 0.085,
         "train_params": {
             "nn.early_stop": 20,
-            "max_epochs": 500,
+            "epochs_max": 500,
             "early_stop": 3,
             "population_size": 50,
             "max_time_mins": 360
