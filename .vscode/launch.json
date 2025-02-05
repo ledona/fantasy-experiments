@@ -31,7 +31,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "train", "2024.12/nhl.json", // "MLB-team-win",
+                "train", "2025.01/nhl.json", // "MLB-team-win",
                 "--models", "NHL-team-win",
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--dest_filename", "NHL-team-win.nn",
@@ -47,11 +47,11 @@
                 // "--algo", "tpot",
                 // "--max_iter_mins", "3",
                 // "--max_train_mins", "5",
-                "--n_jobs", "2",
+                // "--n_jobs", "2",
                 // "--gens", "10",
                 // "--pop", "8",
 
-                "--algo", "tpot", 
+                "--algo", "dummy", 
                 // "--batch_size", "256",
                 // "--hidden_size", "64",
                 // "--lr", ".000001",

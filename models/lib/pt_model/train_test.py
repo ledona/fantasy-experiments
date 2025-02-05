@@ -22,6 +22,7 @@ from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
     DataNotAvailableException,
+    ExtraFeatureType,
     FantasyException,
     FeatureType,
     InvalidArgumentsException,
@@ -670,6 +671,62 @@ def _get_model_cls(algorithm: AlgorithmType):
     raise NotImplementedError(f"Don't know what model class to use for {algorithm=}")
 
 
+_EXTRA_HIST_PART_PATTERN = re.compile("std-mean|recent-(mean|[1-9])")
+"""test pattern for the historic part of an extra stat's name"""
+
+
+def _infer_extra_stat_name_type(
+    name_parts: list[str],
+) -> tuple[str, ExtraFeatureType]:
+    """
+    figure out the extra stat name and type, and validate the type
+    returns (name, type) where type = current_extra | hist_extra
+    """
+    if name_parts[1].startswith("venue_"):
+        assert len(name_parts) == 2
+        return "venue", "current_extra"
+
+    extra_name = name_parts[1]
+    if len(name_parts) == 2:
+        if _EXTRA_HIST_PART_PATTERN.match(name_parts[1]) or name_parts[1] in (
+            "player-team",
+            "opp-team",
+        ):
+            raise UnexpectedValueError(
+                f"{name_parts=} for parts of len=2, "
+                "the second part should not match hist or team part patterns"
+            )
+        return extra_name, "current_extra"
+
+    if len(name_parts) == 3:
+        if _EXTRA_HIST_PART_PATTERN.match(name_parts[2]):
+            extra_type = "hist_extra"
+        elif name_parts[2] == "player-team":
+            extra_type = "current_extra"
+        elif name_parts[2] == "opp-team":
+            extra_type = "current_opp_team_extra"
+        else:
+            raise UnexpectedValueError(
+                f"{name_parts=} do not recognize the 3rd part of the name. "
+                "3rd part should define hist or type"
+            )
+        return extra_name, extra_type
+
+    if len(name_parts) != 4:
+        raise UnexpectedValueError(f"{name_parts=} number of name parts should be 2-4")
+    if not _EXTRA_HIST_PART_PATTERN.match(name_parts[2]):
+        raise UnexpectedValueError(f"{name_parts=} 3rd part should define hist")
+
+    if name_parts[3] == "player-team":
+        extra_type = "hist_extra"
+    elif name_parts[3] == "opp-team":
+        extra_type = "hist_opp_team_extra"
+    else:
+        raise UnexpectedValueError(f"{name_parts=} last part should define team")
+
+    return extra_name, extra_type
+
+
 def _create_fantasy_model(
     name: str,
     sport: str,
@@ -711,13 +768,7 @@ def _create_fantasy_model(
         assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"]
 
         if col_split[0] == "extra":
-            if col_split[1].startswith("venue_"):
-                assert len(col_split) == 2
-                extra_type = "current_extra"
-                extra_name = "venue"
-            else:
-                extra_type = "hist_extra" if len(col_split) > 2 else "current_extra"
-                extra_name = col_split[1]
+            extra_name, extra_type = _infer_extra_stat_name_type(col_split)
             if extra_name not in db_manager.EXTRA_STATS:
                 possible_1_hot_extras = [
                     name for name in db_manager.EXTRA_STATS if extra_name.startswith(name)
