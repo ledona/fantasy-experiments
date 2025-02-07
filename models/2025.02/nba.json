@@ -35,8 +35,9 @@
             "p_or_t": "T",
             "train_params": {
                 "n_jobs": 8,
-                "learning_rate": 0.000001,
-                "hidden_layers": 1
+                "learning_rate": 0.00001,
+                "hidden_layers": 1,
+                "epochs_max": 1000
             },
             "models": {
                 "NBA-team-pts": {
@@ -64,11 +65,11 @@
             ],
             "train_params": {
                 "n_jobs": 4,
-                "population_size": 25,
+                "population_size": 40,
                 "max_eval_time_mins": 15,
-                // for nn
-                "learning_rate": 0.000001,
-                "hidden_layers": 3
+                "nn.learning_rate": 0.000001,
+                "nn.epochs_max": 500,
+                "nn.hidden_layers": 3
             },
             "models": {
                 "NBA-DK": {

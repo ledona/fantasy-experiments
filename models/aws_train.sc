@@ -5,7 +5,7 @@ set -e
 
 function usage() {
     echo "AWS Model Trainer
-Usage: $0 [--dryrun] AWS-S3-PATH LOCAL-DEST-PATH MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
+Usage: $0 [--dryrun] AWS-S3-PATH LOCAL-DEST-DIR MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
 
 This script is for training models on an AWS instance. This is done by:
 1) creating a temp destination folder for models
@@ -64,7 +64,7 @@ if [ $DRYRUN = false ]; then
     echo ---------------------------------------------------
     echo
     # Extract DATAFILE filename
-    DATAFILE=$(echo "$INFO" | grep "'data_filename'" | sed "s/.*'data_filename': '\([^']*\)'.*/\1/")
+    DATAFILE=$(echo "$INFO" | grep "'data_filename'" | head -n 1 | sed "s/.*'data_filename': '\([^']*\)'.*/\1/")
     if [ -z "$DATAFILE" ]; then
         echo "Error: Could not extract filename from INFO"
         exit 1

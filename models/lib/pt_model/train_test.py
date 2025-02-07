@@ -485,16 +485,11 @@ def _instantiate_regressor(
     algorithm: AlgorithmType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
 ):
     if algorithm == "tpot":
-        model = TPOTRegressor(
-            **model_init_kwargs,
-        )
+        model = TPOTRegressor(**model_init_kwargs)
         return model, None, None
 
     if algorithm == "tpot-light":
-        model = TPOTRegressor(
-            config_dict=regressor_config_dict_light,
-            **model_init_kwargs,
-        )
+        model = TPOTRegressor(config_dict=regressor_config_dict_light, **model_init_kwargs)
         return model, None, None
 
     if algorithm == "tpot-xgboost":
@@ -701,9 +696,9 @@ def _infer_extra_stat_name_type(
     if len(name_parts) == 3:
         if _EXTRA_HIST_PART_PATTERN.match(name_parts[2]):
             extra_type = "hist_extra"
-        elif name_parts[2] == "player-team":
+        elif name_parts[2].startswith("player-team"):
             extra_type = "current_extra"
-        elif name_parts[2] == "opp-team":
+        elif name_parts[2].startswith("opp-team"):
             extra_type = "current_opp_team_extra"
         else:
             raise UnexpectedValueError(

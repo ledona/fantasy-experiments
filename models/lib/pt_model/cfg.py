@@ -546,12 +546,9 @@ class TrainingConfiguration:
         final_regressor_kwargs = self._get_regressor_kwargs(
             self.algorithm, regressor_kwargs, cast(dict, params)
         )
-        print(f"\nTraining parameters from '{self.source}' for '{model_name}':")
+        print(f"\nInitial training params from '{self.source}' for '{model_name}':")
         pprint(params)
-        print(
-            f"\nTraining of '{model_name}' will proceed with the regressor "
-            "kwargs (includes any cmdline overrides):"
-        )
+        print(f"\nFinal regressor kwargs for '{model_name}':")
         pprint(final_regressor_kwargs)
         if limit is not None:
             print(f"with a training data limit of {limit}")

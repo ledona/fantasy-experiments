@@ -14,7 +14,7 @@ from typing import Literal, cast
 import pandas as pd
 import tqdm
 from dateutil import parser as du_parser
-from fantasy_py import UnexpectedValueError, dt_to_filename_str, log, time_to_secs
+from fantasy_py import UnexpectedValueError, dt_to_filename_str, log, secs_to_time, time_to_secs
 from fantasy_py.inference import PTPredictModel
 from ledona import slack
 
@@ -45,7 +45,7 @@ def _expand_models(
     """figure out which models match the model requests"""
     if model_request is None:
         print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
-        sys.exit(0)
+        exit(0)
 
     filters = [model_request] if isinstance(model_request, str) else model_request
     model_names: list[str] = []
@@ -83,8 +83,6 @@ def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: 
         return modeler_init_kwargs
 
     if algo == "nn":
-        # device = "cuda" if torch.cuda.is_available() else "cpu"
-        # modeler_init_kwargs = {"device": device}
         modeler_init_kwargs = {
             key_[3:]: value_ for key_, value_ in args_dict.items() if key_.startswith("nn_")
         }
@@ -444,6 +442,9 @@ def _add_train_parser(sub_parsers):
 
 def _model_catalog_func(args):
     """parser func that creates/updates the model catalog"""
+    if args.skip_full and not args.create_best_models_file:
+        _LOGGER.error("Neither creating full nor best model catalog. Nothing to do!")
+        sys.exit(1)
     data = []
     glob_pattern = (
         os.path.join(args.root, "**", "*.model")
@@ -456,7 +457,7 @@ def _model_catalog_func(args):
         if excluded_models is not None:
             exclude = False
             for x_r in args.exclude_r:
-                if re.match(x_r, model_filepath):
+                if re.match(".*" + x_r + ".*", model_filepath):
                     exclude = True
                     excluded_models[x_r].append(model_filepath)
                     _LOGGER.info(
@@ -473,17 +474,17 @@ def _model_catalog_func(args):
 
         p_t = "player" if model_data["training_data_def"]["target"][1] == "P" else "team"
         if "r2_test" in model_data["meta_extra"]["performance"]:
-            r2_train = model_data["meta_extra"]["performance"]["r2_train"]
-            mae_train = model_data["meta_extra"]["performance"]["mae_train"]
-            r2_test = model_data["meta_extra"]["performance"]["r2_test"]
-            mae_test = model_data["meta_extra"]["performance"]["mae_test"]
-            r2_val = model_data["meta_extra"]["performance"]["r2_val"]
-            mae_val = model_data["meta_extra"]["performance"]["mae_val"]
+            r2_train = round(model_data["meta_extra"]["performance"]["r2_train"], 5)
+            mae_train = round(model_data["meta_extra"]["performance"]["mae_train"], 5)
+            r2_test = round(model_data["meta_extra"]["performance"]["r2_test"], 5)
+            mae_test = round(model_data["meta_extra"]["performance"]["mae_test"], 5)
+            r2_val = round(model_data["meta_extra"]["performance"]["r2_val"], 5)
+            mae_val = round(model_data["meta_extra"]["performance"]["mae_val"], 5)
         else:
             # TODO: this is for older models and eventually can be dropped
             r2_test = r2_train = mae_test = mae_train = None
-            r2_val = model_data["meta_extra"]["performance"]["r2"]
-            mae_val = model_data["meta_extra"]["performance"]["mae"]
+            r2_val = round(model_data["meta_extra"]["performance"]["r2"], 5)
+            mae_val = round(model_data["meta_extra"]["performance"]["mae"], 5)
 
         dt_trained = du_parser.parse(model_data["dt_trained"])
         if dt_trained.tzinfo is None:
@@ -504,32 +505,58 @@ def _model_catalog_func(args):
             "r2-train": r2_train,
             "mae-train": mae_train,
             "tags": [],
+            "notes": [],
         }
 
         # test for incomplete training
-        if (
-            cat_data["algo"].startswith("tpot")
-            and "meta_extra" in model_data
-            and (desc_info := model_data["meta_extra"].get("desc_info"))
-        ):
-            if (
-                (early_stop := model_data["parameters"].get("early_stop"))
-                and (gens := desc_info["generations_tested"])
-                and gens < early_stop
+        desc_info = (
+            model_data["meta_extra"].get("desc_info") if "meta_extra" in model_data else None
+        )
+        if desc_info:
+            if cat_data["algo"].startswith("tpot"):
+                if (
+                    (early_stop := model_data["parameters"].get("early_stop"))
+                    and (gens := desc_info["generations_tested"])
+                    and gens < early_stop
+                ):
+                    cat_data["tags"].append("incomplete-automl")
+                    cat_data["notes"].append(
+                        "tpot generations is lower than early-stop, " f"{gens=} < {early_stop=}"
+                    )
+
+                if (
+                    (max_train_time_mins := model_data["parameters"].get("max_time_mins"))
+                    and (ttf := desc_info["time_to_fit"])
+                    and (ttf_secs := time_to_secs(ttf)) / 60 >= max_train_time_mins
+                ):
+                    cat_data["tags"].append("incomplete-automl")
+                    cat_data["notes"].append(
+                        "tpot search exceeded max time. "
+                        f"max-automl-time={secs_to_time(max_train_time_mins * 60)} "
+                        f"search-time={secs_to_time(ttf_secs)}"
+                    )
+            elif (
+                cat_data["algo"] == "nn"
+                and (epochs_trained := desc_info.get("epochs_trained"))
+                and (epochs_max := model_data["parameters"].get("epochs_max"))
+                and (early_stop_epochs := model_data["parameters"].get("early_stop_epochs"))
+                and epochs_trained > (epochs_max - early_stop_epochs)
             ):
                 cat_data["tags"].append("incomplete-training")
-            elif (max_train_time_mins := model_data["parameters"].get("max_time_mins")) and (
-                ttf := desc_info["time_to_fit"]
-            ):
-                ttf_mins = time_to_secs(ttf) / 60
-                if ttf_mins >= max_train_time_mins:
-                    cat_data["tags"].append("incomplete-training")
-
+                cat_data["notes"].append(
+                    "nn training stopped before early-stop-epochs-wo-improvement reached. "
+                    f"{early_stop_epochs=} {epochs_trained=} {epochs_max=}"
+                )
         data.append(cat_data)
+
+    if excluded_models is not None and len(excluded_models) == 0:
+        _LOGGER.error("Exclude patterns did not match any models! Exiting")
+        sys.exit(1)
 
     df = pd.DataFrame(data).sort_values(by=["name", "dt"])
 
-    filename = args.csv_filename or _MODEL_CATALOG_PATTERN.format(TIMESTAMP=dt_to_filename_str())
+    prefix = (args.filename_prefix + ".") if args.filename_prefix else ""
+    filename = prefix + _MODEL_CATALOG_PATTERN.format(TIMESTAMP=dt_to_filename_str())
     df.to_csv(os.path.join(args.root, filename), index=False)
 
     if args.create_best_models_file:
@@ -539,7 +566,7 @@ def _model_catalog_func(args):
             .sort_values(["name", "dt"], ascending=[True, False])
             .drop_duplicates("name", keep="first")
         )
-        best_models_filename = f"best-models.{dt_to_filename_str()}.csv"
+        best_models_filename = f"{prefix}best-models.{dt_to_filename_str()}.csv"
         best_models_df.to_csv(os.path.join(args.root, best_models_filename), index=False)
     else:
         best_models_filename = None
@@ -566,20 +593,17 @@ def _model_catalog_func(args):
     if best_models_df is not None:
         _LOGGER.info("Best models written to '%s'", best_models_filename)
     if excluded_models is not None:
-        if len(excluded_models) == 0:
-            _LOGGER.warning("Exclude patterns did not match any models!")
-        else:
-            _LOGGER.info(
-                "Exclude patterns excluded %i models",
-                sum(map(len, excluded_models.values())),
-            )
-            for x_r in args.exclude_r:
-                if (num_excluded := len(excluded_models[x_r])) == 0:
-                    _LOGGER.warning("  '%s' did not exclude any model files", x_r)
-                    continue
-                _LOGGER.info("  '%s' excluded %i model files", x_r, num_excluded)
-                for model_path in excluded_models[x_r]:
-                    _LOGGER.info("  '%s' excluded '%s'", x_r, model_path)
+        _LOGGER.info(
+            "Exclude patterns excluded %i models",
+            sum(map(len, excluded_models.values())),
+        )
+        for x_r in args.exclude_r:
+            if (num_excluded := len(excluded_models[x_r])) == 0:
+                _LOGGER.warning("  '%s' did not exclude any model files", x_r)
+                continue
+            _LOGGER.info("  '%s' excluded %i model files", x_r, num_excluded)
+            for model_path in excluded_models[x_r]:
+                _LOGGER.info("  '%s' excluded '%s'", x_r, model_path)
 
 
 def _add_model_catalog_parser(sub_parsers):
@@ -593,16 +617,19 @@ def _add_model_catalog_parser(sub_parsers):
         default=".",
     )
     parser.add_argument(
-        "--csv_filename",
-        help="Specify the name that the CSV data will be saved to. "
-        "File will be created in root directory. "
-        f"Default filename will be '{_MODEL_CATALOG_PATTERN}'",
+        "--filename_prefix", "--pre", help="A filename prefix for catalog and best model files"
     )
     parser.add_argument(
         "--create_best_models_file",
         "--best",
         help="Create an file containing the best models for each model name based on r2. "
         "File will be created in root directory. ",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--skip_full",
+        help="Don't create the full catalog. This must be used with --best",
         default=False,
         action="store_true",
     )
@@ -620,16 +647,6 @@ def _add_model_catalog_parser(sub_parsers):
         help="Do not search recursively through directories for model files. "
         "Default is to search recursively",
     )
-
-
-def _model_load_actives_func(args):
-    """parser func that loads active models"""
-    raise NotImplementedError()
-
-
-def _add_load_actives_parser(sub_parsers):
-    parser = sub_parsers.add_parser("load", help="Load active models")
-    parser.set_defaults(func=_model_load_actives_func, parser=parser)
 
 
 def _handle_performance(args):
@@ -709,7 +726,6 @@ def main(cmd_line_str=None):
     subparsers = parser.add_subparsers()
     _add_train_parser(subparsers)
     _add_model_catalog_parser(subparsers)
-    _add_load_actives_parser(subparsers)
     _add_performance_parser(subparsers)
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
