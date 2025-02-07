@@ -5,7 +5,7 @@ set -e
 
 function usage() {
     echo "AWS Model Trainer
-Usage: $0 [--dryrun] AWS-S3-PATH MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
+Usage: $0 [--dryrun] AWS-S3-PATH LOCAL-DEST-PATH MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
 
 This script is for training models on an AWS instance. This is done by:
 1) creating a temp destination folder for models
@@ -28,26 +28,15 @@ if [ "$1" = "--dryrun" ]; then
 fi
 
 S3_PATH=$1
-MODEL_FILE=$2
-MODEL_NAME=$3
+DEST_DIR=$2
+MODEL_FILE=$3
+MODEL_NAME=$4
 
-if [ -z "$S3_PATH" ] || [ -z "$MODEL_FILE" ]; then
+if [ -z "$S3_PATH" ] || [ -z "$MODEL_FILE" ] || [ -z "$DEST_DIR" ] || [ -z "$MODEL_NAME" ]; then
     usage
 fi
 
-shift 3  # Remove first two arguments, leaving only optional args
-
-# Create temp directory
-cmd="mktemp -d"
-if [ $DRYRUN = false ]; then
-    DEST_DIR=$($cmd)
-    trap 'rm -vrf "$DEST_DIR"' EXIT
-    echo "Temp destination directory set to '$DEST_DIR'"
-else
-    echo "# create tmpdir"
-    echo $cmd
-    DEST_DIR=DEST-DIR
-fi
+shift 4  # Remove parsed arguments, leaving only optional args
 
 # Copy MODEL_FILE from S3 if not present locally
 cmd="aws s3 cp '${S3_PATH}/${MODEL_FILE}' ."
@@ -63,7 +52,7 @@ fi
 
 train_cmd="python -m lib.regressor train $MODEL_FILE $MODEL_NAME --dest_dir $DEST_DIR $@"
 
-# Run regressor in info mode and capture output
+# Run train in info mode and capture output
 cmd="$train_cmd --info"
 echo "# run train in info mode to get data filename"
 echo $cmd
@@ -105,26 +94,5 @@ echo $train_cmd
 if [ $DRYRUN = false ]; then
     eval "$train_cmd"
 fi
-
-if [ $DRYRUN = false ]; then
-    # Check if required files exist in temp directory
-    if ! ls "$DEST_DIR"/* >/dev/null 2>&1; then
-        echo "Error: training failed to create output files"
-        exit 1
-    fi
-    MODEL_FILES="$DEST_DIR"/*
-else
-    MODEL_FILES="MODEL-DEF.model MODEL-ARTIFACT.pkl"
-fi
-
-echo
-echo "# Copy model files from temp directory to S3"
-for file in $MODEL_FILES; do
-    cmd="aws s3 cp '$file' '${S3_PATH}/'"
-    echo $cmd
-    if [ $DRYRUN = false ]; then
-        eval $cmd
-    fi
-done
 
 echo "# --------- Training of ${MODEL_NAME} FINISHED! --------"
