@@ -442,9 +442,6 @@ def _add_train_parser(sub_parsers):
 
 def _model_catalog_func(args):
     """parser func that creates/updates the model catalog"""
-    if args.skip_full and not args.create_best_models_file:
-        _LOGGER.error("Neither creating full nor best model catalog. Nothing to do!")
-        sys.exit(1)
     data = []
     glob_pattern = (
         os.path.join(args.root, "**", "*.model")
@@ -624,12 +621,6 @@ def _add_model_catalog_parser(sub_parsers):
         "--best",
         help="Create an file containing the best models for each model name based on r2. "
         "File will be created in root directory. ",
-        default=False,
-        action="store_true",
-    )
-    parser.add_argument(
-        "--skip_full",
-        help="Don't create the full catalog. This must be used with --best",
         default=False,
         action="store_true",
     )
