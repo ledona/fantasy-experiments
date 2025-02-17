@@ -99,10 +99,12 @@ def performance_calc(
             if not invalid or operation == "test":
                 continue
 
-        if cfg is None or data_dir is None:
+        if cfg is None:
             raise InvalidArgumentsException(
-                "Performance cannot be calculated without data-dir and model config file"
+                "Cannot calculate performance without a model config file"
             )
+        if data_dir is None:
+            raise InvalidArgumentsException("Cannot calculate performance without a data-dir")
 
         params = cfg.get_params(model.name)
 

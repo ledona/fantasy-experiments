@@ -88,7 +88,7 @@
                 "performance",
                 "/fantasy/MODELS/MLB-H-DK.model",
                 "--cfg", "/fantasy-experiments/models/2024.06/mlb.json",
-                "-op", "calc", // "--skip_backups",
+                "--op", "calc", // "--skip_backups",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2024.06/data",
                 "--max_missing_infer", "1"
             ]

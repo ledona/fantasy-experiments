@@ -190,7 +190,7 @@ def _handle_train(args: argparse.Namespace):
     args_dict = vars(args)
 
     model_names: list[str]
-    if args.op == "train":
+    if args.operation == "train":
         tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
         if args.model is not None and args.models is not None:
             args.parser.error(
@@ -660,7 +660,7 @@ def _handle_performance(args):
 
     _LOGGER.info(
         "Executing performance op=%s on %i models matching '%s'",
-        args.op,
+        args.operation,
         len(model_filepaths),
         args.model_filepath,
     )
@@ -669,7 +669,7 @@ def _handle_performance(args):
         if args.train_cfg_filepath is not None
         else None
     )
-    performance_calc(args.op, model_filepaths, cfg, args.data_dir, args.skip_backups)
+    performance_calc(args.operation, model_filepaths, cfg, args.data_dir, args.skip_backups)
 
 
 def _add_performance_parser(sub_parsers):
@@ -683,13 +683,13 @@ def _add_performance_parser(sub_parsers):
     )
     parser.add_argument("--data_dir", help="directory containing data files", default=".")
     parser.add_argument(
-        "-op",
+        "--operation",
         choices=PerformanceOperation.__args__,
         default="test",
         help="calc=calculate and print new metrics; "
         "update=update model files with new metrics; "
         "repair=identify and update model files with incomplete metrics; "
-        "test=identify model files with incomplete metrics",
+        "test=(default) identify model files with incomplete metrics",
     )
     parser.add_argument(
         "--max_missing_infer_cols",
