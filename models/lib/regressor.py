@@ -190,7 +190,7 @@ def _handle_train(args: argparse.Namespace):
     args_dict = vars(args)
 
     model_names: list[str]
-    if args.operation == "train":
+    if args.train_op == "train":
         tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
         if args.model is not None and args.models is not None:
             args.parser.error(
@@ -257,14 +257,14 @@ _MODEL_CATALOG_PATTERN = "model-catalog.{TIMESTAMP}.csv"
 
 
 def _add_train_parser(sub_parsers):
-    for op in ["train", "retrain"]:
-        train_parser = sub_parsers.add_parser(op, help=f"{op} model(s)")
-        train_parser.set_defaults(func=_handle_train, parser=train_parser, op=op)
+    for train_op in ["train", "retrain"]:
+        train_parser = sub_parsers.add_parser(train_op, help=f"{train_op} model(s)")
+        train_parser.set_defaults(func=_handle_train, parser=train_parser, train_op=train_op)
         train_parser.add_argument(
             "cfg_file",
-            help=f"{'.model' if op == 'train' else 'json'} file containing model configuration",
+            help=f"{'.model' if train_op == 'train' else 'json'} file containing model configuration",
         )
-        if op == "train":
+        if train_op == "train":
             train_parser.add_argument(
                 "model",
                 nargs="?",
@@ -660,7 +660,7 @@ def _handle_performance(args):
 
     _LOGGER.info(
         "Executing performance op=%s on %i models matching '%s'",
-        args.operation,
+        args.performance_op,
         len(model_filepaths),
         args.model_filepath,
     )
@@ -669,7 +669,7 @@ def _handle_performance(args):
         if args.train_cfg_filepath is not None
         else None
     )
-    performance_calc(args.operation, model_filepaths, cfg, args.data_dir, args.skip_backups)
+    performance_calc(args.performance_op, model_filepaths, cfg, args.data_dir, args.skip_backups)
 
 
 def _add_performance_parser(sub_parsers):
@@ -683,6 +683,7 @@ def _add_performance_parser(sub_parsers):
     )
     parser.add_argument("--data_dir", help="directory containing data files", default=".")
     parser.add_argument(
+        "--performance_op",
         "--operation",
         choices=PerformanceOperation.__args__,
         default="test",
