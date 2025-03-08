@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from itertools import product
 
 from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle, JSONWithCommentsDecoder
-from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
+from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
 from .. import log

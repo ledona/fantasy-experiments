@@ -15,7 +15,7 @@ from fantasy_py import (
     ContestStyle,
     DataNotAvailableException,
 )
-from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
+from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
 from .best_possible_lineup_score import (

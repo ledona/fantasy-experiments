@@ -4,9 +4,6 @@
         "seed": 1,
         "validation_season": 2022,
         "recent_games": 3,
-        "cols_to_drop": [
-            ".*-[1-9]"
-        ],
         "training_seasons": [
             2009,
             2010,
@@ -26,6 +23,7 @@
         ],
         "missing_data_threshold": 0.15,
         "train_params": {
+            "nn.epochs_max": 2000,
             "early_stop": 4,
             "nn.early_stop": 20,
             "n_jobs": 8,
@@ -37,6 +35,10 @@
         {
             "data_filename": "nfl_team.csv",
             "p_or_t": "T",
+            "train_params": {
+                "hidden_layers": 1,
+                "learning_rate": 1e-6
+            },
             "models": {
                 "NFL-team-pts": {
                     "target": [
@@ -74,6 +76,10 @@
             "target_pos": [
                 "QB"
             ],
+            "train_params": {
+                "hidden_layers": 10,
+                "learning_rate": 1e-6
+            },
             "models": {
                 "NFL-QB-DK": {
                     "target": [
@@ -119,6 +125,10 @@
             "target_pos": [
                 "RB"
             ],
+            "train_params": {
+                "hidden_layers": 2,
+                "learning_rate": 1e-6
+            },
             "include_pos": false,
             "models": {
                 "NFL-RB-DK": {
@@ -150,8 +160,8 @@
             ],
             "include_pos": true,
             "train_params": {
-                "max_eval_time_mins": 8,
-                "population_size": 30
+                "hidden_layers": 1,
+                "learning_rate": 1e-5
             },
             "models": {
                 "NFL-WRTE-DK": {
@@ -184,6 +194,10 @@
             }
         },
         {
+            "train_params": {
+                "hidden_layers": 6,
+                "learning_rate": 0.01
+            },
             "models": {
                 "NFL-K-FG": {
                     "target": [
