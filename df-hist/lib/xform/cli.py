@@ -6,7 +6,7 @@ from functools import partial
 import dateutil
 import pandas as pd
 from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle
-from fantasy_py.lineup.strategy import FiftyFifty, GeneralPrizePool
+from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 
 from .. import log
 from ..data_cfg import SPORT_CFGS

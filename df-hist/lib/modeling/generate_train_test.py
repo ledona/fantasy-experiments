@@ -2,11 +2,9 @@ import logging
 import os
 
 import pandas as pd
+from fantasy_py import ContestStyle, DataNotAvailableException
+from fantasy_py.betting import Contest
 from sklearn.model_selection import train_test_split
-
-from fantasy_py import DataNotAvailableException
-from fantasy_py.fantasy_types import ContestStyle
-from fantasy_py.lineup.strategy import Contest
 
 _LOGGER = logging.getLogger(__name__)
 
