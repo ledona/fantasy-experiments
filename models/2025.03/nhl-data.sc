@@ -32,7 +32,7 @@ dumpdata.sc --seasons $SEASONS --progress --slack \
     --current_opp_extra odds_ml "sg_*" \
     --target_stats goal_ag save \
     --target_calc_stats "*_score" \
-    --hist_recent_games 5 --hist_recent_mode m \
+    --hist_recent_games 5 --hist_recent_mode ma \
     --format parquet -f ${DEST}/nhl_goalie.parquet
 
 # team data

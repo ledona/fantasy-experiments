@@ -37,7 +37,7 @@ dumpdata.sc --seasons $SEASONS --no_team \
    --hist_opp_extra team_bases \
    --target_calc_stats "*_score" \
    --target_stats p_bb p_hits p_hr p_ip p_k p_runs p_win \
-   --hist_recent_games 5 --hist_recent_mode m \
+   --hist_recent_games 5 --hist_recent_mode ma \
    --dask_mode processes --dask_tasks 6 \
    --slack $DB_FILE --format parquet -f ${DEST}/mlb_pitcher.parquet
 
