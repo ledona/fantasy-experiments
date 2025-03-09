@@ -465,7 +465,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     df = train_df.fillna(0)
     impute_values = {
         PTPredictModel.impute_key_for_feature_name(col, team_target): round(df[col].median(), 2)
-        for col in train_df.columns
+        for col in sorted(train_df.columns)
         if (":std-mean" in col or col.startswith("extra:"))
     }
     if len(impute_values) == 0:

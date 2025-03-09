@@ -54,6 +54,6 @@ dumpdata.sc --seasons $SEASONS --no_player \
    --hist_extra team_bases \
    --hist_opp_extra team_bases \
    --target_stats off_runs win \
-   --hist_recent_games 5 --hist_recent_mode ma \
+   --hist_recent_games 5 --hist_recent_mode m \
    --dask_mode processes --dask_tasks 6 \
    --slack $DB_FILE --format parquet -f ${DEST}/mlb_team.parquet
