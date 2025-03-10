@@ -22,7 +22,8 @@ dumpdata.sc --seasons $SEASONS --dask_mode processes --dask_tasks 4 \
     --format parquet -f ${DEST}/nhl_skater.parquet
 
 # goalie data
-dumpdata.sc --seasons $SEASONS --progress --slack \
+dumpdata.sc --seasons $SEASONS --slack \
+   --dask_mode processes --dask_tasks 8 \
     $DB_FILE --no_teams \
     --pos G --starters \
     --stats $GOALIE_STATS \
