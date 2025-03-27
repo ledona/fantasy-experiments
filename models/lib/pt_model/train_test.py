@@ -139,12 +139,15 @@ def _load_data_local(
                 and col != target_col_name
             }
             if len(re_cols_to_drop) == 0:
-                raise WildcardFilterFoundNothing(
-                    f"Filter '{filter_}' did not match any input columns: {list(df_raw.columns)}"
+                _LOGGER.error(
+                    "Filter '%s' did not match any input columns: %s",
+                    filter_,
+                    sorted(df_raw.columns),
                 )
-            _LOGGER.info(
-                "Column drop filter '%s' matched to %i feature cols", filter_, len(re_cols_to_drop)
-            )
+            else:
+                _LOGGER.info(
+                    "Column drop filter '%s' matched to %i feature cols", filter_, len(re_cols_to_drop)
+                )
             cols_to_drop |= re_cols_to_drop
         _LOGGER.info(
             "Dropping n=%i of %i columns",  # : %s",
