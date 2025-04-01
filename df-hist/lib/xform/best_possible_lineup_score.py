@@ -156,7 +156,6 @@ def best_possible_lineup_score(
         no_fail=False,
         service=service,
         match_threshold=0.5,
-        no_default_lineup_plans=False,
         lineup_plan_paths=None,
     )
     args, fca = db_obj.db_manager.gen_lineups_preprocess(
@@ -187,7 +186,7 @@ def best_possible_lineup_score(
             service_cls.DEFAULT_MODEL_NAMES.get(sport),
             solver,
             service_cls,
-            n_lineups=1, 
+            n_lineups=1,
             slate=slate_name,
             slate_info=starters.slates[slate_name],
             score_data_type="historic",

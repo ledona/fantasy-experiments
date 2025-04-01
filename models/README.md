@@ -128,11 +128,12 @@ python -m lib.regressor performance [MODEL_FILE_PATTERN] \
 TBD
 
 ## Cloud Training
-1. Follow the instructions in the fantasy repo configuration management folder for setting up an AWS training instance
-2. To train a model use the _aws_train.sc_ script. For example:
+1. Set up for training by following the instructions in the fantasy repo configuration management folder
+2. To train a model use the _aws_train.sc_ script in this folder. For example:
 ```
 # ./aws_train.sc {S3-BUCKET} {DEST-DIR} {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
 # for example
+cd /fantasy-experiments/models
 ./aws_train.sc s3://ledona-fantasy /tmp/models mlb.json MLB-H-DK --algo tpot-xgboost --slack --n_jobs 4
 ```
 3. To copy/sync model results from S3 use aws cli.
