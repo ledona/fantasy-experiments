@@ -10,29 +10,16 @@ from typing import Literal, Type, cast
 import dask.bag as dask_bag
 import numpy as np
 import pandas as pd
-from fantasy_py import (
-    CacheMode,
-    ContestStyle,
-    DataNotAvailableException,
-    FantasyException,
-    GameScheduleEpoch,
-    SeasonPart,
-    SlateDict,
-    cache_to_file,
-    db,
-    dt_to_filename_str,
-    log,
-)
+from fantasy_py import (CacheMode, ContestStyle, DataNotAvailableException,
+                        FantasyException, GameScheduleEpoch,
+                        NotSeasonDateError, SeasonPart, SlateDict,
+                        cache_to_file, db, dt_to_filename_str, log)
 from fantasy_py.inference import ImputeFailure, get_models_by_name
-from fantasy_py.lineup import (
-    DEEP_LINEUP_POSITION_REMAPPINGS,
-    FantasyCostAggregate,
-    FantasyService,
-    LineupGenerationFailure,
-    gen_lineups,
-)
+from fantasy_py.lineup import (DEEP_LINEUP_POSITION_REMAPPINGS,
+                               FantasyCostAggregate, FantasyService,
+                               LineupGenerationFailure, gen_lineups)
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
-from fantasy_py.sport import DateNotAvailableError, Starters
+from fantasy_py.sport import Starters
 from ledona import constant_hasher
 from sqlalchemy.orm import Session
 from tqdm import tqdm
@@ -659,7 +646,7 @@ def _map_create_def(
             GameScheduleEpoch,
             db_obj.db_manager.epoch_for_game_number(season, game_num),
         )
-    except DateNotAvailableError:
+    except NotSeasonDateError:
         _LOGGER.info(
             "Skipping sample candidate %i season=%i, game_num=%i: date not available",
             attempt,

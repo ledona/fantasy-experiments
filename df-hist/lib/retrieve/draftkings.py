@@ -313,7 +313,8 @@ class Draftkings(ServiceDataRetriever):
                 func_args=(row_ele,),
             )
             _LOGGER.info(
-                "Entry lineup for '%s' lineup place.rank=%i.%i retrieved from %s, cached from/to '%s'",
+                "Entry lineup for '%s' lineup place.rank=%i.%i retrieved from %s, "
+                "cached from/to '%s'",
                 entry_info.title,
                 placement,
                 i,
