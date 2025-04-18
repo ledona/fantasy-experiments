@@ -186,14 +186,14 @@
                 "draftkings", 
                 // "fanduel". 
                 "--address", "127.0.0.1:9222",
-                // "--web-limit", "10",
-                "--history-file-dir", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting",
-                "--cache", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting\\df-hist-cache",
+                "--web-limit", "25",
+                "--history-file-dir", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting",
+                "--cache", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting\\df-hist-cache",
 
-                "--cache-only", 
-                "-o", "${userHome}\\IDrive-sync\\fantasy\\fantasy-dfs-hist\\betting",
-                // "--sports", "nfl", 
-                // "--start-date", "20240202", "--end-date", "2024-04-24",
+                // "--cache-only", 
+                "-o", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting",
+                "--sports", "nfl", 
+                "--start-date", "20240901", "--end-date", "2025-04-18",
             ]
         },
         {

@@ -30,7 +30,9 @@ python -m lib.retrieve.retrieve_hist \
    draftkings \
    [--sports nfl] [--cache-only] [--start-date 20201001] [--end-date 20210101]
 ```
-
+4. (optional) If debugging/running under VSCODE
+   a. To update vscode to use the new interpreter, _SHIFT-CTRL-P_, then _Python:Select Interpreter_, then navigate to the python exe in the new venv
+   b. The VSCODE launch configuration uses the environment variable _FANTASY_IDRIVE_HOME_. Set this in the environment that the process will be run from
 
 ## Create model training data (__data_xform__)
 First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_. The following example
