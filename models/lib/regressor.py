@@ -248,7 +248,7 @@ def _handle_train(args: argparse.Namespace):
             if len(model_names) > 1
             else f"{model_names[0]} trained successfully"
         )
-        _LOGGER.success_info(final_slack_msg)
+        _LOGGER.success(final_slack_msg)
     if not args.info:
         slack.send_slack(final_slack_msg)
 

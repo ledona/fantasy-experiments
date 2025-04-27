@@ -146,7 +146,9 @@ def _load_data_local(
                 )
             else:
                 _LOGGER.info(
-                    "Column drop filter '%s' matched to %i feature cols", filter_, len(re_cols_to_drop)
+                    "Column drop filter '%s' matched to %i feature cols",
+                    filter_,
+                    len(re_cols_to_drop),
                 )
             cols_to_drop |= re_cols_to_drop
         _LOGGER.info(
@@ -270,7 +272,7 @@ def _summarize_final_feature_cols(
     skip_data_reports: bool,
     include_position: bool,
 ):
-    feature_cols = [
+    feature_cols = sorted(
         col
         for col in df.columns
         if col != target_col_name
@@ -280,7 +282,7 @@ def _summarize_final_feature_cols(
             or ":recent" in col
             or ":std" in col
         )
-    ]
+    )
 
     _LOGGER.info("Final feature cols n=%i", len(feature_cols))
 
