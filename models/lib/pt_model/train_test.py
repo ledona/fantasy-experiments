@@ -754,7 +754,7 @@ def _create_fantasy_model(
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features_sets: dict[FeatureType, set[str]] = defaultdict(set)
-    columns = training_features_df.columns
+    columns = training_features_df.columns.to_list()
     sport_abbr = name.split("-", 1)[0]
     db_manager = cast(
         SportDBManager, CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport_abbr.lower())
@@ -837,7 +837,7 @@ def _create_fantasy_model(
         trained_parameters={"regressor_path": model_artifact_path},
         performance=performance,
         player_positions=target_pos,
-        input_cols=columns.to_list(),
+        input_cols=columns,
         impute_values=imputes,
         desc_info=model_info,
     )

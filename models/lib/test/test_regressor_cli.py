@@ -316,7 +316,7 @@ def _create_expected_model_dict(
     expected_training_data_def.update(
         {
             "features": features,
-            "input_cols": [feature_col, pos_col],
+            "input_cols": [pos_col, feature_col],
             "seasons": expected_training_data_def.pop("training_seasons"),
             "recent_explode": True,
             "recent_mean": True,
@@ -642,7 +642,7 @@ def test_retrain(
 
     # mock the training data load
     fake_raw_df = mocker.Mock(name="fake-raw-training-df")
-    fake_training_features_df = pd.DataFrame({"stat:fake-stat:std": [8, 6, 7, 5], "pos_C": [1] * 4})
+    fake_training_features_df = pd.DataFrame({"pos_C": [1] * 4, "stat:fake-stat:std": [8, 6, 7, 5]})
     fake_tt_data = [fake_training_features_df, None, fake_training_features_df, None, [0], None]
     mocker.patch("lib.pt_model.cfg.load_data", return_value=(fake_raw_df, fake_tt_data, None))
 
