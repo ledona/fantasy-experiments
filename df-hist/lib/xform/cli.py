@@ -5,10 +5,10 @@ from functools import partial
 
 import dateutil
 import pandas as pd
-from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle
+from fantasy_py import CONTEST_DOMAIN, CacheSettings, CLSRegistry, DFSContestStyle, log
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
+from tqdm import tqdm
 
-from .. import log
 from ..data_cfg import SPORT_CFGS
 from .best_possible_lineup_score import TopScoreCacheMode
 from .data_xform import xform
@@ -43,9 +43,9 @@ def _process_cmd_line(cmd_line_str=None):
         "--contest_styles",
         "--styles",
         nargs="+",
-        type=ContestStyle,
-        choices=[ContestStyle.CLASSIC.name, ContestStyle.SHOWDOWN.name],
-        default=[ContestStyle.CLASSIC, ContestStyle.SHOWDOWN],
+        type=DFSContestStyle,
+        choices=[DFSContestStyle.CLASSIC.name, DFSContestStyle.SHOWDOWN.name],
+        default=[DFSContestStyle.CLASSIC, DFSContestStyle.SHOWDOWN],
     )
 
     parser.add_argument(
@@ -92,6 +92,7 @@ def _process_cmd_line(cmd_line_str=None):
     )
 
     parser.add_argument("--sports", nargs="+", choices=SPORT_CFGS.keys(), default=SPORT_CFGS.keys())
+    CacheSettings.add_parser_args(parser, dir_create_mode_default="prompt")
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
@@ -99,14 +100,15 @@ def _process_cmd_line(cmd_line_str=None):
     print(f"{args=}")
 
     dfs: dict[tuple, pd.DataFrame] = {}
-    for sport in set(args.sports):
+    for sport in (tqdm_progress := tqdm(sorted(set(args.sports)), desc="sport")):
+        tqdm_progress.set_postfix_str(sport)
         dfs.update(
             xform(
                 sport,
                 SPORT_CFGS[sport],
-                set(args.services),
-                set(args.contest_styles),
-                set(args.contest_types),
+                sorted(set(args.services)),
+                sorted(set(args.contest_styles)),
+                sorted(set(args.contest_types), key=lambda ct: ct.NAME),
                 args.top_score_cache_mode,
                 args.data_path,
                 args.contest_data_path,
@@ -132,5 +134,5 @@ def _process_cmd_line(cmd_line_str=None):
 
 
 if __name__ == "__main__":
-    log.setup()
+    log.configure_logging(progress=True)
     _process_cmd_line()

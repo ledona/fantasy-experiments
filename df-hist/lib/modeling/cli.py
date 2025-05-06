@@ -1,20 +1,18 @@
 import json
-import logging
 import os
 import shlex
 from argparse import ArgumentParser
 from itertools import product
 
-from fantasy_py import CONTEST_DOMAIN, CLSRegistry, ContestStyle, JSONWithCommentsDecoder
+from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCommentsDecoder, log
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
-from .. import log
 from .automl import ExistingModelMode, Framework
 from .eval_models import ModelTargetGroup, evaluate_models
 from .results import show_eval_results
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = log.get_logger(__name__)
 _DEFAULT_CFG_PATH = os.path.join(".", "model_cfg.json")
 _DEFAULT_RESULTS_PATH = os.path.join(".", "eval_results")
 _DEFAULT_MODEL_PATH = os.path.join(".", "models")
@@ -99,8 +97,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--contest_styles",
         "--styles",
         nargs="+",
-        choices=[ContestStyle.CLASSIC, ContestStyle.SHOWDOWN],
-        default=[ContestStyle.CLASSIC, ContestStyle.SHOWDOWN],
+        choices=[DFSContestStyle.CLASSIC, DFSContestStyle.SHOWDOWN],
+        default=[DFSContestStyle.CLASSIC, DFSContestStyle.SHOWDOWN],
     )
     parser.add_argument(
         "--contest_types",
@@ -167,7 +165,7 @@ def _process_cmd_line(cmd_line_str=None):
             f"cfg file '{args.model_cfg_file}'"
         )
 
-    c_styles = [ContestStyle(style) for style in set(args.contest_styles)]
+    c_styles = [DFSContestStyle(style) for style in set(args.contest_styles)]
     c_types = [CLSRegistry.get_class(CONTEST_DOMAIN, type_) for type_ in set(args.contest_types)]
 
     print(f"{args=}")
@@ -189,5 +187,5 @@ def _process_cmd_line(cmd_line_str=None):
 
 
 if __name__ == "__main__":
-    log.setup()
+    log.configure_logging(progress=True)
     _process_cmd_line()

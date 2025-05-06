@@ -1,12 +1,11 @@
-import logging
 import os
 
 import pandas as pd
-from fantasy_py import ContestStyle, DataNotAvailableException
+from fantasy_py import DataNotAvailableException, DFSContestStyle, log
 from fantasy_py.betting import Contest
 from sklearn.model_selection import train_test_split
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = log.get_logger(__name__)
 
 _COLS_TO_IGNORE = {
     "date",
@@ -23,7 +22,7 @@ _COLS_TO_IGNORE = {
 def load_csv(
     sport,
     service_: None | str,
-    style: ContestStyle | str,
+    style: DFSContestStyle | str,
     contest_type: Contest | str,
     data_folder=".",
 ) -> pd.DataFrame:

@@ -8,7 +8,7 @@ import pandas as pd
 from dateutil.parser import parse as dateutil_parse
 from tqdm import tqdm
 
-from .. import log
+from . import log
 from .service_data_retriever import (
     EXPECTED_HISTORIC_ENTRIES_DF_COLS,
     CacheMode,

@@ -1,8 +1,7 @@
-import logging
 import os
 
 import pandas as pd
-from fantasy_py import dt_to_filename_str
+from fantasy_py import dt_to_filename_str, log
 
 _EVAL_COL_ORDER = [
     "Sport",
@@ -18,7 +17,7 @@ _EVAL_COL_ORDER = [
     "Params",
 ]
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = log.get_logger(__name__)
 
 
 def _log_eval_results(eval_results: list[dict], name: str, csv_folder):

@@ -157,6 +157,7 @@ def best_possible_lineup_score(
         service=service,
         match_threshold=0.5,
         lineup_plan_paths=None,
+        use_default_lineup_plans=True
     )
     args, fca = db_obj.db_manager.gen_lineups_preprocess(
         db_obj, args, None, game_date, starters=starters, print_slate_info=False

@@ -1,4 +1,3 @@
-import logging
 import os
 import warnings
 from math import sqrt
@@ -8,7 +7,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import sklearn
-from fantasy_py import DataNotAvailableException
+from fantasy_py import DataNotAvailableException, log
 from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
     feature_names_from_win_score_model,
 )
@@ -19,7 +18,7 @@ from tpot import TPOTRegressor
 warnings.filterwarnings("ignore", module="sklearn")
 warnings.filterwarnings("ignore", module="dask_ml")
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = log.get_logger(__name__)
 
 # Frameworks = Literal["skautoml", "tpot"]
 Framework = Literal["dummy", "tpot"]

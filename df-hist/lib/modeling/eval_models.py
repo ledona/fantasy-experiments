@@ -1,14 +1,12 @@
-import logging
-from datetime import datetime
 from typing import Literal
 
 import pandas as pd
-from fantasy_py import DataNotAvailableException, now
+from fantasy_py import DataNotAvailableException, log, now
 
 from .automl import ExistingModelMode, Framework, ModelTarget, create_automl_model
 from .generate_train_test import generate_train_test, load_csv
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = log.get_logger(__name__)
 
 ModelTargetGroup = Literal[
     "all-top",

@@ -12,8 +12,8 @@ from fantasy_py import (
     FANTASY_SERVICE_DOMAIN,
     SPORT_DB_MANAGER_DOMAIN,
     CLSRegistry,
-    ContestStyle,
     DataNotAvailableException,
+    DFSContestStyle,
 )
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
@@ -194,16 +194,16 @@ def _get_exploded_pos_df(
     return db_exploded_pos_df
 
 
-def _infer_contest_style(service, title) -> ContestStyle:
+def _infer_contest_style(service, title) -> DFSContestStyle:
     """get contest data"""
     if service == "draftkings":
-        if "Showdown" in title or re.match(".*.{2,3} vs .{2,3}\)", title):
-            return ContestStyle.SHOWDOWN
-        return ContestStyle.CLASSIC
+        if "Showdown" in title or re.match(r".*.{2,3} vs .{2,3}\)", title):
+            return DFSContestStyle.SHOWDOWN
+        return DFSContestStyle.CLASSIC
     if service == "fanduel":
         if "@" in (title or ""):
-            return ContestStyle.SHOWDOWN
-        return ContestStyle.CLASSIC
+            return DFSContestStyle.SHOWDOWN
+        return DFSContestStyle.CLASSIC
     if service == "yahoo":
         if (
             " Cup " in title
@@ -216,13 +216,13 @@ def _infer_contest_style(service, title) -> ContestStyle:
             or "Quadruple Up" in title
             or "Guaranteed" in title
         ):
-            return ContestStyle.CLASSIC
+            return DFSContestStyle.CLASSIC
     raise NotImplementedError(f"Could not infer contest style for {service=} {title=}")
 
 
 def _infer_contest_type(service, title) -> str:
     if service == "draftkings":
-        if re.match(".* vs\. [^)]+$", title):
+        if re.match(r".* vs\. [^)]+$", title):
             return "H2H"
         return FiftyFifty.NAME if "Double Up" in title else GeneralPrizePool.NAME
     if service == "fanduel":
@@ -294,8 +294,9 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
     )
     if len(draft_df) == 0:
         raise DataNotAvailableException(
-            f"No draft data found for {sport=}, {service=}, {style=}, {min_date=}, {max_date=} in '{csv_path}'. "
-            "Perhaps the last data retrieval run had too many constraints (date for example)?"
+            f"No draft data found for {sport=}, {service=}, {style=}, {min_date=}, "
+            f"{max_date=} in '{csv_path}'. Perhaps the last data retrieval run had "
+            "too many constraints (date for example)?"
         )
 
     draft_df["service"] = draft_df.contest.map(lambda contest: contest.split("-", 1)[0])
@@ -315,7 +316,7 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
 
 def _create_team_contest_df(contest_df, draft_df, service, sport):
     service_cls = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service)
-    abbr_remaps = service_cls.get_team_abbr_remapping(sport)
+    abbr_remaps = service_cls.TEAM_ABBR_ALIASES.get(sport)
 
     # add team/lineup draft data
     team_contest_df = pd.merge(contest_df, draft_df, on="contest_id")

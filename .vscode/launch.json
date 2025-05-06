@@ -204,9 +204,10 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
+                "--cache_dir", "/tmp/fantasy-xform",
                 // "--services", "draftkings",
                 // "--", "--dates", "20200901", "20201101",
-                // "--sports", "nfl",
+                "--sports", "nfl", "mlb", "nhl", "nba"
             ]
         },
         {
