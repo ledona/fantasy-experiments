@@ -64,7 +64,6 @@ EXPECTED_HISTORIC_ENTRIES_DF_COLS = {
     "winnings",
 }
 
-# columns that will be in the player draft percentage dataframe
 EXPECTED_DRAFT_PLAYER_COLS = {
     "contest",
     "date",
@@ -74,6 +73,7 @@ EXPECTED_DRAFT_PLAYER_COLS = {
     "name",
     "draft_pct",
 }
+"""columns that will be in the player draft percentage dataframe"""
 
 
 EXPECTED_CONTEST_DATA_KEYS = {
@@ -354,13 +354,14 @@ class ServiceDataRetriever(ABC):
             return
 
         # process contest data
-        contest_data, contest_src, _ = self.get_data(
+        contest_data, contest_src = self.get_data(
             contest_key,
             self.get_contest_data,
             data_type="json",
             func_args=(entry_dict["link"], contest_key, entry_info),
-        )
+        )[:2]
 
+        assert isinstance(contest_data, dict)
         src = "web" if "web" in (contest_src, entry_src) else "cache"
         self.processed_counts_by_src[src] += 1
         _LOGGER.info("Contest data for '%s' from %s", contest_key, contest_src)
@@ -390,6 +391,7 @@ class ServiceDataRetriever(ABC):
 
         for lineup_data in contest_data["lineups_data"]:
             lineup_df = self.get_opp_lineup_df(lineup_data)
+            assert lineup_df is not None
             lineup_df["contest"] = contest_key
             lineup_df["date"] = entry_info.date
             lineup_df["sport"] = entry_info.sport

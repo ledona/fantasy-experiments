@@ -396,7 +396,7 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
     try:
         date_slates = slate_db_df.loc[[contest_row.date]].sort_values("team_count")
     except KeyError:
-        _LOGGER.warning("get_slate_id:: Key error/No slates found for %s", contest_row.date)
+        _LOGGER.warning("get_slate_id::Key error/No slates found for %s", contest_row.date)
         return _NO_SLATE_ID_FOUND
     try:
         slates = date_slates.query("@contest_row.teams <= teams")
@@ -411,7 +411,9 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
     slates_found = len(slates)
     if slates_found == 0:
         _LOGGER.warning(
-            "No slates found for %s that matches teams %s.", contest_row.date, contest_row.teams
+            "get_slate_id::No slates found for %s that matches teams %s.",
+            contest_row.date,
+            contest_row.teams,
         )
         return _NO_SLATE_ID_FOUND
 
