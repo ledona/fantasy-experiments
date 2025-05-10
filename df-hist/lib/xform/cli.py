@@ -3,8 +3,8 @@ import shlex
 from argparse import ArgumentParser
 from functools import partial
 
-import dateutil
 import pandas as pd
+from dateutil.parser import parse as du_parse
 from fantasy_py import CONTEST_DOMAIN, CacheSettings, CLSRegistry, DFSContestStyle, log
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
@@ -44,7 +44,7 @@ def _process_cmd_line(cmd_line_str=None):
         "--styles",
         nargs="+",
         type=DFSContestStyle,
-        choices=[DFSContestStyle.CLASSIC.name, DFSContestStyle.SHOWDOWN.name],
+        choices=[DFSContestStyle.CLASSIC, DFSContestStyle.SHOWDOWN],
         default=[DFSContestStyle.CLASSIC, DFSContestStyle.SHOWDOWN],
     )
 
@@ -52,8 +52,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--contest_types",
         "--types",
         nargs="+",
-        type=partial(CLSRegistry, CONTEST_DOMAIN),
-        choices=[FiftyFifty.NAME, GeneralPrizePool.NAME],
+        type=partial(CLSRegistry.get_class, CONTEST_DOMAIN),
+        choices=[FiftyFifty, GeneralPrizePool],
         default=[FiftyFifty, GeneralPrizePool],
     )
 
@@ -86,7 +86,7 @@ def _process_cmd_line(cmd_line_str=None):
         "--dates",
         nargs=2,
         metavar=("start-date", "end-date"),
-        type=lambda date_str: dateutil.parser.parse(date_str).date(),
+        type=lambda date_str: du_parse(date_str).date(),
         help="Start and end date to process. Start is inclusive, end exclusive. "
         "Default is the dates in the config for the sport",
     )
@@ -98,6 +98,8 @@ def _process_cmd_line(cmd_line_str=None):
     args = parser.parse_args(arg_strings)
 
     print(f"{args=}")
+
+    CacheSettings.update(args)
 
     dfs: dict[tuple, pd.DataFrame] = {}
     for sport in (tqdm_progress := tqdm(sorted(set(args.sports)), desc="sport")):

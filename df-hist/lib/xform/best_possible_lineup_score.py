@@ -6,7 +6,8 @@ from argparse import Namespace
 from contextlib import contextmanager
 from typing import Literal, cast
 
-from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, db, log
+import pandas as pd
+from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, DataNotAvailableException, db, log
 from fantasy_py.lineup import FantasyService, gen_lineups
 from fantasy_py.lineup.do_gen_lineup import lineup_plan_helper
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
@@ -38,74 +39,77 @@ def get_stat_names(sport, service_abbr: Literal["dk", "fd", "y"], as_str=False) 
 
 
 @contextmanager
-def best_score_cache_ctx(sport: str, top_score_cache_mode: TopScoreCacheMode, cache_dir="."):
+def score_cache_ctx(sport: str, top_score_cache_mode: TopScoreCacheMode, cache_dir="."):
+    """context manager for caching top and mean-diff-hist-vs-pred scores"""
     if not os.path.isdir(cache_dir):
         raise FileNotFoundError(f"Cache directory '{cache_dir}' does not exist")
-    top_score_cache_filename = sport + "-slate.top_score.json"
-    top_score_cache_filepath = os.path.join(cache_dir, top_score_cache_filename)
-    top_score_dict: dict[int, float]
-    orig_top_score_dict = {}
+    score_cache_filename = sport + "-slate.score.json"
+    score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
+    score_dict: dict[int, tuple[float, float]]
+    orig_score_dict = {}
 
-    if os.path.isfile(top_score_cache_filepath):
+    if os.path.isfile(score_cache_filepath):
         if top_score_cache_mode in ("default", "missing"):
-            with open(top_score_cache_filepath, "r") as f:
+            with open(score_cache_filepath, "r") as f:
                 cache_data = json.load(f)
             for slate_id, score in cache_data.items():
                 if top_score_cache_mode == "missing" and score is None:
                     continue
-                orig_top_score_dict[int(slate_id)] = score
+                orig_score_dict[int(slate_id)] = score
         elif top_score_cache_mode == "overwrite":
-            _LOGGER.info(
-                "Overwriting existing best score cache data at '%s'", top_score_cache_filepath
-            )
+            _LOGGER.info("Overwriting existing best score cache data at '%s'", score_cache_filepath)
         else:
             raise ValueError("Unexpected top score cache mode", top_score_cache_mode)
     else:
-        _LOGGER.info("Best score cache data not found! '%s'", top_score_cache_filepath)
-        orig_top_score_dict = {}
+        _LOGGER.info("Best score cache data not found! '%s'", score_cache_filepath)
+        orig_score_dict = {}
 
     # make a copy so that we can figure out if there are updates
     # TODO: for diff, can probably do this more efficiently by comparing a hash of the before and after
-    top_score_dict = dict(orig_top_score_dict)
+    score_dict = dict(orig_score_dict)
 
     try:
-        yield top_score_dict
+        yield score_dict
     finally:
-        if orig_top_score_dict != top_score_dict:
+        if orig_score_dict != score_dict:
             # TODO: should save the cache as new scores are added
-            _LOGGER.info(
-                "Writing updated best score values to cache '%s'", top_score_cache_filepath
-            )
-            with open(top_score_cache_filepath, "w") as f:
-                json.dump(top_score_dict, f)
+            _LOGGER.info("Writing updated best score values to cache '%s'", score_cache_filepath)
+            with open(score_cache_filepath, "w") as f:
+                json.dump(score_dict, f)
         _LOGGER.info("Exiting best_score_cache")
 
 
-def best_possible_lineup_score(
+_TOP_PLAYER_PCTL = 0.4
+"""used to find how well top players performed on average vs expectations"""
+
+
+def slate_scoring(
     db_filename,
     service_abbr,
     slate_id,
-    best_score_cache: None | dict[int, None | float] = None,
+    score_cache: None | dict[int, None | tuple[float, float]] = None,
     sport: str | None = None,
     screen_lineup_constraints_mode="fail",
-) -> None | float:
+) -> tuple[None, None] | tuple[float, float]:
     """
-    calculate the best possible fantasy score for the requested slate
-    used as a map function for a pandas series.
+    Calculate the best possible fantasy score and difference between mean historic score
+    vs predicted scores for top players for the requested slate.
+
+    Function is used as a map function for a pandas series.
 
     pts_stats_names - the statistic names for the scores to use for players/teams
     best_score_cache - cache of slate ids mapped to their score. this will be
         searched and possibly updated to include the score for the requested slate
 
-    returns - None if there is an error calculating the best possible score
+    returns - None if there is an error occurs
     """
     if not isinstance(slate_id, (int, float)) or math.isnan(slate_id):
-        return None
+        return None, None
 
     slate_id = int(slate_id)
-    if best_score_cache:
-        if slate_id in best_score_cache:
-            return best_score_cache[slate_id]
+    if score_cache:
+        if slate_id in score_cache:
+            return score_cache[slate_id]
         _LOGGER.info("slate_id=%i not in best score cache", slate_id)
 
     db_obj = db.get_db_obj(db_filename)
@@ -123,7 +127,7 @@ def best_possible_lineup_score(
         )
         if slate is None:
             _LOGGER.warning("Error: Unable to find slate_id=%i in database", slate_id)
-            return None
+            return None, None
 
         game_date = slate.date
         slate_name = slate.name
@@ -157,7 +161,7 @@ def best_possible_lineup_score(
         service=service,
         match_threshold=0.5,
         lineup_plan_paths=None,
-        use_default_lineup_plans=True
+        use_default_lineup_plans=True,
     )
     args, fca = db_obj.db_manager.gen_lineups_preprocess(
         db_obj, args, None, game_date, starters=starters, print_slate_info=False
@@ -181,7 +185,7 @@ def best_possible_lineup_score(
     epoch = db_obj.db_manager.epoch_for_date(game_date)
 
     try:
-        lineups = gen_lineups(
+        lineups, score_data = gen_lineups(
             db_obj,
             fca,
             service_cls.DEFAULT_MODEL_NAMES.get(sport),
@@ -193,8 +197,20 @@ def best_possible_lineup_score(
             score_data_type="historic",
             slate_epoch=epoch,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
-        )[0]
-        hist_score = lineups[0].historic_fpts
+            scores_to_include=["predicted"],
+        )
+        hist_score = cast(float, lineups[0].historic_fpts)
+    except DataNotAvailableException as dna_ex:
+        _LOGGER.warning(
+            "Lineup generation data not available for service_abbr='%s' sport='%s' "
+            "slate_id=%i on %s: %s",
+            service_abbr,
+            sport,
+            slate_id,
+            game_date,
+            dna_ex,
+        )
+        return None, None
     except Exception as ex:
         _LOGGER.error(
             "Error calculating best lineup for service_abbr='%s' sport='%s' slate_id=%i on %s.",
@@ -206,9 +222,23 @@ def best_possible_lineup_score(
         )
         raise
 
-    if best_score_cache is not None and hist_score is not None:
-        best_score_cache[slate_id] = hist_score
-    return hist_score
+    top_predicted_players_scores = (
+        pd.merge(
+            score_data["historic"].rename(columns={"fpts": "hist-fpts"}),
+            score_data["predicted"].rename(columns={"fpts": "pred-fpts"}),
+            on=["game_id", "team_id", "player_id"],
+            how="inner",
+        )
+        .sort_values("pred-fpts", ascending=False)
+        .head(int(len(score_data["predicted"]) * _TOP_PLAYER_PCTL))
+    )
+    hist_pred_diff = float(
+        top_predicted_players_scores["hist-fpts"].mean()
+        - top_predicted_players_scores["pred-fpts"].mean()
+    )
+    if score_cache is not None and hist_score is not None:
+        score_cache[slate_id] = hist_score, hist_pred_diff
+    return hist_score, hist_pred_diff
 
 
 if __name__ == "__main__":
@@ -219,5 +249,5 @@ if __name__ == "__main__":
 
     _args = parser.parse_args()
 
-    best_score = best_possible_lineup_score(_args.db_filename, _args.service, _args.slate_id)
-    print(f"{best_score=}")
+    best_info = slate_scoring(_args.db_filename, _args.service, _args.slate_id)
+    print(f"{best_info=}")

@@ -204,10 +204,12 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
-                "--cache_dir", "/tmp/fantasy-xform",
+                "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/data/xform-cache",
                 // "--services", "draftkings",
+                // "--style", "classic",
+                // "--type", "GPP",
                 // "--", "--dates", "20200901", "20201101",
-                "--sports", "nfl", "mlb", "nhl", "nba"
+                "--sports", "nfl", "nhl", "nba", "mlb"
             ]
         },
         {
@@ -220,8 +222,8 @@
             "args": [
                 // "--auto", "dummy",
                 "--mode", "reuse", 
-                "nhl", // "lol", "nfl", "mlb", "nhl", "nba",
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2024.04",
+                "nfl", "mlb", "nhl", "nba", //"lol",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2025.05",
                 "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/data",
             ]

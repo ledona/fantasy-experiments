@@ -100,7 +100,9 @@ def generate_train_test(
         if col in _COLS_TO_IGNORE:
             continue
         assert (
-            "|" in col or col.startswith("team") or col in ["service", "best-possible-score"]
+            "|" in col
+            or col.startswith("team")
+            or col in ["service", "best-possible-score", "mean-hist-pred-diff"]
         ), f"Unexpected data column named '{col}'"
 
         if (model_cols is None) or col in model_cols:

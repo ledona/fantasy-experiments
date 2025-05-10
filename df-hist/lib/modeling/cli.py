@@ -188,4 +188,5 @@ def _process_cmd_line(cmd_line_str=None):
 
 if __name__ == "__main__":
     log.configure_logging(progress=True)
+    log.set_log_level(log.LIMITED_INFO, only_fantasy=False)
     _process_cmd_line()

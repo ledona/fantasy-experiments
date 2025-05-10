@@ -20,9 +20,9 @@ from tqdm import tqdm
 
 from .best_possible_lineup_score import (
     TopScoreCacheMode,
-    best_possible_lineup_score,
-    best_score_cache_ctx,
     get_stat_names,
+    score_cache_ctx,
+    slate_scoring,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -288,6 +288,7 @@ def _get_contest_df(
 
 
 def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) -> pd.DataFrame:
+    """load drafted players from scraped dataset"""
     csv_path = os.path.join(contest_data_path, service + ".draft.csv")
     draft_df = pd.read_csv(csv_path, parse_dates=["date"]).query(
         "sport == @sport and @min_date <= date < @max_date"
@@ -321,7 +322,7 @@ def _create_team_contest_df(contest_df, draft_df, service, sport):
     # add team/lineup draft data
     team_contest_df = pd.merge(contest_df, draft_df, on="contest_id")
     team_contest_df.team_abbr = team_contest_df.team_abbr.map(
-        lambda abbr: abbr_remaps.get(abbr) or abbr
+        lambda abbr: (abbr_remaps.get(abbr) or abbr) if abbr_remaps else abbr
     )
 
     return team_contest_df
@@ -435,18 +436,23 @@ def _get_position_scores(db_exploded_pos_df, top_player_percentile):
 
 
 def _create_predict_df(
-    teams_contest_df, slate_ids_df, team_score_df, db_pos_scores_df, top_lineup_scores
+    teams_contest_df, slate_ids_df, team_score_df, db_pos_scores_df, slate_scores
 ) -> pd.DataFrame:
     """
-    join contest, slate id, team score and player position scores
+    join contest, slate id, team score, player position scores, slate_scores
+
+    slate_scores: ps series of tuples of
+    (best-possible-slate-score, mean-diff-hist-vs-pred-for-top-players)
     """
 
+    best_slate_score, mean_hist_pred_diffs = zip(*slate_scores)
     dfs = [
         teams_contest_df[["date", "style", "type", "top_score", "last_winning_score", "link"]],
-        top_lineup_scores,
         slate_ids_df,
     ]
-    concatted_df = pd.concat(dfs, axis="columns")
+    concatted_df = pd.concat(dfs, axis="columns").assign(
+        **{"best-possible-score": best_slate_score, "mean-hist-pred-diff": mean_hist_pred_diffs}
+    )
     w_team_score = concatted_df.join(team_score_df, on="slate_id")
     db_pos_scores_df.columns = db_pos_scores_df.columns.map(lambda names: names[1] + "|" + names[0])
     predict_df = w_team_score.join(db_pos_scores_df, on="slate_id")
@@ -479,6 +485,7 @@ def _generate_dataset(
         'overwrite'=overwrite all existing cache data if any exists
         'missing'=use all existing valid cache data, any cached failures will be rerun
     """
+    # get dfs contests from scraped dataset
     contest_df = _get_contest_df(
         service, sport, style, contest_type, min_date, max_date, contest_data_path
     )
@@ -524,25 +531,24 @@ def _generate_dataset(
     db_pos_scores_df = _get_position_scores(db_exploded_pos_df, top_player_percentile)
 
     # cache for top scores
-    with best_score_cache_ctx(sport, top_score_cache_mode, cache_dir=datapath) as top_score_dict:
-        best_possible_lineup_score_part = partial(
-            best_possible_lineup_score,
+    with score_cache_ctx(sport, top_score_cache_mode, cache_dir=datapath) as score_dict:
+        lineup_score_part = partial(
+            slate_scoring,
             cfg["db_filename"],
             _SERVICE_NAME_TO_ABBR[service],
             sport=sport,
-            best_score_cache=top_score_dict,
+            score_cache=score_dict,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
         )
         tqdm.pandas(desc="slates")
-        top_lineup_scores = slate_ids_df.slate_id.progress_map(best_possible_lineup_score_part)
+        lineup_scores = slate_ids_df.slate_id.progress_map(lineup_score_part)
 
-    top_lineup_scores.name = "best-possible-score"
     predict_df = _create_predict_df(
         teams_contest_df,
         slate_ids_df,
         team_score_df,
         db_pos_scores_df,
-        top_lineup_scores,
+        lineup_scores,
     )
 
     filepath = os.path.join(datapath, f"{sport}-{service}-{style.name}-{contest_type.NAME}.csv")

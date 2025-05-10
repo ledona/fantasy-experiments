@@ -327,12 +327,12 @@ class ServiceDataRetriever(ABC):
             self.processed_counts_by_src["skipped"] += 1
             return
 
-        entry_lineup_data, entry_src, _ = self.get_data(
+        entry_lineup_data, entry_src = self.get_data(
             entry_key,
             self.get_entry_lineup_data,
             data_type="html",
             func_args=(entry_dict["link"], entry_info.title),
-        )
+        )[:2]
         _LOGGER.info("Entry lineup for '%s' from %s", entry_key, entry_src)
         entry_lineup_df = self.get_entry_lineup_df(entry_lineup_data)
         if entry_lineup_df is None:
