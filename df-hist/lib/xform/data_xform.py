@@ -288,6 +288,7 @@ def _get_contest_df(
 
 
 def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) -> pd.DataFrame:
+    """load drafted players from scraped dataset"""
     csv_path = os.path.join(contest_data_path, service + ".draft.csv")
     draft_df = pd.read_csv(csv_path, parse_dates=["date"]).query(
         "sport == @sport and @min_date <= date < @max_date"
@@ -321,7 +322,7 @@ def _create_team_contest_df(contest_df, draft_df, service, sport):
     # add team/lineup draft data
     team_contest_df = pd.merge(contest_df, draft_df, on="contest_id")
     team_contest_df.team_abbr = team_contest_df.team_abbr.map(
-        lambda abbr: abbr_remaps.get(abbr) or abbr
+        lambda abbr: (abbr_remaps.get(abbr) or abbr) if abbr_remaps else abbr
     )
 
     return team_contest_df
@@ -479,6 +480,7 @@ def _generate_dataset(
         'overwrite'=overwrite all existing cache data if any exists
         'missing'=use all existing valid cache data, any cached failures will be rerun
     """
+    # get dfs contests from scraped dataset
     contest_df = _get_contest_df(
         service, sport, style, contest_type, min_date, max_date, contest_data_path
     )

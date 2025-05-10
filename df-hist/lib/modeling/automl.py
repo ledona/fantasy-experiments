@@ -15,8 +15,8 @@ from sklearn.dummy import DummyRegressor
 from tpot import TPOTRegressor
 
 # TODO: check that these are still needed 2023.12.25
-warnings.filterwarnings("ignore", module="sklearn")
-warnings.filterwarnings("ignore", module="dask_ml")
+# warnings.filterwarnings("ignore", module="sklearn")
+# warnings.filterwarnings("ignore", module="dask_ml")
 
 _LOGGER = log.get_logger(__name__)
 
