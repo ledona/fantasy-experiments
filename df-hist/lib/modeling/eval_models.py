@@ -1,5 +1,6 @@
 from typing import Literal
 
+import numpy as np
 import pandas as pd
 from fantasy_py import DataNotAvailableException, log, now
 
@@ -8,24 +9,24 @@ from .generate_train_test import generate_train_test, load_csv
 
 _LOGGER = log.get_logger(__name__)
 
-ModelTargetGroup = Literal[
-    "all-top",
-    "all-lws",
-]
+ModelTargetGroup = Literal["all-top", "all-lws", "all-2"]
 """
 models that can be evaluated :
 'all-top' - All available input data predicting the top score
 'all-lws' - All available input data predicting last winning score
+'all-2'   - All available input data predicting both lws and top score in 1 shot
 """
 
 
-def _targets_from_models_to_test(models_to_test: ModelTargetGroup) -> list[str]:
+def _targets_from_models_to_test(models_to_test: set[ModelTargetGroup]) -> list[str]:
     targets = []
     for model_to_test in models_to_test:
         if model_to_test == "all-top":
             targets.append("top-score")
         elif model_to_test == "all-lws":
             targets.append("last-winning-score")
+        elif model_to_test == "all-2":
+            targets.append("last-winning:top-score")
         else:
             raise ValueError(f"Unknown model to test: {model_to_test}")
     return targets
@@ -63,7 +64,9 @@ def evaluate_models(
         "ModelType": framework,
         "Date": now().strftime("%Y%m%d"),
     }
-    final_models_to_test = {"all-top", "all-lws"} if models_to_test is None else models_to_test
+    final_models_to_test: set[ModelTargetGroup] = (
+        {"all-top", "all-lws", "all-2"} if models_to_test is None else models_to_test
+    )
     model_desc_pre = "-".join([sport, service_name, style.name, contest_type.NAME])
 
     try:
@@ -104,20 +107,17 @@ def evaluate_models(
         ]
         return None, None, failed_models
 
-    (
-        X_train,
-        X_test,
-        y_top_train,
-        y_top_test,
-        y_last_win_train,
-        y_last_win_test,
-    ) = model_data
+    (X_train, X_test, y_top_train, y_top_test, y_last_win_train, y_last_win_test) = model_data
 
     model_ys: list[tuple[ModelTarget, pd.Series, pd.Series]] = []
     if "all-top" in final_models_to_test:
         model_ys.append(("top-score", y_top_train, y_top_test))
     if "all-lws" in final_models_to_test:
         model_ys.append(("last-win-score", y_last_win_train, y_last_win_test))
+    if "all-2" in final_models_to_test:
+        y_train = np.column_stack((y_last_win_train, y_top_train))
+        y_test = np.column_stack((y_last_win_test, y_top_test))
+        model_ys.append(("last-winning:top-score", y_train, y_test))
 
     if len(model_ys) == 0:
         raise ValueError(f"No models to test: {final_models_to_test}")
