@@ -1,31 +1,31 @@
 from typing import Literal
 
-import pandas as pd
+import numpy as np
 from fantasy_py import DataNotAvailableException, log, now
 
-from .automl import ExistingModelMode, Framework, ModelTarget, create_automl_model
+from .model import ExistingModelMode, Framework, create_model
 from .generate_train_test import generate_train_test, load_csv
 
 _LOGGER = log.get_logger(__name__)
 
-ModelTargetGroup = Literal[
-    "all-top",
-    "all-lws",
-]
+ModelTargetGroup = Literal["all-top", "all-lws", "all-lws+top"]
 """
 models that can be evaluated :
 'all-top' - All available input data predicting the top score
 'all-lws' - All available input data predicting last winning score
+'all-lws+top'   - All available input data predicting both lws and top score in 1 shot
 """
 
 
-def _targets_from_models_to_test(models_to_test: ModelTargetGroup) -> list[str]:
+def _targets_from_models_to_test(models_to_test: set[ModelTargetGroup]) -> list[str]:
     targets = []
     for model_to_test in models_to_test:
         if model_to_test == "all-top":
             targets.append("top-score")
         elif model_to_test == "all-lws":
             targets.append("last-winning-score")
+        elif model_to_test == "all-lws+top":
+            targets.append("top+lw-score")
         else:
             raise ValueError(f"Unknown model to test: {model_to_test}")
     return targets
@@ -36,7 +36,7 @@ def evaluate_models(
     style,
     contest_type,
     framework: Framework,
-    automl_params: dict,
+    model_params: dict,
     pbar,
     data_folder="data",
     eval_results_path: str | None = None,
@@ -60,10 +60,12 @@ def evaluate_models(
         "Service": service,
         "Style": style.name,
         "Type": contest_type.NAME,
-        "ModelType": framework,
+        "Framework": framework,
         "Date": now().strftime("%Y%m%d"),
     }
-    final_models_to_test = {"all-top", "all-lws"} if models_to_test is None else models_to_test
+    final_models_to_test: set[ModelTargetGroup] = (
+        set(ModelTargetGroup.__args__) if models_to_test is None else models_to_test
+    )
     model_desc_pre = "-".join([sport, service_name, style.name, contest_type.NAME])
 
     try:
@@ -87,7 +89,7 @@ def evaluate_models(
     model_data = generate_train_test(
         df,
         model_cols=None,
-        random_state=automl_params.get("random_state", 0),
+        random_state=model_params.get("random_state", 0),
         service_as_feature=(service is None),
     )
 
@@ -104,32 +106,54 @@ def evaluate_models(
         ]
         return None, None, failed_models
 
-    (
-        X_train,
-        X_test,
-        y_top_train,
-        y_top_test,
-        y_last_win_train,
-        y_last_win_test,
-    ) = model_data
+    (X_train, X_test, y_top_train, y_top_test, y_last_win_train, y_last_win_test) = model_data
 
-    model_ys: list[tuple[ModelTarget, pd.Series, pd.Series]] = []
-    if "all-top" in final_models_to_test:
-        model_ys.append(("top-score", y_top_train, y_top_test))
-    if "all-lws" in final_models_to_test:
-        model_ys.append(("last-win-score", y_last_win_train, y_last_win_test))
-
-    if len(model_ys) == 0:
+    if len(final_models_to_test) == 0:
         raise ValueError(f"No models to test: {final_models_to_test}")
 
-    # models for top and last winning score
-    for target, y_train, y_test in model_ys:
+    for model_target_group in final_models_to_test:
+        if model_target_group == "all-top":
+            if framework == "reg_chain":
+                _LOGGER.warning(
+                    "Skipping model_target_group=%s. framework=%s is does not support it",
+                    model_target_group,
+                    framework,
+                )
+                continue
+            target = "top-score"
+            y_train = y_top_train
+            y_test = y_top_test
+        elif model_target_group == "all-lws":
+            if framework == "reg_chain":
+                _LOGGER.warning(
+                    "Skipping model_target_group=%s. framework=%s is does not support it",
+                    model_target_group,
+                    framework,
+                )
+                continue
+            target = "last-win-score"
+            y_train = y_last_win_train
+            y_test = y_last_win_test
+        elif model_target_group == "all-lws+top":
+            if framework != "reg_chain":
+                _LOGGER.warning(
+                    "Skipping model_target_group=%s. framework=%s is does not support it",
+                    model_target_group,
+                    framework,
+                )
+                continue
+            target = "top+lw-score"
+            y_train = np.column_stack((y_last_win_train, y_top_train))
+            y_test = np.column_stack((y_last_win_test, y_top_test))
+        else:
+            raise NotImplementedError(f"don't know how to train {model_target_group=}")
+
         model_desc = f"{model_desc_pre}-{target}-{framework}"
 
-        _LOGGER.info("training model=%s params=%s", model_desc, automl_params)
+        _LOGGER.info("training model=%s params=%s", model_desc, model_params)
         pbar.set_postfix_str(model_desc)
 
-        cam_result = create_automl_model(
+        cam_result = create_model(
             model_desc,
             model_folder,
             X_train,
@@ -139,7 +163,7 @@ def evaluate_models(
             framework=framework,
             mode=mode,
             eval_results_path=eval_results_path,
-            **automl_params,
+            **model_params,
         )
 
         models[model_desc] = cam_result["model"]
@@ -147,7 +171,7 @@ def evaluate_models(
 
         finalized_results = cam_result["eval_result"].copy()
         finalized_results["Target"] = target
-        finalized_results["Params"] = automl_params.copy()
+        finalized_results["Params"] = model_params.copy()
         finalized_results.update(shared_results_dict)
 
         eval_results.append(finalized_results)

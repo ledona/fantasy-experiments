@@ -12,7 +12,7 @@ _EVAL_COL_ORDER = [
     "R2",
     "RMSE",
     "MAE",
-    "ModelType",
+    "Framework",
     "Date",
     "Params",
 ]
@@ -30,7 +30,7 @@ def _log_eval_results(eval_results: list[dict], name: str, csv_folder):
         return None
 
     df = pd.DataFrame(eval_results)[_EVAL_COL_ORDER].sort_values(
-        ["Sport", "Service", "Type", "Style", "Target", "ModelType"]
+        ["Sport", "Service", "Type", "Style", "Target", "Framework"]
     )
     df.Service = df.Service.fillna("multi")
     if not os.path.isdir(csv_folder):

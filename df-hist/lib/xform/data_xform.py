@@ -382,11 +382,11 @@ def _get_slate_df(db_filename, service, style, min_date, max_date) -> None | pd.
     except Exception as ex:
         raise ValueError("Error processing slate db df", slate_db_df) from ex
 
-    slate_db_df["team_count"] = slate_db_df.teams.map(len)
+    slate_db_df["team-count"] = slate_db_df.teams.map(len)
     return slate_db_df
 
 
-_NO_SLATE_ID_FOUND = pd.Series({"slate_id": None, "team_count": None})
+_NO_SLATE_ID_FOUND = pd.Series({"slate_id": None, "team-count": None})
 
 
 def _get_slate_id(contest_row, slate_db_df) -> pd.Series:

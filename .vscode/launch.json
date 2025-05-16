@@ -220,12 +220,12 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
-                // "--auto", "dummy",
                 "--mode", "reuse", 
                 "nfl", "mlb", "nhl", "nba", //"lol",
                 "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2025.05",
                 "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/data",
+                "--framework", "reg_chain", "tpot"
             ]
         },
     ]

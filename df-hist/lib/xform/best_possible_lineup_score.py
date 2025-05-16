@@ -6,9 +6,9 @@ from argparse import Namespace
 from contextlib import contextmanager
 from typing import Literal, cast
 
-import pandas as pd
 from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, DataNotAvailableException, db, log
-from fantasy_py.lineup import FantasyService, gen_lineups
+from fantasy_py.analysis.backtest.daily_fantasy.contest_dfs import top_lineup_scoring
+from fantasy_py.lineup import FantasyService
 from fantasy_py.lineup.do_gen_lineup import lineup_plan_helper
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
@@ -77,10 +77,6 @@ def score_cache_ctx(sport: str, top_score_cache_mode: TopScoreCacheMode, cache_d
             with open(score_cache_filepath, "w") as f:
                 json.dump(score_dict, f)
         _LOGGER.info("Exiting best_score_cache")
-
-
-_TOP_PLAYER_PCTL = 0.4
-"""used to find how well top players performed on average vs expectations"""
 
 
 def slate_scoring(
@@ -185,21 +181,17 @@ def slate_scoring(
     epoch = db_obj.db_manager.epoch_for_date(game_date)
 
     try:
-        lineups, score_data = gen_lineups(
+        lineup, hist_pred_diff = top_lineup_scoring(
             db_obj,
             fca,
             service_cls.DEFAULT_MODEL_NAMES.get(sport),
             solver,
             service_cls,
-            n_lineups=1,
-            slate=slate_name,
-            slate_info=starters.slates[slate_name],
-            score_data_type="historic",
-            slate_epoch=epoch,
-            screen_lineup_constraints_mode=screen_lineup_constraints_mode,
-            scores_to_include=["predicted"],
+            slate_name,
+            starters.slates[slate_name],
+            epoch,
+            screen_lineup_constraints_mode,
         )
-        hist_score = cast(float, lineups[0].historic_fpts)
     except DataNotAvailableException as dna_ex:
         _LOGGER.warning(
             "Lineup generation data not available for service_abbr='%s' sport='%s' "
@@ -222,22 +214,11 @@ def slate_scoring(
         )
         raise
 
-    top_predicted_players_scores = (
-        pd.merge(
-            score_data["historic"].rename(columns={"fpts": "hist-fpts"}),
-            score_data["predicted"].rename(columns={"fpts": "pred-fpts"}),
-            on=["game_id", "team_id", "player_id"],
-            how="inner",
-        )
-        .sort_values("pred-fpts", ascending=False)
-        .head(int(len(score_data["predicted"]) * _TOP_PLAYER_PCTL))
-    )
-    hist_pred_diff = float(
-        top_predicted_players_scores["hist-fpts"].mean()
-        - top_predicted_players_scores["pred-fpts"].mean()
-    )
+    hist_score = cast(float, lineup.historic_fpts)
     if score_cache is not None and hist_score is not None:
+        assert slate_id is not None
         score_cache[slate_id] = hist_score, hist_pred_diff
+
     return hist_score, hist_pred_diff
 
 

@@ -9,5 +9,7 @@
         "early_stop": 15,
         "random_state": 1
         // "use_dask": true
-    }
+    },
+    "dummy": null,
+    "reg_chain": null
 }

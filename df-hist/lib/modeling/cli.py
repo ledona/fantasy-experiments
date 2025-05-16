@@ -8,7 +8,7 @@ from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCom
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
-from .automl import ExistingModelMode, Framework
+from .model import ExistingModelMode, Framework
 from .eval_models import ModelTargetGroup, evaluate_models
 from .results import show_eval_results
 
@@ -19,8 +19,8 @@ _DEFAULT_MODEL_PATH = os.path.join(".", "models")
 
 
 def _multi_run(
-    framework,
-    model_params: dict,
+    frameworks: list[Framework],
+    model_cfg_filepath,
     styles,
     sports,
     services,
@@ -31,7 +31,15 @@ def _multi_run(
     eval_results_path: str,
     data_dir: str | None,
 ):
+    """
+    generate multiple models for combinations of requested styles,
+    sports, services and contest_types
+    """
     _LOGGER.info("starting multirun for %s-%s-%s-%s", sports, services, styles, contest_types)
+
+    with open(model_cfg_filepath, "r") as f_:
+        model_cfgs = json.load(f_, cls=JSONWithCommentsDecoder)
+
     models = {}
     eval_results = []
     if services is None:
@@ -41,23 +49,30 @@ def _multi_run(
         * len(styles)
         * len(services)
         * len(contest_types)
+        * len(frameworks)
         * (len(models_to_test) if models_to_test else 6)
     )
     all_failed_models = []
 
-    for sport, service, style, contest_type in (
-        pbar := tqdm(
-            product(sorted(sports), sorted(services), styles, contest_types),
-            total=progress_total,
-            desc="modeling",
-        )
-    ):
+    pbar = tqdm(
+        product(sorted(sports), sorted(services), styles, contest_types, sorted(frameworks)),
+        total=progress_total,
+        desc="modeling",
+    )
+    for sport, service, style, contest_type, framework in pbar:
+        if framework not in model_cfgs:
+            raise ValueError(
+                f"framework '{framework}' not defined in model " f"cfg file '{model_cfg_filepath}'"
+            )
+
+        framework_params = model_cfgs[framework] or {}
+
         (new_models, new_eval_results, failed_models) = evaluate_models(
             sport,
             style,
             contest_type,
             framework,
-            model_params,
+            framework_params,
             pbar,
             model_folder=model_folder,
             eval_results_path=eval_results_path,
@@ -70,7 +85,8 @@ def _multi_run(
             all_failed_models += failed_models
         if new_models is None:
             _LOGGER.warning(
-                "No models generated for %s-%s-%s-%s",
+                "No models generated for %s-%s-%s-%s-%s",
+                framework,
                 sport,
                 service,
                 style.name,
@@ -80,7 +96,9 @@ def _multi_run(
         models.update(new_models)
         eval_results += new_eval_results
 
-    _LOGGER.info("finished multirun of %s-%s-%s-%s", sports, services, styles, contest_types)
+    _LOGGER.info(
+        "finished multirun of %s-%s-%s-%s-%s", frameworks, sports, services, styles, contest_types
+    )
     return models, eval_results, all_failed_models
 
 
@@ -130,10 +148,11 @@ def _process_cmd_line(cmd_line_str=None):
         help=f"json file containing model configuration parameters. default={_DEFAULT_CFG_PATH}",
     )
     parser.add_argument(
-        "--automl_framework",
-        help="The type of automl algorithm to use. ",
+        "--frameworks",
+        help="The type of ml framework/algorithm to use",
         choices=Framework.__args__,
-        default="tpot",
+        nargs="+",
+        default=["tpot"],
     )
     parser.add_argument(
         "--existing_model_mode",
@@ -157,21 +176,13 @@ def _process_cmd_line(cmd_line_str=None):
     if not os.path.isdir(args.model_path):
         parser.error(f"model destination path '{args.model_path}' does not exist")
 
-    with open(args.model_cfg_file, "r") as f_:
-        model_cfg = json.load(f_, cls=JSONWithCommentsDecoder)
-    if args.automl_framework not in model_cfg and args.automl_framework != "dummy":
-        parser.error(
-            f"automl type '{args.automl_framework}' not defined in model "
-            f"cfg file '{args.model_cfg_file}'"
-        )
-
     c_styles = [DFSContestStyle(style) for style in set(args.contest_styles)]
     c_types = [CLSRegistry.get_class(CONTEST_DOMAIN, type_) for type_ in set(args.contest_types)]
 
     print(f"{args=}")
     eval_results, failed_models = _multi_run(
-        args.automl_framework,
-        model_cfg.get(args.automl_framework, {}),
+        args.frameworks,
+        args.model_cfg_file,
         c_styles,
         set(args.sports),
         set(args.services),
