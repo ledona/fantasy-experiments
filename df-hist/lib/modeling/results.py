@@ -1,21 +1,8 @@
 import os
+from typing import cast
 
 import pandas as pd
 from fantasy_py import dt_to_filename_str, log
-
-_EVAL_COL_ORDER = [
-    "Sport",
-    "Service",
-    "Type",
-    "Style",
-    "Target",
-    "R2",
-    "RMSE",
-    "MAE",
-    "Framework",
-    "Date",
-    "Params",
-]
 
 _LOGGER = log.get_logger(__name__)
 
@@ -29,9 +16,22 @@ def _log_eval_results(eval_results: list[dict], name: str, csv_folder):
         _LOGGER.warning("No evaluation results to save")
         return None
 
-    df = pd.DataFrame(eval_results)[_EVAL_COL_ORDER].sort_values(
-        ["Sport", "Service", "Type", "Style", "Target", "Framework"]
-    )
+    df = pd.DataFrame(eval_results)
+
+    eval_cols = [
+        "Sport",
+        "Service",
+        "Type",
+        "Style",
+        "Target",
+    ]
+
+    for eval_stat in ["R2", "RMSE", "MAE"]:
+        eval_cols += [col for col in df if cast(str, col).startswith(eval_stat)]
+
+    eval_cols += ["Framework", "Date", "Params"]
+
+    df = df[eval_cols].sort_values(["Sport", "Service", "Type", "Style", "Target", "Framework"])
     df.Service = df.Service.fillna("multi")
     if not os.path.isdir(csv_folder):
         os.mkdir(csv_folder)

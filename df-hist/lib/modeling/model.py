@@ -44,15 +44,37 @@ def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_p
         "RMSE": rmse,
         "MAE": mae,
     }
+
+    if isinstance(y_test, np.ndarray) and y_test.shape[1] == 2:
+        truth_min_max = pd.DataFrame(y_test, columns=["true.min-win", "true.max-win"])
+        pred_min_max = pd.DataFrame(predictions, columns=["pred.min-win", "pred.max-win"])
+        for min_max in ["min", "max"]:
+            truth = truth_min_max[f"true.{min_max}-win"]
+            pred = pred_min_max[f"pred.{min_max}-win"]
+            result[f"R2.{min_max}"] = round(sklearn.metrics.r2_score(truth, pred), 4)
+            result[f"RSME.{min_max}"] = round(
+                sqrt(sklearn.metrics.mean_squared_error(truth, pred)), 4
+            )
+            result[f"MAE.{min_max}"] = round(
+                sqrt(sklearn.metrics.mean_absolute_error(truth, pred)), 4
+            )
+
     if show_results or eval_results_path:
         assert isinstance(predictions, (pd.Series, np.ndarray))
         assert isinstance(y_test, (pd.Series, np.ndarray))
 
         if isinstance(y_test, np.ndarray) and y_test.shape[1] == 2:
-            truth = pd.DataFrame(y_test, columns=["true.min-win", "true.max-win"])
-            pred = pd.DataFrame(predictions, columns=["pred.min-win", "pred.max-win"])
-            plot_data = pd.concat([truth, pred], axis=1).assign(
-                error=np.linalg.norm(y_test - predictions, axis=1)
+            plot_data = pd.concat([truth_min_max, pred_min_max], axis=1).assign(
+                **{
+                    "error.min-max": np.linalg.norm(y_test - predictions, axis=1),
+                    "error.min": truth_min_max["true.min-win"] - pred_min_max["pred.min-win"],
+                    "error.max": truth_min_max["true.max-win"] - pred_min_max["pred.max-win"],
+                    "true.score-diff": truth_min_max.diff(axis=1)["true.max-win"],
+                    "pred.score-diff": pred_min_max.diff(axis=1)["pred.max-win"],
+                }
+            )
+            plot_data["error.score-diff"] = (
+                plot_data["true.score-diff"] - plot_data["pred.score-diff"]
             )
         else:
             truth = pd.Series(y_test) if isinstance(y_test, np.ndarray) else y_test
