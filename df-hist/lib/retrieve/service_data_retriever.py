@@ -297,6 +297,12 @@ class ServiceDataRetriever(ABC):
         # default to assuming support
         return None
 
+    @classmethod
+    def get_service_contest_info(cls, entry_info) -> None | dict:
+        """retrieve any other information supplied by/specific to the
+        service. This will be added to the contest dataframe"""
+        return None
+
     def process_entry(self, entry_info):
         """
         Process a contest entry.
@@ -386,6 +392,9 @@ class ServiceDataRetriever(ABC):
             "top_score": contest_data["top_score"],
             "last_winning_score": contest_data["last_winning_score"],
         }
+
+        if addl_info := self.get_service_contest_info(entry_info):
+            contest_dict.update(addl_info)
 
         self._contest_dicts.append(contest_dict)
 
@@ -506,8 +515,18 @@ class ServiceDataRetriever(ABC):
                         with open_(filepath, "r") as f_:
                             return json.load(f_), "cache", filepath
                     if data_type in {"html", "txt"}:
-                        with open_(filepath, "rt") as f_:
-                            return f_.read(), "cache", filepath
+                        try:
+                            with open_(filepath, "rt") as f_:
+                                return f_.read(), "cache", filepath
+                        except UnicodeDecodeError:
+                            # if loading on linux data that was written on windows, a decode error may happen
+                            _LOGGER.warning(
+                                "Unicode Decode Error for '%s'... will try again using windows encoding",
+                                filepath,
+                            )
+
+                        with open_(filepath, "r") as f_:
+                            return f_.read().decode("cp1252"), "cache", filepath
 
                     raise ValueError(f"Don't know how to load '{filepath}' from cache")
         elif self.cache_only:

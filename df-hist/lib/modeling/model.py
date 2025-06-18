@@ -191,7 +191,7 @@ def create_model(
     model_filepath = os.path.join(model_dir, model_desc + ".pkl")
 
     if (file_exists := os.path.isfile(model_filepath)) and mode == "fail":
-        raise FileExistsError(f"In 'fail' mode and model exists at '{model_filepath}'")
+        raise FileExistsError(f"In 'fail' mode, and model exists at '{model_filepath}'")
 
     if file_exists and mode == "reuse":
         _LOGGER.info("Reusing model at '%s'", model_filepath)

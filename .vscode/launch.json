@@ -175,7 +175,7 @@
             ]
         },
         {
-            "name": "df-hist retrieval",
+            "name": "df-hist retrieval (win)",
             "type": "debugpy",
             "request": "launch",
             "module": "lib.retrieve.retrieve_hist",
@@ -194,6 +194,28 @@
                 "-o", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting",
                 "--sports", "nfl", 
                 "--start-date", "20240901", "--end-date", "2025-04-18",
+            ]
+        },
+        {
+            "name": "df-hist retrieval (linux-cache-only)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.retrieve.retrieve_hist",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/df-hist",
+            "args": [
+                // "yahoo",
+                "draftkings", 
+                // "fanduel". 
+                // "--address", "127.0.0.1:9222",
+                // "--web-limit", "25",
+                "--history-file-dir", "/fantasy-isync/fantasy-dfs-hist/betting",
+                "--cache", "/fantasy-isync/fantasy-dfs-hist/betting/df-hist-cache",
+
+                "--cache-only", 
+                "-o", "/fantasy-isync/fantasy-dfs-hist/betting",
+                // "--sports", "mlb", 
+                // "--start-date", "20240901", "--end-date", "2025-04-18",
             ]
         },
         {

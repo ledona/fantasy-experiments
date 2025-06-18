@@ -14,6 +14,7 @@ from fantasy_py import (
     CLSRegistry,
     DataNotAvailableException,
     DFSContestStyle,
+    UnexpectedValueError,
 )
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
@@ -194,27 +195,38 @@ def _get_exploded_pos_df(
     return db_exploded_pos_df
 
 
-def _infer_contest_style(service, title) -> DFSContestStyle:
+_DK_WARNED_GAME_TYPES = {"Series", "Campbell?s Chunky? Pick"}
+"""uncategorized draftkings game types to warn about"""
+
+
+def _infer_contest_style(service, row) -> DFSContestStyle:
     """get contest data"""
     if service == "draftkings":
-        if "Showdown" in title or re.match(r".*.{2,3} vs .{2,3}\)", title):
+        if row.dk_game_type == "Classic":
+            return DFSContestStyle.CLASSIC
+        if "Showdown" in row.dk_game_type:
             return DFSContestStyle.SHOWDOWN
-        return DFSContestStyle.CLASSIC
+        if "Tiers" in row.dk_game_type:
+            return DFSContestStyle.DK_TIERS
+        if row.dk_game_type in _DK_WARNED_GAME_TYPES:
+            _LOGGER.warning("Unhandled dk game type found. '%s'", row.dk_game_type)
+            return row.dk_game_type
+        raise UnexpectedValueError(f"Unexpected dk game type {row.dk_game_type=}")
     if service == "fanduel":
-        if "@" in (title or ""):
+        if "@" in (row.title or ""):
             return DFSContestStyle.SHOWDOWN
         return DFSContestStyle.CLASSIC
     if service == "yahoo":
         if (
-            " Cup " in title
-            or " to 1st]" in title
-            or " 50/50" in title
-            or "QuickMatch vs " in title
-            or "H2H vs " in title
-            or "-Team" in title
-            or "Freeroll" in title  # N-team contests are classic
-            or "Quadruple Up" in title
-            or "Guaranteed" in title
+            " Cup " in row.title
+            or " to 1st]" in row.title
+            or " 50/50" in row.title
+            or "QuickMatch vs " in row.title
+            or "H2H vs " in row.title
+            or "-Team" in row.title
+            or "Freeroll" in row.title  # N-team contests are classic
+            or "Quadruple Up" in row.title
+            or "Guaranteed" in row.title
         ):
             return DFSContestStyle.CLASSIC
     raise NotImplementedError(f"Could not infer contest style for {service=} {title=}")
@@ -253,6 +265,23 @@ def _infer_contest_type(service, title) -> str:
     raise NotImplementedError(f"Could not infer contest type for {service=} {title=}")
 
 
+def _infer_contest_info_cols(service, row):
+    return {
+        "type": _infer_contest_type(service, row.title),
+        "style": _infer_contest_style(service, row),
+    }
+
+
+_EXPECTED_CONTEST_COLS = {
+    "contest_id",
+    "date",
+    "title",
+    "top_score",
+    "last_winning_score",
+    "entries",
+}
+
+
 def _get_contest_df(
     service, sport, style, contest_type, min_date, max_date, contest_data_path
 ) -> pd.DataFrame:
@@ -262,13 +291,19 @@ def _get_contest_df(
     contest_csv_path = os.path.join(contest_data_path, service + ".contest.csv")
     contest_df = pd.read_csv(contest_csv_path, parse_dates=["date"]).query(
         "sport == @sport and @min_date <= date < @max_date"
-    )[["contest_id", "date", "title", "top_score", "last_winning_score", "entries"]]
+    )
+    if missing_cols := _EXPECTED_CONTEST_COLS.difference(contest_df.keys()):
+        raise DataNotAvailableException(
+            f"Not all expected contest data columns were found. Missing cols={missing_cols}"
+        )
     contest_df.date = contest_df.date.dt.normalize()
     contest_df = contest_df.where(contest_df.notnull(), None)
 
     # add style and type
-    contest_df["style"] = contest_df.title.map(partial(_infer_contest_style, service))
-    contest_df["type"] = contest_df.title.map(partial(_infer_contest_type, service))
+    contest_type_cols = contest_df.apply(
+        partial(_infer_contest_info_cols, service), axis=1, result_type="expand"
+    )
+    contest_df = pd.concat([contest_df, contest_type_cols], axis=1)
     queries = []
     if style is not None:
         queries.append("style == @style")

@@ -4,7 +4,7 @@ import os
 
 import pandas as pd
 from bs4 import BeautifulSoup
-from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -43,6 +43,7 @@ class Draftkings(ServiceDataRetriever):
         "Entry_Fee": "fee",
         "Contest_Key": "contest_id",
         "Places_Paid": "winners",
+        "Game_Type": "dk_game_type",
     }
 
     @classmethod
@@ -335,6 +336,10 @@ class Draftkings(ServiceDataRetriever):
             "top_score": winning_score,
             "lineups_data": lineups_data,
         }
+
+    @classmethod
+    def get_service_contest_info(cls, entry_info) -> None | dict:
+        return {"dk_game_type": entry_info["dk_game_type"]}
 
     @staticmethod
     def get_entry_link(entry_info) -> str:
