@@ -8,8 +8,8 @@ from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCom
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
-from .model import ExistingModelMode, Framework
 from .eval_models import ModelTargetGroup, evaluate_models
+from .model import ExistingModelMode, Framework
 from .results import show_eval_results
 
 _LOGGER = log.get_logger(__name__)
@@ -141,7 +141,7 @@ def _process_cmd_line(cmd_line_str=None):
         default=_DEFAULT_MODEL_PATH,
         help=f"path where models will be written to. default='{_DEFAULT_MODEL_PATH}'",
     )
-    parser.add_argument("--data_dir", "--data_path", help="default is ./data")
+    parser.add_argument("--data_dir", "--data_path", help="default is ./data", default="data")
     parser.add_argument(
         "--model_cfg_file",
         default=_DEFAULT_CFG_PATH,

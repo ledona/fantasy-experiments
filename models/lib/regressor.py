@@ -290,7 +290,7 @@ def _add_train_parser(sub_parsers):
             "--exists_mode",
             choices=ModelFileFoundMode.__args__,
             default="create-w-ts",
-            help="What to do about existing model files",
+            help="What to do about existing model files. default=create-w-ts",
         )
         train_parser.add_argument(
             "--dump_data",

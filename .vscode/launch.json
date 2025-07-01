@@ -43,14 +43,13 @@
                 "--dest_dir", "/tmp",
                 // "--exists_mode", "reuse",
 
-                // "--algo", "tpot",
+                "--algo", "tpot",
                 // "--max_iter_mins", "3",
-                // "--max_train_mins", "5",
+                "--max_train_mins", "5",
                 // "--n_jobs", "2",
                 // "--gens", "10",
                 // "--pop", "8",
 
-                "--algo", "tpot", 
                 // "--batch_size", "256",
                 // "--hidden_size", "64",
                 // "--lr", ".000001",
@@ -175,8 +174,8 @@
             "args": [
                 "--mode", "reuse", 
                 "nfl", "mlb", "nhl", "nba", //"lol",
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2025.05",
-                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2025.07",
+                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2025.07",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/data",
                 "--framework", "reg_chain", "tpot"
             ]

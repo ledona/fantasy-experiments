@@ -50,6 +50,8 @@ _eval\_results_ .
 python -m lib.modeling.cli nfl nba \
    --model_path /fantasy-isync/fantasy-dfs-hist/models/2024.04 \
    --results_path /fantasy-isync/fantasy-dfs-hist/eval_results
+   --data_path /fantasy-isync/fantasy-dfs-hist/data
+   --framework reg_chain tpot
 ```
 ## Update Environment
 Backtesting uses models in the directory at the environment variable _FANTASY_BACKTEST_WINSCORE_MODELS_PATH_. Make sure to update it

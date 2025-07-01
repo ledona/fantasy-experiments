@@ -47,6 +47,7 @@ from tpot2 import TPOTRegressor
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
+
 _LOGGER = log.get_logger(__name__)
 
 
@@ -607,7 +608,8 @@ def _train_test(
 
     if algo.startswith("tpot"):
         tpot_model = cast(TPOTRegressor, model)
-        max_gen = max(indiv["generation"] for indiv in tpot_model.evaluated_individuals_.values())
+        assert tpot_model.evaluated_individuals is not None
+        max_gen = tpot_model.evaluated_individuals.Generation.max()
         training_desc_info["generations_tested"] = max_gen
         _LOGGER.success("TPOT fitted in %i generation(s)", max_gen)
         pprint(tpot_model.fitted_pipeline_)
