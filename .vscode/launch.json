@@ -31,8 +31,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "train", "2025.01/nhl.json", // "MLB-team-win",
-                "--models", "NHL-team-win",
+                "train", "2025.03/nfl.json", "NFL-team-win",
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--dest_filename", "NHL-team-win.nn",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
@@ -40,7 +39,7 @@
 
                 // "--info",
                 // "--slack",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2024.12/data",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2025.03/data",
                 "--dest_dir", "/tmp",
                 // "--exists_mode", "reuse",
 
@@ -51,13 +50,13 @@
                 // "--gens", "10",
                 // "--pop", "8",
 
-                "--algo", "dummy", 
+                "--algo", "tpot", 
                 // "--batch_size", "256",
                 // "--hidden_size", "64",
                 // "--lr", ".000001",
                 // "--layers", "3",
                 // "--max_epochs", "20",
-                "--limit", "1000",
+                // "--limit", "1000",
                 // "--early_stop", "2",
                 // "--checkpoint_dir", "/tmp/fantasy-test-checks",
                 // "--checkpoint_freq", "10"

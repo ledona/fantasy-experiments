@@ -68,12 +68,9 @@ def _expand_models(
     return model_names
 
 
-def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: dict):
+def _algo_params(algo: AlgorithmType, cli_training_params, args_dict: dict):
     if algo.startswith("tpot"):
-        modeler_init_kwargs = {
-            "use_dask": use_dask,
-            "verbosity": 3,
-        }
+        modeler_init_kwargs = {"verbose": 3}
         rename = TRAINING_PARAM_DEFAULTS["tpot"][1] or {}
         for k_ in _CLITrainingParams.__args__:
             if k_ not in cli_training_params:
@@ -102,7 +99,7 @@ def _algo_params(algo: AlgorithmType, use_dask, cli_training_params, args_dict: 
         return modeler_init_kwargs
 
     if algo == "xgboost":
-        modeler_init_kwargs = {"verbosity": 2}
+        modeler_init_kwargs = {"verbose": 2}
         return modeler_init_kwargs
 
     if algo == "dummy":
@@ -124,7 +121,7 @@ def _train_model(
     _LOGGER.info("Training %s", model_name)
     p_bar.set_postfix_str(
         f"{model_name} {log.GREEN}\u2714{log.COLOR_RESET}={len(progress['successes'])} "
-        f"{log.RED}\u274C{log.COLOR_RESET}={len(progress['failures'])}"
+        f"{log.RED}\u274c{log.COLOR_RESET}={len(progress['failures'])}"
     )
     try:
         new_model = tdf.train_and_test(
@@ -217,10 +214,7 @@ def _handle_train(args: argparse.Namespace):
 
     _LOGGER.info("Training %i models. info-mode=%s: %s", len(model_names), args.info, model_names)
 
-    if args.dask:
-        _LOGGER.info("tpot dask enabled")
-
-    modeler_init_kwargs = _algo_params(tdf.algorithm, args.dask, cli_training_params, args_dict)
+    modeler_init_kwargs = _algo_params(tdf.algorithm, cli_training_params, args_dict)
 
     if args.slack and not args.info:
         slack.enable()
@@ -363,7 +357,6 @@ def _add_train_parser(sub_parsers):
             "Default is to use a filename based on the model name and a datetime stamp.",
         )
         train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
-        train_parser.add_argument("--dask", default=False, action="store_true")
         train_parser.add_argument(
             "--limited_data",
             "--data_limit",

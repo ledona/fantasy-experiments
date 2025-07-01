@@ -11,9 +11,9 @@ from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
     feature_names_from_win_score_model,
 )
 from sklearn.dummy import DummyRegressor
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.multioutput import RegressorChain
-from tpot import TPOTRegressor
+from sklearn.tree import DecisionTreeRegressor
+from tpot2 import TPOTRegressor
 
 _LOGGER = log.get_logger(__name__)
 

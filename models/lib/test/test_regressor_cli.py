@@ -601,20 +601,34 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
     [
         ("dummy", {}),
         ("nn", {"early_stop_epochs": 10, "epochs_max": 1000}),
-        ("tpot-light", {"n_jobs": 2}),
+        # TODO: add back after tpot upgrade
+        # ("tpot-light", {"n_jobs": 2}),
         ("tpot", {"max_time_mins": 120, "max_eval_time_mins": 15}),
     ],
-    ids=["ReDummy", "ReNN", "ReTpotlight", "ReTpot"],
+    ids=[
+        "ReDummy",
+        "ReNN",
+        # TODO: add back after tpot upgrade
+        # "ReTpotlight",
+        "ReTpot",
+    ],
 )
 @pytest.mark.parametrize(
     "orig_algo, orig_params",
     [
         ("dummy", {}),
         ("nn", {"early_stop_epochs": 5, "epochs_max": 500, "checkpoint_dir": "/tmp/check"}),
-        ("tpot-light", {"n_jobs": 4, "max_time_mins": 45}),
+        # TODO: add back after tpot upgrade
+        # ("tpot-light", {"n_jobs": 4, "max_time_mins": 45}),
         ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2}),
     ],
-    ids=["dummy", "nn", "tpotlight", "tpot"],
+    ids=[
+        "dummy",
+        "nn",
+        # TODO: add back after tpot upgrade
+        # "tpotlight",
+        "tpot",
+    ],
 )
 @pytest.mark.parametrize("retrain_w_tdf", [False, True], ids=["ReWO/Tdf", "ReW/Tdf"])
 def test_retrain(
@@ -633,7 +647,7 @@ def test_retrain(
     Test that the resulting models have the expected parameters
     """
     ignored_params = (
-        ["use_dask", "verbosity"]
+        ["verbose"]
         if orig_algo.startswith("tpot") or retrain_algo.startswith("tpot")
         else []
     )

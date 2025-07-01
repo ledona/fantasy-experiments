@@ -39,8 +39,7 @@ _TPOT_PARAM_DEFAULTS_TUPLE = {
     "early_stop": _NO_DEFAULT,
     "population_size": _NO_DEFAULT,
     # Following should have no impact on the resulting model
-    "use_dask": _NO_DEFAULT,
-    "verbosity": _NO_DEFAULT,
+    "verbose": _NO_DEFAULT,
 }, {"epochs_max": "generations"}
 """defaults and renames for all tpot algorithms"""
 

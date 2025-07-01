@@ -43,8 +43,7 @@ from fantasy_py.inference import (
 from fantasy_py.sport import SportDBManager
 from ledona import slack
 from sklearn.dummy import DummyRegressor
-from tpot import TPOTRegressor
-from tpot.config import regressor_config_dict, regressor_config_dict_light
+from tpot2 import TPOTRegressor
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -494,10 +493,11 @@ def _instantiate_regressor(
         return model, None, None
 
     if algorithm == "tpot-light":
-        model = TPOTRegressor(config_dict=regressor_config_dict_light, **model_init_kwargs)
+        model = TPOTRegressor(search_space="linear-light", **model_init_kwargs)
         return model, None, None
 
     if algorithm == "tpot-xgboost":
+        raise NotImplementedError()
         model = TPOTRegressor(
             config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
             **model_init_kwargs,
