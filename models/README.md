@@ -134,7 +134,7 @@ TBD
 # ./aws_train.sc {S3-BUCKET} {DEST-DIR} {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
 # for example
 cd /fantasy-experiments/models
-./aws_train.sc s3://ledona-fantasy /tmp/models mlb.json MLB-H-DK --algo tpot-xgboost --slack --n_jobs 4
+./aws_train.sc s3://ledona-fantasy /tmp/models mlb.json "MLB-H-*" --exists reuse --algo tpot --slack --n_jobs 4
 ```
 3. To copy/sync model results from S3 use aws cli.
 ```
