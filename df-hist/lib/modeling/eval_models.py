@@ -3,8 +3,8 @@ from typing import Literal
 import numpy as np
 from fantasy_py import DataNotAvailableException, log, now
 
-from .model import ExistingModelMode, Framework, create_model
 from .generate_train_test import generate_train_test, load_csv
+from .model import ExistingModelMode, FitError, Framework, create_model
 
 _LOGGER = log.get_logger(__name__)
 
@@ -153,18 +153,27 @@ def evaluate_models(
         _LOGGER.info("training model=%s params=%s", model_desc, model_params)
         pbar.set_postfix_str(model_desc)
 
-        cam_result = create_model(
-            model_desc,
-            model_folder,
-            X_train,
-            y_train,
-            X_test,
-            y_test,
-            framework=framework,
-            mode=mode,
-            eval_results_path=eval_results_path,
-            **model_params,
-        )
+        try:
+            cam_result = create_model(
+                model_desc,
+                model_folder,
+                X_train,
+                y_train,
+                X_test,
+                y_test,
+                framework=framework,
+                mode=mode,
+                eval_results_path=eval_results_path,
+                **model_params,
+            )
+        except FitError as ex:
+            _LOGGER.warning(
+                "Skipping model_target_group=%s. framework=%s due to fitting error. ex=%s",
+                model_target_group,
+                framework,
+                ex,
+            )
+            continue
 
         models[model_desc] = cam_result["model"]
         pbar.update()

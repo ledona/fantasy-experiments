@@ -6,7 +6,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import sklearn
-from fantasy_py import DataNotAvailableException, log
+from fantasy_py import DataNotAvailableException, FantasyException, log
 from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
     feature_names_from_win_score_model,
 )
@@ -39,11 +39,7 @@ def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_p
     rmse = round(sqrt(sklearn.metrics.mean_squared_error(y_test, predictions)), 4)
     mae = round(sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)), 4)
 
-    result = {
-        "R2": r2,
-        "RMSE": rmse,
-        "MAE": mae,
-    }
+    result = {"R2": r2, "RMSE": rmse, "MAE": mae}
 
     if isinstance(y_test, np.ndarray) and y_test.shape[1] == 2:
         truth_min_max = pd.DataFrame(y_test, columns=["true.min-win", "true.max-win"])
@@ -98,6 +94,10 @@ def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_p
     return result
 
 
+class FitError(FantasyException):
+    """raised if an exception is caught during fit"""
+
+
 def _fit_model(
     model_desc,
     X_train,
@@ -137,7 +137,16 @@ def _fit_model(
     else:
         raise NotImplementedError(f"framework '{framework}' not supported")
 
-    modeler.fit(X_train, y_train, **fit_params)
+    try:
+        modeler.fit(X_train, y_train, **fit_params)
+    except ValueError as ex:
+        if "n_quantiles" in str(ex) and len(X_train) == 10:
+            raise FitError(
+                "n_quantiles related data failure due to insufficient training data "
+                ">10 training samples are required. number of training samples "
+                f"available was {len(X_train)}"
+            ) from ex
+
     model = extract_regressor(modeler)
     try:
         feature_names_from_win_score_model(model)
