@@ -563,7 +563,9 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
     elif algo.startswith("tpot"):
         mock_pickle_func = mocker.patch("lib.pt_model.train_test.joblib").dump
         mock_regressor = mocker.patch("lib.pt_model.train_test.TPOTRegressor")
-        mock_regressor.return_value.fit.return_value.evaluated_individuals_ = {0: {"generation": 1}}
+        mock_regressor.return_value.fit.return_value.evaluated_individuals.Generation.max.return_value = (
+            1
+        )
         mock_fitted = mock_regressor.return_value.fit.return_value.fitted_pipeline_
         mock_fitted.generations_tested = 10
     elif algo == "dummy":
@@ -647,9 +649,7 @@ def test_retrain(
     Test that the resulting models have the expected parameters
     """
     ignored_params = (
-        ["verbose"]
-        if orig_algo.startswith("tpot") or retrain_algo.startswith("tpot")
-        else []
+        ["verbose"] if orig_algo.startswith("tpot") or retrain_algo.startswith("tpot") else []
     )
     model_name = "MLB-H-DK"
     tdf_params = tdf.get_params(model_name)
