@@ -539,10 +539,6 @@ def _model_catalog_func(args):
                 )
         data.append(cat_data)
 
-    if excluded_models is not None and len(excluded_models) == 0:
-        _LOGGER.error("Exclude patterns did not match any models! Exiting")
-        sys.exit(1)
-
     df = pd.DataFrame(data).sort_values(by=["name", "dt"])
 
     prefix = (args.filename_prefix + ".") if args.filename_prefix else ""
@@ -561,6 +557,22 @@ def _model_catalog_func(args):
     else:
         best_models_filename = None
         best_models_df = None
+
+    if excluded_models is not None:
+        if len(excluded_models) == 0:
+            _LOGGER.warning("Exclude patterns did not match any models! Exiting")
+        else:
+            _LOGGER.info(
+                "Exclude patterns excluded %i models",
+                sum(map(len, excluded_models.values())),
+            )
+            for x_r in args.exclude_r:
+                if (num_excluded := len(excluded_models[x_r])) == 0:
+                    _LOGGER.warning("  '%s' did not exclude any model files", x_r)
+                    continue
+                _LOGGER.info("  '%s' excluded %i model files", x_r, num_excluded)
+                for model_path in excluded_models[x_r]:
+                    _LOGGER.info("  '%s' excluded '%s'", x_r, model_path)
 
     with pd.option_context(
         "display.max_rows",
@@ -582,18 +594,6 @@ def _model_catalog_func(args):
     _LOGGER.info("Catalog of n=%i models written to '%s'", len(df), filename)
     if best_models_df is not None:
         _LOGGER.info("Best models written to '%s'", best_models_filename)
-    if excluded_models is not None:
-        _LOGGER.info(
-            "Exclude patterns excluded %i models",
-            sum(map(len, excluded_models.values())),
-        )
-        for x_r in args.exclude_r:
-            if (num_excluded := len(excluded_models[x_r])) == 0:
-                _LOGGER.warning("  '%s' did not exclude any model files", x_r)
-                continue
-            _LOGGER.info("  '%s' excluded %i model files", x_r, num_excluded)
-            for model_path in excluded_models[x_r]:
-                _LOGGER.info("  '%s' excluded '%s'", x_r, model_path)
 
 
 def _add_model_catalog_parser(sub_parsers):
@@ -619,6 +619,7 @@ def _add_model_catalog_parser(sub_parsers):
     )
     parser.add_argument(
         "--exclude_r",
+        "--ignore",
         nargs="+",
         help="Exclude model file paths that match these regular expressions",
     )

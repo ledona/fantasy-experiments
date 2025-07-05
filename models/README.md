@@ -115,7 +115,7 @@ These models predict outcomes for all players/teams involved in a game. The samp
 
 ## Model Cataloging
 Run the following to create a catalog of the models in a directory and its subfolders. The catalog will be written to a csv file in the root-model-dir directory. The filename will be timestamped.
-```python -m lib.regressor catalog --root {root-model-dir} [--best]```
+```python -m lib.regressor catalog --root {root-model-dir} --exclude active-models ".*IGNORE.*" --best```
 
 ## Model Performance Operations
 Use the following command to repair, update, test or calculate model performance
@@ -125,7 +125,11 @@ python -m lib.regressor performance [MODEL_FILE_PATTERN] \
 ```
 
 ## Loading Active Models
-TBD
+The active model folder is defined in the environment variable __FANTASY_MODELS_PATH__. Uncertainty/error estimation models are also required for numerous things and can be trained at this step.
+```
+# model_manager.py import {paths to .model files or a single .csv file with best models}
+# model_manager.py fit-uncertainty --data_dir {path to data used to train the original models} {models to train, glob patterns supported}
+```
 
 ## Cloud Training
 1. Set up for training by following the instructions in the fantasy repo configuration management folder
