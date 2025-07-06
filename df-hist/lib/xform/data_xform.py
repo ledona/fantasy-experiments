@@ -430,7 +430,7 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
     returns - series of (slate_id, number of teams playing in slate)
     """
     try:
-        date_slates = slate_db_df.loc[[contest_row.date]].sort_values("team_count")
+        date_slates = slate_db_df.loc[[contest_row.date]].sort_values("team-count")
     except KeyError:
         _LOGGER.warning("get_slate_id::Key error/No slates found for %s", contest_row.date)
         return _NO_SLATE_ID_FOUND
@@ -453,7 +453,7 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
         )
         return _NO_SLATE_ID_FOUND
 
-    return slates.iloc[0][["slate_id", "team_count"]]
+    return slates.iloc[0][["slate_id", "team-count"]]
 
 
 def _get_position_scores(db_exploded_pos_df, top_player_percentile):

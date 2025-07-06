@@ -140,7 +140,7 @@ def _fit_model(
     try:
         modeler.fit(X_train, y_train, **fit_params)
     except ValueError as ex:
-        if "n_quantiles" in str(ex) and len(X_train) == 10:
+        if "n_quantiles" in str(ex) and len(X_train) <= 10:
             raise FitError(
                 "n_quantiles related data failure due to insufficient training data "
                 ">10 training samples are required. number of training samples "
