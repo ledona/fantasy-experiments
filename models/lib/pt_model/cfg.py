@@ -1,7 +1,7 @@
 import json
 import os
 from pprint import pprint
-from typing import Literal, TypedDict, cast
+from typing import Literal, NotRequired, TypedDict, cast
 
 import pandas as pd
 from fantasy_py import (
@@ -13,11 +13,11 @@ from fantasy_py import (
     PlayerOrTeam,
     UnexpectedValueError,
     log,
-    typed_dict_validate,
 )
 from fantasy_py.inference import PTPredictModel, guess_sport_from_path
 from fantasy_py.sport import SportDBManager
 from ledona import process_timer
+from typeguard import TypeCheckError, check_type
 
 from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
 
@@ -120,7 +120,7 @@ class _TrainingParamsDict(TypedDict):
     training_pos: list[str] | None
     train_params: dict[str, int | str | float | bool] | None
     """params passed to the training algorithm (likely as kwargs)"""
-    original_model_columns: set[str] | None
+    original_model_columns: NotRequired[set[str]]
     """for use when retraining a model, the final input cols for the original model"""
     limit: int | None
 
@@ -400,7 +400,7 @@ class TrainingConfiguration:
             if hasattr(value_type, "__args__") and type(None) in value_type.__args__
         }
         param_dict["sport"] = self.sport
-        if not self.retrain:
+        if not self.retrain and "original_model_columns" in param_dict:
             del param_dict["original_model_columns"]
 
         global_cfg = self._json["global_default"].copy()
@@ -445,10 +445,10 @@ class TrainingConfiguration:
         param_dict["p_or_t"] = PlayerOrTeam(param_dict["p_or_t"]) if param_dict["p_or_t"] else None
         param_dict["algorithm"] = self.algorithm
 
-        if validation_failure_reason := typed_dict_validate(_TrainingParamsDict, param_dict):
-            raise UnexpectedValueError(
-                f"Model training parameter validation failure: {validation_failure_reason}"
-            )
+        try:
+            check_type(param_dict, _TrainingParamsDict)
+        except TypeCheckError as ex:
+            raise UnexpectedValueError("Model training parameter validation failure") from ex
         if param_dict.get("training_pos") is None and param_dict.get("target_pos") is not None:
             param_dict["training_pos"] = param_dict["target_pos"]
         return cast(_TrainingParamsDict, param_dict)
