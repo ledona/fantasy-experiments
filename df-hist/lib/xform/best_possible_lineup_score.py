@@ -172,7 +172,7 @@ def slate_scoring(
     assert constraints is not None
 
     solver = MixedIntegerKnapsackSolver(
-        constraints.lineup_constraints,
+        constraints.knapsack_constraints,
         constraints.budget,
         totals_func=constraints.totals_func,
         fill_all_positions=constraints.fill_all_positions,
