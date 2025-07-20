@@ -236,18 +236,18 @@ def _infer_contest_type(service, title) -> str:
     if service == "draftkings":
         if re.match(r".* vs\. [^)]+$", title):
             return "H2H"
-        return FiftyFifty.NAME if "Double Up" in title else GeneralPrizePool.NAME
+        return FiftyFifty.TYPE_NAME if "Double Up" in title else GeneralPrizePool.TYPE_NAME
     if service == "fanduel":
         if "Head-to-head" in (title or ""):
             return "H2H"
         if (title or "").startswith("50/50"):
-            return FiftyFifty.NAME
-        return GeneralPrizePool.NAME
+            return FiftyFifty.TYPE_NAME
+        return GeneralPrizePool.TYPE_NAME
     if service == "yahoo":
         if " QuickMatch vs " in title or "H2H vs " in title:
             return "H2H"
         if " 50/50" in title:
-            return FiftyFifty.NAME
+            return FiftyFifty.TYPE_NAME
         if (
             " Cup " in title
             or " to 1st]" in title
@@ -261,7 +261,7 @@ def _infer_contest_type(service, title) -> str:
             title.endswith("Team Winner Takes All")
             or "Guaranteed" in title
         ):
-            return GeneralPrizePool.NAME
+            return GeneralPrizePool.TYPE_NAME
     raise NotImplementedError(f"Could not infer contest type for {service=} {title=}")
 
 

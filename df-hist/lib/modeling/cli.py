@@ -122,8 +122,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--contest_types",
         "--types",
         nargs="+",
-        choices=[FiftyFifty.NAME, GeneralPrizePool.NAME],
-        default=[FiftyFifty.NAME, GeneralPrizePool.NAME],
+        choices=[FiftyFifty.TYPE_NAME, GeneralPrizePool.TYPE_NAME],
+        default=[FiftyFifty.TYPE_NAME, GeneralPrizePool.TYPE_NAME],
     )
     parser.add_argument(
         "--model_types",
