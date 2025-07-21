@@ -8,8 +8,7 @@ venv*
 # emacs backup
 *~
 
-# deep lineup training data cache
-**/cache-deep-lineup
-
 # test coverage
 .coverage
+
+.mypy_cache
