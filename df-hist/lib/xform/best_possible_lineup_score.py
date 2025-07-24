@@ -9,7 +9,6 @@ from typing import Literal, cast
 from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, DataNotAvailableException, db, log
 from fantasy_py.analysis.backtest.daily_fantasy.contest_dfs import top_lineup_scoring
 from fantasy_py.lineup import FantasyService
-from fantasy_py.lineup.do_gen_lineup import lineup_plan_helper
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
 
@@ -165,7 +164,6 @@ def slate_scoring(
 
     service_cls = cast(FantasyService, CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service))
 
-    args = lineup_plan_helper(args, db_obj, starters, service_cls, [], slate_name)[0]
     constraints = service_cls.get_constraints(
         db_obj.db_manager.ABBR, slate=starters.slates[slate_name]
     )
