@@ -11,7 +11,7 @@ from tqdm import tqdm
 from . import log
 from .service_data_retriever import (
     EXPECTED_HISTORIC_ENTRIES_DF_COLS,
-    CacheMode,
+    ServiceDataRetCacheMode,
     DataUnavailableInCache,
     ServiceDataRetriever,
     WebLimitReached,
@@ -28,7 +28,7 @@ def retrieve_history(
     start_date=None,
     end_date=None,
     cache_path=None,
-    cache_mode: CacheMode | None = None,
+    cache_mode: ServiceDataRetCacheMode | None = None,
     cache_only=False,
     interactive=False,
     web_limit=None,
@@ -134,7 +134,7 @@ def process_cmd_line(cmd_line_str=None):
     parser.add_argument("--cache-path", "--cache", help="path to cached files")
 
     mut_ex_group = parser.add_mutually_exclusive_group()
-    mut_ex_group.add_argument("--cache-mode", choices=CacheMode.__args__)
+    mut_ex_group.add_argument("--cache-mode", choices=ServiceDataRetCacheMode.__args__)
     mut_ex_group.add_argument("--cache-only", action="store_true", default=False)
 
     mut_ex_group = parser.add_mutually_exclusive_group()

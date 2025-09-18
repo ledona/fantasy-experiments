@@ -18,7 +18,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-CacheMode = Literal["overwrite", "disable", "enable"]
+ServiceDataRetCacheMode = Literal["overwrite", "disable", "enable"]
 _LOGGER = logging.getLogger(__name__)
 
 PAUSE_MIN = 3
@@ -117,7 +117,7 @@ class ServiceDataRetriever(ABC):
         browser_debug_port: None | bool = None,
         browser_profile_path: None | str = None,
         cache_path: None | str = None,
-        cache_mode: CacheMode | None = None,
+        cache_mode: ServiceDataRetCacheMode | None = None,
         cache_only=False,
         interactive=False,
         web_limit=None,
@@ -200,9 +200,9 @@ class ServiceDataRetriever(ABC):
         returns - dataframe with columns matching EXPECTED_CONTEST_COLS
         """
         df = pd.DataFrame(self._contest_dicts)
-        assert (
-            len(missing := EXPECTED_CONTEST_COLS - set(df.columns)) == 0
-        ), f"Missing columns: {missing}"
+        assert len(missing := EXPECTED_CONTEST_COLS - set(df.columns)) == 0, (
+            f"Missing columns: {missing}"
+        )
         return df
 
     @property
@@ -211,9 +211,9 @@ class ServiceDataRetriever(ABC):
         returns - dataframe with columns: contest_id, entry_id, link, winnings, rank, score
         """
         df = pd.DataFrame(self._entry_dicts)
-        assert EXPECTED_ENTRIES_COLS <= set(
-            df.columns
-        ), f"Missing cols: {EXPECTED_ENTRIES_COLS - set(df.columns)}"
+        assert EXPECTED_ENTRIES_COLS <= set(df.columns), (
+            f"Missing cols: {EXPECTED_ENTRIES_COLS - set(df.columns)}"
+        )
         return df
 
     def wait_on_login(self):
@@ -565,7 +565,7 @@ class ServiceDataRetriever(ABC):
 def get_service_data_retriever(
     service: str,
     cache_path: None | str = None,
-    cache_mode: CacheMode | None = None,
+    cache_mode: ServiceDataRetCacheMode | None = None,
     cache_only=False,
     browser_address: None | str = None,
     browser_debug_port: None | str = None,
