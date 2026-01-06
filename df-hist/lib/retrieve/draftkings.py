@@ -305,8 +305,14 @@ class Draftkings(ServiceDataRetriever):
 
         # add draft % for all players in top 5 lineups
         for i, row_ele in enumerate(top_entry_table_rows[:5], 1):
-            placement_div = row_ele.find_element("xpath", "div/div[1]")
-            placement = int(placement_div.text)
+            try:
+                placement = int(row_ele.text.split('\n', 1)[0])
+            except Exception as ex:
+                # if simple split fails fall back to the old school way..
+                raise NotImplementedError() from ex
+                # placement_div = row_ele.find_element("xpath", "div/div[1]")
+                # placement = int(placement_div.text)
+
             lineup_data, src, cache_filepath = self.get_data(
                 f"{contest_key}-lineup-{placement}.{i}",
                 self._get_opponent_lineup_data,

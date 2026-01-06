@@ -10,3 +10,6 @@ data
 eval_results
 
 *csv
+
+# used in the README for starting chrome remove dev access
+chrome-user-data

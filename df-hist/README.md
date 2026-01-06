@@ -18,10 +18,12 @@ python -m venv venv-retrieve-hist
 .\venv-retrieve-hist\Scripts\activate
 pip install pandas selenium beautifulsoup4 tqdm
 ```
-2. Start chrome with a debugging port. On windows run the following from powershell.
+2. Start chrome with a debugging port. On windows run the following from powershell AFTER CHANGING USER-DATA-DIR.
 ```
-Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" -ArgumentList "--remote-debugging-port=9222"
+
+Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" -ArgumentList @("--remote-debugging-port=9222", "--user-data-dir=c:\Users\blind\working\fantasy-experiments\df-hist\chrome-user-data")
 ```
+To verify that chrome is running correctly try navigating to `http://127.0.0.1:9222/json/version`
 3. Run the retrieval. Update the paths before running. The cache folder is where the retrieval process will write cache files, the export folder is where the files downloaded from the fantasy service accounts (with past betting activity) are located. See the _launch.json_ entry for more argument examples. Draftkings updates will use the most recent user data file found.
 ```
 python -m lib.retrieve.retrieve_hist \
@@ -32,7 +34,7 @@ python -m lib.retrieve.retrieve_hist \
 ```
 4. (optional) If debugging/running under VSCODE
    a. To update vscode to use the new interpreter, _SHIFT-CTRL-P_, then _Python:Select Interpreter_, then navigate to the python exe in the new venv
-   b. The VSCODE launch configuration uses the environment variable _FANTASY_IDRIVE_HOME_. Set this in the environment that the process will be run from
+   b. The VSCODE launch configuration uses the environment variable _FANTASY_IDRIVE_HOME_. Set it for the user|system.
 
 ## Create model training data (__data_xform__)
 First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_. The following example

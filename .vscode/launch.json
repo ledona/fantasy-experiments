@@ -123,7 +123,7 @@
                 // "--cache-only", 
                 "-o", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting",
                 "--sports", "nfl", 
-                "--start-date", "20240901", "--end-date", "2025-04-18",
+                "--start-date", "20241222", // "--end-date", "2025-04-18",
             ]
         },
         {
