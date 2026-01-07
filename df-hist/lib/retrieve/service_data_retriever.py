@@ -92,8 +92,24 @@ class WebLimitReached(Exception):
     """raised when the web retrieval limit is reached and data must be retrieved from the web"""
 
 
-class DataUnavailableInCache(Exception):
+class DataUnavailable(Exception):
+    """raised when the requested data is unavailable for a known reason"""
+
+
+class DataUnavailableInCache(DataUnavailable):
     """raised when cache only is enabled but the requested data is not in the cache"""
+
+
+class DataPermanentlyUnavailable(DataUnavailable):
+    """raised when data retrieval fails from the data source and there is no expectation
+    that the requested data will be available in the future"""
+
+
+class NavigationAvailableError(Exception):
+    """
+    raised if there was an error trying to navigate during data retrieval. this
+    is used for temporary errors that can be retried
+    """
 
 
 class ServiceDataRetriever(ABC):
@@ -400,7 +416,9 @@ class ServiceDataRetriever(ABC):
 
         for lineup_data in contest_data["lineups_data"]:
             lineup_df = self.get_opp_lineup_df(lineup_data)
-            assert lineup_df is not None
+            if lineup_df is None:
+                _LOGGER.warning("No opp entry data returned for '%s'", contest_id)
+                continue
             lineup_df["contest"] = contest_key
             lineup_df["date"] = entry_info.date
             lineup_df["sport"] = entry_info.sport

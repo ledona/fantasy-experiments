@@ -20,7 +20,6 @@ pip install pandas selenium beautifulsoup4 tqdm
 ```
 2. Start chrome with a debugging port. On windows run the following from powershell AFTER CHANGING USER-DATA-DIR.
 ```
-
 Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" -ArgumentList @("--remote-debugging-port=9222", "--user-data-dir=c:\Users\blind\working\fantasy-experiments\df-hist\chrome-user-data")
 ```
 To verify that chrome is running correctly try navigating to `http://127.0.0.1:9222/json/version`
@@ -32,6 +31,7 @@ python -m lib.retrieve.retrieve_hist \
    draftkings \
    [--sports nfl] [--cache-only] [--start-date 20201001] [--end-date 20210101]
 ```
+4. Selenium navigation (i.e. the python script) may fail regularly. There are 2 options for getting more reliablility and having the script run longer before stopping. a) Resize/Zoom the browser so that the entire navigational UI is visible. b) Run the script in a loop so that when it fails it will immediately restart and pick up were it left off. e.g. to run the command 5 times in powershell execute ```1..5 | ForEach-Object { python ... }```
 4. (optional) If debugging/running under VSCODE
    a. To update vscode to use the new interpreter, _SHIFT-CTRL-P_, then _Python:Select Interpreter_, then navigate to the python exe in the new venv
    b. The VSCODE launch configuration uses the environment variable _FANTASY_IDRIVE_HOME_. Set it for the user|system.

@@ -11,8 +11,9 @@ from tqdm import tqdm
 from . import log
 from .service_data_retriever import (
     EXPECTED_HISTORIC_ENTRIES_DF_COLS,
+    DataUnavailable,
+    NavigationAvailableError,
     ServiceDataRetCacheMode,
-    DataUnavailableInCache,
     ServiceDataRetriever,
     WebLimitReached,
     get_service_data_retriever,
@@ -58,9 +59,9 @@ def retrieve_history(
         web_limit=web_limit,
     )
     # do this first since
-    assert (sports is None) or set(sports) == {
-        sport.lower() for sport in sports
-    }, "all sports must be in lower case"
+    assert (sports is None) or set(sports) == {sport.lower() for sport in sports}, (
+        "all sports must be in lower case"
+    )
     contest_entries_df = service_obj.get_historic_entries_df_from_file(history_file_dir)
     assert (
         len(missing_cols := EXPECTED_HISTORIC_ENTRIES_DF_COLS - set(contest_entries_df.columns))
@@ -90,14 +91,34 @@ def retrieve_history(
 
         def func(entry_info):
             pbar.update()
-            try:
-                result = service_obj.process_entry(entry_info)
-            except DataUnavailableInCache:
-                _LOGGER.warning(
-                    "Skipping entry missing from cache: %s-'%s'", entry_info.sport, entry_info.title
-                )
-                service_obj.processed_counts_by_src["skipped"] += 1
-                result = None
+
+            # this will be true if currently retrying failed navigation
+            currently_retrying_nav = False
+
+            while True:
+                try:
+                    result = service_obj.process_entry(entry_info)
+                except DataUnavailable:
+                    _LOGGER.warning(
+                        "Skipping entry missing from cache: %s-'%s'",
+                        entry_info.sport,
+                        entry_info.title,
+                    )
+                    service_obj.processed_counts_by_src["skipped"] += 1
+                    result = None
+                except NavigationAvailableError:
+                    _LOGGER.warning(
+                        "*** Encountered a navigation error for %s-%s, %s ***",
+                        entry_info.sport,
+                        entry_info.title,
+                        "will retry" if not currently_retrying_nav else "failed twice",
+                    )
+                    if currently_retrying_nav:
+                        raise
+                    currently_retrying_nav = True
+                    continue
+
+                break
             postfix = service_obj.processed_counts_by_src.copy()
             postfix["date"] = entry_info.date.date()
             pbar.set_postfix(postfix)

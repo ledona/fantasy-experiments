@@ -4,12 +4,21 @@ import os
 
 import pandas as pd
 from bs4 import BeautifulSoup
-from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.common.exceptions import (
+    ElementClickInterceptedException,
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from .service_data_retriever import ServiceDataRetriever
+from .service_data_retriever import (
+    DataPermanentlyUnavailable,
+    NavigationAvailableError,
+    ServiceDataRetriever,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,9 +109,13 @@ class Draftkings(ServiceDataRetriever):
     def get_entry_lineup_df(self, lineup_data):
         soup = BeautifulSoup(lineup_data, "html.parser")
         if soup.table.tbody is None:
-            if "Failed to draft in time" not in soup.text:
-                raise ValueError("Failed to parse entry lineup. Missing tbody")
-            return None
+            if (
+                "Opponent didn’t submit a lineup" in soup.text
+                or "Failed to draft in time" in soup.text
+            ):
+                # lineup was not submitted in time
+                return None
+            raise ValueError("Failed to parse entry lineup. Missing tbody")
 
         lineup_players = []
         for player_row in soup.table.tbody.contents:
@@ -154,7 +167,7 @@ class Draftkings(ServiceDataRetriever):
 
         return pd.DataFrame(lineup_players)
 
-    def _get_lineup_data(self, contestant_name=None) -> tuple:
+    def _get_lineup_data(self, title, contestant_name=None):
         """
         contestant_name - If not none then wait for the header to display the contestant name
         return tuple of (header element of rendered linup, element containing rendered lineup)
@@ -167,27 +180,38 @@ class Draftkings(ServiceDataRetriever):
                 f"Waiting for opposing content's lineup to load. {contestant_name=}",
             )
 
-        lineup_data = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_all_elements_located(
-                (By.XPATH, '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div')
-            ),
-            "Waiting for lineup data to load",
-        )
+        try:
+            lineup_data = WebDriverWait(self.browser, 10).until(
+                EC.presence_of_all_elements_located(
+                    (By.XPATH, '//label[@id="multiplayer-live-scoring-Rank"]/../../../../div')
+                ),
+                "Waiting for lineup data to load",
+            )
+        except TimeoutException as ex:
+            if "SORRY, SOMETHING WENT WRONG" in self.browser.find_element(By.TAG_NAME, "body").text:
+                _LOGGER.error(
+                    "DK data for '%s' appears to be permanently unavailable", title, exc_info=ex
+                )
+                raise DataPermanentlyUnavailable() from ex
+            raise
         assert len(lineup_data) >= 2
-        return lineup_data[:2]
+        return tuple(lineup_data[:2])
 
-    def _get_opponent_lineup_data(self, row_div) -> str:
+    def _get_opponent_lineup_data(self, title, row_div) -> str:
         """
         return the HTML for the lineup of the opponent on the row
         """
         opp_rank, opp_name = row_div.text.split("\n", 2)[:2]
         self.pause(f"wait before getting lineup for opponent '{opp_name}' ranked #{opp_rank}")
-        row_div.click()
-        lineup_ele = self._get_lineup_data(opp_name)[1]
+        try:
+            row_div.click()
+        except ElementClickInterceptedException as ex:
+            raise NavigationAvailableError("Error while clicking on opponent lineup link") from ex
+        lineup_ele = self._get_lineup_data(title, opp_name)[1]
         return lineup_ele.get_attribute("innerHTML")
 
     def _get_last_winning_lineup_data(
-        self, last_winner_rank, standings_list_ele, xpath_query
+        self, title, last_winner_rank, standings_list_ele, xpath_query
     ) -> tuple[int, str]:
         pause_args = {
             "msg": f"scroll to last winner ranked {last_winner_rank}",
@@ -219,7 +243,7 @@ class Draftkings(ServiceDataRetriever):
         for row_ele in reversed(rows):
             if int(row_ele.text.split("\n", 1)[0]) <= last_winner_rank:
                 score = float(row_ele.text.rsplit("\n", 1)[-1].replace(",", ""))
-                lineup_data = self._get_opponent_lineup_data(row_ele)
+                lineup_data = self._get_opponent_lineup_data(title, row_ele)
                 assert isinstance(lineup_data, str) and len(lineup_data) > 0
                 return score, lineup_data
 
@@ -231,6 +255,7 @@ class Draftkings(ServiceDataRetriever):
             self._get_last_winning_lineup_data,
             data_type="json",
             func_args=(
+                entry_info.title,
                 entry_info.winners,
                 standings_list_ele,
                 _X_PATH_QUERIES[xpath_q_key]["entry-table-rows"],
@@ -306,7 +331,7 @@ class Draftkings(ServiceDataRetriever):
         # add draft % for all players in top 5 lineups
         for i, row_ele in enumerate(top_entry_table_rows[:5], 1):
             try:
-                placement = int(row_ele.text.split('\n', 1)[0])
+                placement = int(row_ele.text.split("\n", 1)[0])
             except Exception as ex:
                 # if simple split fails fall back to the old school way..
                 raise NotImplementedError() from ex
@@ -317,7 +342,7 @@ class Draftkings(ServiceDataRetriever):
                 f"{contest_key}-lineup-{placement}.{i}",
                 self._get_opponent_lineup_data,
                 data_type="html",
-                func_args=(row_ele,),
+                func_args=(entry_info.title, row_ele),
             )
             _LOGGER.info(
                 "Entry lineup for '%s' lineup place.rank=%i.%i retrieved from %s, "
@@ -353,7 +378,7 @@ class Draftkings(ServiceDataRetriever):
 
     def get_entry_lineup_data(self, link, title):
         self.browse_to(link, title=title)
-        lineup_data = self._get_lineup_data()
+        lineup_data = self._get_lineup_data(title)
         return lineup_data[1].get_attribute("innerHTML")
 
     def is_entry_supported(self, entry_info):
