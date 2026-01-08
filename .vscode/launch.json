@@ -31,7 +31,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "train", "2025.03/nfl.json", "NFL-team-win",
+                "train", "2026.01/mlb.json", "MLB-team-win",
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--dest_filename", "NHL-team-win.nn",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
@@ -39,7 +39,7 @@
 
                 // "--info",
                 // "--slack",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2025.03/data",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/data",
                 "--dest_dir", "/tmp",
                 // "--exists_mode", "reuse",
 

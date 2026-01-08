@@ -2,24 +2,31 @@
 This project folder has functionality for creating, evaluating and cataloging models. The
 two types of models managed here are player/team predictive models and optimal lineup
 generation models. Basic order of operations is:
-1. Create model using regressor or deep-lineup cli
+1. Export data
+1. Create model
 1. Update the model catalog
 1. If new models are good enough then import them for use
 
 ## Model Creation
-There are three different types of models
-1. player/team predictive models that predict performance for individual players and teams
-1. lineup models that predict optimal daily fantasy lineups
-1. full game models that predict all player and team stats for a game in one shot, as opposed to predicting each player/team stat individuals
+Regression models are either automl generated or are deep learning models.
 
-### Creating Player/Team predictive models
+### Export data
+Before models can be trained, training data must be constructed. To export training data:
+
+1. Make sure that the fantasy environment is successfully installed and usable, and the database files containing raw and calculated stats are in _$FANTASY_HOME_.
+1. Create a new model folder in this directory. Naming of these folders is _YYYY.MM_. Easiest is to copy the most recent model folder and rename it.
+1. Export the data
+    - **Create/update the data export scripts**: Review the data export scripts to make sure that the data DB name is correct, the seasons to export are correct, and all desired features are targets for all models that will be created are included. To get available positions and stats to include in the export run `dumpdata.sc DB_FILE --list`
+    - **Run the data export**: Run the export script (or the part of the export script for the data required for the models being generated) to generate the parquet data files used for training.
+1. Use resume flags to continue the execution of a previous data export run.
+    - Some exports take forever, in which case it may be good to use the resume flags `--resume` and `--resume_dir`
+    - `--inf_resume_ignore_params` can be used to ignore resume flag validation in the case where resume should not fail due to a mismatch in the flags used in a previous data export run.
+    - If a previous dump needs to be resumed and a progress dir was not originally used, look in the log for the previous progress directory (saved under tmp) and either reuse that or create a new directory somewhere safe, copy the previous progress files there, then use the new directory.
+
+### Creating Player/Team regression models
 To create, archive and use new predictive models perform the following steps
 
-1. Make sure that the fantasy environment is successfully installed and usable, and the 
-database files containing raw and calculated stats are in _$FANTASY_HOME_.
-2. Create a new model folder in this directory. Naming of these folders is _YYYY.MM_. Easiest is to copy the most recent model folder and rename it.
-3. Create/update the data export scripts and model training json files. 
-    - Review the data export scripts to make sure that the data DB name is correct, the seasons to export are correct, and all desired features are targets for all models that will be created are included.
+1. Update the model training json files.
     - The training files are json dicts with the following structure. 
       - The union of _train_params_ are used to train a model. Values set at a lower level, more specific to the model, take precidence.
       - _train_params_ can be designated as algorithm specific by prefixing the parameter name with "_algorithm._". E.g. a parameter named _param_ that only applies to the _tpot_ algorithm should be named _tpot.param_.Algorithm specific parameters take precidence over none algorithm specific parameters of the same name.
@@ -53,8 +60,7 @@ database files containing raw and calculated stats are in _$FANTASY_HOME_.
   ]
 }
 ```
-4. Run the data export scripts found in the model definition subfolder to generate the parquet data files used for training.
-5. Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). From the models folder execute:
+1. Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). From the models folder execute:
 ```
 # list models defined in a model definition file
 python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
@@ -87,31 +93,12 @@ DK" \
   --dest_dir /fantasy-isync/fantasy-modeling/2024.12/pt \
   --algo nn --lr .00001 --layers 3 --max_epochs 500 --early 10
 ```
-6. (Optional) Load the models into the sport database and run some tests. Load models using 
+1. (Optional) Load the models into the sport database and run some tests. Load models using 
 model_manager.py from the fantasy repository (See fantasy repository's README). 
-Generate lineups or run backtesting using one of the debug configurations or lineup.sc or backtest.sc.
+Generate lineups or run backtesting using one of the debug configurations or lineup.sc or backtest.sc .
 
-### NN models
-- If the avg loss from one training iteration to the next is jumping around alot or not changing fast enough, increase/decrease the learning rate. As the learning rate decreases, updates to the model from one iteration to the next should lessen. Increasing the learning rate should cause models to change more from one iteration to the next.
-
-### Deep lineup models
-Deep lineup models take as input a slate of games, including all player costs, and predicted scoring. The model output is a lineup to bet. As an intermediate step a DNN is used to take the input and infer player weights which are used along with cost information to create an optimized lineup. To create/use models:
-
-1. Create the dataset - Each sample in a dataset is a randomly generated slate of games along with starting players, predicted fantasy scores, historic fantasy scores, slate cost and other data describing the slate. Creation of a dataset is done by first creating a player/team predictive model dataset, then using ```python -m lib.deep_lineup data``` to create the deep lineup dataset. 
-1. Train the model - Use ```python -m lib.deep_lineup train``` to train a model.
-1. Catalog the model (see below)
-1. Load the model. See fantasy repository's README for details on using ```model_manager```
-1. To generate a lineup use ```lineup.sc --deep```
-
-### Full Game players/teams models
-These models predict outcomes for all players/teams involved in a game. The sample input is historic stats for all players and teams in a game.
-
-1. Review data/model configuration file
-1. Create the dataset - ```python -m lib.all_game_pt [CFG-FILE] [MODEL-NAME] data [INPUT-DATA-DIR] [TRAINING-DATASET-FILEPATH]```
-1. Train the model - ```python -m lib.all_game_pt [CFG-FILE] [MODEL-NAME] train [TRAINING-DATASET-FILEPATH]``` where _TRAINING-DATASET-FILEPATH_ is folder used when creating the dataset
-1. Catalog the model (see below)
-1. Load the model. See fantasy repository's README for details on using ```model_manager```
-1. To generate a lineup use ```lineup.sc --game_model
+### Deep Learning regression models
+If the avg loss from one training iteration to the next is jumping around alot or not changing fast enough, increase/decrease the learning rate. As the learning rate decreases, updates to the model from one iteration to the next should lessen. Increasing the learning rate should cause models to change more from one iteration to the next.
 
 ## Model Cataloging
 Run the following to create a catalog of the models in a directory and its subfolders. The catalog will be written to a csv file in the root-model-dir directory. The filename will be timestamped.
@@ -140,6 +127,7 @@ The active model folder is defined in the environment variable __FANTASY_MODELS_
 cd /fantasy-experiments/models
 ./aws_train.sc s3://ledona-fantasy /tmp/models mlb.json "MLB-H-*" --exists reuse --algo tpot --slack --n_jobs 4
 ```
+Note that the model config file will be retrieved from S3, not from any local (to the cloud server) source.
 3. To copy/sync model results from S3 use aws cli.
 ```
 # install aws cli
