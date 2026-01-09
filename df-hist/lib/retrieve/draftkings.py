@@ -77,14 +77,16 @@ class Draftkings(ServiceDataRetriever):
         return entries_df
 
     @staticmethod
-    def _draft_percentages(player_row, lineup_position) -> None | list[tuple[float, None | str]]:
+    def _draft_percentages(
+        draft_info, lineup_position, col_idx
+    ) -> None | list[tuple[float, None | str]]:
         """
         parse the soup coutents of a player row, return percentages and associated lineup position
         lineup_position - the position of the player in the lineup, use this for single
             position percentage data ignored for multiple pct data
         return - list of tuples of (draft percentage, lineup position)
         """
-        drafted_pct_text = player_row.contents[2].text
+        drafted_pct_text = draft_info.text
         if drafted_pct_text == "--":
             return []
         if drafted_pct_text.count("%") == 1:
@@ -93,11 +95,10 @@ class Draftkings(ServiceDataRetriever):
 
         drafted_pcts = []
         # there are multiple draft percentages
-        for drafted_pct_ele in player_row.contents[2].div.contents:
-            assert len(drafted_pct_ele.contents) in (
-                1,
-                2,
-            ), "Expecting either 2 elements (position, pct) or just an element with pct!"
+        for drafted_pct_ele in draft_info.div.contents:
+            assert len(drafted_pct_ele.contents) in (1, 2), (
+                "Expecting either 2 elements (position, pct) or just an element with pct!"
+            )
             if len(drafted_pct_ele.contents) == 1:
                 drafted_pcts.append((float(drafted_pct_ele.text[:-1]), None))
             else:
@@ -117,6 +118,16 @@ class Draftkings(ServiceDataRetriever):
                 return None
             raise ValueError("Failed to parse entry lineup. Missing tbody")
 
+        col_names = [ele.text for ele in soup.table.thead.tr.find_all("th")]
+        try:
+            draft_col_idx = col_names.index("Draft %")
+        except ValueError:
+            # no draft information found... lets just skip this lineup
+            return None
+
+        game_col_idx = col_names.index("Game")
+        assert game_col_idx in (2, 3), "expected the game col to be at idx 2 or 3"
+
         lineup_players = []
         for player_row in soup.table.tbody.contents:
             position = player_row.contents[0].text
@@ -124,7 +135,7 @@ class Draftkings(ServiceDataRetriever):
             if "$" in name:
                 # if cost is included then drop it
                 name = name.split("$", 1)[0]
-            team_cell_spans = player_row.contents[3].find_all("span")
+            team_cell_spans = player_row.contents[game_col_idx].find_all("span")
 
             if len(team_cell_spans) in [7, 8]:
                 # this happens when there is a starters indication, drop the first 2
@@ -155,7 +166,9 @@ class Draftkings(ServiceDataRetriever):
                 else team_cell_spans[team_2_span_idx].text
             )
 
-            for draft_pct, draft_position in self._draft_percentages(player_row, position):
+            for draft_pct, draft_position in self._draft_percentages(
+                player_row.contents[draft_col_idx], position, draft_col_idx
+            ):
                 lineup_players.append(
                     {
                         "position": draft_position,
