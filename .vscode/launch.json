@@ -119,11 +119,11 @@
                 "--web-limit", "25",
                 "--history-file-dir", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting",
                 "--cache", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting\\df-hist-cache",
-
+                "--skip-entry-filepath", "${workspaceFolder}\\df-hist\\skip_entries.txt",
                 // "--cache-only", 
                 "-o", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting",
-                "--sports", "nfl", 
-                "--start-date", "20241222", // "--end-date", "2025-04-18",
+                "--sports", "nba", 
+                "--start-date", "20250418", // "--end-date", "2025-04-18",
             ]
         },
         {

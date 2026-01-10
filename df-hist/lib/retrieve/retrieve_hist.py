@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from datetime import timedelta
 
 import pandas as pd
-from dateutil.parser import parse as dateutil_parse
+from dateutil.parser import parse as du_parse
 from tqdm import tqdm
 
 from . import log
@@ -20,6 +20,8 @@ from .service_data_retriever import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+_ACCEPTED_SPORTS = {"nhl", "nfl", "mlb", "nba", "lol"}
 
 
 def retrieve_history(
@@ -36,6 +38,7 @@ def retrieve_history(
     browser_debug_address=None,
     browser_debug_port=None,
     profile_path=None,
+    skip_entry_filepath=None,
 ) -> tuple[ServiceDataRetriever, int]:
     """
     sports: collection of sports to process, if None then process all sports
@@ -47,6 +50,37 @@ def retrieve_history(
     returns ServiceDataRetriever, entry_count
     """
     assert (browser_debug_address is None) or (browser_debug_port is None)
+
+    if skip_entry_filepath:
+        _LOGGER.info("Loading skip entry data from '%s'", skip_entry_filepath)
+        with open(skip_entry_filepath, "r") as sef:
+            skip_entries = set()
+            for i, line in enumerate(sef.readlines(), 1):
+                entry = line.strip().split(":")
+                if len(entry) != 3:
+                    raise ValueError(
+                        f"Failed to load entries from '{skip_entry_filepath}'. {len(entry)} values found on line {i}."
+                    )
+                sport, date_str, title = entry
+                if title[0] == "'":
+                    title = title[1:]
+                if title[-1] == "'":
+                    title = title[:-1]
+                if sport not in _ACCEPTED_SPORTS:
+                    raise ValueError(
+                        f"Failed to load entries from '{skip_entry_filepath}'. on line {i}, {sport=} is not valid"
+                    )
+                try:
+                    date_ = du_parse(date_str).date()
+                except Exception as ex:
+                    raise ValueError(
+                        f"Failed to load entries from '{skip_entry_filepath}'. on line {i}, failed to parse {date_str=}"
+                    ) from ex
+
+                skip_entries.add((sport, date_, title))
+    else:
+        skip_entries = None
+
     service_obj = get_service_data_retriever(
         service_name,
         cache_path=cache_path,
@@ -74,8 +108,9 @@ def retrieve_history(
         filters.append("date >= @start_date")
     if end_date is not None:
         filters.append("date <= @end_date")
-    if sports is not None:
-        filters.append("sport in @sports")
+
+    sports_filter = sports or _ACCEPTED_SPORTS
+    filters.append("sport in @sports_filter")
 
     if len(filters) > 0:
         contest_entries_df = contest_entries_df.query(" and ".join(filters))
@@ -91,37 +126,51 @@ def retrieve_history(
 
         def func(entry_info):
             pbar.update()
+            pbar.set_postfix(
+                {**service_obj.processed_counts_by_src, "date": entry_info.date.date()}
+            )
 
-            # this will be true if currently retrying failed navigation
-            currently_retrying_nav = False
+            if (
+                skip_entries
+                and (skip_entry_key := (entry_info.sport, entry_info.date.date(), entry_info.title))
+                in skip_entries
+            ):
+                _LOGGER.info("*** SKIPPING ENTRY %s ***", skip_entry_key)
+                service_obj.processed_counts_by_src["skipped"] += 1
+                result = None
+            else:
+                # this will be true if currently retrying failed navigation
+                currently_retrying_nav = False
 
-            while True:
-                try:
-                    result = service_obj.process_entry(entry_info)
-                except DataUnavailable:
-                    _LOGGER.warning(
-                        "Skipping entry missing from cache: %s-'%s'",
-                        entry_info.sport,
-                        entry_info.title,
-                    )
-                    service_obj.processed_counts_by_src["skipped"] += 1
-                    result = None
-                except NavigationAvailableError:
-                    _LOGGER.warning(
-                        "*** Encountered a navigation error for %s-%s, %s ***",
-                        entry_info.sport,
-                        entry_info.title,
-                        "will retry" if not currently_retrying_nav else "failed twice",
-                    )
-                    if currently_retrying_nav:
-                        raise
-                    currently_retrying_nav = True
-                    continue
+                while True:
+                    try:
+                        result = service_obj.process_entry(entry_info)
+                    except DataUnavailable:
+                        _LOGGER.warning(
+                            "Skipping entry missing from cache: %s:%s:'%s'",
+                            entry_info.sport,
+                            entry_info.date.strftime("%Y%m%d"),
+                            entry_info.title,
+                        )
+                        service_obj.processed_counts_by_src["skipped"] += 1
+                        result = None
+                    except NavigationAvailableError:
+                        _LOGGER.warning(
+                            "*** Encountered a navigation error for %s:%s:'%s', %s ***",
+                            entry_info.sport,
+                            entry_info.date.strftime("%Y%m%d"),
+                            entry_info.title,
+                            "will retry" if not currently_retrying_nav else "failed twice",
+                        )
+                        if currently_retrying_nav:
+                            raise
+                        currently_retrying_nav = True
+                        continue
 
-                break
-            postfix = service_obj.processed_counts_by_src.copy()
-            postfix["date"] = entry_info.date.date()
-            pbar.set_postfix(postfix)
+                    break
+            pbar.set_postfix(
+                {**service_obj.processed_counts_by_src, "date": entry_info.date.date()}
+            )
             return result
 
         try:
@@ -153,6 +202,12 @@ def process_cmd_line(cmd_line_str=None):
         help="Prompt user to continue prior to all browser actions",
     )
     parser.add_argument("--cache-path", "--cache", help="path to cached files")
+
+    parser.add_argument(
+        "--skip-entry-filepath",
+        help="Path to a text file containing entries to skip. "
+        "Each line should be of the form {sport}:{date}:{entry title}",
+    )
 
     mut_ex_group = parser.add_mutually_exclusive_group()
     mut_ex_group.add_argument("--cache-mode", choices=ServiceDataRetCacheMode.__args__)
@@ -194,7 +249,7 @@ def process_cmd_line(cmd_line_str=None):
         "--sports",
         help="Sports to process",
         nargs="+",
-        choices=("nhl", "nfl", "mlb", "nba", "lol"),
+        choices=_ACCEPTED_SPORTS,
     )
     parser.add_argument("--start-date", help="Start date in YYYY-MM-DD format")
     parser.add_argument("--end-date", help="End date (inclusive) in YYYY-MM-DD format")
@@ -214,11 +269,9 @@ def process_cmd_line(cmd_line_str=None):
     if (args.cache_only is True) and (args.cache_path is None):
         parser.error("--cache_path is required if --cache_only is used")
     _LOGGER.info("starting data retrieval")
-    start_date = dateutil_parse(args.start_date).date() if args.start_date is not None else None
+    start_date = du_parse(args.start_date).date() if args.start_date is not None else None
     end_date = (
-        (dateutil_parse(args.end_date) + timedelta(days=1)).date()
-        if args.end_date is not None
-        else None
+        (du_parse(args.end_date) + timedelta(days=1)).date() if args.end_date is not None else None
     )
     service_obj, entry_count = retrieve_history(
         args.service,
@@ -234,6 +287,7 @@ def process_cmd_line(cmd_line_str=None):
         cache_only=args.cache_only,
         interactive=args.interactive,
         web_limit=args.web_limit,
+        skip_entry_filepath=args.skip_entry_filepath,
     )
 
     if len(service_obj.processed_contests) == 0:

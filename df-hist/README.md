@@ -28,10 +28,14 @@ To verify that chrome is running correctly try navigating to `http://127.0.0.1:9
 python -m lib.retrieve.retrieve_hist \
    --cache-path _PATH_TO_CACHE_FOLDER_ \
    --history-file-path _PATH_TO_DFS_EXPORT_FILE_FOLDER_ \
+   --skip-entry-filepath _PATH_TO_SKIP_ENTRY_TEXTFILE \
    draftkings \
    [--sports nfl] [--cache-only] [--start-date 20201001] [--end-date 20210101]
 ```
-4. Selenium navigation (i.e. the python script) may fail regularly. There are 2 options for getting more reliablility and having the script run longer before stopping. a) Resize/Zoom the browser so that the entire navigational UI is visible. b) Run the script in a loop so that when it fails it will immediately restart and pick up were it left off. e.g. to run the command 5 times in powershell execute ```1..5 | ForEach-Object { python ... }```
+4. Selenium navigation (i.e. the python script) may fail regularly. There are 2 things to try for getting more reliablility and having the script run longer before stopping. a) Resize/Zoom the browser so that the entire navigational UI is visible. b) Run the script in a loop so that when it fails it will immediately restart and pick up were it left off. e.g. to run the command 5 times on windows in powershell execute:
+```
+1..5 | ForEach-Object {python '-m' 'lib.retrieve.retrieve_hist' 'draftkings' '--address' '127.0.0.1:9222' '--web-limit' '25' '--history-file-dir' 'BETTING-HISTORY-DIR' '--cache' 'CACHE-DIR' '-o' 'RESULT-OUTPUT-DIR' '--skip-entry-filepath' 'SKIP-ENTRY-FILE' --sport' 'nba' '--start' '20250510' '--end' '20250601'}
+```
 4. (optional) If debugging/running under VSCODE
    a. To update vscode to use the new interpreter, _SHIFT-CTRL-P_, then _Python:Select Interpreter_, then navigate to the python exe in the new venv
    b. The VSCODE launch configuration uses the environment variable _FANTASY_IDRIVE_HOME_. Set it for the user|system.
