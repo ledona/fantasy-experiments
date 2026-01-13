@@ -110,7 +110,7 @@ def _process_cmd_line(cmd_line_str=None):
                 SPORT_CFGS[sport],
                 sorted(set(args.services)),
                 sorted(set(args.contest_styles)),
-                sorted(set(args.contest_types), key=lambda ct: ct.NAME),
+                sorted(set(args.contest_types), key=lambda ct: ct.TYPE_NAME),
                 args.top_score_cache_mode,
                 args.data_path,
                 args.contest_data_path,

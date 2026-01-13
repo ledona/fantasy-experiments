@@ -195,7 +195,12 @@ def _get_exploded_pos_df(
     return db_exploded_pos_df
 
 
-_DK_WARNED_GAME_TYPES = {"Series", "Campbell?s Chunky? Pick"}
+_DK_WARNED_GAME_TYPE_PATTERNS = [
+    r"Series",
+    r"Campbell?s Chunky? Pick",
+    r"Single Stat.*",
+    r"Best Ball",
+]
 """uncategorized draftkings game types to warn about"""
 
 
@@ -208,14 +213,17 @@ def _infer_contest_style(service, row) -> DFSContestStyle:
             return DFSContestStyle.SHOWDOWN
         if "Tiers" in row.dk_game_type:
             return DFSContestStyle.DK_TIERS
-        if row.dk_game_type in _DK_WARNED_GAME_TYPES:
-            _LOGGER.warning("Unhandled dk game type found. '%s'", row.dk_game_type)
-            return row.dk_game_type
+        for warn_pattern in _DK_WARNED_GAME_TYPE_PATTERNS:
+            if re.match(warn_pattern, row.dk_game_type):
+                _LOGGER.warning("Unhandled dk game type found. '%s'", row.dk_game_type)
+                return row.dk_game_type
         raise UnexpectedValueError(f"Unexpected dk game type {row.dk_game_type=}")
+
     if service == "fanduel":
         if "@" in (row.title or ""):
             return DFSContestStyle.SHOWDOWN
         return DFSContestStyle.CLASSIC
+
     if service == "yahoo":
         if (
             " Cup " in row.title
@@ -229,7 +237,8 @@ def _infer_contest_style(service, row) -> DFSContestStyle:
             or "Guaranteed" in row.title
         ):
             return DFSContestStyle.CLASSIC
-    raise NotImplementedError(f"Could not infer contest style for {service=} {title=}")
+
+    raise NotImplementedError(f"Could not infer contest style for {service=} {row.title=}")
 
 
 def _infer_contest_type(service, title) -> str:
@@ -308,7 +317,7 @@ def _get_contest_df(
     if style is not None:
         queries.append("style == @style")
     if contest_type is not None:
-        queries.append(f"type == '{contest_type.NAME}'")
+        queries.append(f"type == '{contest_type.TYPE_NAME}'")
     if len(queries) > 0:
         contest_df = contest_df.query(" and ".join(queries))
 
@@ -586,7 +595,9 @@ def _generate_dataset(
         lineup_scores,
     )
 
-    filepath = os.path.join(datapath, f"{sport}-{service}-{style.name}-{contest_type.NAME}.csv")
+    filepath = os.path.join(
+        datapath, f"{sport}-{service}-{style.name}-{contest_type.TYPE_NAME}.csv"
+    )
     _LOGGER.info("Writing data to '%s'", filepath)
     predict_df.to_csv(filepath, index=False)
     return predict_df
@@ -630,9 +641,9 @@ def xform(
         service_iter.set_postfix_str(service)
         if date_override is None:
             min_date, max_date = _get_date_range(cfg, service)
-        assert (
-            (min_date is None) or (max_date is None) or min_date < max_date
-        ), "invalid date range. max_date must be greater than min_date. Or one must be None"
+        assert (min_date is None) or (max_date is None) or min_date < max_date, (
+            "invalid date range. max_date must be greater than min_date. Or one must be None"
+        )
 
         for style in (style_iter := tqdm(styles, desc="contest-style", disable=len(styles) == 1)):
             style_iter.set_postfix_str(style.name)
@@ -641,19 +652,19 @@ def xform(
                     contest_types, desc="contest-type", disable=len(contest_types) == 1
                 )
             ):
-                contest_type_iter.set_postfix_str(contest_type.NAME)
+                contest_type_iter.set_postfix_str(contest_type.TYPE_NAME)
                 _LOGGER.info(
                     "Processing sport=%s service=%s style=%s contest-type=%s",
                     sport,
                     service,
                     style,
-                    contest_type.NAME,
+                    contest_type.TYPE_NAME,
                 )
                 slcm = (
                     "warn" if (sport, service) in _WARN_ON_SCREEN_LINEUP_CONSTRAINTS_ERR else "fail"
                 )
                 try:
-                    dfs[(sport, service, style, contest_type.NAME)] = _generate_dataset(
+                    dfs[(sport, service, style, contest_type.TYPE_NAME)] = _generate_dataset(
                         cfg,
                         sport,
                         service,
@@ -673,8 +684,8 @@ def xform(
                         sport,
                         service,
                         style,
-                        contest_type.NAME,
-                        len(dfs[(sport, service, style, contest_type.NAME)]),
+                        contest_type.TYPE_NAME,
+                        len(dfs[(sport, service, style, contest_type.TYPE_NAME)]),
                     )
                 except DataNotAvailableException as ex:
                     _LOGGER.error(
@@ -682,7 +693,7 @@ def xform(
                         sport,
                         service,
                         style,
-                        contest_type.NAME,
+                        contest_type.TYPE_NAME,
                         exc_info=ex,
                     )
 
