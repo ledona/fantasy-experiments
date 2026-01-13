@@ -41,13 +41,15 @@ python -m lib.retrieve.retrieve_hist \
    b. The VSCODE launch configuration uses the environment variable _FANTASY_IDRIVE_HOME_. Set it for the user|system.
 
 ## Create model training data (__data_xform__)
-First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_. The following example
-call to _data_xform_ will create datasets for nfl and mlb using defaults for all settings.
+First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_.
+
+After data retrieval (the previous section) it may be needed to run a full data retrieval process (no constraints on date, sport, etc) in cache_only mode, to ensure that betting data is ready for transformation.
+
+The following example uses _data_xform_ to create datasets for all sports using defaults for all settings.
 Default settings will read betting data from _/fantasy-isync/fantasy-dfs-hist/betting_ and write training data to _/fantasy-isync/fantasy-dfs-hist/data_.
 ```
 python -m lib.xform.cli
 ```
-After data retrieval testing/updating it may be needed to run a full data retrieval process (no constraints on date, sport, etc) in no_cache mode, to ensure that betting data is ready for transformation.
 
 ## Create models
 Review/update _model_cfg.json_ then run the following. Models will be written to the _./models_ directory by default. Use _--model_path_ to write models to a different directory. Evaluation results will be written to a timestamp named file in 
