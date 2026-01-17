@@ -560,12 +560,13 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
         mock_fitted.epochs_trained = 5
         artifact_ext = "pt"
+    elif algo == "autogluon":
+        mock_regressor = mocker.patch("lib.pt_model.train_test.TabularPredictor")
+        raise NotImplementedError()
     elif algo.startswith("tpot"):
         mock_pickle_func = mocker.patch("lib.pt_model.train_test.joblib").dump
         mock_regressor = mocker.patch("lib.pt_model.train_test.TPOTRegressor")
-        mock_regressor.return_value.fit.return_value.evaluated_individuals.Generation.max.return_value = (
-            1
-        )
+        mock_regressor.return_value.fit.return_value.evaluated_individuals.Generation.max.return_value = 1
         mock_fitted = mock_regressor.return_value.fit.return_value.fitted_pipeline_
         mock_fitted.generations_tested = 10
     elif algo == "dummy":
@@ -606,6 +607,7 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         # TODO: add back after tpot upgrade
         # ("tpot-light", {"n_jobs": 2}),
         ("tpot", {"max_time_mins": 120, "max_eval_time_mins": 15}),
+        ("autogluon", {"max_time_mins": 120}),
     ],
     ids=[
         "ReDummy",
@@ -613,6 +615,7 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         # TODO: add back after tpot upgrade
         # "ReTpotlight",
         "ReTpot",
+        "ReAutoGluon",
     ],
 )
 @pytest.mark.parametrize(
@@ -623,6 +626,7 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         # TODO: add back after tpot upgrade
         # ("tpot-light", {"n_jobs": 4, "max_time_mins": 45}),
         ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2}),
+        ("autogluon", {"max_time_mins": 10}),
     ],
     ids=[
         "dummy",
@@ -630,6 +634,7 @@ def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
         # TODO: add back after tpot upgrade
         # "tpotlight",
         "tpot",
+        "autogluon",
     ],
 )
 @pytest.mark.parametrize("retrain_w_tdf", [False, True], ids=["ReWO/Tdf", "ReW/Tdf"])

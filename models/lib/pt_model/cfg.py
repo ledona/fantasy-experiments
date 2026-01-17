@@ -31,19 +31,26 @@ This results in no kwarg being set for the regressor init param
 """
 
 
-_TPOT_PARAM_DEFAULTS_TUPLE = {
-    "max_time_mins": _NO_DEFAULT,
-    "max_eval_time_mins": _NO_DEFAULT,
-    "n_jobs": _NO_DEFAULT,
-    "epochs_max": _NO_DEFAULT,
-    "early_stop": _NO_DEFAULT,
-    "population_size": _NO_DEFAULT,
-    # Following should have no impact on the resulting model
-    "verbose": _NO_DEFAULT,
-}, {"epochs_max": "generations"}
+_TPOT_PARAM_DEFAULTS_TUPLE = (
+    {
+        "max_time_mins": _NO_DEFAULT,
+        "max_eval_time_mins": _NO_DEFAULT,
+        "n_jobs": _NO_DEFAULT,
+        "epochs_max": _NO_DEFAULT,
+        "early_stop": _NO_DEFAULT,
+        "population_size": _NO_DEFAULT,
+        # Following should have no impact on the resulting model
+        "verbose": 3,
+    },
+    {"epochs_max": "generations"},
+)
 """defaults and renames for all tpot algorithms"""
 
 TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
+    "autogluon": (
+        {"max_time_mins": _NO_DEFAULT, "preset": "best_quality_v150", "verbose": 2},
+        {"preset": "autogluon_preset"},
+    ),
     "nn": (
         {
             "input_size": _NO_DEFAULT,
@@ -63,22 +70,24 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, tuple[dict, dict | None]] = {
     "dummy": ({"strategy": "mean"}, None),
     "tpot": _TPOT_PARAM_DEFAULTS_TUPLE,
     "tpot-light": _TPOT_PARAM_DEFAULTS_TUPLE,
-    "tpot-xgboost": _TPOT_PARAM_DEFAULTS_TUPLE,
     "xgboost": ({}, None),
 }
 """
-dict mapping algorithm to (default-regressor-params, param-rename-dict)
+dict mapping algorithm to (default-regressor-params, param-rename-dict).
 
 default-regressor-paras : A dict with all the regressor parameters and default
   values for the algorithm. Each parameter corresponds to a keyword arg that
   is used to instantiate the regressor object for the algorithm. 
   Using the value __NO_DEFAULT will cause that keyword arg to not be specified,
-  thereby allowing the regressor to use its default.
+  allowing the regressor to use its default.
 
-param-rename-dict : This allows different default dicts to share parameter names
-  for parameters that have the same effect on different regressors, even if
-  the regressor object uses a different name for that parameter's kwarg during
-  regressor instantiation.
+param-rename-dict : This dict maps a model's parameter name to a cli/shared parameter name.
+  I.e. the key is the the shared/common names and the value is the regressor model's 
+  parameter name. This allows
+    a) different models to share parameter/cli-arg by mapping parameters for different 
+       models to the same cli/param name
+    b) use of a more expressive alias for a cli parameter that is renamed to the regressor
+       objects param name
 """
 
 _DATA_SRC_PARAMS = Literal["missing_data_threshold", "filtering_query", "data_filename"]
@@ -355,9 +364,9 @@ class TrainingConfiguration:
         algo_param_keys = [key for key in final_train_params if "." in key]
         for algo_param_key in algo_param_keys:
             param_algo, param_key = algo_param_key.split(".", 1)
-            assert (
-                "." not in param_key
-            ), f"training param {param_key} is invalid. It should not contain '.'"
+            assert "." not in param_key, (
+                f"training param {param_key} is invalid. It should not contain '.'"
+            )
 
             if param_algo != algo:
                 # for a different algorithm
@@ -454,39 +463,51 @@ class TrainingConfiguration:
         return cast(_TrainingParamsDict, param_dict)
 
     @staticmethod
-    def _get_regressor_kwargs(algorithm, cli_regressor_params: dict, cfg_params: dict):
+    def _get_regressor_params(algorithm, cli_regressor_params: dict, cfg_params: dict):
         """
-        helper that finalizes regressor kwargs based on algorith, requested kwargs
-        (e.g. from command line) and config parameters from
-        regressor_kwargs: override regressor kwargs, likely defined on the command line
-        params: default training parameters, typically specified in the
-        return the finalized regressor kwargs
+        helper that finalizes regressor parameters based on algorith, requested parameters
+        (e.g. from command line) and config parameters
+
+        cli_regressor_params: override regressor kwargs, likely defined on the command line
+        cfg_params: default training parameters
+
+        return the finalized regressor params
         """
-        defaults, renamer = TRAINING_PARAM_DEFAULTS[algorithm]
-        new_kwargs: dict = {}
+        reg_param_defaults, reg_param_to_cli_param = TRAINING_PARAM_DEFAULTS[algorithm]
+        regressor_params: dict = {}
 
         if (
-            "random_state" in defaults
-            and new_kwargs.get("random_state") is None
+            "random_state" in reg_param_defaults
+            and cli_regressor_params.get("random_state") is None
             and cfg_params["seed"]
         ):
-            key = renamer.get("random_state", "random_state") if renamer else "random_state"
-            new_kwargs[key] = cfg_params["seed"]
+            regressor_params["random_state"] = cfg_params["seed"]
 
-        for k_, default_value in defaults.items():
-            key = renamer.get(k_, k_) if renamer is not None else k_
-            if key in cli_regressor_params:
-                new_kwargs[key] = cli_regressor_params[key]
+        for regressor_param_name, default_value in reg_param_defaults.items():
+            # the param name to look for from the cli is the rename value if specified
+            # or the regressor param name
+            cli_param_name = (
+                reg_param_to_cli_param.get(regressor_param_name, regressor_param_name)
+                if reg_param_to_cli_param
+                else regressor_param_name
+            )
+            if cli_param_name in cli_regressor_params:
+                regressor_params[regressor_param_name] = cli_regressor_params[cli_param_name]
                 continue
             if default_value != _NO_DEFAULT:
-                new_kwargs[key] = default_value
+                regressor_params[regressor_param_name] = default_value
                 continue
-            if not cfg_params["train_params"] or k_ not in cfg_params["train_params"]:
+            if (
+                not cfg_params["train_params"]
+                or regressor_param_name not in cfg_params["train_params"]
+            ):
                 continue
-            new_kwargs[key] = cfg_params["train_params"][k_]
+            regressor_params[regressor_param_name] = cfg_params["train_params"][
+                regressor_param_name
+            ]
 
         if cfg_params["train_params"] and not set(cfg_params["train_params"].keys()) <= (
-            default_param_names := set(defaults.keys())
+            default_param_names := set(reg_param_defaults.keys())
         ):
             _LOGGER.warning(
                 "Ignoring following parameters not used by '%s' models: %s",
@@ -494,10 +515,10 @@ class TrainingConfiguration:
                 set(cfg_params["train_params"].keys()) - default_param_names,
             )
 
-        assert set(new_kwargs.keys()) <= {
-            renamer.get(name, name) if renamer else name for name in defaults
-        }, "finalized kwargs should be a subset of the defaults"
-        return new_kwargs
+        assert set(regressor_params.keys()) <= set(reg_param_defaults.keys()), (
+            "finalized params should be a subset of the defaults"
+        )
+        return regressor_params
 
     @process_timer
     def train_and_test(
@@ -511,7 +532,7 @@ class TrainingConfiguration:
         dump_data: str,
         training_data_limit: None | int,
         dest_filename: str | None,
-        **regressor_kwargs,
+        **regressor_params,
     ):
         if error_data:
             raise NotImplementedError()
@@ -542,13 +563,13 @@ class TrainingConfiguration:
         ):
             raise UnexpectedValueError(f"Invalid model target: {target_tuple}")
 
-        final_regressor_kwargs = self._get_regressor_kwargs(
-            self.algorithm, regressor_kwargs, cast(dict, params)
+        final_regressor_params = self._get_regressor_params(
+            self.algorithm, regressor_params, cast(dict, params)
         )
         print(f"\nInitial training params from '{self.source}' for '{model_name}':")
         pprint(params)
         print(f"\nFinal regressor kwargs for '{model_name}':")
-        pprint(final_regressor_kwargs)
+        pprint(final_regressor_params)
         if limit is not None:
             print(f"with a training data limit of {limit}")
 
@@ -604,7 +625,7 @@ class TrainingConfiguration:
             params["p_or_t"],
             params["recent_games"],
             params["training_seasons"],
-            final_regressor_kwargs,
+            final_regressor_params,
             params["target_pos"],
             params["training_pos"] or params["target_pos"],
             dest_dir,

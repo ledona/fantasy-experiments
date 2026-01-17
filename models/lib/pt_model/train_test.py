@@ -45,6 +45,8 @@ from ledona import slack
 from sklearn.dummy import DummyRegressor
 from tpot2 import TPOTRegressor
 
+from .autogluon import AutoGluonWrapper
+
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
 
@@ -172,9 +174,9 @@ def _load_data_local(
     if "pos" in df:
         df.drop(columns="pos_id", inplace=True)
         if include_position:
-            assert (
-                col_drop_filters is None or "pos" not in col_drop_filters
-            ), "conflicting request for pos and drop pos"
+            assert col_drop_filters is None or "pos" not in col_drop_filters, (
+                "conflicting request for pos and drop pos"
+            )
             one_hots.append("pos")
             df.pos = df.pos.astype(str)
 
@@ -475,50 +477,50 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     }
     if len(impute_values) == 0:
         _LOGGER.info(
-            "No season to date features found in data. "
-            "Impute data will not be included in model."
+            "No season to date features found in data. Impute data will not be included in model."
         )
         return None
     return impute_values
 
 
-AlgorithmType = Literal["tpot", "tpot-light", "dummy", "tpot-xgboost", "nn", "xgboost"]
+AlgorithmType = Literal["autogluon", "tpot", "tpot-light", "dummy", "nn", "xgboost"]
 """machine learning algorithm used for model selection and training"""
 
 
 def _instantiate_regressor(
-    algorithm: AlgorithmType, model_init_kwargs: dict, x: pd.DataFrame, y: pd.Series, model_filebase
+    algorithm: AlgorithmType, model_params: dict, x: pd.DataFrame, y: pd.Series, model_filebase
 ):
+    """returns (model-obj, fit-args, fit-kwargs)"""
+    if algorithm == "autogluon":
+        model = AutoGluonWrapper(
+            verbosity=model_params["verbose"],
+            preset=model_params["preset"],
+            time_limit=model_params["max_time_mins"] * 60,
+        )
+        return (model, None, None)
+
     if algorithm == "tpot":
-        model = TPOTRegressor(**model_init_kwargs)
+        model = TPOTRegressor(**model_params)
         return model, None, None
 
     if algorithm == "tpot-light":
-        model = TPOTRegressor(search_space="linear-light", **model_init_kwargs)
-        return model, None, None
-
-    if algorithm == "tpot-xgboost":
-        raise NotImplementedError()
-        model = TPOTRegressor(
-            config_dict={"xgboost.XGBRegressor": regressor_config_dict["xgboost.XGBRegressor"]},
-            **model_init_kwargs,
-        )
+        model = TPOTRegressor(search_space="linear-light", **model_params)
         return model, None, None
 
     if algorithm == "dummy":
-        model = DummyRegressor(**model_init_kwargs)
+        model = DummyRegressor(**model_params)
         return model, None, None
 
     if algorithm == "nn":
         input_size = len(x.columns)
         resume_filepath = (
-            model_init_kwargs.pop("resume_checkpoint_filepath")
-            if "resume_checkpoint_filepath" in model_init_kwargs
+            model_params.pop("resume_checkpoint_filepath")
+            if "resume_checkpoint_filepath" in model_params
             else None
         )
         if resume_filepath is not None:
             model, best_model_info, optimizer_state = NNRegressor.load_checkpoint(
-                resume_filepath, input_size, **model_init_kwargs
+                resume_filepath, input_size, **model_params
             )
 
             assert model.checkpoint_dir is not None
@@ -534,33 +536,33 @@ def _instantiate_regressor(
             }
         else:
             fit_kwargs = None
-            if model_init_kwargs.get("checkpoint_dir") is None:
+            if model_params.get("checkpoint_dir") is None:
                 default_checkpoint_root_dir = os.path.join(gettempdir(), "fantasy-nn-checkpoints")
                 if not os.path.isdir(default_checkpoint_root_dir):
                     _LOGGER.info(
                         "Creating default checkpoint root dir '%s'", default_checkpoint_root_dir
                     )
                     os.mkdir(default_checkpoint_root_dir)
-                model_init_kwargs["checkpoint_dir"] = os.path.join(
+                model_params["checkpoint_dir"] = os.path.join(
                     gettempdir(),
                     "fantasy-nn-checkpoints",
                     model_filebase + "-" + dt_to_filename_str(),
                 )
 
-            if os.path.isfile(model_init_kwargs["checkpoint_dir"]):
+            if os.path.isfile(model_params["checkpoint_dir"]):
                 raise InvalidArgumentsException(
                     "The checkpoint directory that would be used at "
-                    f"'{model_init_kwargs['checkpoint_dir']}' is a file! "
+                    f"'{model_params['checkpoint_dir']}' is a file! "
                     "Delete it or use another directory"
                 )
-            if not os.path.exists(model_init_kwargs["checkpoint_dir"]):
+            if not os.path.exists(model_params["checkpoint_dir"]):
                 _LOGGER.info(
-                    "Creating nn checkpoint directory '%s'", model_init_kwargs["checkpoint_dir"]
+                    "Creating nn checkpoint directory '%s'", model_params["checkpoint_dir"]
                 )
-                os.mkdir(model_init_kwargs["checkpoint_dir"])
+                os.mkdir(model_params["checkpoint_dir"])
             model = NNRegressor(
                 input_size,
-                **model_init_kwargs,
+                **model_params,
             )
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = model.to(device)
@@ -576,14 +578,14 @@ def _train_test(
     tt_data: TrainTestData,
     dest_dir: str,
     model_filebase: str,
-    **model_init_kwargs,
+    **model_params,
 ) -> tuple[str, PerformanceDict, datetime, dict | None]:
     """
     train, test and save a model to a pickle
 
     model_filebase: basename for model and artifact files
     training_time: max time to train in seconds
-    returns tuple[filepath to the model, model performance, dt model was trained]
+    returns tuple[mode-filepath, model-performance, train-dt, dict-describing-training+model]
     """
     dt_trained = now()
     _LOGGER.info("Fitting model_name=%s using type=%s", model_name, algo)
@@ -595,7 +597,7 @@ def _train_test(
             f"width={len(X_train.columns)} len={len(X_train)}"
         )
     model, fit_addl_args, fit_kwargs = _instantiate_regressor(
-        algo, model_init_kwargs, X_test, y_test, model_filebase
+        algo, model_params, X_test, y_test, model_filebase
     )
     model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
     assert model is not None
@@ -613,6 +615,10 @@ def _train_test(
         training_desc_info["generations_tested"] = max_gen
         _LOGGER.success("TPOT fitted in %i generation(s)", max_gen)
         pprint(tpot_model.fitted_pipeline_)
+    elif algo == "autogluon":
+        ag_model = cast(AutoGluonWrapper, model)
+        ag_model.update_training_desc_info(training_desc_info)
+        _LOGGER.success("%s fitted. best-model=%s", algo, ag_model.predictor.model_best)
     elif algo in ("dummy", "nn"):
         _LOGGER.success("%s fitted", algo)
         if algo == "nn":
@@ -639,17 +645,18 @@ def _train_test(
         model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
     )
     artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
+
     if algo == "dummy":
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(model, artifact_filepath)
+    elif algo == "autogluon":
+        artifact_filepath = ag_model.save_artifact(artifact_filebase_path)
     elif algo.startswith("tpot"):
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
-        _LOGGER.warning("add info for tpot training")
     elif algo == "nn":
         artifact_filepath = artifact_filebase_path + ".pt"
         torch.save(model, artifact_filepath)
-        _LOGGER.warning("add info for nn training")
     else:
         raise NotImplementedError(f"model {algo=} not recognized")
 
@@ -665,12 +672,12 @@ def _train_test(
     return artifact_filepath, performance, dt_trained, training_desc_info
 
 
-def _get_model_cls(algorithm: AlgorithmType):
-    if algorithm.startswith("tpot") or algorithm == "dummy":
+def _get_model_cls(algo: AlgorithmType):
+    if algo.startswith("tpot") or algo in ("dummy", "autogluon"):
         return SKLModel
-    if algorithm == "nn":
+    if algo == "nn":
         return NNModel
-    raise NotImplementedError(f"Don't know what model class to use for {algorithm=}")
+    raise NotImplementedError(f"Don't know what model class to use for {algo=}")
 
 
 _EXTRA_HIST_PART_PATTERN = re.compile("std-mean|recent-(mean|[1-9])")
@@ -899,7 +906,7 @@ def model_and_test(
     p_or_t,
     recent_games,
     training_seasons,
-    ml_kwargs,
+    model_params,
     target_pos: None | list[str],
     training_pos,
     dest_dir: str,
@@ -909,7 +916,7 @@ def model_and_test(
     data_src_params: dict | None = None,
 ):
     """
-    create or load a model and test it
+    train or load a model, test it, then wrap it and export it for use
 
     model_dest_filename: name of the file to write the model to. default is to use\
         the default model filename pattern based on the model name
@@ -955,11 +962,11 @@ def model_and_test(
             tt_data,
             dest_dir,
             filebase_name,
-            **ml_kwargs,
+            **model_params,
         )
         performance["season_val"] = validation_season
         addl_params = {
-            **ml_kwargs,
+            **model_params,
             **(data_src_params or {}),
             "algorithm": algorithm,
         }

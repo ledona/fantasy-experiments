@@ -13,6 +13,7 @@ from typing import Literal, cast
 
 import pandas as pd
 import tqdm
+from autogluon.tabular.configs.presets_configs import tabular_presets_alias as autogluon_presets
 from dateutil import parser as du_parser
 from fantasy_py import UnexpectedValueError, dt_to_filename_str, log, secs_to_time, time_to_secs
 from fantasy_py.inference import PTPredictModel
@@ -68,25 +69,41 @@ def _expand_models(
     return model_names
 
 
-def _algo_params(algo: AlgorithmType, cli_training_params, args_dict: dict):
+def _get_algo_regressor_params(algo: AlgorithmType, cli_training_params, args_dict: dict):
+    """
+    return the parameters relevant to the algo specified on the command line params and args
+
+    args_dict: arguments pulled directly from the command line
+    cli_training_params: current parameters that will be used for training
+    """
+    if algo == "autogluon":
+        ag_params = {
+            **cli_training_params,
+            **{
+                key: value
+                for key, value in args_dict.items()
+                if key.startswith("autogluon") and value
+            },
+        }
+        return ag_params
+
     if algo.startswith("tpot"):
-        modeler_init_kwargs = {"verbose": 3}
+        tpot_params = {}
         rename = TRAINING_PARAM_DEFAULTS["tpot"][1] or {}
         for k_ in _CLITrainingParams.__args__:
             if k_ not in cli_training_params:
                 continue
             key = rename.get(k_, k_)
-            modeler_init_kwargs[key] = cli_training_params[k_]
-        return modeler_init_kwargs
+            tpot_params[key] = cli_training_params[k_]
+        return tpot_params
 
     if algo == "nn":
-        modeler_init_kwargs = {
+        nn_params = {
             key_[3:]: value_ for key_, value_ in args_dict.items() if key_.startswith("nn_")
         }
         assert (
             len(
-                invalid_args := set(modeler_init_kwargs.keys())
-                - set(TRAINING_PARAM_DEFAULTS["nn"][0].keys())
+                invalid_args := set(nn_params.keys()) - set(TRAINING_PARAM_DEFAULTS["nn"][0].keys())
             )
             == 0
         ), f"nn_ cli args are not all valid. invalid_args={invalid_args}"
@@ -95,12 +112,11 @@ def _algo_params(algo: AlgorithmType, cli_training_params, args_dict: dict):
             if k_ not in cli_training_params:
                 continue
             key = rename.get(k_, k_)
-            modeler_init_kwargs[key] = cli_training_params[k_]
-        return modeler_init_kwargs
+            nn_params[key] = cli_training_params[k_]
+        return nn_params
 
     if algo == "xgboost":
-        modeler_init_kwargs = {"verbose": 2}
-        return modeler_init_kwargs
+        return {"verbose": 2}
 
     if algo == "dummy":
         return {}
@@ -114,7 +130,7 @@ def _train_model(
     args,
     tdf: TrainingConfiguration,
     progress,
-    modeler_init_kwargs,
+    model_params,
     original_model,
 ):
     """help to train an individual model"""
@@ -134,7 +150,7 @@ def _train_model(
             args.dump_data,
             args.limited_data,
             args.dest_filename,
-            **modeler_init_kwargs,
+            **model_params,
         )
         progress["successes"].append(model_name)
     except RuntimeError as ex:
@@ -214,7 +230,7 @@ def _handle_train(args: argparse.Namespace):
 
     _LOGGER.info("Training %i models. info-mode=%s: %s", len(model_names), args.info, model_names)
 
-    modeler_init_kwargs = _algo_params(tdf.algorithm, cli_training_params, args_dict)
+    model_params = _get_algo_regressor_params(tdf.algorithm, cli_training_params, args_dict)
 
     if args.slack and not args.info:
         slack.enable()
@@ -226,7 +242,7 @@ def _handle_train(args: argparse.Namespace):
     for model_name in (
         p_bar := tqdm.tqdm(model_names, "models", disable=(len(model_names) == 1 or args.info))
     ):
-        _train_model(p_bar, model_name, args, tdf, progress, modeler_init_kwargs, original_model)
+        _train_model(p_bar, model_name, args, tdf, progress, model_params, original_model)
 
     if len(progress["failures"]) > 0:
         msg_prefix = (
@@ -268,12 +284,15 @@ def _add_train_parser(sub_parsers):
             train_parser.add_argument(
                 "--models", nargs="+", help="Models to train. Wildcard '*' is supported"
             )
-        else:
+        elif train_op == "retrain":
             train_parser.add_argument(
                 "--orig_cfg_file",
                 help="Original model definition json file. "
                 "Only needed the .model file is missing training parameters",
             )
+        else:
+            raise NotImplementedError()
+
         train_parser.add_argument(
             "--slack",
             help="send a slack notification on train start/end/fail",
@@ -361,8 +380,7 @@ def _add_train_parser(sub_parsers):
             "--limited_data",
             "--data_limit",
             type=int,
-            help="limit the training data to this many cases, "
-            "validation data will not be limited",
+            help="limit the training data to this many cases, validation data will not be limited",
         )
         train_parser.add_argument(
             "--early_stop",
@@ -430,6 +448,9 @@ def _add_train_parser(sub_parsers):
             "--resume_from",
             default=argparse.SUPPRESS,
             help="resume nn training from this checkpoint",
+        )
+        train_parser.add_argument(
+            "--autogluon_preset", "--ag_preset", choices=sorted(autogluon_presets.keys())
         )
 
 
@@ -511,7 +532,7 @@ def _model_catalog_func(args):
                 ):
                     cat_data["tags"].append("incomplete-automl")
                     cat_data["notes"].append(
-                        "tpot generations is lower than early-stop, " f"{gens=} < {early_stop=}"
+                        f"tpot generations is lower than early-stop, {gens=} < {early_stop=}"
                     )
 
                 if (
@@ -537,6 +558,8 @@ def _model_catalog_func(args):
                     "nn training stopped before early-stop-epochs-wo-improvement reached. "
                     f"{early_stop_epochs=} {epochs_trained=} {epochs_max=}"
                 )
+            elif cat_data["algo"] == "autogluon":
+                raise NotImplementedError()
         data.append(cat_data)
 
     df = pd.DataFrame(data).sort_values(by=["name", "dt"])

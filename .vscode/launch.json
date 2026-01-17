@@ -39,13 +39,14 @@
 
                 // "--info",
                 // "--slack",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/data",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/mlb.wo.extras/data",
                 "--dest_dir", "/tmp",
                 // "--exists_mode", "reuse",
 
-                "--algo", "tpot",
+                "--algo", "autogluon",
                 // "--max_iter_mins", "3",
-                "--max_train_mins", "5",
+                "--max_train_mins", "1",
+                "--ag_preset", "medium",
                 // "--n_jobs", "2",
                 // "--gens", "10",
                 // "--pop", "8",
