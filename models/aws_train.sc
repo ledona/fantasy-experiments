@@ -1,7 +1,10 @@
 #!/bin/bash
 
+
 # Exit on any error
 set -e
+
+pushd /fantasy-experiments/models
 
 function usage() {
     echo "AWS Model Trainer
@@ -96,3 +99,4 @@ if [ $DRYRUN = false ]; then
 fi
 
 echo "# --------- Training of ${MODEL_NAME} FINISHED! --------"
+popd
