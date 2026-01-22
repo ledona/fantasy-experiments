@@ -21,7 +21,6 @@ from ledona import slack
 
 from .pt_model import (
     DEFAULT_ALGORITHM,
-    TRAINING_PARAM_DEFAULTS,
     AlgorithmType,
     ModelFileFoundMode,
     PerformanceOperation,
@@ -30,13 +29,6 @@ from .pt_model import (
 )
 
 _LOGGER = log.get_logger(__name__)
-
-
-_CLITrainingParams = Literal[
-    "max_time_mins", "max_eval_time_mins", "n_jobs", "early_stop", "epochs_max", "population_size"
-]
-"""training parameters that are set on commandline and can be overriden
-from command line during retrain"""
 
 
 def _expand_models(
@@ -69,88 +61,48 @@ def _expand_models(
     return model_names
 
 
-def _get_algo_regressor_params(algo: AlgorithmType, cli_training_params, args_dict: dict):
-    """
-    return the parameters relevant to the algo specified on the command line params and args
-
-    args_dict: arguments pulled directly from the command line
-    cli_training_params: current parameters that will be used for training
-    """
-    if algo == "autogluon":
-        ag_params = {
-            **cli_training_params,
-            **{
-                key: value
-                for key, value in args_dict.items()
-                if key.startswith("autogluon") and value
-            },
-        }
-        return ag_params
-
-    if algo.startswith("tpot"):
-        tpot_params = {}
-        rename = TRAINING_PARAM_DEFAULTS["tpot"][1] or {}
-        for k_ in _CLITrainingParams.__args__:
-            if k_ not in cli_training_params:
-                continue
-            key = rename.get(k_, k_)
-            tpot_params[key] = cli_training_params[k_]
-        return tpot_params
-
-    if algo == "nn":
-        nn_params = {
-            key_[3:]: value_ for key_, value_ in args_dict.items() if key_.startswith("nn_")
-        }
-        assert (
-            len(
-                invalid_args := set(nn_params.keys()) - set(TRAINING_PARAM_DEFAULTS["nn"][0].keys())
-            )
-            == 0
-        ), f"nn_ cli args are not all valid. invalid_args={invalid_args}"
-        rename = TRAINING_PARAM_DEFAULTS["nn"][1] or {}
-        for k_ in _CLITrainingParams.__args__:
-            if k_ not in cli_training_params:
-                continue
-            key = rename.get(k_, k_)
-            nn_params[key] = cli_training_params[k_]
-        return nn_params
-
-    if algo == "xgboost":
-        return {"verbose": 2}
-
-    if algo == "dummy":
-        return {}
-
-    raise UnexpectedValueError(f"Unknown algorithm '{algo}' requested")
-
-
 def _train_model(
     p_bar,
     model_name,
     args,
     tdf: TrainingConfiguration,
     progress,
-    model_params,
     original_model,
 ):
-    """help to train an individual model"""
+    """
+    help to train an individual model
+
+    args: dict with all args (e.g. entire command line args)
+    """
     _LOGGER.info("Training %s", model_name)
     p_bar.set_postfix_str(
         f"{model_name} {log.GREEN}\u2714{log.COLOR_RESET}={len(progress['successes'])} "
         f"{log.RED}\u274c{log.COLOR_RESET}={len(progress['failures'])}"
     )
+    args_dict = dict(vars(args))
+    # drop train_and_test positional args from args_dict
+    for arg_name in [
+        "dest_dir",
+        "exists_mode",
+        "data_dir",
+        "info",
+        "dump_data",
+        "limited_data",
+        "dest_filename",
+    ]:
+        del args_dict[arg_name]
+
     try:
         new_model = tdf.train_and_test(
             model_name,
             args.dest_dir,
-            args.error_analysis_data,
             args.exists_mode,
             args.data_dir,
             args.info,
             args.dump_data,
             args.limited_data,
             args.dest_filename,
-            **model_params,
+            **args_dict,
         )
         progress["successes"].append(model_name)
     except RuntimeError as ex:
@@ -200,8 +152,6 @@ def _handle_train(args: argparse.Namespace):
     if not os.path.isdir(args.dest_dir):
         args.parser.error(f"Destination directory '{args.dest_dir}' does not exist.")
 
-    args_dict = vars(args)
-
     model_names: list[str]
     if args.train_op == "train":
         tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
@@ -211,26 +161,14 @@ def _handle_train(args: argparse.Namespace):
             )
         model_names = _expand_models(tdf, args.model or args.models)
         original_model = None
-        cli_training_params = cast(
-            dict[_CLITrainingParams, int | None],
-            {k_: args_dict.get(k_) for k_ in _CLITrainingParams.__args__ if k_ in args_dict},
-        )
     else:
         tdf, original_model = TrainingConfiguration.cfg_from_model(
             args.cfg_file, args.orig_cfg_file, algorithm=args.algorithm
         )
         model_names = [original_model.name]
         assert original_model.parameters is not None
-        cli_training_params = {}
-        for k_ in _CLITrainingParams.__args__:
-            if k_ in args_dict:
-                cli_training_params[k_] = args_dict[k_]
-            elif k_ in original_model.parameters:
-                cli_training_params[k_] = original_model.parameters[k_]
 
     _LOGGER.info("Training %i models. info-mode=%s: %s", len(model_names), args.info, model_names)
-
-    model_params = _get_algo_regressor_params(tdf.algorithm, cli_training_params, args_dict)
 
     if args.slack and not args.info:
         slack.enable()
@@ -242,7 +180,7 @@ def _handle_train(args: argparse.Namespace):
     for model_name in (
         p_bar := tqdm.tqdm(model_names, "models", disable=(len(model_names) == 1 or args.info))
     ):
-        _train_model(p_bar, model_name, args, tdf, progress, model_params, original_model)
+        _train_model(p_bar, model_name, args, tdf, progress, original_model)
 
     if len(progress["failures"]) > 0:
         msg_prefix = (
@@ -267,6 +205,10 @@ _MODEL_CATALOG_PATTERN = "model-catalog.{TIMESTAMP}.csv"
 
 
 def _add_train_parser(sub_parsers):
+    """
+    add parameters for training. see TRAINING_PARAM_DEFAULTS for
+    parameters supported by the different algorithms
+    """
     for train_op in ["train", "retrain"]:
         train_parser = sub_parsers.add_parser(train_op, help=f"{train_op} model(s)")
         train_parser.set_defaults(func=_handle_train, parser=train_parser, train_op=train_op)
@@ -318,53 +260,11 @@ def _add_train_parser(sub_parsers):
             "Supported extensions: .csv, .parquet",
         )
         train_parser.add_argument(
-            "--error_analysis_data",
-            help="Write error analysis data based on validation dataset to a file. "
-            "Data consists of columns 'truth', 'prediction', 'error'",
-            default=False,
-            action="store_true",
-        )
-        train_parser.add_argument(
             "--algorithm",
             help=f"Algorithm for model selection/training. default='{DEFAULT_ALGORITHM}'",
             choices=AlgorithmType.__args__,
         )
 
-        train_parser.add_argument(
-            "--n_jobs",
-            "--njobs",
-            "--tpot_jobs",
-            help="Number of jobs/processors to use during training",
-            type=int,
-            default=argparse.SUPPRESS,
-        )
-        train_parser.add_argument(
-            "--max_time_mins",
-            "--training_mins",
-            "--mins",
-            "--max_train_mins",
-            "--time",
-            "--max_time",
-            type=int,
-            default=argparse.SUPPRESS,
-            help="override the training time defined in the train_file",
-        )
-        train_parser.add_argument(
-            "--max_eval_time_mins",
-            "--training_iter_mins",
-            "--max_iter_mins",
-            "--iter_mins",
-            "--iter_time",
-            type=int,
-            default=argparse.SUPPRESS,
-            help="override the training iteration time defined in the train_file",
-        )
-        train_parser.add_argument(
-            "--population_size",
-            type=int,
-            default=argparse.SUPPRESS,
-            help="Override population size for relevant models (e.g. tpot)",
-        )
         train_parser.add_argument(
             "--dest_dir", default=".", help="Destination directory for model files"
         )
@@ -382,6 +282,25 @@ def _add_train_parser(sub_parsers):
             type=int,
             help="limit the training data to this many cases, validation data will not be limited",
         )
+
+        # SHARED REGRESSOR PARAMS
+        train_parser.add_argument(
+            "--n_jobs",
+            help="Number of jobs/processors to use during training",
+            type=int,
+            default=argparse.SUPPRESS,
+        )
+        train_parser.add_argument(
+            "--max_time_mins",
+            "--training_mins",
+            "--mins",
+            "--max_train_mins",
+            "--time",
+            "--max_time",
+            type=int,
+            default=argparse.SUPPRESS,
+            help="Maximum training time in mins",
+        )
         train_parser.add_argument(
             "--early_stop",
             type=int,
@@ -398,24 +317,42 @@ def _add_train_parser(sub_parsers):
             default=argparse.SUPPRESS,
             help="The maximum number of epochs/generations to train a model",
         )
+        train_parser.add_argument("--verbose", type=int)
 
-        # anything starting with nn_ will be for nn algo
+        # TPOT PARAMS
         train_parser.add_argument(
-            "--nn_batch_size",
+            "--tp:max_eval_time_mins",
+            "--max_eval_time_mins",
+            "--training_iter_mins",
+            "--max_iter_mins",
+            "--iter_mins",
+            "--iter_time",
+            type=int,
+            default=argparse.SUPPRESS,
+        )
+        train_parser.add_argument(
+            "--tp:population_size",
+            type=int,
+            default=argparse.SUPPRESS,
+        )
+
+        # NEURAL NET PARAMS
+        train_parser.add_argument(
+            "--nn:batch_size",
             "--batch_size",
             type=int,
             help="Neural Network training batch size",
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
-            "--nn_hidden_size",
+            "--nn:hidden_size",
             "--hidden_size",
             type=int,
             help="Neural Network training batch size",
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
-            "--nn_learning_rate",
+            "--nn:learning_rate",
             "--learning_rate",
             "--lr",
             type=float,
@@ -423,7 +360,7 @@ def _add_train_parser(sub_parsers):
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
-            "--nn_hidden_layers",
+            "--nn:hidden_layers",
             "--hidden_layers",
             "--layers",
             type=int,
@@ -431,26 +368,36 @@ def _add_train_parser(sub_parsers):
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
-            "--nn_checkpoint_frequency",
+            "--nn:checkpoint_frequency",
             "--checkpoint_frequency",
             type=int,
             help="How often to save a periodic checkpoint (best models are always checkpointed)",
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
-            "--nn_checkpoint_dir",
+            "--nn:checkpoint_dir",
             "--checkpoint_dir",
             help="The checkpoint directory for nn models",
             default=argparse.SUPPRESS,
         )
         train_parser.add_argument(
-            "--nn_resume_checkpoint_filepath",
+            "--nn:resume_checkpoint_filepath",
             "--resume_from",
             default=argparse.SUPPRESS,
             help="resume nn training from this checkpoint",
         )
+
+        # AUTOGLUON PARAMS
         train_parser.add_argument(
-            "--autogluon_preset", "--ag_preset", choices=sorted(autogluon_presets.keys())
+            "--ag:preset",
+            choices=sorted(autogluon_presets.keys()),
+            help="autogluon preset",
+            default=argparse.SUPPRESS,
+        )
+
+        # DUMMY PARAMS
+        train_parser.add_argument(
+            "--dmy:strategy", choices=["mean", "median", "quantile"], default=argparse.SUPPRESS
         )
 
 

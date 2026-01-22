@@ -7,7 +7,6 @@ from collections import defaultdict
 from datetime import datetime
 from glob import glob
 from pprint import pformat, pprint
-from tempfile import gettempdir
 from typing import Literal, cast
 
 import joblib
@@ -16,7 +15,6 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import sklearn.metrics
 import sklearn.model_selection
-import torch
 from dateutil import parser as du_parser
 from fantasy_py import (
     SPORT_DB_MANAGER_DOMAIN,
@@ -25,7 +23,6 @@ from fantasy_py import (
     ExtraFeatureType,
     FantasyException,
     FeatureType,
-    InvalidArgumentsException,
     PlayerOrTeam,
     UnexpectedValueError,
     dt_to_filename_str,
@@ -46,6 +43,7 @@ from sklearn.dummy import DummyRegressor
 from tpot2 import TPOTRegressor
 
 from .autogluon import AutoGluonWrapper
+from .nn import NNWrapper
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -494,79 +492,27 @@ def _instantiate_regressor(
     if algorithm == "autogluon":
         model = AutoGluonWrapper(
             verbosity=model_params["verbose"],
-            preset=model_params["preset"],
+            preset=model_params["ag:preset"],
             time_limit=model_params["max_time_mins"] * 60,
         )
-        return (model, None, None)
+        return model
 
     if algorithm == "tpot":
         model = TPOTRegressor(**model_params)
-        return model, None, None
+        return model
 
     if algorithm == "tpot-light":
-        model = TPOTRegressor(search_space="linear-light", **model_params)
-        return model, None, None
+        raise NotImplementedError()
+        # model = TPOTRegressor(search_space="linear-light", **model_params)
+        # return model, None, None
 
     if algorithm == "dummy":
-        model = DummyRegressor(**model_params)
-        return model, None, None
+        model = DummyRegressor(strategy=model_params.get("dmy:strategy"))
+        return model
 
     if algorithm == "nn":
-        input_size = len(x.columns)
-        resume_filepath = (
-            model_params.pop("resume_checkpoint_filepath")
-            if "resume_checkpoint_filepath" in model_params
-            else None
-        )
-        if resume_filepath is not None:
-            model, best_model_info, optimizer_state = NNRegressor.load_checkpoint(
-                resume_filepath, input_size, **model_params
-            )
-
-            assert model.checkpoint_dir is not None
-            if not os.path.isdir(model.checkpoint_dir):
-                raise FileNotFoundError(
-                    f"Checkpoint model's checkpoint dir '{model.checkpoint_dir}' "
-                    "is not a valid directory"
-                )
-            fit_kwargs = {
-                "resume_from_checkpoint": True,
-                "resume_best_model_info": best_model_info,
-                "resume_optimizer_state": optimizer_state,
-            }
-        else:
-            fit_kwargs = None
-            if model_params.get("checkpoint_dir") is None:
-                default_checkpoint_root_dir = os.path.join(gettempdir(), "fantasy-nn-checkpoints")
-                if not os.path.isdir(default_checkpoint_root_dir):
-                    _LOGGER.info(
-                        "Creating default checkpoint root dir '%s'", default_checkpoint_root_dir
-                    )
-                    os.mkdir(default_checkpoint_root_dir)
-                model_params["checkpoint_dir"] = os.path.join(
-                    gettempdir(),
-                    "fantasy-nn-checkpoints",
-                    model_filebase + "-" + dt_to_filename_str(),
-                )
-
-            if os.path.isfile(model_params["checkpoint_dir"]):
-                raise InvalidArgumentsException(
-                    "The checkpoint directory that would be used at "
-                    f"'{model_params['checkpoint_dir']}' is a file! "
-                    "Delete it or use another directory"
-                )
-            if not os.path.exists(model_params["checkpoint_dir"]):
-                _LOGGER.info(
-                    "Creating nn checkpoint directory '%s'", model_params["checkpoint_dir"]
-                )
-                os.mkdir(model_params["checkpoint_dir"])
-            model = NNRegressor(
-                input_size,
-                **model_params,
-            )
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = model.to(device)
-        return model, (x, y), fit_kwargs
+        model = NNWrapper(x, y, model_filebase, **model_params)
+        return model
 
     raise NotImplementedError(f"{algorithm=} not recognized")
 
@@ -596,10 +542,8 @@ def _train_test(
             "Cannot train because width or length of training data is 0. "
             f"width={len(X_train.columns)} len={len(X_train)}"
         )
-    model, fit_addl_args, fit_kwargs = _instantiate_regressor(
-        algo, model_params, X_test, y_test, model_filebase
-    )
-    model = model.fit(X_train, y_train, *(fit_addl_args or []), **(fit_kwargs or {}))
+    model = _instantiate_regressor(algo, model_params, X_test, y_test, model_filebase)
+    model = model.fit(X_train, y_train)
     assert model is not None
     training_desc_info: dict = {
         "time_to_fit": str(now() - dt_trained),
@@ -656,7 +600,7 @@ def _train_test(
         joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
     elif algo == "nn":
         artifact_filepath = artifact_filebase_path + ".pt"
-        torch.save(model, artifact_filepath)
+        model.save(artifact_filepath)
     else:
         raise NotImplementedError(f"model {algo=} not recognized")
 

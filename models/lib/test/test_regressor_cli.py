@@ -4,17 +4,21 @@ import platform
 import random
 from datetime import UTC, datetime, timedelta
 from typing import cast
+from unittest.mock import Mock
 
 import joblib
 import pandas as pd
 import pytest
 import sklearn
+import torch
+from autogluon.tabular import TabularPredictor
 from fantasy_py import FeatureType, PlayerOrTeam, dt_to_filename_str
-from fantasy_py.inference import PTPredictModel
+from fantasy_py.inference import NNRegressor, PTPredictModel
 from freezegun import freeze_time
 from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
+from tpot2 import TPOTRegressor
 
 from ..pt_model import (
     TRAINING_PARAM_DEFAULTS,
@@ -138,18 +142,18 @@ for _model_params in _EXPECTED_TRAINING_CFG_PARAMS.values():
 _TEST_DEF_FILE_FILEPATH = os.path.join(_DIRNAME, "test.json")
 
 
-@pytest.fixture(name="tdf", scope="module")
-def _tdf():
+@pytest.fixture(name="test_definition_file", scope="module")
+def _test_definition_file():
     return TrainingConfiguration(_TEST_DEF_FILE_FILEPATH)
 
 
 @pytest.mark.parametrize("model_name", _EXPECTED_TRAINING_CFG_PARAMS.keys())
-def test_training_def_file_params(tdf: TrainingConfiguration, model_name):
+def test_training_def_file_params(test_definition_file: TrainingConfiguration, model_name):
     """
     test that each model defined in the test json generate the
     expected params
     """
-    params = tdf.get_params(model_name)
+    params = test_definition_file.get_params(model_name)
     del cast(dict, params)["algorithm"]
     assert params == _EXPECTED_TRAINING_CFG_PARAMS[model_name]
 
@@ -271,10 +275,10 @@ class TestParamCascade:
         assert final_params == expected_params
 
 
-def test_training_def_file_model_names(tdf: TrainingConfiguration):
+def test_training_def_file_model_names(test_definition_file: TrainingConfiguration):
     """test that each model defined in the test json generate the
     expected params"""
-    assert set(tdf.model_names) == set(_EXPECTED_TRAINING_CFG_PARAMS.keys())
+    assert set(test_definition_file.model_names) == set(_EXPECTED_TRAINING_CFG_PARAMS.keys())
 
 
 def _create_expected_model_dict(
@@ -343,7 +347,7 @@ def _create_expected_model_dict(
                 "missing_data_threshold"
             ],
             "data_filename": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["data_filename"],
-            **TRAINING_PARAM_DEFAULTS["dummy"][0],
+            **TRAINING_PARAM_DEFAULTS["dummy"],
         },
         "trained_parameters": {"regressor_path": final_artifact_filepath},
         "training_data_def": expected_training_data_def,
@@ -383,7 +387,7 @@ def _fake_metrics(mocker):
 
 
 @pytest.mark.parametrize("limit", [None, 10000], ids=["no-limit", "w-limit"])
-def test_model_gen(tmpdir, mocker, limit: int | None):
+def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None):
     """test that the resulting model file is as expected and that
     the expected calls to fit the model, etc were made"""
     model_name = "MLB-H-DK"
@@ -444,7 +448,7 @@ def test_model_gen(tmpdir, mocker, limit: int | None):
         regressor = joblib.load(f_)
     assert (
         isinstance(regressor, DummyRegressor)
-        and regressor.strategy == TRAINING_PARAM_DEFAULTS["dummy"][0]["strategy"]
+        and regressor.strategy == TRAINING_PARAM_DEFAULTS["dummy"]["dmy:strategy"]
     )
 
     model_filepath = dest_filepath_base + ".model"
@@ -468,68 +472,56 @@ def test_model_gen(tmpdir, mocker, limit: int | None):
     deep_compare_dicts(model_dict, expected_model_dict)
 
 
-def _retrain_test_model_check(
+def _check_model_params(
     filepath_base: str,
     expected_r2,
     expected_mae,
-    mock_pickle_func,
+    mock_save_func,
     mock_regressor_cls,
-    mock_fit,
-    artifact_ext,
-    # TODO: rework the test so that the following args can be dropped
     expected_params: dict,
-    ignored_params: list[str],
+    label: str,
 ):
     """
     assert various things after training the original or retrained
     model during retrain testing
 
-    returns: model dict without keys that should not match
+    returns: model dict
     """
     mock_regressor_cls.assert_called_once()
-    expected_model_artifact_path = filepath_base + "." + artifact_ext
-    mock_pickle_func.assert_called_once_with(mock_fit, expected_model_artifact_path)
+    mock_save_func.assert_called_once()
     with open(filepath_base + ".model", "r") as f_:
         model_dict = cast(dict, json.load(f_))
 
-    assert model_dict["trained_parameters"]["regressor_path"].rsplit(".", 1)[0] == filepath_base
-    del model_dict["trained_parameters"]["regressor_path"]
-    del model_dict["meta_extra"]["desc_info"]
+    assert model_dict["trained_parameters"]["regressor_path"].rsplit(".", 1)[0] == filepath_base, (
+        f"{label}: expected regressor path"
+    )
+    assert model_dict["meta_extra"]["performance"]["r2_val"] == expected_r2, f"{label}: expected_r2"
+    assert model_dict["meta_extra"]["performance"]["mae_val"] == expected_mae, (
+        f"{label}: expected_mae"
+    )
 
-    # test and drop parameters
-    algo_defaults, renames = TRAINING_PARAM_DEFAULTS[expected_params["algorithm"]]
-    algo_param_keys = set(algo_defaults.keys())
-    algo_param_keys.add("algorithm")
-    for param_key in algo_param_keys:
-        if param_key not in expected_params:
-            continue
-        model_key = renames.get(param_key, param_key) if renames else param_key
-        assert model_dict["parameters"][model_key] == expected_params[param_key]
-        del model_dict["parameters"][model_key]
-    for param_key in ignored_params:
-        if param_key in model_dict["parameters"]:
-            del model_dict["parameters"][param_key]
-
-    assert model_dict["meta_extra"]["performance"]["r2_val"] == expected_r2
-    assert model_dict["meta_extra"]["performance"]["mae_val"] == expected_mae
-    for param_key in ["performance", "type"]:
-        del model_dict["meta_extra"][param_key]
-
-    for param_key in ["dt_trained"]:
-        del model_dict[param_key]
+    for param, expected_value in expected_params.items():
+        assert model_dict["parameters"][param] == expected_value, (
+            f"{label}: value at the model's request param '{param}' should match the expected value."
+        )
 
     return model_dict
 
 
-def _infer_expected_params(algo: AlgorithmType, tdf_params: dict | None, override_params: dict):
-    param_default = TRAINING_PARAM_DEFAULTS[algo][0]
+def _infer_expected_params(
+    algo: AlgorithmType, test_definition_file_params: dict | None, override_params: dict
+):
+    param_default = TRAINING_PARAM_DEFAULTS[algo]
     params = {"algorithm": algo}
 
     for param_key, default_value in param_default.items():
         if param_key in override_params:
             value = override_params[param_key]
-        elif tdf_params is not None and param_key in tdf_params["train_params"]:
-            value = tdf_params["train_params"][param_key]
+        elif (
+            test_definition_file_params is not None
+            and param_key in test_definition_file_params["train_params"]
+        ):
+            value = test_definition_file_params["train_params"][param_key]
         elif default_value != _NO_DEFAULT:
             value = default_value
         else:
@@ -538,126 +530,180 @@ def _infer_expected_params(algo: AlgorithmType, tdf_params: dict | None, overrid
     return params
 
 
-_UNSUPPORTED_BY_CLI = {"strategy", "batch_size", "hidden_layers"}
-"""
-model parameters not supported by regression cli, which should therefore not
-by used to create command line args during retry testing
-"""
-
-
-def _train_prep(mocker, params, algo: AlgorithmType, tdf_params: dict | None):
+def _train_prep(
+    mocker: MockFixture,
+    train_params,
+    algo: AlgorithmType,
+    tdf_params: dict | None,
+    prev_algo: AlgorithmType | None = None,
+    prev_regressor: Mock | None = None,
+    prev_save_func: Mock | None = None,
+):
     """
     prep for train/retrain during the retrain test
 
-    params: all known/available training parameters, irrelevant parameters or\
-        params that should not be on the command line be dropped
+    tdf_params: training definition file params
+    prev_algo: defined if a previous algorithm was already prepped. e.g. when retraining a model this will be set to
+        the original model's algorithm. If the same as the previous then the other prevs will be reset and returned
     """
-    artifact_ext = "pkl"
+    if prev_algo:
+        assert prev_regressor and prev_save_func
+        mock_regressor = prev_regressor
+        mock_regressor.reset_mock()
+        mock_save_func = prev_save_func
+        mock_save_func.reset_mock()
 
     if algo == "nn":
-        mock_pickle_func = mocker.patch("lib.pt_model.train_test.torch").save
-        mock_regressor = mocker.patch("lib.pt_model.train_test.NNRegressor")
-        mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
-        mock_fitted.epochs_trained = 5
-        artifact_ext = "pt"
+        if prev_algo != "nn":
+            mock_save_func = mocker.MagicMock(name="fake-torch.save", autospec=True)
+            mocker.patch("lib.pt_model.nn.torch.save", mock_save_func)
+            mock_regressor = mocker.patch("lib.pt_model.nn.NNRegressor", autospec=True)
+            mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
+            mock_fitted.epochs_trained = 5
     elif algo == "autogluon":
-        mock_regressor = mocker.patch("lib.pt_model.train_test.TabularPredictor")
-        raise NotImplementedError()
+        if prev_algo != "autogluon":
+            mock_regressor = mocker.patch(
+                "lib.pt_model.autogluon.TabularPredictor", spec=TabularPredictor
+            )
+            mock_regressor.return_value.path = "path-to-autogluon-artifacts"
+            mock_regressor.return_value.model_best = "model-name"
+            mock_regressor.return_value.info.return_value = {"version": "x.y.z"}
+            mock_regressor.return_value.model_info.return_value = {"info": "all-da-info"}
+            artifact_full_path = os.path.join(
+                mock_regressor.return_value.path,
+                "models",
+                mock_regressor.return_value.model_best,
+                "model.pkl",
+            )
+            mocker.patch(
+                "lib.pt_model.autogluon.os.path.isfile",
+                side_effect=lambda path: path == artifact_full_path,
+            )
+            mock_save_func = mocker.patch("lib.pt_model.autogluon.shutil.copyfile")
+            mock_fitted = None
     elif algo.startswith("tpot"):
-        mock_pickle_func = mocker.patch("lib.pt_model.train_test.joblib").dump
-        mock_regressor = mocker.patch("lib.pt_model.train_test.TPOTRegressor")
-        mock_regressor.return_value.fit.return_value.evaluated_individuals.Generation.max.return_value = 1
-        mock_fitted = mock_regressor.return_value.fit.return_value.fitted_pipeline_
-        mock_fitted.generations_tested = 10
+        if prev_algo != "tpot":
+            mock_save_func = mocker.patch("lib.pt_model.train_test.joblib").dump
+            mock_regressor = mocker.patch("lib.pt_model.train_test.TPOTRegressor", autospec=True)
+            mock_regressor.return_value.fit.return_value.evaluated_individuals.Generation.max.return_value = 1
+            mock_fitted = mock_regressor.return_value.fit.return_value.fitted_pipeline_
+            mock_fitted.generations_tested = 10
     elif algo == "dummy":
-        mock_pickle_func = mocker.patch("lib.pt_model.train_test.joblib").dump
-        mock_regressor = mocker.patch("lib.pt_model.train_test.DummyRegressor")
-        mock_fitted = mock_regressor.return_value.fit.return_value
+        if prev_algo != "dummy":
+            mock_save_func = mocker.patch("lib.pt_model.train_test.joblib").dump
+            mock_regressor = mocker.patch("lib.pt_model.train_test.DummyRegressor", autospec=True)
+            mock_fitted = mock_regressor.return_value.fit.return_value
     else:
         raise NotImplementedError(f"{algo=} not supported")
 
-    param_defaults = TRAINING_PARAM_DEFAULTS[algo][0]
-    cli_params = {
-        k_: params[k_]
-        for k_ in param_defaults
-        if params.get(k_) is not None and k_ not in _UNSUPPORTED_BY_CLI
-    }
+    param_defaults = TRAINING_PARAM_DEFAULTS[algo]
+    cli_params = {k_: train_params[k_] for k_ in param_defaults if train_params.get(k_) is not None}
     cli_args = " ".join([f"--{key} {value}" for key, value in cli_params.items()])
 
     r2, mae = _fake_metrics(mocker)
-    expected_train_params = _infer_expected_params(algo, tdf_params, params)
+    expected_train_params = _infer_expected_params(algo, tdf_params, train_params)
 
     return (
         cli_args,
         r2,
         mae,
-        mock_fitted,
         mock_regressor,
-        artifact_ext,
-        mock_pickle_func,
+        mock_save_func,
         expected_train_params,
     )
 
 
 @pytest.mark.parametrize(
+    "retrain_w_def_file",
+    [False, True],
+    ids=["wo/tdf", "w/tdf"],
+)
+@pytest.mark.parametrize(
     "retrain_algo, retrain_params",
     [
-        ("dummy", {}),
-        ("nn", {"early_stop_epochs": 10, "epochs_max": 1000}),
+        ("dummy", {"dmy:strategy": "mean"}),
+        ("nn", {"early_stop": 10, "epochs_max": 1000}),
         # TODO: add back after tpot upgrade
         # ("tpot-light", {"n_jobs": 2}),
-        ("tpot", {"max_time_mins": 120, "max_eval_time_mins": 15}),
-        ("autogluon", {"max_time_mins": 120}),
+        ("tpot", {"max_time_mins": 120, "tp:max_eval_time_mins": 15}),
+        ("autogluon", {"ag:preset": "high", "max_time_mins": 120}),
     ],
     ids=[
-        "ReDummy",
-        "ReNN",
+        ">dummy",
+        ">nn",
         # TODO: add back after tpot upgrade
-        # "ReTpotlight",
-        "ReTpot",
-        "ReAutoGluon",
+        # ">tpot-light",
+        ">tpot",
+        ">autogluon",
     ],
 )
 @pytest.mark.parametrize(
     "orig_algo, orig_params",
     [
-        ("dummy", {}),
-        ("nn", {"early_stop_epochs": 5, "epochs_max": 500, "checkpoint_dir": "/tmp/check"}),
+        ("dummy", {"dmy:strategy": "quantile"}),
+        (
+            "nn",
+            {
+                "early_stop": 5,
+                "epochs_max": 500,
+                "nn:learning_rate": 0.9,
+                "nn:checkpoint_dir": "/tmp/check",
+            },
+        ),
         # TODO: add back after tpot upgrade
         # ("tpot-light", {"n_jobs": 4, "max_time_mins": 45}),
-        ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2}),
-        ("autogluon", {"max_time_mins": 10}),
+        ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2, "tp:population_size": 100}),
+        ("autogluon", {"ag:preset": "medium"}),
     ],
     ids=[
-        "dummy",
-        "nn",
+        "dummy>",
+        "nn>",
         # TODO: add back after tpot upgrade
-        # "tpotlight",
-        "tpot",
-        "autogluon",
+        # "tpotlight>",
+        "tpot>",
+        "autogluon>",
     ],
 )
-@pytest.mark.parametrize("retrain_w_tdf", [False, True], ids=["ReWO/Tdf", "ReW/Tdf"])
-def test_retrain(
+def test_train_retrain_params(
     mocker: MockFixture,
     tmpdir,
-    tdf,
+    test_definition_file,
     orig_algo: AlgorithmType,
     orig_params: dict,
     retrain_algo: AlgorithmType,
     retrain_params: dict,
-    retrain_w_tdf: bool,
+    retrain_w_def_file: bool,
 ):
     """
-    Ensure that retraining a model leads to proper model training params by using
-    the cli to train a model, then retrain using different command line args.
-    Test that the resulting models have the expected parameters
+    Ensure that when training/retraining models on cli expected params are used.
+    Test execution:
+    1) train model on cli
+    2) test that the expected params are used
+    3) retrain using different command line args
+    4) Test that the resulting models have the expected parameters
+
+    orig_params: original cli params
+    retrain_params: cli params used during retrain
+    retrain_w_def_file: use a training definition file
     """
-    ignored_params = (
-        ["verbose"] if orig_algo.startswith("tpot") or retrain_algo.startswith("tpot") else []
-    )
+    # make sure the test is valid
+    assert (
+        len(
+            invalid_params := set(orig_params.keys())
+            - set(TRAINING_PARAM_DEFAULTS[orig_algo].keys())
+        )
+        == 0
+    ), f"original algo params should be subset of defaults: {invalid_params=}"
+    assert (
+        len(
+            invalid_params := set(retrain_params.keys())
+            - set(TRAINING_PARAM_DEFAULTS[retrain_algo].keys())
+        )
+        == 0
+    ), f"retrain algo params should be subset of defaults: {invalid_params=}"
+
     model_name = "MLB-H-DK"
-    tdf_params = tdf.get_params(model_name)
+    tdf_params = test_definition_file.get_params(model_name)
 
     # mock the training data load
     fake_raw_df = mocker.Mock(name="fake-raw-training-df")
@@ -673,65 +719,59 @@ def test_retrain(
 
     (
         cli_args,
-        expected_r2_1,
-        expected_mae_1,
-        model_1_fitted,
-        model_1_regressor,
-        expected_artifact_ext,
-        mock_pickle_func,
-        expected_train_1_params,
+        expected_orig_r2,
+        expected_orig_mae,
+        orig_model_regressor,
+        mock_save_func,
+        expected_orig_params,
     ) = _train_prep(mocker, orig_params, orig_algo, tdf_params)
 
     main(
-        f"train --algorithm {orig_algo} {cli_args} --dest_filename model-1 --dest_dir "
+        f"train --algorithm {orig_algo} {cli_args} --dest_filename orig-model --dest_dir "
         f"{tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
     )
+    orig_model_filepath_base = os.path.join(tmpdir, "orig-model")
 
-    model_1_dict = _retrain_test_model_check(
-        model_1_filepath_base := os.path.join(tmpdir, "model-1"),
-        expected_r2_1,
-        expected_mae_1,
-        mock_pickle_func,
-        model_1_regressor,
-        model_1_fitted,
-        expected_artifact_ext,
-        expected_train_1_params,
-        ignored_params,
+    _check_model_params(
+        orig_model_filepath_base,
+        expected_orig_r2,
+        expected_orig_mae,
+        mock_save_func,
+        orig_model_regressor,
+        expected_orig_params,
+        "orig-model",
     )
 
     (
         cli_args,
-        expected_r2_2,
-        expected_mae_2,
-        mock_model_2_fitted,
-        model_2_regressor,
-        expected_artifact_ext,
-        mock_pickle_func,
-        expected_train_2_params,
+        expected_retrained_r2,
+        expected_retrained_mae,
+        retrained_model_regressor,
+        mock_save_func,
+        expected_retrain_params,
     ) = _train_prep(
         mocker,
-        {**expected_train_1_params, **retrain_params},
+        {**expected_orig_params, **retrain_params},
         retrain_algo,
-        tdf_params if retrain_w_tdf else None,
+        tdf_params if retrain_w_def_file else None,
+        prev_algo=orig_algo,
+        prev_regressor=orig_model_regressor,
+        prev_save_func=mock_save_func,
     )
 
-    orig_cfg_args = f"--orig_cfg_file {_TEST_DEF_FILE_FILEPATH}" if retrain_w_tdf else ""
+    orig_cfg_args = f"--orig_cfg_file {_TEST_DEF_FILE_FILEPATH}" if retrain_w_def_file else ""
 
     main(
-        f"retrain {model_1_filepath_base}.model --dest_filename model-2 "
+        f"retrain {orig_model_filepath_base}.model --dest_filename model-2 "
         f"--algo {retrain_algo} --dest_dir {tmpdir} {orig_cfg_args} {cli_args}"
     )
 
-    model_2_dict = _retrain_test_model_check(
+    _check_model_params(
         os.path.join(tmpdir, "model-2"),
-        expected_r2_2,
-        expected_mae_2,
-        mock_pickle_func,
-        model_2_regressor,
-        mock_model_2_fitted,
-        expected_artifact_ext,
-        expected_train_2_params,
-        ignored_params,
+        expected_retrained_r2,
+        expected_retrained_mae,
+        mock_save_func,
+        retrained_model_regressor,
+        expected_retrain_params,
+        "retrained-model",
     )
-
-    assert model_1_dict == model_2_dict
