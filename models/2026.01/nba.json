@@ -1,9 +1,17 @@
 {
+    "sport": "nba",
     "global_default": {
         "seed": 1,
         "validation_season": 20242025,
         "recent_games": 5,
         "training_seasons": [
+            20082009,
+            20092010,
+            20102011,
+            20112012,
+            20122013,
+            20132014,
+            20142015,
             20152016,
             20162017,
             20172018,
@@ -16,13 +24,22 @@
         ],
         "missing_data_threshold": 0.09,
         "train_params": {
-            "max_time_mins": 10
+            "nn.early_stop": 20,
+            "early_stop": 3,
+            "population_size": 50,
+            "max_time_mins": 360
         }
     },
     "model_groups": [
         {
             "data_filename": "nba_team.parquet",
             "p_or_t": "T",
+            "train_params": {
+                "n_jobs": 8,
+                "learning_rate": 0.00001,
+                "hidden_layers": 1,
+                "epochs_max": 1000
+            },
             "models": {
                 "NBA-team-pts": {
                     "target": [
@@ -43,44 +60,80 @@
             "p_or_t": "P",
             "include_pos": true,
             "cols_to_drop": [
+                // not enough data for rank stats
                 "extra:game_pos_recent_rank",
-                "extra:game_pos_season_rank"
+                "extra:game_pos_std_rank"
             ],
+            "train_params": {
+                "n_jobs": 4,
+                "population_size": 40,
+                "max_eval_time_mins": 15,
+                "nn.learning_rate": 0.000001,
+                "nn.epochs_max": 500,
+                "nn.hidden_layers": 3
+            },
             "models": {
                 "NBA-DK": {
                     "target": [
                         "calc",
                         "dk_score"
+                    ],
+                    "cols_to_drop": [
+                        "calc:(y|fd)_score.+"
+                    ]
+                },
+                "NBA-Y": {
+                    "target": [
+                        "calc",
+                        "y_score"
+                    ],
+                    "cols_to_drop": [
+                        "calc:(dk|fd)_score.+"
                     ]
                 },
                 "NBA-player-pts": {
                     "target": [
                         "stat",
                         "pts"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
                     ]
                 },
                 "NBA-player-asst": {
                     "target": [
                         "stat",
                         "asst"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
                     ]
                 },
                 "NBA-player-fgatt": {
                     "target": [
                         "stat",
                         "fg_att"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
                     ]
                 },
                 "NBA-player-oreb": {
                     "target": [
                         "stat",
                         "o_reb"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
                     ]
                 },
                 "NBA-player-dreb": {
                     "target": [
                         "stat",
                         "d_reb"
+                    ],
+                    "cols_to_drop": [
+                        "calc:.+score.+"
                     ]
                 }
             }
