@@ -28,7 +28,7 @@
             "early_stop": 4,
             "nn.early_stop": 20,
             "n_jobs": 8,
-            "population_size": 50,
+            "nn:population_size": 50,
             "max_time_mins": 360
         }
     },
@@ -37,8 +37,8 @@
             "data_filename": "nfl_team.csv",
             "p_or_t": "T",
             "train_params": {
-                "hidden_layers": 1,
-                "learning_rate": 1e-6
+                "nn:hidden_layers": 1,
+                "nn:learning_rate": 1e-6
             },
             "models": {
                 "NFL-team-pts": {
@@ -78,8 +78,8 @@
                 "QB"
             ],
             "train_params": {
-                "hidden_layers": 10,
-                "learning_rate": 1e-6
+                "nn:hidden_layers": 10,
+                "nn:learning_rate": 1e-6
             },
             "models": {
                 "NFL-QB-DK": {
@@ -88,7 +88,8 @@
                         "dk_score_off"
                     ],
                     "cols_to_drop": [
-                        "calc:(dk|fd|y)_score.+"
+                        "calc:(dk|fd|y)_score.+",
+                        ".*rushing_twoptm.*"
                     ]
                 },
                 "NFL-QB-PASS-CMP": {
@@ -97,7 +98,8 @@
                         "passing_cmp"
                     ],
                     "cols_to_drop": [
-                        "calc:(dk|fd|y)_score.+"
+                        "calc:(dk|fd|y)_score.+",
+                        ".*rushing_twoptm.*"
                     ]
                 },
                 "NFL-QB-PASS-ATT": {
@@ -106,7 +108,8 @@
                         "passing_att"
                     ],
                     "cols_to_drop": [
-                        "calc:(dk|fd|y)_score.+"
+                        "calc:(dk|fd|y)_score.+",
+                        ".*rushing_twoptm.*"
                     ]
                 },
                 "NFL-QB-PASS-YDS": {
@@ -115,7 +118,8 @@
                         "passing_yds"
                     ],
                     "cols_to_drop": [
-                        "calc:(dk|fd|y)_score.+"
+                        "calc:(dk|fd|y)_score.+",
+                        ".*rushing_twoptm.*"
                     ]
                 }
             }
@@ -127,8 +131,8 @@
                 "RB"
             ],
             "train_params": {
-                "hidden_layers": 2,
-                "learning_rate": 1e-6
+                "nn:hidden_layers": 2,
+                "nn:learning_rate": 1e-6
             },
             "include_pos": false,
             "models": {
@@ -161,8 +165,8 @@
             ],
             "include_pos": true,
             "train_params": {
-                "hidden_layers": 1,
-                "learning_rate": 1e-5
+                "nn:hidden_layers": 1,
+                "nn:learning_rate": 1e-5
             },
             "models": {
                 "NFL-WRTE-DK": {
@@ -196,8 +200,8 @@
         },
         {
             "train_params": {
-                "hidden_layers": 6,
-                "learning_rate": 0.01
+                "nn:hidden_layers": 6,
+                "nn:learning_rate": 0.01
             },
             "models": {
                 "NFL-K-FG": {

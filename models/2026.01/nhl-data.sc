@@ -1,15 +1,17 @@
 #!/bin/bash
 
-DB_FILE=${FANTASY_HOME}/nhl.hist.20072008-20232024.scored.db
-DEST=/fantasy-isync/fantasy-modeling/2025.03/data
-SEASONS='20072008 20082009 20092010 20102011 20112012 20122013 20132014 20142015 
-20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024'
+DB_FILE=${FANTASY_HOME}/nhl.hist.20072008-20242025.scored.db
+DEST=/fantasy-isync/fantasy-modeling/2026.01/data
+# not including 20072008, 20082009 because they don't have give|take aways
+SEASONS='20092010 20102011 20112012 20122013 20132014 20142015 20152016 20162017 
+20172018 20182019 20192020 20202021 20212022 20222023 20232024 20242025'
 SKATER_STATS=("assist*" "fo*" "*away" "goal" "goal_pp" "goal_sh" 
     "goal_t" "goal_w" "hit" "p*" "shot*" "toi" "toi_ev" "toi_pp" "toi_sh")
 GOALIE_STATS='giveaway goal_ag loss save toi win'
+DASK_TASKS=7
 
 # skater data
-dumpdata.sc --seasons $SEASONS --dask_mode processes --dask_tasks 4 \
+dumpdata.sc --seasons $SEASONS --dask_mode processes --dask_tasks ${DASK_TASKS} \
     $DB_FILE --slack --no_teams --pos LW RW W C D \
     --stats "${SKATER_STATS[@]}" \
     --player_team_stats "*" --opp_team_stats "*" \
@@ -23,7 +25,7 @@ dumpdata.sc --seasons $SEASONS --dask_mode processes --dask_tasks 4 \
 
 # goalie data
 dumpdata.sc --seasons $SEASONS --slack \
-   --dask_mode processes --dask_tasks 8 \
+   --dask_mode processes  --dask_tasks ${DASK_TASKS} \
     $DB_FILE --no_teams \
     --pos G --starters \
     --stats $GOALIE_STATS \

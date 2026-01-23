@@ -27,7 +27,7 @@
             "nn.early_stop": 20,
             "epochs_max": 500,
             "early_stop": 3,
-            "population_size": 50,
+            "tp:population_size": 50,
             "max_time_mins": 360
         }
     },
@@ -36,8 +36,8 @@
             "data_filename": "nhl_team.parquet",
             "p_or_t": "T",
             "train_params": {
-                "hidden_layers": 6,
-                "learning_rate": 0.001,
+                "nn:hidden_layers": 6,
+                "nn:learning_rate": 0.001,
                 "n_jobs": 8
             },
             "models": {
@@ -61,10 +61,10 @@
             "p_or_t": "P",
             "train_params": {
                 "n_jobs": 5,
-                "max_eval_time_mins": 10,
-                "population_size": 25,
-                "hidden_layers": 4,
-                "learning_rate": 0.00001
+                "tp:max_eval_time_mins": 10,
+                "tp:population_size": 25,
+                "nn:hidden_layers": 4,
+                "nn:learning_rate": 0.00001
             },
             "target_pos": [
                 "LW",
@@ -136,10 +136,10 @@
                 "G"
             ],
             "train_params": {
-                "max_eval_time_mins": 10,
+                "tp:max_eval_time_mins": 10,
                 "n_jobs": 4,
-                "hidden_layers": 8,
-                "learning_rate": 0.0001
+                "nn:hidden_layers": 8,
+                "nn:learning_rate": 0.0001
             },
             "models": {
                 "NHL-goalie-DK": {

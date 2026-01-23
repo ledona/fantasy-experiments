@@ -104,6 +104,8 @@ If the avg loss from one training iteration to the next is jumping around alot o
 Run the following to create a catalog of the models in a directory and its subfolders. The catalog will be written to a csv file in the root-model-dir directory. The filename will be timestamped.
 ```python -m lib.regressor catalog --root {root-model-dir} --exclude active-models ".*IGNORE.*" --best```
 
+The model catalog is where the best performing models can be identified for use as active models going forward.
+
 ## Model Performance Operations
 Use the following command to repair, update, test or calculate model performance
 ```
@@ -111,7 +113,7 @@ python -m lib.regressor performance [MODEL_FILE_PATTERN] \
   --cfg [model_cfg.json] --data_dir [DATA_DIR] -op [repair|test|update|calc]
 ```
 
-## Loading Active Models
+## Loading Active Models (train uncertainty predictors)
 The active model folder is defined in the environment variable __FANTASY_MODELS_PATH__. Uncertainty/error estimation models are also required for numerous things and can be trained at this step.
 ```
 # model_manager.py import {paths to .model files or a single .csv file with best models}

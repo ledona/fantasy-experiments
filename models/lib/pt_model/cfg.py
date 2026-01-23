@@ -76,6 +76,19 @@ or fitting. Set a default parameter's value to _NO_DEFAULT to allow the
 regressor to use its default.
 """
 
+
+@cache
+def _all_algo_params():
+    """return a set of all valid params across all algorithms"""
+    return {
+        param
+        for algo_defaults in TRAINING_PARAM_DEFAULTS.values()
+        for param in algo_defaults.keys()
+    }
+
+
+"""set of all valid param names"""
+
 _DATA_SRC_PARAMS = Literal["missing_data_threshold", "filtering_query", "data_filename"]
 """model parameters describing load and filtering of training data"""
 
@@ -217,10 +230,11 @@ class TrainingConfiguration:
 
         train_params = {}
         for param in defaults:
-            assert "." not in param, (
-                f"Algorithm '{algorithm}' training parameter name '{param}' is invalid. "
-                "Training parameter keys cannot contain '.'"
-            )
+            if "." in param:
+                raise UnexpectedValueError(
+                    f"Algorithm '{algorithm}' training parameter name '{param}' is invalid. "
+                    "Training parameter keys cannot contain '.'"
+                )
             if param in orig_model.parameters and param not in _IGNORE_ORIGINAL_PARAMS:
                 train_params[param] = orig_model.parameters[param]
                 continue
@@ -346,9 +360,10 @@ class TrainingConfiguration:
         algo_param_keys = [key for key in final_train_params if "." in key]
         for algo_param_key in algo_param_keys:
             param_algo, param_key = algo_param_key.split(".", 1)
-            assert "." not in param_key, (
-                f"training param {param_key} is invalid. It should not contain '.'"
-            )
+            if param_key not in _all_algo_params():
+                raise InvalidArgumentsException(
+                    f"training param {param_key} does not exist for any algorithm"
+                )
 
             if param_algo != algo:
                 # for a different algorithm
@@ -385,7 +400,7 @@ class TrainingConfiguration:
         if model_name not in self.model_names:
             raise UnexpectedValueError(f"'{model_name}' is not defined")
 
-        # set everything that is Noneable to None
+        # set everything that is None-able to None
         param_dict: dict = {
             param_key: None
             for param_key, value_type in _TrainingParamsDict.__annotations__.items()

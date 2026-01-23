@@ -1,9 +1,11 @@
 #!/bin/bash
 
-DB_FILE=${FANTASY_HOME}/nba.hist.20082009-20232024.scored.db
-DEST=/fantasy-isync/fantasy-modeling/2025.03/data
+DB_FILE=${FANTASY_HOME}/nba.hist.20082009-20242025.scored.db
+DEST=/fantasy-isync/fantasy-modeling/2026.01/data
 SEASONS="20082009 20092010 20102011 20112012 20122013 20132014 20142015 
-20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024"
+20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 
+20232024 20242025"
+DASK_TASKS=10
 
 # player
 dumpdata.sc $DB_FILE --seasons $SEASONS --no_teams \
@@ -15,7 +17,7 @@ dumpdata.sc $DB_FILE --seasons $SEASONS --no_teams \
     --target_calc_stats "*" \
     --target_stats asst blks d_reb ft_made o_reb fg_att pts tfg_att tfg_made turnovers \
     --hist_recent_games 5 --hist_recent_mode m \
-    --dask_inf_multi_season_mode processes --dask_tasks 3 \
+    --dask_inf_multi_season_mode processes --dask_tasks ${DASK_TASKS} \
     --slack --format parquet -f ${DEST}/nba_player.parquet
 
 # team

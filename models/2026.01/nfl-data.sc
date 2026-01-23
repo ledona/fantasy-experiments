@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DB_FILE=${FANTASY_HOME}/nfl.hist.2009-2024.scored.db
-DEST=/fantasy-isync/fantasy-modeling/2025.03/data
+DEST=/fantasy-isync/fantasy-modeling/2026.01/data
 SEASONS="2009 2010 2011 2012 2013 2014 2015 2016 2017 
 2018 2019 2020 2021 2022 2023 2024"
 TEAM_STATS="op_pts op_turnovers op_yds pen* pts turnovers yds"
@@ -47,7 +47,8 @@ dumpdata.sc ${DB_FILE} \
     --target_stats "passing_*" rushing_att rushing_tds rushing_yds tds \
     --target_calc_stats "*_score_off" \
     --hist_recent_mode m --hist_recent_games 3 \
-    --progress --slack -f ${DEST}/nfl_QB.csv
+    --inf_nofail_cols "stat:rushing_twoptm:*" \
+    --progress --slack -f ${DEST}/nfl_QB.csv \
 
 # Kicker
 dumpdata.sc ${DB_FILE} \
@@ -55,10 +56,8 @@ dumpdata.sc ${DB_FILE} \
     --stats "kicking_f*" \
     --player_team_stats $TEAM_STATS \
     --opp_team_stats $TEAM_STATS \
-    --calc_stats "*_score_off" \
     --current_extra $CURRENT_X \
     --target_stats kicking_fgm \
-    --target_calc_stats "*_score_off" \
     --hist_recent_mode m --hist_recent_games 3 \
     --progress --slack -f ${DEST}/nfl_K.csv
 
@@ -73,4 +72,5 @@ dumpdata.sc ${DB_FILE} \
     --target_stat pts win \
     --target_calc_stats "*_score_def" \
     --hist_recent_games 3 --hist_recent_mode m \
+    --inf_nofail_cols "stat:def_safety*" \
     --progress --slack -f ${DEST}/nfl_team.csv
