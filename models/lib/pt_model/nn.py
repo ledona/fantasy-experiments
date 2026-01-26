@@ -1,11 +1,13 @@
 import os
-from tempfile import gettempdir
+import tempfile
 
 import pandas as pd
 import torch
-from fantasy_py import InvalidArgumentsException, dt_to_filename_str, log
+from fantasy_py import FantasyException, log
 from fantasy_py.inference import NNRegressor
 
+class NNNotYetFittedError(FantasyException):
+    """raised if an operation requires a fitted model and the regressor is not yet fitted"""
 
 class NNWrapper:
     """wrapper to help train a NN, can consume and translate the args defined in cfg"""
@@ -42,29 +44,10 @@ class NNWrapper:
         else:
             self.fit_kwargs = None
             if model_params.get("checkpoint_dir") is None:
-                default_checkpoint_root_dir = os.path.join(gettempdir(), "fantasy-nn-checkpoints")
-                if not os.path.isdir(default_checkpoint_root_dir):
-                    self._logger.info(
-                        "Creating default checkpoint root dir '%s'", default_checkpoint_root_dir
-                    )
-                    os.mkdir(default_checkpoint_root_dir)
-                model_params["nn:checkpoint_dir"] = os.path.join(
-                    gettempdir(),
-                    "fantasy-nn-checkpoints",
-                    model_filebase + "-" + dt_to_filename_str(),
+                tmpdir = tempfile.TemporaryDirectory(
+                    prefix=f"fantasy-nn-checkpoints:{model_filebase}.", delete=False
                 )
-
-            if os.path.isfile(model_params["nn:checkpoint_dir"]):
-                raise InvalidArgumentsException(
-                    "The checkpoint directory that would be used at "
-                    f"'{model_params['nn:checkpoint_dir']}' is a file! "
-                    "Delete it or use another directory"
-                )
-            if not os.path.exists(model_params["nn:checkpoint_dir"]):
-                self._logger.info(
-                    "Creating nn checkpoint directory '%s'", model_params["nn:checkpoint_dir"]
-                )
-                os.mkdir(model_params["nn:checkpoint_dir"])
+                model_params["nn:checkpoint_dir"] = tmpdir.name
 
             def nn_param_name(name):
                 if name.startswith("nn:"):
@@ -80,20 +63,21 @@ class NNWrapper:
 
     def fit(self, x: pd.DataFrame, y: pd.Series):
         self._fitted = self.model.fit(x, y, self.x_test, self.y_test, **(self.fit_kwargs or {}))
-        return self
 
     def predict(self, x: pd.DataFrame):
         if self._fitted is None:
-            raise ValueError("model not yet fitted")
+            raise NNNotYetFittedError("model not yet fitted")
         return self._fitted.predict(x)
 
     @property
     def epochs_trained(self):
         if self._fitted is None:
-            raise ValueError("model not yet fitted")
+            raise NNNotYetFittedError("model not yet fitted")
         return self._fitted.epochs_trained
 
-    def save(self, artifact_filepath):
+    def save_artifact(self, artifact_filebase_path):
         if self._fitted is None:
-            raise ValueError("model not yet fitted")
+            raise NNNotYetFittedError("model not yet fitted")
+        artifact_filepath = artifact_filebase_path + ".pt"
         torch.save(self._fitted, artifact_filepath)
+        return artifact_filepath

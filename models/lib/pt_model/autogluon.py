@@ -4,7 +4,7 @@ from tempfile import gettempdir
 
 import pandas as pd
 from autogluon.tabular import TabularPredictor
-from fantasy_py import log
+from fantasy_py import log, InvalidArgumentsException
 
 
 class AutoGluonWrapper:
@@ -26,12 +26,18 @@ class AutoGluonWrapper:
             self._TARGET_COL, problem_type="regression", path=self._AUTOGLUON_PATH, **init_kwargs
         )
 
-    def fit(self, x: pd.DataFrame, y: pd.Series, *args, **kwargs):
-        assert self._TARGET_COL not in x
+    def fit(self, x: pd.DataFrame, y: pd.Series):
+        if self._TARGET_COL in x:
+            raise InvalidArgumentsException(
+                f"the target column {self._TARGET_COL} should not already be in x"
+            )
         x_with_y = x.assign(**{self._TARGET_COL: y})
-        self.predictor.fit(
-            x_with_y, presets=self.preset, time_limit=self.time_limit, *args, **kwargs
-        )
+        fit_kwargs = {}
+        if self.preset:
+            fit_kwargs["presets"] = self.preset
+        if self.time_limit:
+            fit_kwargs["time_limit"] = self.time_limit
+        self.predictor.fit(x_with_y, **fit_kwargs)
         return self
 
     def predict(self, x: pd.DataFrame):
@@ -88,3 +94,9 @@ class AutoGluonWrapper:
             "Artifact file successfully copied: '%s' -> '%s'", ag_model_pkl_path, dest_path
         )
         return dest_path
+
+    def log_fitted_model(self):
+        """Log something to stdout/log describing the fitted model"""
+        log.get_logger(__name__).success(
+            "Autogluon fitted. best-model:%s", self.predictor.model_best
+        )

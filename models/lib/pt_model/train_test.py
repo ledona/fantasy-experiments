@@ -6,7 +6,7 @@ import re
 from collections import defaultdict
 from datetime import datetime
 from glob import glob
-from pprint import pformat, pprint
+from pprint import pformat
 from typing import Literal, cast
 
 import joblib
@@ -40,10 +40,10 @@ from fantasy_py.inference import (
 from fantasy_py.sport import SportDBManager
 from ledona import slack
 from sklearn.dummy import DummyRegressor
-from tpot2 import TPOTRegressor
 
 from .autogluon import AutoGluonWrapper
 from .nn import NNWrapper
+from .tpot import TPOTWrapper
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -497,14 +497,9 @@ def _instantiate_regressor(
         )
         return model
 
-    if algorithm == "tpot":
-        model = TPOTRegressor(**model_params)
+    if algorithm.startswith("tpot"):
+        model = TPOTWrapper(tpot_light=algorithm == "tpot-light", **model_params)
         return model
-
-    if algorithm == "tpot-light":
-        raise NotImplementedError()
-        # model = TPOTRegressor(search_space="linear-light", **model_params)
-        # return model, None, None
 
     if algorithm == "dummy":
         model = DummyRegressor(strategy=model_params.get("dmy:strategy"))
@@ -543,7 +538,7 @@ def _train_test(
             f"width={len(X_train.columns)} len={len(X_train)}"
         )
     model = _instantiate_regressor(algo, model_params, X_test, y_test, model_filebase)
-    model = model.fit(X_train, y_train)
+    model.fit(X_train, y_train)
     assert model is not None
     training_desc_info: dict = {
         "time_to_fit": str(now() - dt_trained),
@@ -552,17 +547,10 @@ def _train_test(
         "n_validation_cases": len(X_val),
     }
 
-    if algo.startswith("tpot"):
-        tpot_model = cast(TPOTRegressor, model)
-        assert tpot_model.evaluated_individuals is not None
-        max_gen = tpot_model.evaluated_individuals.Generation.max()
-        training_desc_info["generations_tested"] = max_gen
-        _LOGGER.success("TPOT fitted in %i generation(s)", max_gen)
-        pprint(tpot_model.fitted_pipeline_)
-    elif algo == "autogluon":
-        ag_model = cast(AutoGluonWrapper, model)
-        ag_model.update_training_desc_info(training_desc_info)
-        _LOGGER.success("%s fitted. best-model=%s", algo, ag_model.predictor.model_best)
+    if algo.startswith("tpot") or algo == "autogluon":
+        assert isinstance(model, (TPOTWrapper, AutoGluonWrapper))
+        model.update_training_desc_info(training_desc_info)
+        model.log_fitted_model()
     elif algo in ("dummy", "nn"):
         _LOGGER.success("%s fitted", algo)
         if algo == "nn":
@@ -593,14 +581,9 @@ def _train_test(
     if algo == "dummy":
         artifact_filepath = artifact_filebase_path + ".pkl"
         joblib.dump(model, artifact_filepath)
-    elif algo == "autogluon":
-        artifact_filepath = ag_model.save_artifact(artifact_filebase_path)
-    elif algo.startswith("tpot"):
-        artifact_filepath = artifact_filebase_path + ".pkl"
-        joblib.dump(cast(TPOTRegressor, model).fitted_pipeline_, artifact_filepath)
-    elif algo == "nn":
-        artifact_filepath = artifact_filebase_path + ".pt"
-        model.save(artifact_filepath)
+    elif algo in ("nn", "autogluon") or algo.startswith("tpot"):
+        assert isinstance(model, (NNWrapper, TPOTWrapper, AutoGluonWrapper))
+        artifact_filepath = model.save_artifact(artifact_filebase_path)
     else:
         raise NotImplementedError(f"model {algo=} not recognized")
 

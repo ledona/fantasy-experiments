@@ -63,7 +63,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict] = {
     ),
     "dummy": ({"dmy:strategy": "mean"}),
     "tpot": _TPOT_PARAM_DEFAULTS,
-    # "tpot-light": _TPOT_PARAM_DEFAULTS_TUPLE,
+    "tpot-light": _TPOT_PARAM_DEFAULTS,
     "xgboost": {"verbose": 2},
 }
 """

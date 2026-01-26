@@ -573,11 +573,14 @@ def _train_prep(
             mock_fitted = None
     elif algo.startswith("tpot"):
         if prev_algo != "tpot":
-            mock_save_func = mocker.patch("lib.pt_model.train_test.joblib").dump
-            mock_regressor = mocker.patch("lib.pt_model.train_test.TPOTRegressor", autospec=True)
-            mock_regressor.return_value.fit.return_value.evaluated_individuals.Generation.max.return_value = 1
-            mock_fitted = mock_regressor.return_value.fit.return_value.fitted_pipeline_
-            mock_fitted.generations_tested = 10
+            mock_save_func = mocker.patch("lib.pt_model.tpot.joblib").dump
+            mock_regressor = mocker.patch("lib.pt_model.tpot.TPOTRegressor", autospec=True)
+            mock_regressor.return_value.evaluated_individuals = mocker.MagicMock(
+                name="fake-evaluated-individuals"
+            )
+            mock_regressor.return_value.evaluated_individuals.Generation.max.return_value = 1
+            mock_regressor.return_value.predict = mocker.MagicMock(name="fake-predict")
+            mock_regressor.return_value.fitted_pipeline_ = mocker.Mock(name="fake-pipeline")
     elif algo == "dummy":
         if prev_algo != "dummy":
             mock_save_func = mocker.patch("lib.pt_model.train_test.joblib").dump

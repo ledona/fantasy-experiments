@@ -9,13 +9,18 @@ import sys
 import traceback
 from collections import defaultdict
 from datetime import UTC
-from typing import Literal, cast
 
 import pandas as pd
 import tqdm
 from autogluon.tabular.configs.presets_configs import tabular_presets_alias as autogluon_presets
 from dateutil import parser as du_parser
-from fantasy_py import UnexpectedValueError, dt_to_filename_str, log, secs_to_time, time_to_secs
+from fantasy_py import (
+    UnexpectedValueError,
+    dt_to_filename_str,
+    log,
+    secs_to_time,
+    time_to_secs,
+)
 from fantasy_py.inference import PTPredictModel
 from ledona import slack
 
@@ -332,6 +337,7 @@ def _add_train_parser(sub_parsers):
         )
         train_parser.add_argument(
             "--tp:population_size",
+            "--population",
             type=int,
             default=argparse.SUPPRESS,
         )
@@ -431,18 +437,20 @@ def _model_catalog_func(args):
             model_data = json.load(f_)
 
         p_t = "player" if model_data["training_data_def"]["target"][1] == "P" else "team"
-        if "r2_test" in model_data["meta_extra"]["performance"]:
-            r2_train = round(model_data["meta_extra"]["performance"]["r2_train"], 5)
-            mae_train = round(model_data["meta_extra"]["performance"]["mae_train"], 5)
-            r2_test = round(model_data["meta_extra"]["performance"]["r2_test"], 5)
-            mae_test = round(model_data["meta_extra"]["performance"]["mae_test"], 5)
-            r2_val = round(model_data["meta_extra"]["performance"]["r2_val"], 5)
-            mae_val = round(model_data["meta_extra"]["performance"]["mae_val"], 5)
-        else:
-            # TODO: this is for older models and eventually can be dropped
-            r2_test = r2_train = mae_test = mae_train = None
-            r2_val = round(model_data["meta_extra"]["performance"]["r2"], 5)
-            mae_val = round(model_data["meta_extra"]["performance"]["mae"], 5)
+        assert "r2_test" in model_data["meta_extra"]["performance"], (
+            "If this fails there are still some old models being processed"
+        )
+        r2_train = round(model_data["meta_extra"]["performance"]["r2_train"], 5)
+        mae_train = round(model_data["meta_extra"]["performance"]["mae_train"], 5)
+        r2_test = round(model_data["meta_extra"]["performance"]["r2_test"], 5)
+        mae_test = round(model_data["meta_extra"]["performance"]["mae_test"], 5)
+        r2_val = round(model_data["meta_extra"]["performance"]["r2_val"], 5)
+        mae_val = round(model_data["meta_extra"]["performance"]["mae_val"], 5)
+        # else:
+        #     # TODO: this is for older models and eventually can be dropped
+        #     r2_test = r2_train = mae_test = mae_train = None
+        #     r2_val = round(model_data["meta_extra"]["performance"]["r2"], 5)
+        #     mae_val = round(model_data["meta_extra"]["performance"]["mae"], 5)
 
         dt_trained = du_parser.parse(model_data["dt_trained"])
         if dt_trained.tzinfo is None:
@@ -509,6 +517,8 @@ def _model_catalog_func(args):
                 raise NotImplementedError()
         data.append(cat_data)
 
+    if len(data) == 0:
+        raise FileNotFoundError(f"No models found at '{glob_pattern}'")
     df = pd.DataFrame(data).sort_values(by=["name", "dt"])
 
     prefix = (args.filename_prefix + ".") if args.filename_prefix else ""
