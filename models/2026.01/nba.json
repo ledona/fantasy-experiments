@@ -79,16 +79,8 @@
                         "dk_score"
                     ],
                     "cols_to_drop": [
-                        "calc:(y|fd)_score.+"
-                    ]
-                },
-                "NBA-Y": {
-                    "target": [
-                        "calc",
-                        "y_score"
-                    ],
-                    "cols_to_drop": [
-                        "calc:(dk|fd)_score.+"
+                        "calc:(y|fd)_score.+",
+                        "stat:starter.*"
                     ]
                 },
                 "NBA-player-pts": {
@@ -97,7 +89,8 @@
                         "pts"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:.+score.+",
+                        "stat:starter.*"
                     ]
                 },
                 "NBA-player-asst": {
@@ -106,7 +99,8 @@
                         "asst"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:.+score.+",
+                        "stat:starter.*"
                     ]
                 },
                 "NBA-player-fgatt": {
@@ -115,7 +109,8 @@
                         "fg_att"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:.+score.+",
+                        "stat:starter.*"
                     ]
                 },
                 "NBA-player-oreb": {
@@ -124,7 +119,8 @@
                         "o_reb"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:.+score.+",
+                        "stat:starter.*"
                     ]
                 },
                 "NBA-player-dreb": {
@@ -133,7 +129,8 @@
                         "d_reb"
                     ],
                     "cols_to_drop": [
-                        "calc:.+score.+"
+                        "calc:.+score.+",
+                        "stat:starter.*"
                     ]
                 }
             }

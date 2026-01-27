@@ -90,15 +90,6 @@
                         "calc:(y|fd)_score.+"
                     ]
                 },
-                "NHL-skater-Y": {
-                    "target": [
-                        "calc",
-                        "y_score"
-                    ],
-                    "cols_to_drop": [
-                        "calc:(dk|fd)_score.+"
-                    ]
-                },
                 "NHL-skater-shot": {
                     "target": [
                         "stat",
@@ -149,15 +140,6 @@
                     ],
                     "cols_to_drop": [
                         "calc:(y|fd)_score.+"
-                    ]
-                },
-                "NHL-goalie-Y": {
-                    "target": [
-                        "calc",
-                        "y_score"
-                    ],
-                    "cols_to_drop": [
-                        "calc:(dk|fd)_score.+"
                     ]
                 },
                 "NHL-goalie-save": {
