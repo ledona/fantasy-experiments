@@ -80,9 +80,9 @@ def _load_data_local(
         df_raw = pd.read_csv(filename, nrows=limit)
         if len(df_raw.query("season == @validation_season")) == 0:
             raise DataNotAvailableException(
-                "Limited load of data from csv file failed to retrieve data from "
-                "validation season. Try again without limit, or try a different "
-                "the validation season."
+                "No data returned from limited load of data from csv file failed "
+                "to retrieve data from validation season. Try again without limit, "
+                "or try a different the validation season."
             )
     elif filename.endswith(".parquet") or filename.endswith(".pq"):
         if limit is not None:
@@ -653,13 +653,13 @@ def _infer_extra_stat_name_type(
         return extra_name, extra_type
 
     if len(name_parts) != 4:
-        raise UnexpectedValueError(f"{name_parts=} number of name parts should be 2-4")
-    if not _EXTRA_HIST_PART_PATTERN.match(name_parts[3]):
+        raise UnexpectedValueError(f"{name_parts=} number of name parts should be 2, 3 or 4")
+    if not _EXTRA_HIST_PART_PATTERN.match(name_parts[2]):
         raise UnexpectedValueError(f"{name_parts=} 3rd part should define hist")
 
-    if name_parts[2] == "player-team":
+    if name_parts[3] == "player-team":
         extra_type = "hist_extra"
-    elif name_parts[2] == "opp-team":
+    elif name_parts[3] == "opp-team":
         extra_type = "hist_opp_team_extra"
     else:
         raise UnexpectedValueError(f"{name_parts=} last part should define team")

@@ -15,12 +15,8 @@ class TPOTWrapper:
 
     def __init__(self, tpot_light=False, **model_params):
         params = model_params.copy()
-        if "max_time_mins" in params:
-            params["max_time_seconds"] = params.pop("max_time_mins")
         if "epochs_max" in params:
             params["generations"] = params.pop("epochs_max")
-        if "tp:max_eval_time_mins" in params:
-            params["max_eval_time_seconds"] = params.pop("tp:max_eval_time_mins") * 60
         for param in list(params.keys()):
             if param.startswith("tp:"):
                 params[param[3:]] = params.pop(param)
@@ -50,8 +46,12 @@ class TPOTWrapper:
     def fit(self, x: pd.DataFrame, y: pd.Series):
         try:
             self.tpot_regressor.fit(x, y)
-        except ValueError as e:
-            if "argmax of an empty sequence" in str(e):
+        except Exception as e:
+            exception_desc = str(e)
+            if (
+                "argmax of an empty sequence" in exception_desc
+                or "No individuals could be evaluated in the initial population" in exception_desc
+            ):
                 # Check how many pipelines were attempted
                 n_evaluated = (
                     len(self.tpot_regressor.evaluated_individuals)
@@ -59,7 +59,7 @@ class TPOTWrapper:
                     else 0
                 )
                 log.get_logger(__name__).error(
-                    f"TPOT failed to find valid pipeline. Pipelines evaluated: {n_evaluated}. "
+                    f"TPOT failed to find valid a pipeline. Pipelines evaluated: {n_evaluated}. "
                     "Consider increasing time limits or simplifying config."
                 )
                 raise TPOTNotYetFittedError(

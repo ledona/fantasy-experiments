@@ -2,7 +2,7 @@
     "sport": "nfl",
     "global_default": {
         "seed": 1,
-        "validation_season": 2025,
+        "validation_season": 2024,
         "recent_games": 3,
         "training_seasons": [
             2009,
