@@ -13,7 +13,7 @@ dumpdata.sc $DB_FILE --seasons $SEASONS --no_teams \
     --player_team_stats "*" \
     --opp_team_stats "*" \
     --calc_stats "*_score" \
-    --current_extra "game_pos_*_rank" is_home odds_ou odds_spread elo_win_prob \
+    --current_extra "game_pos_*_rank" is_home odds_ou odds_spread elo_win_prob starter \
     --target_calc_stats "*" \
     --target_stats asst blks d_reb ft_made o_reb fg_att pts tfg_att tfg_made turnovers \
     --hist_recent_games 5 --hist_recent_mode m \
