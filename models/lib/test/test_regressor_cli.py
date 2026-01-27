@@ -556,21 +556,9 @@ def _train_prep(
                 "lib.pt_model.autogluon.TabularPredictor", spec=TabularPredictor
             )
             mock_regressor.return_value.path = "path-to-autogluon-artifacts"
-            mock_regressor.return_value.model_best = "model-name"
+            mock_save_func = mock_regressor.return_value.clone_for_deployment
             mock_regressor.return_value.info.return_value = {"version": "x.y.z"}
             mock_regressor.return_value.model_info.return_value = {"info": "all-da-info"}
-            artifact_full_path = os.path.join(
-                mock_regressor.return_value.path,
-                "models",
-                mock_regressor.return_value.model_best,
-                "model.pkl",
-            )
-            mocker.patch(
-                "lib.pt_model.autogluon.os.path.isfile",
-                side_effect=lambda path: path == artifact_full_path,
-            )
-            mock_save_func = mocker.patch("lib.pt_model.autogluon.shutil.copyfile")
-            mock_fitted = None
     elif algo.startswith("tpot"):
         if prev_algo != "tpot":
             mock_save_func = mocker.patch("lib.pt_model.tpot.joblib").dump

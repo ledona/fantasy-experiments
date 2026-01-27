@@ -30,6 +30,7 @@ from fantasy_py import (
     now,
 )
 from fantasy_py.inference import (
+    AutogluonModel,
     NNModel,
     NNRegressor,
     PerformanceDict,
@@ -491,6 +492,7 @@ def _instantiate_regressor(
     """returns (model-obj, fit-args, fit-kwargs)"""
     if algorithm == "autogluon":
         model = AutoGluonWrapper(
+            model_filebase,
             verbosity=model_params["verbose"],
             preset=model_params["ag:preset"],
             time_limit=model_params["max_time_mins"] * 60,
@@ -600,8 +602,10 @@ def _train_test(
 
 
 def _get_model_cls(algo: AlgorithmType):
-    if algo.startswith("tpot") or algo in ("dummy", "autogluon"):
+    if algo.startswith("tpot") or algo == "dummy":
         return SKLModel
+    if algo == "autogluon":
+        return AutogluonModel
     if algo == "nn":
         return NNModel
     raise NotImplementedError(f"Don't know what model class to use for {algo=}")
