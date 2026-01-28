@@ -696,7 +696,7 @@ def test_train_retrain_params(
     mock_tt_os = mocker.patch("lib.pt_model.train_test.os")
     mock_tt_os.path.join = os.path.join
     mock_tt_os.path.isfile.return_value = False
-    mocker.patch.object(PTPredictModel, "_dump_artifacts")
+    mocker.patch.object(PTPredictModel, "dump_artifacts")
 
     (
         cli_args,
