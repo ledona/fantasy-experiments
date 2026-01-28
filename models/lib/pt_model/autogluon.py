@@ -3,6 +3,7 @@ import tempfile
 import pandas as pd
 from autogluon.tabular import TabularPredictor
 from fantasy_py import InvalidArgumentsException, log
+from fantasy_py.inference import PTPredictModel
 
 
 class AutoGluonWrapper:
@@ -80,7 +81,17 @@ class AutoGluonWrapper:
     def save_artifact(self, filepath_base: str) -> str:
         """save the artifact to the requested location, return the full artifact path"""
         dest_path = filepath_base + ".ag"
-        _ = self.predictor.clone_for_deployment(path=dest_path)
+
+        # ideally we would clone to the destination path, unfortunately that fails when
+        # Python can't replicate filesystem metadata and permissions to the new files and directories.
+        # This is the case when cloning to a mounted folder that doesn't support such operations.
+        # So here we clone to a temporary location (cloning will create a cleaned up model directory),
+        # then iteratively create directories and copy files to the ultimate destination.
+        with tempfile.TemporaryDirectory(prefix="autogluon-model-clone-4-deploy") as tmpdir:
+            local_clone = f"{tmpdir}/model_clone"
+            self.predictor.clone_for_deployment(path=local_clone)
+            PTPredictModel.copy_artifact_dir(local_clone, dest_path)
+
         return dest_path
 
     def log_fitted_model(self):

@@ -513,8 +513,8 @@ def _model_catalog_func(args):
                     "nn training stopped before early-stop-epochs-wo-improvement reached. "
                     f"{early_stop_epochs=} {epochs_trained=} {epochs_max=}"
                 )
-            elif cat_data["algo"] == "autogluon":
-                raise NotImplementedError()
+            # elif cat_data["algo"] == "autogluon":
+            #     raise NotImplementedError()
         data.append(cat_data)
 
     if len(data) == 0:

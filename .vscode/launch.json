@@ -31,30 +31,33 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                // "train", "2026.01/mlb.json", "MLB-team-win",
-                "train", "2026.01/mlb.json", "*", // "NHL-team-win",
+                "train", "2026.01/mlb.json", "*", // "MLB-team-win",
+                // "train", "2026.01/nba.json", "*", // "MLB-team-win",
+                // "train", "2026.01/nfl.json", "*", // "MLB-P-HITS",
+                // "train", "2026.01/nhl.json", "*", // "MLB-P-HITS",
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
-                // "--data_limit", "500",
 
                 // "--info",
                 // "--slack",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/data",
-                "--dest_dir", "/tmp/model-train",
+
                 "--exists_mode", "reuse",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/data",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-test",
+                "--data_limit", "5000",
 
                 // "--algo", "tpot",
-                "--algo", "tpot-light",
-                "--max_iter_mins", "2",
-                "--gens", "10",
-                "--pop", "8",
-                "--early_stop", "3",
-                "--n_jobs", "4",
-                "--max_train_mins", "5",
+                // "--algo", "tpot-light",
+                // "--max_iter_mins", "2",
+                // "--gens", "10",
+                // "--pop", "8",
+                // "--early_stop", "3",
+                // "--n_jobs", "4",
+                // "--max_train_mins", "5",
 
-                // "--algo", "autogluon",
-                // "--ag:preset", "medium",
-                // "--max_train_mins", "1",
+                "--algo", "autogluon",
+                "--ag:preset", "medium",
+                "--max_train_mins", "1",
 
                 // "--algo", "nn",
                 // "--batch_size", "256",
@@ -77,8 +80,8 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "catalog",
-                // "--best",
-                "--root", "/tmp/model-train" // "/fantasy-isync/fantasy-modeling",
+                "--best",
+                "--root", "/fantasy-isync/fantasy-modeling/2026.01"
                 // "--exclude", ".*2023.12.*"
             ]
         },
@@ -91,11 +94,11 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "performance",
-                "/fantasy/MODELS/MLB-H-DK.model",
-                "--cfg", "/fantasy-experiments/models/2024.06/mlb.json",
+                "/fantasy-isync/fantasy-modeling/2026.01/models-test/NBA-player-dreb.d_reb.autogluon.2026-01-28T171935.model",
+                "--cfg", "/fantasy-experiments/models/2026.01/nba.json",
                 "--op", "calc", // "--skip_backups",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2024.06/data",
-                "--max_missing_infer", "1"
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/data",
+                // "--max_missing_infer", "1"
             ]
         },
         {

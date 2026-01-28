@@ -13,9 +13,9 @@ from ..pt_model.train_test import _infer_extra_stat_name_type
         ("extra:name:recent-2", "name", "hist_extra"),
         ("extra:name:recent-mean", "name", "hist_extra"),
         ("extra:name:std-mean", "name", "hist_extra"),
-        ("extra:name:opp-team:recent-mean", "name", "hist_opp_team_extra"),
-        ("extra:name:opp-team:recent-2", "name", "hist_opp_team_extra"),
-        ("extra:name:player-team:std-mean", "name", "hist_extra"),
+        ("extra:name:recent-mean:opp-team", "name", "hist_opp_team_extra"),
+        ("extra:name:recent-2:opp-team", "name", "hist_opp_team_extra"),
+        ("extra:name:std-mean:player-team", "name", "hist_extra"),
     ],
 )
 def test_extra_stat_name_parse(feature, expected_name, expected_type):

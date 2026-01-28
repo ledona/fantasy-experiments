@@ -3,9 +3,19 @@ This project folder has functionality for creating, evaluating and cataloging mo
 two types of models managed here are player/team predictive models and optimal lineup
 generation models. Basic order of operations is:
 1. Export data
-1. Create model
-1. Update the model catalog
+1. Create model(s)
+1. Update the model catalogs
+1. (optional) rerun performance on a new model to make sure that inference works post training
 1. If new models are good enough then import them for use
+1. Create uncertainty models for new models
+
+To ensure that everything is working, it is best to then do the following. If all steps succeed then all is well.
+1. Use historic data to create lineups and bets based on the new models
+1. Run limited backtest(s) that will use the new models
+1. Where possible create lineups and bets for today/future with new models
+1. Test that the UI can use models for today and historic days
+
+Note: All cli programs and examples listed below have vscode launch configurations that can be used to execute and debug the operation.
 
 ## Model Creation
 Regression models are either automl generated or are deep learning models.
