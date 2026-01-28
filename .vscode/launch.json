@@ -31,10 +31,10 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "train", "2026.01/mlb.json", "*", // "MLB-team-win",
-                // "train", "2026.01/nba.json", "*", // "MLB-team-win",
-                // "train", "2026.01/nfl.json", "*", // "MLB-P-HITS",
-                // "train", "2026.01/nhl.json", "*", // "MLB-P-HITS",
+                "train", "2026.01/mlb.json",  "MLB-P-*",
+                // "train", "2026.01/nba.json", "*", 
+                // "train", "2026.01/nfl.json", "*", 
+                // "train", "2026.01/nhl.json", "*", 
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
 

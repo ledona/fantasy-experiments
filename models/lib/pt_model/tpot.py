@@ -17,6 +17,12 @@ class TPOTWrapper:
         params = model_params.copy()
         if "epochs_max" in params:
             params["generations"] = params.pop("epochs_max")
+
+        if "max_time_mins" in model_params:
+            params["max_time_seconds"] = params.pop("max_time_mins") * 60
+        if "tp:max_eval_time_mins" in model_params:
+            params["max_eval_time_seconds"] = params.pop("tp:max_eval_time_mins") * 60
+
         for param in list(params.keys()):
             if param.startswith("tp:"):
                 params[param[3:]] = params.pop(param)
