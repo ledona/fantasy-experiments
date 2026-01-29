@@ -194,5 +194,20 @@
                 "--framework", "reg_chain", "tpot"
             ]
         },
+        {
+            "name": "park factor",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/stat-analysis/park_factor.py",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/stat-analysis",
+            "args": [
+                "/fantasy/mlb.hist.2008-2025.scored.db",
+                // "--min_season", "2020",
+                // "--max_season", "2025",
+                "--parquet", "/fantasy-archive/mlb/park_factor-2026.parquet",
+                // "--csv", "/fantasy-archive/mlb/park_factor-2026.csv"
+            ]
+        }
     ]
 }
