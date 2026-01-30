@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime
 from glob import glob
 from pprint import pformat
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import pandas as pd
 import pyarrow as pa
@@ -36,7 +36,9 @@ from fantasy_py.inference import (
     SKLModel,
     StatInfo,
 )
-from fantasy_py.sport import SportDBManager
+
+if TYPE_CHECKING:
+    from fantasy_py.sport import SportDBManager
 from ledona import slack
 
 from .autogluon import AutoGluonWrapper

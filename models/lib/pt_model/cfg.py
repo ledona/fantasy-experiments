@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import os
 from functools import cache
 from pprint import pprint
-from typing import Literal, NotRequired, TypedDict, cast
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict, cast
 
 import pandas as pd
 from fantasy_py import (
@@ -16,11 +18,14 @@ from fantasy_py import (
     log,
 )
 from fantasy_py.inference import PTPredictModel, guess_sport_from_path
-from fantasy_py.sport import SportDBManager
 from ledona import process_timer
 from typeguard import TypeCheckError, check_type
 
 from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
+
+if TYPE_CHECKING:
+    from fantasy_py.sport import SportDBManager
+
 
 _LOGGER = log.get_logger(__name__)
 

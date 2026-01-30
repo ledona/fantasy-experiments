@@ -195,18 +195,24 @@
             ]
         },
         {
-            "name": "park factor",
+            "name": "venue features",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/stat-analysis/park_factor.py",
+            "program": "${workspaceFolder}/stat-analysis/venue_features.py",
             "justMyCode": true,
             "cwd": "${workspaceFolder}/stat-analysis",
             "args": [
-                "/fantasy/mlb.hist.2008-2025.scored.db",
-                // "--min_season", "2020",
-                // "--max_season", "2025",
-                "--parquet", "/fantasy-archive/mlb/park_factor-2026.parquet",
-                // "--csv", "/fantasy-archive/mlb/park_factor-2026.csv"
+                // "/fantasy/mlb.hist.2008-2025.scored.db",
+                "/fantasy/nfl.hist.2009-2024.scored.db",
+                // "/fantasy/nba.hist.20082009-20242025.scored.db",
+                // "/fantasy/nhl.hist.20082009-20242025.scored.db",
+                "pf",
+                // "thfa",
+                // "--min_season", "20222023",
+                // "--max_season", "20242025",
+
+                // "--parquet", // "/fantasy-archive/mlb/park_factor-2026.parquet",
+                "--csv", // "/fantasy-archive/mlb/park_factor.2008-2026.csv"
             ]
         }
     ]

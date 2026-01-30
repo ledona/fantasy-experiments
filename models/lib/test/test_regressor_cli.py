@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import json
 import os
 import platform
 import random
 from datetime import UTC, datetime, timedelta
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
 
 import joblib
@@ -18,14 +20,13 @@ from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
-from ..pt_model import (
-    TRAINING_PARAM_DEFAULTS,
-    AlgorithmType,
-    TrainingConfiguration,
-    _TrainingParamsDict,
-)
+from ..pt_model import TRAINING_PARAM_DEFAULTS, TrainingConfiguration, _TrainingParamsDict
 from ..pt_model.cfg import _NO_DEFAULT, _all_algo_params
 from ..regressor import main
+
+if TYPE_CHECKING:
+    from ..pt_model import AlgorithmType
+
 
 _VALIDATION_SEASON = 2023
 """validation season, must match the model training definition"""
