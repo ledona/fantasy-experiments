@@ -9,7 +9,6 @@ from glob import glob
 from pprint import pformat
 from typing import Literal, cast
 
-import joblib
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -32,7 +31,6 @@ from fantasy_py import (
 from fantasy_py.inference import (
     AutogluonModel,
     NNModel,
-    NNRegressor,
     PerformanceDict,
     PTPredictModel,
     SKLModel,
@@ -40,11 +38,12 @@ from fantasy_py.inference import (
 )
 from fantasy_py.sport import SportDBManager
 from ledona import slack
-from sklearn.dummy import DummyRegressor
 
 from .autogluon import AutoGluonWrapper
+from .dummy import DummyWrapper
 from .nn import NNWrapper
 from .tpot import TPOTWrapper
+from .wrapper import PTEstimatorWrapper
 
 TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
 
@@ -487,8 +486,8 @@ AlgorithmType = Literal["autogluon", "tpot", "tpot-light", "dummy", "nn", "xgboo
 
 
 def _instantiate_regressor(
-    algorithm: AlgorithmType, model_params: dict, x: pd.DataFrame, y: pd.Series, model_filebase
-):
+    algorithm: AlgorithmType, model_params: dict, x: pd.DataFrame, y: pd.Series, model_filebase: str
+) -> PTEstimatorWrapper:
     """returns (model-obj, fit-args, fit-kwargs)"""
     if algorithm == "autogluon":
         model = AutoGluonWrapper(
@@ -504,7 +503,7 @@ def _instantiate_regressor(
         return model
 
     if algorithm == "dummy":
-        model = DummyRegressor(strategy=model_params.get("dmy:strategy"))
+        model = DummyWrapper(model_params)
         return model
 
     if algorithm == "nn":
@@ -541,63 +540,32 @@ def _train_test(
         )
     model = _instantiate_regressor(algo, model_params, X_test, y_test, model_filebase)
     model.fit(X_train, y_train)
-    assert model is not None
-    training_desc_info: dict = {
-        "time_to_fit": str(now() - dt_trained),
-        "n_train_cases": len(X_train),
-        "n_test_cases": len(X_test),
-        "n_validation_cases": len(X_val),
-    }
 
-    if algo.startswith("tpot") or algo == "autogluon":
-        assert isinstance(model, (TPOTWrapper, AutoGluonWrapper))
-        model.update_training_desc_info(training_desc_info)
-        model.log_fitted_model()
-    elif algo in ("dummy", "nn"):
-        _LOGGER.success("%s fitted", algo)
-        if algo == "nn":
-            training_desc_info["epochs_trained"] = cast(NNRegressor, model).epochs_trained
-    else:
-        raise NotImplementedError(f"model type {algo} not recognized")
+    training_desc_info = model.get_training_desc_info(
+        dt_trained, len(X_train), len(X_test), len(X_val)
+    )
 
-    y_hat_train = model.predict(X_train)
-    r2_train = float(sklearn.metrics.r2_score(y_train, y_hat_train))
-    mae_train = float(sklearn.metrics.mean_absolute_error(y_train, y_hat_train))
-    _LOGGER.info("Train      r2=%g mae=%g", round(r2_train, 6), round(mae_train, 6))
+    performance: PerformanceDict = {}
 
-    y_hat_test = model.predict(X_test)
-    r2_test = float(sklearn.metrics.r2_score(y_test, y_hat_test))
-    mae_test = float(sklearn.metrics.mean_absolute_error(y_test, y_hat_test))
-    _LOGGER.info("Test       r2=%g mae=%g", round(r2_test, 6), round(mae_test, 6))
-
-    y_hat_val = model.predict(X_val)
-    r2_val = float(sklearn.metrics.r2_score(y_val, y_hat_val))
-    mae_val = float(sklearn.metrics.mean_absolute_error(y_val, y_hat_val))
-    _LOGGER.info("Validation r2=%g mae=%g", round(r2_val, 6), round(mae_val, 6))
+    for test_type, x, y in [
+        ("train", X_train, y_train),
+        ("test", X_test, y_test),
+        ("val", X_val, y_val),
+    ]:
+        y_hat = model.predict(x)
+        r2 = float(sklearn.metrics.r2_score(y, y_hat))
+        mae = float(sklearn.metrics.mean_absolute_error(y, y_hat))
+        _LOGGER.info("%s r2=%g mae=%g", test_type, round(r2, 6), round(mae, 6))
+        performance["r2_" + test_type] = r2
+        performance["mae_" + test_type] = mae
 
     artifact_filebase = (
         model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
     )
     artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
-
-    if algo == "dummy":
-        artifact_filepath = artifact_filebase_path + ".pkl"
-        joblib.dump(model, artifact_filepath)
-    elif algo in ("nn", "autogluon") or algo.startswith("tpot"):
-        assert isinstance(model, (NNWrapper, TPOTWrapper, AutoGluonWrapper))
-        artifact_filepath = model.save_artifact(artifact_filebase_path)
-    else:
-        raise NotImplementedError(f"model {algo=} not recognized")
+    artifact_filepath = model.save_artifact(artifact_filebase_path)
 
     _LOGGER.info("Exported model artifact to '%s'", artifact_filepath)
-    performance: PerformanceDict = {
-        "r2_val": r2_val,
-        "mae_val": mae_val,
-        "r2_test": r2_test,
-        "mae_test": mae_test,
-        "r2_train": r2_train,
-        "mae_train": mae_train,
-    }
     return artifact_filepath, performance, dt_trained, training_desc_info
 
 
@@ -861,6 +829,8 @@ def model_and_test(
     )
 
     if model is None:
+        slack.send_slack(f"Starting training of {name}")
+
         filebase_name = model_dest_filename or ".".join(
             [name, target[1], algorithm, dt_to_filename_str()]
         )

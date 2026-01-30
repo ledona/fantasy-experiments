@@ -37,7 +37,7 @@ _TPOT_PARAM_DEFAULTS = {
     "n_jobs": _NO_DEFAULT,
     # epochs_max -> generations
     "epochs_max": _NO_DEFAULT,
-    "early_stop": _NO_DEFAULT,
+    "early_stop": 4,
     # Following should have no impact on the resulting model
     "verbose": 3,
     "tp:max_eval_time_mins": _NO_DEFAULT,
@@ -50,7 +50,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict] = {
     "nn": (
         {
             "epochs_max": _NO_DEFAULT,
-            "early_stop": _NO_DEFAULT,
+            "early_stop": 20,
             "nn:hidden_size": _NO_DEFAULT,
             "nn:hidden_layers": _NO_DEFAULT,
             "nn:batch_size": _NO_DEFAULT,

@@ -1,13 +1,18 @@
 import tempfile
 
 import pandas as pd
+import torch
 from autogluon.tabular import TabularPredictor
 from fantasy_py import InvalidArgumentsException, log
 from fantasy_py.inference import PTPredictModel
 
+from .wrapper import PTEstimatorWrapper
 
-class AutoGluonWrapper:
+
+class AutoGluonWrapper(PTEstimatorWrapper):
     """wrapper around autogluon, simplifies instantiation, fitting and saving the model"""
+
+    VERSIONS_FOR_DEPS = ["sklearn", "autogluon", "lightgbm", "catboost", "xgboost", "fastai", "ray"]
 
     _TARGET_COL = "autogluon_target_variable"
 
@@ -46,6 +51,9 @@ class AutoGluonWrapper:
             fit_kwargs["time_limit"] = self.time_limit
         self.predictor.fit(x_with_y, **fit_kwargs)
 
+        self.predictor.fit_summary()
+        log.get_logger(__name__).success("Autogluon fitted!")
+
     def predict(self, x: pd.DataFrame):
         return self.predictor.predict(x)
 
@@ -69,14 +77,19 @@ class AutoGluonWrapper:
                 continue
             cls._model_info_value_cleanup(v, depth + 1)
 
-    def update_training_desc_info(self, info: dict):
+    def get_training_desc_info(self, *args):
         """
         update the training_desc_info dict with information describing the
         trained model
         """
+        info = super().get_training_desc_info(*args)
+
         ag_info = self.predictor.info()
         clean_info = self._model_info_value_cleanup(ag_info)
         info["autogluon"] = {"preset": self.preset, "info": clean_info}
+        info["device"] = "cuda" if torch.cuda.is_available() else "cpu"
+
+        return info
 
     def save_artifact(self, filepath_base: str) -> str:
         """save the artifact to the requested location, return the full artifact path"""
@@ -93,8 +106,3 @@ class AutoGluonWrapper:
             PTPredictModel.copy_artifact_dir(local_clone, dest_path)
 
         return dest_path
-
-    def log_fitted_model(self):
-        """Log something to stdout/log describing the fitted model"""
-        self.predictor.fit_summary()
-        log.get_logger(__name__).success("Autogluon fitted!")

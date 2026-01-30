@@ -7,20 +7,24 @@ from fantasy_py import FantasyException, log
 from sklearn.impute import SimpleImputer
 from tpot2 import TPOTRegressor
 
+from .wrapper import PTEstimatorWrapper
+
 
 class TPOTFittingError(FantasyException):
     """raised if an operation requires a fitted model and the regressor is not yet fitted"""
 
 
-class TPOTWrapper:
+class TPOTWrapper(PTEstimatorWrapper):
     """wrapper to facilitate tpot training"""
+
+    VERSIONS_FOR_DEPS = ["tpot2", "sklearn", "xgboost"]
 
     def __init__(self, tpot_light=False, **model_params):
         params = model_params.copy()
         if "epochs_max" in params:
             params["generations"] = params.pop("epochs_max")
 
-        tpot2_version = tpot2._version.__version__
+        tpot2_version = tpot2.__version__
 
         if "max_time_mins" in model_params and tpot2_version[:5] == "0.1.8":
             params["max_time_seconds"] = params.pop("max_time_mins") * 60
@@ -43,14 +47,11 @@ class TPOTWrapper:
         max_gen = self.tpot_regressor.evaluated_individuals.Generation.max()
         return max_gen
 
-    def update_training_desc_info(self, training_desc_info):
+    def get_training_desc_info(self, *args):
         """update the training desc info after fitting"""
+        training_desc_info = super().get_training_desc_info(*args)
         training_desc_info["generations_tested"] = self.max_generation
-
-    def log_fitted_model(self):
-        """Log something to stdout/log describing the fitted model"""
-        log.get_logger(__name__).success("TPOT fitted in %i generation(s)", self.max_generation)
-        pprint(self.tpot_regressor.fitted_pipeline_)
+        return training_desc_info
 
     def _impute_input_data(self, x):
         if not self._imputer:
@@ -100,6 +101,9 @@ class TPOTWrapper:
                     "Fitting did not produce any valid pipelines, see log for details"
                 ) from e
             raise
+
+        pprint(self.tpot_regressor.fitted_pipeline_)
+        log.get_logger(__name__).success("TPOT fitted in %i generation(s)", self.max_generation)
 
     def predict(self, x: pd.DataFrame):
         if x.isna().any().any():
