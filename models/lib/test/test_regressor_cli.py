@@ -10,15 +10,13 @@ import joblib
 import pandas as pd
 import pytest
 import sklearn
-import torch
 from autogluon.tabular import TabularPredictor
 from fantasy_py import FeatureType, PlayerOrTeam, dt_to_filename_str
-from fantasy_py.inference import NNRegressor, PTPredictModel
+from fantasy_py.inference import PTPredictModel
 from freezegun import freeze_time
 from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
-from tpot2 import TPOTRegressor
 
 from ..pt_model import (
     TRAINING_PARAM_DEFAULTS,
@@ -446,6 +444,10 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None):
         model_dict = json.load(f_)
 
     del model_dict["model_file_version"]
+    assert model_dict["meta_extra"]["desc_info"].get("versions"), (
+        "Expecting a non-empty versions dict"
+    )
+    del model_dict["meta_extra"]["desc_info"]["versions"]
     expected_model_dict = _create_expected_model_dict(
         model_name,
         feature_stat,
@@ -571,8 +573,8 @@ def _train_prep(
             mock_regressor.return_value.fitted_pipeline_ = mocker.Mock(name="fake-pipeline")
     elif algo == "dummy":
         if prev_algo != "dummy":
-            mock_save_func = mocker.patch("lib.pt_model.train_test.joblib").dump
-            mock_regressor = mocker.patch("lib.pt_model.train_test.DummyRegressor", autospec=True)
+            mock_save_func = mocker.patch("lib.pt_model.dummy.joblib").dump
+            mock_regressor = mocker.patch("lib.pt_model.dummy.DummyRegressor", autospec=True)
             mock_fitted = mock_regressor.return_value.fit.return_value
     else:
         raise NotImplementedError(f"{algo=} not supported")
@@ -689,7 +691,14 @@ def test_train_retrain_params(
     # mock the training data load
     fake_raw_df = mocker.Mock(name="fake-raw-training-df")
     fake_training_features_df = pd.DataFrame({"pos_C": [1] * 4, "stat:fake-stat:std": [8, 6, 7, 5]})
-    fake_tt_data = [fake_training_features_df, None, fake_training_features_df, None, [0], None]
+    fake_tt_data = [
+        fake_training_features_df,
+        mocker.Mock(name="fake Y data", hasnans=False),
+        fake_training_features_df,
+        None,
+        fake_training_features_df,
+        None,
+    ]
     mocker.patch("lib.pt_model.cfg.load_data", return_value=(fake_raw_df, fake_tt_data, None))
 
     # mocks to skip artifact dumping stuff

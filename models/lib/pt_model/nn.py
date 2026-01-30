@@ -6,11 +6,17 @@ import torch
 from fantasy_py import FantasyException, log
 from fantasy_py.inference import NNRegressor
 
+from .wrapper import PTEstimatorWrapper
+
+
 class NNNotYetFittedError(FantasyException):
     """raised if an operation requires a fitted model and the regressor is not yet fitted"""
 
-class NNWrapper:
+
+class NNWrapper(PTEstimatorWrapper):
     """wrapper to help train a NN, can consume and translate the args defined in cfg"""
+
+    VERSIONS_FOR_DEPS = ["torch"]
 
     def __init__(self, x_test: pd.DataFrame, y_test: pd.Series, model_filebase, **params):
         self._fitted = None
@@ -63,17 +69,12 @@ class NNWrapper:
 
     def fit(self, x: pd.DataFrame, y: pd.Series):
         self._fitted = self.model.fit(x, y, self.x_test, self.y_test, **(self.fit_kwargs or {}))
+        log.get_logger(__name__).success("NN fitted!")
 
     def predict(self, x: pd.DataFrame):
         if self._fitted is None:
             raise NNNotYetFittedError("model not yet fitted")
         return self._fitted.predict(x)
-
-    @property
-    def epochs_trained(self):
-        if self._fitted is None:
-            raise NNNotYetFittedError("model not yet fitted")
-        return self._fitted.epochs_trained
 
     def save_artifact(self, artifact_filebase_path):
         if self._fitted is None:
@@ -81,3 +82,13 @@ class NNWrapper:
         artifact_filepath = artifact_filebase_path + ".pt"
         torch.save(self._fitted, artifact_filepath)
         return artifact_filepath
+
+    def get_training_desc_info(self, *args):
+        """update the training desc info after fitting"""
+        if self._fitted is None:
+            raise NNNotYetFittedError("model not yet fitted")
+
+        training_desc_info = super().get_training_desc_info(*args)
+        training_desc_info["device"] = "cuda" if torch.cuda.is_available() else "cpu"
+        training_desc_info["epochs_trained"] = self._fitted.epochs_trained
+        return training_desc_info
