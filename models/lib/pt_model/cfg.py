@@ -37,7 +37,7 @@ _TPOT_PARAM_DEFAULTS = {
     "n_jobs": _NO_DEFAULT,
     # epochs_max -> generations
     "epochs_max": _NO_DEFAULT,
-    "early_stop": 4,
+    "early_stop": 3,
     # Following should have no impact on the resulting model
     "verbose": 3,
     "tp:max_eval_time_mins": _NO_DEFAULT,
