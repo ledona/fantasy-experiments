@@ -44,22 +44,20 @@ _TPOT_PARAM_DEFAULTS = {
 }
 """defaults for all tpot algorithms"""
 
-TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict] = {
+TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | object]] = {
     "autogluon": {"max_time_mins": _NO_DEFAULT, "verbose": 2, "ag:preset": "best_v150"},
-    "nn": (
-        {
-            "epochs_max": _NO_DEFAULT,
-            "early_stop": 20,
-            "nn:hidden_size": _NO_DEFAULT,
-            "nn:hidden_layers": _NO_DEFAULT,
-            "nn:batch_size": _NO_DEFAULT,
-            "nn:learning_rate": _NO_DEFAULT,
-            "nn:shuffle": _NO_DEFAULT,
-            "nn:resume_checkpoint_filepath": _NO_DEFAULT,
-            "nn:checkpoint_dir": _NO_DEFAULT,
-            "nn:checkpoint_frequency": _NO_DEFAULT,
-        }
-    ),
+    "nn": {
+        "epochs_max": _NO_DEFAULT,
+        "early_stop": 20,
+        "nn:hidden_size": _NO_DEFAULT,
+        "nn:hidden_layers": _NO_DEFAULT,
+        "nn:batch_size": _NO_DEFAULT,
+        "nn:learning_rate": _NO_DEFAULT,
+        "nn:shuffle": _NO_DEFAULT,
+        "nn:resume_checkpoint_filepath": _NO_DEFAULT,
+        "nn:checkpoint_dir": _NO_DEFAULT,
+        "nn:checkpoint_frequency": _NO_DEFAULT,
+    },
     "dummy": ({"dmy:strategy": "mean"}),
     "tpot": _TPOT_PARAM_DEFAULTS,
     "tpot-light": _TPOT_PARAM_DEFAULTS,
@@ -195,7 +193,15 @@ class TrainingConfiguration:
     ):
         """
         construct a model training definition that reflects the model
-        algorithm: if None then retrain using the same algorithm as the original model
+
+        parameters inheritance is prioritized (highest to lowest)
+        1) model parameters in model_filepath
+        2) parameters defined in the training definition file
+        3) algorithm defaults
+
+        model_filepath: path to the model that the new model should be based on
+        training_filepath: path to the training definition file
+        algorithm: algorithm of the new model, if None then retrain a model using the algorithm of the original model
         """
         orig_model = PTPredictModel.load(model_filepath)
         if orig_model.parameters is None or orig_model.performance is None:
@@ -206,29 +212,20 @@ class TrainingConfiguration:
 
         if algorithm is None:
             if "algorithm" not in orig_model.parameters:
-                _LOGGER.warning(
-                    "algorithm was not found in the original model's "
-                    "parameters, attempting to infer from model filename"
+                raise InvalidArgumentsException(
+                    "'algorithm' is not present in the model definition "
+                    "One must be provided (perhaps on the command line) to proceed"
                 )
-                for algo in AlgorithmType.__args__:
-                    if f".{algo}." in model_filepath:
-                        algorithm = algo
-                        _LOGGER.info(
-                            "Based on model filename, will proceed with algorithm='%s'", algorithm
-                        )
-                        break
-                if algorithm is None:
-                    raise UnexpectedValueError(
-                        "'algorithm' is not present in the model definition "
-                        "and could not be inferred from model filename. "
-                        "One must be provided (perhaps on the command line) to proceed"
-                    )
-            else:
-                algorithm = cast(AlgorithmType, orig_model.parameters["algorithm"])
-        defaults = TRAINING_PARAM_DEFAULTS[algorithm]
+            algorithm = cast(AlgorithmType, orig_model.parameters["algorithm"])
+
+        train_cfg_params = (
+            TrainingConfiguration(training_filepath).get_params(orig_model.name)
+            if training_filepath is not None
+            else None
+        )
 
         train_params = {}
-        for param in defaults:
+        for param, default_value in TRAINING_PARAM_DEFAULTS[algorithm].items():
             if "." in param:
                 raise UnexpectedValueError(
                     f"Algorithm '{algorithm}' training parameter name '{param}' is invalid. "
@@ -237,7 +234,12 @@ class TrainingConfiguration:
             if param in orig_model.parameters and param not in _IGNORE_ORIGINAL_PARAMS:
                 train_params[param] = orig_model.parameters[param]
                 continue
-            if (default_value := defaults[param]) != _NO_DEFAULT:
+
+            if train_cfg_params and param in train_cfg_params["train_params"]:
+                train_params[param] = train_cfg_params["train_params"][param]
+                continue
+
+            if default_value != _NO_DEFAULT:
                 train_params[param] = default_value
 
         model_params_dict = {
@@ -250,7 +252,7 @@ class TrainingConfiguration:
                 "sport": orig_model.sport,
                 "algorithm": algorithm,
                 "target": orig_model.target.type + ":" + orig_model.target.name,
-                "validation_season": orig_model.performance["season_val"],
+                "validation_season": orig_model.performance.get("season_val"),
                 "recent_games": orig_model.data_def["recent_games"],
                 "training_seasons": orig_model.data_def["seasons"],
                 "seed": orig_model.parameters.get("random_state"),
@@ -264,55 +266,6 @@ class TrainingConfiguration:
                 "limit": orig_model.data_def.get("limit"),
             }
         )
-
-        missing_model_param_keys = (
-            _TrainingParamsDict.__annotations__.keys() - model_params_dict.keys()
-        )
-
-        missing_train_param_keys = defaults.keys() - train_params.keys() - _IGNORE_ORIGINAL_PARAMS
-
-        if len(missing_model_param_keys) > 0 or len(missing_train_param_keys) > 0:
-            train_cfg_params = (
-                TrainingConfiguration(training_filepath).get_params(orig_model.name)
-                if training_filepath is not None
-                else None
-            )
-
-            if len(missing_model_param_keys) > 0:
-                # this should only happen when required common model parameters were not
-                # being saved to .model files at the time the original model was created.
-                if train_cfg_params is None:
-                    raise UnexpectedValueError(
-                        f"Modeling parameters for original model '{orig_model.name}' in "
-                        f"'{model_filepath}' are incomplete. This is caused by the .model "
-                        "being out of date and not including all commonly required "
-                        "parameters. A training cfg file is required! "
-                        f"missing_model_params={sorted(missing_model_param_keys)}"
-                    )
-                _LOGGER.info(
-                    "Retrieving the following missing model parameters for '%s' from '%s': %s",
-                    orig_model.name,
-                    training_filepath,
-                    missing_model_param_keys,
-                )
-                for key in missing_model_param_keys:
-                    model_params_dict[key] = train_cfg_params[key]
-
-                if orig_model.target[0] + ":" + orig_model.target[2] != model_params_dict["target"]:
-                    raise UnexpectedValueError(
-                        f"target of new configuration is {model_params_dict['target']} does not "
-                        f"match old model target {orig_model.target}"
-                    )
-
-            if len(missing_train_param_keys) > 0:
-                if train_cfg_params is not None:
-                    assert train_cfg_params["train_params"]
-                    for key in missing_train_param_keys:
-                        if key not in train_cfg_params["train_params"]:
-                            continue
-                        model_params_dict["train_params"][key] = train_cfg_params["train_params"][
-                            key
-                        ]
 
         cfg_dict: dict = {
             "sport": orig_model.sport,

@@ -45,7 +45,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
-            "max_eval_time_mins": 15,
+            "tp:max_eval_time_mins": 15,
             "max_time_mins": 60,
         },
         "validation_season": _VALIDATION_SEASON,
@@ -266,7 +266,7 @@ class TestParamCascade:
 def test_training_def_file_model_names(test_definition_file: TrainingConfiguration):
     """test that each model defined in the test json generate the
     expected params"""
-    assert set(test_definition_file.model_names) == set(_EXPECTED_TRAINING_CFG_PARAMS.keys())
+    assert set(test_definition_file.model_names) == _EXPECTED_TRAINING_CFG_PARAMS.keys()
 
 
 def _create_expected_model_dict(
@@ -494,7 +494,7 @@ def _check_model_params(
 
     for param, expected_value in expected_params.items():
         assert model_dict["parameters"][param] == expected_value, (
-            f"{label}: value at the model's request param '{param}' should match the expected value."
+            f"{label}: model param '{param}' should match the expected value."
         )
 
     return model_dict
@@ -503,18 +503,20 @@ def _check_model_params(
 def _infer_expected_params(
     algo: AlgorithmType, test_definition_file_params: dict | None, override_params: dict
 ):
-    param_default = TRAINING_PARAM_DEFAULTS[algo]
     params = {"algorithm": algo}
 
-    for param_key, default_value in param_default.items():
+    for param_key, default_value in TRAINING_PARAM_DEFAULTS[algo].items():
         if param_key in override_params:
+            # param from cli overrides
             value = override_params[param_key]
         elif (
             test_definition_file_params is not None
             and param_key in test_definition_file_params["train_params"]
         ):
+            # inherit param value from first model
             value = test_definition_file_params["train_params"][param_key]
         elif default_value != _NO_DEFAULT:
+            # use the default value
             value = default_value
         else:
             continue
@@ -606,16 +608,12 @@ def _train_prep(
     [
         ("dummy", {"dmy:strategy": "mean"}),
         ("nn", {"early_stop": 10, "epochs_max": 1000}),
-        # TODO: add back after tpot upgrade
-        # ("tpot-light", {"n_jobs": 2}),
         ("tpot", {"max_time_mins": 120, "tp:max_eval_time_mins": 15}),
         ("autogluon", {"ag:preset": "high", "max_time_mins": 120}),
     ],
     ids=[
         ">dummy",
         ">nn",
-        # TODO: add back after tpot upgrade
-        # ">tpot-light",
         ">tpot",
         ">autogluon",
     ],
@@ -633,16 +631,12 @@ def _train_prep(
                 "nn:checkpoint_dir": "/tmp/check",
             },
         ),
-        # TODO: add back after tpot upgrade
-        # ("tpot-light", {"n_jobs": 4, "max_time_mins": 45}),
         ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2, "tp:population_size": 100}),
         ("autogluon", {"ag:preset": "medium"}),
     ],
     ids=[
         "dummy>",
         "nn>",
-        # TODO: add back after tpot upgrade
-        # "tpotlight>",
         "tpot>",
         "autogluon>",
     ],
@@ -671,17 +665,10 @@ def test_train_retrain_params(
     """
     # make sure the test is valid
     assert (
-        len(
-            invalid_params := set(orig_params.keys())
-            - set(TRAINING_PARAM_DEFAULTS[orig_algo].keys())
-        )
-        == 0
+        len(invalid_params := orig_params.keys() - TRAINING_PARAM_DEFAULTS[orig_algo].keys()) == 0
     ), f"original algo params should be subset of defaults: {invalid_params=}"
     assert (
-        len(
-            invalid_params := set(retrain_params.keys())
-            - set(TRAINING_PARAM_DEFAULTS[retrain_algo].keys())
-        )
+        len(invalid_params := retrain_params.keys() - TRAINING_PARAM_DEFAULTS[retrain_algo].keys())
         == 0
     ), f"retrain algo params should be subset of defaults: {invalid_params=}"
 
