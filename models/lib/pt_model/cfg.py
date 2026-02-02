@@ -493,7 +493,9 @@ class TrainingConfiguration:
                 regressor_params[param_name] = default_value
                 continue
 
-        if len(ignored_params := set(defaults.keys()) - set(model_params["train_params"].keys())):
+        if len(
+            ignored_params := set(model_params["train_params"].keys()).difference(defaults.keys())
+        ):
             _LOGGER.warning(
                 "Ignoring following %i parameters not used by '%s' models: %s",
                 len(ignored_params),
