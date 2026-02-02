@@ -16,8 +16,6 @@ _LOGGER = log.get_logger(__name__)
 PerformanceOperation = Literal["calc", "update", "repair", "test"]
 """supported performance operations"""
 
-_EXPECTED_PERFORMANCE_KEYS = set(PerformanceDict.__annotations__.keys())
-
 
 def _update_models(perf_recs: dict[str, PerformanceDict], skip_backup: bool):
     """
@@ -89,7 +87,7 @@ def performance_calc(
 
         if test_models:
             invalid = model.performance is None or (
-                set(model.performance.keys()) != _EXPECTED_PERFORMANCE_KEYS
+                model.performance.keys() != PerformanceDict.__annotations__.keys()
             )
             if invalid:
                 _LOGGER.warning("'%s' performance is not valid", model_filepath)

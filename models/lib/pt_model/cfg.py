@@ -35,13 +35,12 @@ This results in no kwarg being set for the regressor init param
 _TPOT_PARAM_DEFAULTS = {
     "max_time_mins": _NO_DEFAULT,
     "n_jobs": _NO_DEFAULT,
-    # epochs_max -> generations
-    "epochs_max": _NO_DEFAULT,
+    "epochs_max": _NO_DEFAULT,  # epochs_max will be used for generations
     "early_stop": 3,
-    # Following should have no impact on the resulting model
-    "verbose": 3,
     "tp:max_eval_time_mins": _NO_DEFAULT,
     "tp:population_size": _NO_DEFAULT,
+    # Following should have no impact on the resulting model
+    "verbose": 3,
 }
 """defaults for all tpot algorithms"""
 
@@ -266,12 +265,11 @@ class TrainingConfiguration:
             }
         )
 
-        missing_model_param_keys = set(_TrainingParamsDict.__annotations__.keys()) - set(
-            model_params_dict.keys()
+        missing_model_param_keys = (
+            _TrainingParamsDict.__annotations__.keys() - model_params_dict.keys()
         )
-        missing_train_param_keys = (
-            set(defaults.keys()) - set(train_params.keys()) - _IGNORE_ORIGINAL_PARAMS
-        )
+
+        missing_train_param_keys = defaults.keys() - train_params.keys() - _IGNORE_ORIGINAL_PARAMS
 
         if len(missing_model_param_keys) > 0 or len(missing_train_param_keys) > 0:
             train_cfg_params = (
@@ -493,9 +491,7 @@ class TrainingConfiguration:
                 regressor_params[param_name] = default_value
                 continue
 
-        if len(
-            ignored_params := set(model_params["train_params"].keys()).difference(defaults.keys())
-        ):
+        if len(ignored_params := model_params["train_params"].keys() - defaults.keys()):
             _LOGGER.warning(
                 "Ignoring following %i parameters not used by '%s' models: %s",
                 len(ignored_params),

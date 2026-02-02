@@ -424,7 +424,7 @@ def load_data(
     if len(train_test_df) == 0:
         _LOGGER.warning("No training data found for non-validation seasons. Using validation data.")
         train_test_df = df
-    if len(features_not_found := set(feature_cols) - set(train_test_df.columns)) > 0:
+    if len(features_not_found := set(feature_cols).difference(train_test_df.columns)) > 0:
         raise UnexpectedValueError(
             f"Following requested feature models not found in data: {features_not_found}"
         )

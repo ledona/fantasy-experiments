@@ -387,7 +387,7 @@ class ServiceDataRetriever(ABC):
         src = "web" if "web" in (contest_src, entry_src) else "cache"
         self.processed_counts_by_src[src] += 1
         _LOGGER.info("Contest data for '%s' from %s", contest_key, contest_src)
-        if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - set(contest_data.keys())) > 0:
+        if len(missing_keys := EXPECTED_CONTEST_DATA_KEYS - contest_data.keys()) > 0:
             # see if the required data is in entry_info
             still_missing = []
             for key in missing_keys:
