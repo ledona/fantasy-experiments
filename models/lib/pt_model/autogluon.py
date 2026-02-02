@@ -55,7 +55,8 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         log.get_logger(__name__).success("Autogluon fitted!")
 
     def predict(self, x: pd.DataFrame):
-        return self.predictor.predict(x)
+        with torch.device("cpu"):
+            return self.predictor.predict(x)
 
     _MODEL_INFO_MAX_DEPTH = 5
 

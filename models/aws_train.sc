@@ -10,13 +10,14 @@ function usage() {
     echo "AWS Model Trainer
 Usage: $0 [--dryrun] AWS-S3-PATH LOCAL-DEST-DIR MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
 
-This script is for training models on an AWS instance. This is done by:
-1) creating a temp destination folder for models
-2) copying the model definition file from S3
-3) running training in --info mode to get the name of the data file
-4) copying the data file (if necessary) from s3
-5) training the model, all command line args after the MODEL-FILE are passed to the training program
-6) uploading the trained model back to s3
+This script is for training models on an AWS instance. Training is accomplished via the following steps:
+1) create a temp destination folder for models at the at the path in the cli arg LOCAL-DEST-DIR
+2) copy model definition file for the cli arg MODEL-FILE from S3 if it isn't already available 
+   locally from a previous run of this script.
+3) run training in --info mode to get the name of the data file
+4) copy the data file from s3 if it is not available locally from a previous run of this script.
+5) Train model(s) matching the cli arg MODEL-NAME. MODEL-NAME can contain wildcards. Wildcard character is
+   '*'. All command line args for this script after the MODEL-FILE are passed to the training program.
 "
     exit 1
 }
