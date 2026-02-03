@@ -24,7 +24,7 @@ from ..pt_model import (
     TrainingConfiguration,
     _TrainingParamsDict,
 )
-from ..pt_model.cfg import _NO_DEFAULT
+from ..pt_model.cfg import _NO_DEFAULT, _all_algo_params
 from ..regressor import main
 
 _VALIDATION_SEASON = 2023
@@ -63,7 +63,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
-            "max_eval_time_mins": 15,
+            "tp:max_eval_time_mins": 15,
             "max_time_mins": 60,
         },
         "include_pos": False,
@@ -81,11 +81,11 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "cols_to_drop": [".*y_score.*", "extra:bases"],
         "missing_data_threshold": 0.1,
         "train_params": {
-            "batch_size": 64,
-            "hidden_layers": 1,
+            "nn:batch_size": 64,
+            "nn:hidden_layers": 1,
             "epochs_max": 100,
             "early_stop": 5,
-            "max_eval_time_mins": 15,
+            "tp:max_eval_time_mins": 15,
             "max_time_mins": 45,
             "n_jobs": 2,
         },
@@ -106,7 +106,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
-            "max_eval_time_mins": 15,
+            "tp:max_eval_time_mins": 15,
             "max_time_mins": 45,
             "n_jobs": 2,
         },
@@ -137,7 +137,7 @@ for _model_params in _EXPECTED_TRAINING_CFG_PARAMS.values():
     _model_params.update(pad_dict)
 
 
-_TEST_DEF_FILE_FILEPATH = os.path.join(_DIRNAME, "test.json")
+_TEST_DEF_FILE_FILEPATH = os.path.join(_DIRNAME, "test-model-def.json")
 
 
 @pytest.fixture(name="test_definition_file", scope="module")
@@ -158,6 +158,10 @@ def test_training_def_file_params(test_definition_file: TrainingConfiguration, m
 
 class TestParamCascade:
     """test model parameter retrieval"""
+
+    @pytest.fixture(autouse=True, scope="class")
+    def clear_algo_params_cache(self):
+        _all_algo_params.cache_clear()
 
     _ALGO = "algo"
     """name of algorithm used by algo specific params test"""
@@ -254,8 +258,13 @@ class TestParamCascade:
             TRAINING_PARAM_DEFAULTS,
             {self._ALGO: {"a": _NO_DEFAULT, "b": _NO_DEFAULT, "c": _NO_DEFAULT}},
         )
-        final_params = TrainingConfiguration._params_from_cfg_levels(
+
+        tc = TrainingConfiguration(
+            cfg_dict={"sport": "test-sport", "model_groups": {}}, cfg_dict_source="test"
+        )
+        final_params = tc._params_from_cfg_levels(
             (self._ALGO if use_algo else "no-algo"),
+            "model-name",
             {"train_params": global_params},
             {"train_params": group_params},
             {"train_params": model_params},

@@ -152,13 +152,13 @@ class TrainingConfiguration:
         if filepath is not None:
             self.source = filepath
             with open(filepath, "r") as f_:
-                self._json = cast(dict, json.load(f_, cls=JSONWithCommentsDecoder))
+                self._src_dict = cast(dict, json.load(f_, cls=JSONWithCommentsDecoder))
         else:
-            assert cfg_dict_source is not None
+            assert cfg_dict_source is not None and isinstance(cfg_dict, dict)
             self.source = cfg_dict_source
-            self._json = cast(dict, cfg_dict)
+            self._src_dict = cfg_dict
 
-        sport = self._json.get("sport")
+        sport = self._src_dict.get("sport")
         if sport is None:
             if filepath is not None:
                 _LOGGER.warning(
@@ -180,7 +180,7 @@ class TrainingConfiguration:
         """training algorithm"""
 
         self._model_names_to_group_idx: dict[str, int] = {}
-        for i, model_group in enumerate(self._json["model_groups"]):
+        for i, model_group in enumerate(self._src_dict["model_groups"]):
             for model_name in model_group["models"]:
                 self._model_names_to_group_idx[model_name] = i
 
@@ -286,20 +286,37 @@ class TrainingConfiguration:
     def model_names(self):
         return list(self._model_names_to_group_idx.keys())
 
-    @staticmethod
     def _params_from_cfg_levels(
-        algo: str, global_cfg: dict, model_group_cfg: dict, model_cfg: dict
+        self, algo: str, model_name: str, global_cfg: dict, model_group_cfg: dict, model_cfg: dict
     ):
         """helper that returns training params for model_name
         from the global def dict"""
+        all_valid_algorithm_params = _all_algo_params()
+
         global_cols_to_drop = global_cfg.get("cols_to_drop") or []
         global_train_params = global_cfg.get("train_params") or {}
+        global_param_names = {name.split(".")[-1] for name in global_train_params}
+        if invalids := global_param_names - all_valid_algorithm_params:
+            raise InvalidArgumentsException(
+                f"Invalid global training params found in {self.source}. {invalids=}"
+            )
 
         group_cols_to_drop = model_group_cfg.get("cols_to_drop") or []
         group_train_params = model_group_cfg.get("train_params") or {}
+        group_param_names = {name.split(".")[-1] for name in group_train_params}
+        if invalids := group_param_names - all_valid_algorithm_params:
+            raise InvalidArgumentsException(
+                f"Invalid group training params found in '{self.source}' "
+                f"group-name={self._model_names_to_group_idx[model_name]}. {invalids=}"
+            )
 
         model_specific_cols_to_drop = model_cfg.get("cols_to_drop") or []
         model_specific_train_params = model_cfg.get("train_params") or {}
+        model_param_names = {name.split(".")[-1] for name in model_specific_train_params}
+        if invalids := model_param_names - all_valid_algorithm_params:
+            raise InvalidArgumentsException(
+                f"Invalid model training params found in '{self.source}' {model_name=}. {invalids=}"
+            )
 
         final_train_params = {
             **global_train_params,
@@ -311,10 +328,6 @@ class TrainingConfiguration:
         algo_param_keys = [key for key in final_train_params if "." in key]
         for algo_param_key in algo_param_keys:
             param_algo, param_key = algo_param_key.split(".", 1)
-            if param_key not in _all_algo_params():
-                raise InvalidArgumentsException(
-                    f"training param {param_key} does not exist for any algorithm"
-                )
 
             if param_algo != algo:
                 # for a different algorithm
@@ -361,11 +374,11 @@ class TrainingConfiguration:
         if not self.retrain and "original_model_columns" in param_dict:
             del param_dict["original_model_columns"]
 
-        global_cfg = self._json["global_default"].copy()
-        model_group_cfg = self._json["model_groups"][self._model_names_to_group_idx[model_name]]
+        global_cfg = self._src_dict["global_default"].copy()
+        model_group_cfg = self._src_dict["model_groups"][self._model_names_to_group_idx[model_name]]
         model_cfg = model_group_cfg["models"][model_name]
 
-        param_dict.update(self._json["global_default"].copy())
+        param_dict.update(self._src_dict["global_default"].copy())
         param_dict.update(
             {
                 k_: v_
@@ -375,7 +388,7 @@ class TrainingConfiguration:
         )
 
         final_train_params, final_cols_to_drop = self._params_from_cfg_levels(
-            self.algorithm, global_cfg, model_group_cfg, model_cfg
+            self.algorithm, model_name, global_cfg, model_group_cfg, model_cfg
         )
         param_dict.update(
             {k_: v_ for k_, v_ in model_cfg.items() if k_ not in ("cols_to_drop", "train_params")}
