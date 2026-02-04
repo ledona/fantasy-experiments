@@ -52,7 +52,7 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         self.predictor.fit(x_with_y, **fit_kwargs)
 
         self.predictor.fit_summary()
-        log.get_logger(__name__).success("Autogluon fitted for target col '%s'!", self._TARGET_COL)
+        log.get_logger(__name__).success("Autogluon fitted!")
 
     def predict(self, x: pd.DataFrame):
         with torch.device("cpu"):
