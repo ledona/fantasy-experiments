@@ -1,13 +1,13 @@
 # Model creation and management
-This project folder has functionality for creating, evaluating and cataloging models. The
-two types of models managed here are player/team predictive models and optimal lineup
-generation models. Basic order of operations is:
+This project folder has functionality for creating, evaluating and cataloging player/team predictive models. Basic order of operations is:
 1. Export data
 1. Create model(s)
 1. Update the model catalogs
-1. (optional) rerun performance on a new model to make sure that inference works post training
+1. (optional) rerun performance on models to make sure that inference works post training
 1. If new models are good enough then import them for use
 1. Create uncertainty models for new models
+
+Before trying to train the highest quality models (long train times, full data, using cloud). TRAIN SOME LOW QUALITY MODELS AND MAKE SURE EVERYTHING IN THE PREVIOUS LIST WORKS!
 
 To ensure that everything is working, it is best to then do the following. If all steps succeed then all is well.
 1. Use historic data to create lineups and bets based on the new models
@@ -117,7 +117,7 @@ Run the following to create a catalog of the models in a directory and its subfo
 The model catalog is where the best performing models can be identified for use as active models going forward.
 
 ## Model Performance Operations
-Use the following command to repair, update, test or calculate model performance
+Use the following command to repair, update, test or calculate model performance. (default=test)
 ```
 python -m lib.regressor performance [MODEL_FILE_PATTERN] \
   --cfg [model_cfg.json] --data_dir [DATA_DIR] -op [repair|test|update|calc]

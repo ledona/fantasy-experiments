@@ -1,4 +1,5 @@
 import importlib
+import sys
 from abc import ABC, abstractmethod
 
 import pandas as pd
@@ -26,8 +27,8 @@ class PTEstimatorWrapper(ABC):
             "n_validation_cases": validation_cases,
         }
 
+        versions = {"python": sys.version}
         if self.VERSIONS_FOR_DEPS:
-            versions = {}
             for dep in self.VERSIONS_FOR_DEPS:
                 try:
                     module = importlib.import_module(dep)
@@ -41,7 +42,7 @@ class PTEstimatorWrapper(ABC):
                     continue
 
                 versions[dep] = getattr(module, "__version__", "__version__ attribute not defined")
-            info["versions"] = versions
+        info["versions"] = versions
 
         return info
 

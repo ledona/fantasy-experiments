@@ -12,7 +12,7 @@ from .wrapper import PTEstimatorWrapper
 class AutoGluonWrapper(PTEstimatorWrapper):
     """wrapper around autogluon, simplifies instantiation, fitting and saving the model"""
 
-    VERSIONS_FOR_DEPS = ["sklearn", "autogluon", "lightgbm", "catboost", "xgboost", "fastai", "ray"]
+    VERSIONS_FOR_DEPS = ["sklearn", "autogluon.tabular", "lightgbm", "catboost", "xgboost", "fastai", "ray"]
 
     _TARGET_COL = "autogluon_target_variable"
 
