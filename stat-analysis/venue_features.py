@@ -8,6 +8,7 @@ from typing import Literal
 
 import pandas as pd
 from fantasy_py import db, log
+from fantasy_py.calculation import elo
 from fantasy_py.sport.extra_stats import expected_elo_mov
 from sqlalchemy import func, select
 from tabulate import tabulate
@@ -86,15 +87,19 @@ def _get_scoring_data(db_obj, min_season: None | int, max_season: None | int):
 
 def _get_elo_data(db_obj, min_season: None | int, max_season: None | int):
     """
-    return mov elo scores for the requested seasons, returns dataframe with
-    columns season, game_number, team_id, elo. sorted by season, game_number
+    return home field advantage adjusted mov elo scores for the requested seasons
+
+    returns dataframe with columns season, game_number, team_id, elo. sorted by season, game_number
     """
     _LOGGER.info("Loading elo data min_season=%s max_season=%s", min_season, max_season)
+    home_team_adjustment = elo.HOME_FIELD_ADVANTAGE_MODIFIERS[db_obj.db_manager.ABBR]
+
     with db_obj.session_scoped() as session:
         stmt = (
             select(
                 db.Game.season,
                 db.Game.game_number,
+                (db.Game.home_team_id == db.CalculationDatum.team_id).label("is_home"),
                 db.CalculationDatum.team_id,
                 db.CalculationDatum.value.label("elo"),
             )
@@ -107,6 +112,8 @@ def _get_elo_data(db_obj, min_season: None | int, max_season: None | int):
             stmt = stmt.filter(db.Game.season <= max_season)
         stmt = stmt.order_by(db.Game.season, db.Game.game_number)
         df = pd.read_sql(stmt, session.bind)
+
+    df["elo"] = df.apply(lambda row: row.elo + (home_team_adjustment if row.is_home else 0), axis=1)
     return df
 
 
@@ -208,6 +215,9 @@ def _park_factor(db_obj, min_season: None | int, max_season: None | int):
         right_on=["season", "away_team_id"],
     )
     raw_pf["raw_pf"] = raw_pf["avg_runs_home"] / raw_pf["avg_runs_away"]
+
+    # handle rare case of teams sharing a venue
+    raw_pf = raw_pf.groupby(["venue", "season"])["raw_pf"].mean().reset_index()
 
     # 2. Setup N-Year Rolling Weighted Average
     # Add padding rows for inference season and Sort to ensure LAG/Shift operations align correctly
