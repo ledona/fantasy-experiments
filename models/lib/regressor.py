@@ -485,7 +485,7 @@ def _model_catalog_func(args):
                     and (gens := desc_info["generations_tested"])
                     and gens < early_stop
                 ):
-                    cat_data["tags"].append("incomplete-automl")
+                    cat_data["tags"].append("incomplete-training")
                     cat_data["notes"].append(
                         f"tpot generations is lower than early-stop, {gens=} < {early_stop=}"
                     )
@@ -495,7 +495,7 @@ def _model_catalog_func(args):
                     and (ttf := desc_info["time_to_fit"])
                     and (ttf_secs := time_to_secs(ttf)) / 60 >= max_train_time_mins
                 ):
-                    cat_data["tags"].append("incomplete-automl")
+                    cat_data["tags"].append("early-stop")
                     cat_data["notes"].append(
                         "tpot search exceeded max time. "
                         f"max-automl-time={secs_to_time(max_train_time_mins * 60)} "
