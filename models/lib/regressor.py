@@ -446,11 +446,6 @@ def _model_catalog_func(args):
         mae_test = round(model_data["meta_extra"]["performance"]["mae_test"], 5)
         r2_val = round(model_data["meta_extra"]["performance"]["r2_val"], 5)
         mae_val = round(model_data["meta_extra"]["performance"]["mae_val"], 5)
-        # else:
-        #     # TODO: this is for older models and eventually can be dropped
-        #     r2_test = r2_train = mae_test = mae_train = None
-        #     r2_val = round(model_data["meta_extra"]["performance"]["r2"], 5)
-        #     mae_val = round(model_data["meta_extra"]["performance"]["mae"], 5)
 
         dt_trained = du_parser.parse(model_data["dt_trained"])
         if dt_trained.tzinfo is None:
