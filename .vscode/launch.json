@@ -203,11 +203,11 @@
             "cwd": "${workspaceFolder}/stat-analysis",
             "args": [
                 // "/fantasy/mlb.hist.2008-2025.scored.db",
-                "/fantasy/nfl.hist.2009-2024.scored.db",
+                "/fantasy/nfl.hist.2009-2025.scored.db",
                 // "/fantasy/nba.hist.20082009-20242025.scored.db",
                 // "/fantasy/nhl.hist.20082009-20242025.scored.db",
-                "pf",
-                // "thfa",
+                // "pf",
+                "thfa",
                 // "--min_season", "20222023",
                 // "--max_season", "20242025",
 

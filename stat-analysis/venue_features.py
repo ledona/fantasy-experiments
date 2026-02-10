@@ -20,7 +20,7 @@ _WEIGHTS = [0.5, 0.33, 0.17]
 _Features = Literal["pf", "thfa"]
 """the features that can be processed. pf=park-factor thfa=true-home-field-advantage"""
 
-_FEATURE_FILENAME_PART: dict[_Features, str] = {"pf": "park-factor", "thfa": "true-home-field-ad"}
+_FEATHURE_ABBR_TO_NAME: dict[_Features, str] = {"pf": "park-factor", "thfa": "true-home-field-ad"}
 """mapping of feature to string to use as part of filename"""
 
 
@@ -66,6 +66,10 @@ def _create_cli_parser():
 
 
 def _get_scoring_data(db_obj, min_season: None | int, max_season: None | int):
+    """
+    return dataframe containing game results for all games played in the requested
+    seasons.
+    """
     _LOGGER.info("Loading scoring data min_season=%s max_season=%s", min_season, max_season)
     with db_obj.session_scoped() as session:
         stmt = select(
@@ -76,7 +80,9 @@ def _get_scoring_data(db_obj, min_season: None | int, max_season: None | int):
             db.Game.away_team_id,
             db.Game.score_home,
             db.Game.score_away,
-        )
+            db.Team.abbr.label("home_team_abbr"),
+            db.Team.name.label("home_team_name"),
+        ).where(db.Game.home_team_id == db.Team.id)
         if min_season:
             stmt = stmt.filter(db.Game.season >= min_season)
         if max_season:
@@ -118,6 +124,12 @@ def _get_elo_data(db_obj, min_season: None | int, max_season: None | int):
 
 
 def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
+    """
+    return a dataframe with true home field advantage data for the requested seasons. dataframe columns
+    will include [season, venue, score, home_team_id, home_team_name, home_team_abbr] where, for each row,
+    score is the estimated true home field advantage that should be used for that team when playing at home
+    where home is the venue on that row and the home team is the same as described on that row.
+    """
     _LOGGER.info(
         "Calculating venue true home field advantage for min-season=%s max_season=%s",
         min_season,
@@ -165,13 +177,19 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
     )
 
     # 2. Aggregate and Add Padding for Inference season
-    venue_stats = historical_perf.groupby(["venue", "season"]).venue_effect.mean().reset_index()
+    venue_stats = (
+        historical_perf.groupby(
+            ["venue", "season", "home_team_id", "home_team_abbr", "home_team_name"]
+        )
+        .venue_effect.mean()
+        .reset_index()
+    )
 
     final_season = df.season.max()
-    final_season_venues = df.query("season == @final_season").venue.unique()
-    pad_df = pd.DataFrame(
-        {"season": [final_season + 1] * len(final_season_venues), "venue": final_season_venues}
-    )
+    final_season_home_teams = df.query("season == @final_season")[
+        ["venue", "home_team_id", "home_team_abbr", "home_team_name"]
+    ].drop_duplicates()
+    pad_df = final_season_home_teams.assign(season=final_season + 1)
 
     # Combine and Sort
     full_venue_df = pd.concat([venue_stats, pad_df], ignore_index=True)
@@ -180,13 +198,17 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
     # 3. Apply  Weights
     # Create shifted columns (Lags) for each venue
     for i in range(1, len(_WEIGHTS) + 1):
-        full_venue_df[f"v_lag{i}"] = full_venue_df.groupby("venue").venue_effect.shift(i)
+        full_venue_df[f"v_lag{i}"] = full_venue_df.groupby(
+            ["venue", "home_team_id"]
+        ).venue_effect.shift(i)
 
     full_venue_df["score"] = sum(
         full_venue_df[f"v_lag{i}"].fillna(0) * weight for i, weight in enumerate(_WEIGHTS, 1)
     )
 
-    return full_venue_df[["venue", "season", "score"]]
+    return full_venue_df[
+        ["venue", "season", "score", "home_team_id", "home_team_abbr", "home_team_name"]
+    ]
 
 
 def _park_factor(db_obj, min_season: None | int, max_season: None | int):
@@ -284,7 +306,7 @@ def _initialize(parser, cli_args):
         filepath_parts = [
             os.environ["FANTASY_ARCHIVE_BASE"],
             db_obj.db_manager.ABBR,
-            f"{_FEATURE_FILENAME_PART[cli_args.feature]}.{min_season}-{final_output_season}.{filetype}",
+            f"{_FEATHURE_ABBR_TO_NAME[cli_args.feature]}.{min_season}-{final_output_season}.{filetype}",
         ]
         output_filepath = os.path.join(*filepath_parts)
 
@@ -297,6 +319,8 @@ if __name__ == "__main__":
     _LOGGER = log.get_logger(__name__)
     cli_parser = _create_cli_parser()
     cli_args = cli_parser.parse_args()
+
+    _LOGGER.info("*** %s processing ***", _FEATHURE_ABBR_TO_NAME[cli_args.feature])
 
     db_obj, output_filepath, min_season, max_season = _initialize(cli_parser, cli_args)
 
@@ -322,3 +346,5 @@ if __name__ == "__main__":
             f"Not sure how we got here. Request was to output to file '{output_filepath}' but "
             "no output format was identified"
         )
+
+    _LOGGER.success("*** Finished %s Processing ***", _FEATHURE_ABBR_TO_NAME[cli_args.feature])
