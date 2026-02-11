@@ -9,7 +9,7 @@ from typing import Literal
 import pandas as pd
 from fantasy_py import db, log
 from fantasy_py.calculation import elo
-from fantasy_py.sport.extra_stats import expected_elo_mov
+from fantasy_py.sport.extra_stats import VenueAdvantageFeature, expected_elo_mov
 from sqlalchemy import func, select
 from tabulate import tabulate
 from tqdm import tqdm
@@ -17,10 +17,10 @@ from tqdm import tqdm
 _WEIGHTS = [0.5, 0.33, 0.17]
 """weights used for weighted average from most recent season to least recent"""
 
-_Features = Literal["pf", "thfa"]
-"""the features that can be processed. pf=park-factor thfa=true-home-field-advantage"""
-
-_FEATHURE_ABBR_TO_NAME: dict[_Features, str] = {"pf": "park-factor", "thfa": "true-home-field-ad"}
+_FEATHURE_ABBR_TO_NAME: dict[VenueAdvantageFeature, str] = {
+    "pf": "park-factor",
+    "thfa": "true-home-field-ad",
+}
 """mapping of feature to string to use as part of filename"""
 
 
@@ -29,7 +29,7 @@ def _create_cli_parser():
     parser.add_argument("DB_FILE", help="The database file")
     parser.add_argument(
         "feature",
-        choices=_Features.__args__,
+        choices=VenueAdvantageFeature.__args__,
         help="What feature to generate data for. pf=park-factor thfa=true-home-field-adventage. "
         "See VenueFeatures.md for details",
     )
@@ -270,6 +270,10 @@ def _initialize(parser, cli_args):
     """
     _LOGGER.info("Loading '%s'", cli_args.DB_FILE)
     db_obj = db.get_db_obj(cli_args.DB_FILE)
+    if not db_obj.db_manager.VENUE_SUPPORTED:
+        parser.error(
+            f"Sport {db_obj.db_manager.ABBR} in '{cli_args.DB_FILE}' does not support venue storage"
+        )
 
     with db_obj.session_scoped() as session:
         (db_min_season, db_max_season) = session.execute(
