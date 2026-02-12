@@ -118,20 +118,20 @@ class _TrainingParamsDict(TypedDict):
     # nullable/optional values
     seed: None | int
     p_or_t: PlayerOrTeam | None
-    include_pos: bool | None
+    include_pos: NotRequired[bool | None]
     cols_to_drop: list[str] | None
     """columns/features to drop from training data. wildcards/regexs are accepted
     must be None if cols_to_drop is not None"""
     missing_data_threshold: float | None
-    filtering_query: str | None
+    filtering_query: NotRequired[str | None]
     """pandas compatible query string that will be run on the loaded data"""
-    target_pos: list[str] | None
-    training_pos: list[str] | None
+    target_pos: NotRequired[list[str] | None]
+    training_pos: NotRequired[list[str] | None]
     train_params: dict[str, int | str | float | bool] | None
     """params passed to the training algorithm (likely as kwargs)"""
     original_model_columns: NotRequired[set[str]]
     """for use when retraining a model, the final input cols for the original model"""
-    limit: int | None
+    limit: NotRequired[int | None]
 
 
 class TrainingConfiguration:
@@ -531,12 +531,12 @@ class TrainingConfiguration:
                 target_tuple,
                 params["validation_season"],
                 params["seed"],
-                include_position=params["include_pos"],
+                include_position=params.get("include_pos"),
                 col_drop_filters=params["cols_to_drop"],
-                missing_data_warn_threshold=params.get("missing_data_threshold", 0),
-                filtering_query=params["filtering_query"],
+                missing_data_warn_threshold=params.get("missing_data_threshold") or 0,
+                filtering_query=params.get("filtering_query"),
                 limit=limit,
-                expected_cols=params["original_model_columns"] if self.retrain else None,
+                expected_cols=params.get("original_model_columns") if self.retrain else None,
             )
             _LOGGER.info(
                 "for %s data load of '%s' complete. one_hot_stats=%s",
@@ -563,7 +563,7 @@ class TrainingConfiguration:
 
         data_src_params: dict[_DATA_SRC_PARAMS, str | float | None] = {
             "missing_data_threshold": params.get("missing_data_threshold", 0),
-            "filtering_query": params["filtering_query"],
+            "filtering_query": params.get("filtering_query"),
             "data_filename": params["data_filename"],
         }
 

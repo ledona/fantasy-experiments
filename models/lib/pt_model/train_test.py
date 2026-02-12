@@ -36,9 +36,7 @@ from fantasy_py.inference import (
     SKLModel,
     StatInfo,
 )
-
-if TYPE_CHECKING:
-    from fantasy_py.sport import SportDBManager
+from fantasy_py.sport import SportDBManager
 from ledona import slack
 
 from .autogluon import AutoGluonWrapper
