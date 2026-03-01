@@ -31,10 +31,10 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                // "train", "2026.01/mlb.json", "*",
-                // "train", "2026.01/nba.json", "*", 
-                // "train", "2026.01/nfl.json", "*", 
-                "train", "2026.01/nhl.json", "*", 
+                // "train", "2026.03/mlb.json", "*",
+                "train", "2026.03/nba.json", "NBA-DK", 
+                // "train", "2026.03/nfl.json", "NFL-QB-DK", // "*", 
+                // "train", "2026.03/nhl.json", "*", 
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
 
@@ -42,10 +42,10 @@
                 // "--slack",
 
                 "--exists_mode", "reuse",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/data",
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-mid",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.03/models",
                 // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
-                "--data_limit", "250000",
+                // "--data_limit", "1000",
 
                 "--algo", "tpot",
                 // "--algo", "tpot-light",
@@ -188,8 +188,8 @@
             "args": [
                 "--mode", "reuse", 
                 "nfl", "mlb", "nhl", "nba", //"lol",
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2025.07",
-                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2025.07",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.03",
+                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2026.03",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/data",
                 "--framework", "reg_chain", "tpot"
             ]

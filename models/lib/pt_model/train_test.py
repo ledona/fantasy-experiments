@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime
 from glob import glob
 from pprint import pformat
-from typing import TYPE_CHECKING, Literal, cast
+from typing import Literal, cast
 
 import pandas as pd
 import pyarrow as pa
