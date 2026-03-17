@@ -344,6 +344,7 @@ def _create_expected_model_dict(
             "missing_data_threshold": _EXPECTED_TRAINING_CFG_PARAMS[model_name][
                 "missing_data_threshold"
             ],
+            "one_hot_features": ["pos"] if expected_training_data_def["include_pos"] else None,
             "data_filename": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["data_filename"],
             **TRAINING_PARAM_DEFAULTS["dummy"],
         },
@@ -422,11 +423,13 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None):
     else:
         mock_pd.read_parquet.return_value = loaded_data_df
 
-    feature_col = f"stat:{feature_stat}:std"
+    feature_col = f"stat:{feature_stat}"
     pos_col = f"pos_{position}"
     mock_pd.get_dummies.return_value = pd.DataFrame(
         {
-            feature_col: [8, 6, 7, 5],
+            f"{feature_col}:std": [8, 6, 7, 5],
+            f"{feature_col}:recent-mean": [8, 6, 7, 5],
+            f"{feature_col}:recent-1": [8, 6, 7, 5],
             pos_col: [1] * 4,
             "season": [_VALIDATION_SEASON] * 4,
             target_col: [1, 2, 3, 4],

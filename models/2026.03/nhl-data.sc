@@ -10,7 +10,7 @@ SKATER_STATS=("assist*" "fo*" "*away" "goal" "goal_pp" "goal_sh"
 GOALIE_STATS='giveaway goal_ag loss save toi win'
 SHARED_CURRENT_X="is_home odds_ou odds_ml thfa elo_mov days_rest_team"
 SHARED_CURRENT_OPP_X=("sg_*" "days_rest_team")
-DASK_TASKS=7
+DASK_TASKS=10
 
 # skater data
 dumpdata.sc $DB_FILE --slack --seasons $SEASONS \

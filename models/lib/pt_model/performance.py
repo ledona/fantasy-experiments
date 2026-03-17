@@ -109,6 +109,9 @@ def performance_calc(
         data_filepath = params["data_filename"]
         if data_dir is not None:
             data_filepath = os.path.join(data_dir, data_filepath)
+        raw_to_inf_pos_remap = (
+            self._inference_pos_remap(params["pos_remap"]) if "pos_remap" in params else None
+        )
 
         tt_data = load_data(
             data_filepath,
@@ -117,8 +120,9 @@ def performance_calc(
             params["seed"],
             include_position=params["include_pos"],
             col_drop_filters=params["cols_to_drop"],
-            filtering_query=params["filtering_query"],
+            filtering_query=params.get("filtering_query"),
             skip_data_reports=True,
+            inf_pos_remap=raw_to_inf_pos_remap
         )[1]
 
         y_train = tt_data[1]

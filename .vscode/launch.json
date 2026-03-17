@@ -41,13 +41,14 @@
                 // "--info",
                 // "--slack",
 
-                "--exists_mode", "reuse",
+                // "--exists_mode", "reuse",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.03/models",
+                "--dest_dir", "/tmp",
                 // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
                 // "--data_limit", "1000",
 
-                "--algo", "tpot",
+                "--algo", "dummy", 
+                // "--algo", "tpot",
                 // "--algo", "tpot-light",
                 "--max_iter_mins", "5",
                 "--gens", "10",
@@ -98,10 +99,10 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 "performance",
-                "/fantasy-isync/fantasy-modeling/2026.01/models-test/NBA-player-dreb.d_reb.autogluon.2026-01-28T171935.model",
-                "--cfg", "/fantasy-experiments/models/2026.01/nba.json",
+                "/tmp/NBA-DK.dk_score.dummy.2026-03-17T223354.model",
+                "--cfg", "/fantasy-experiments/models/2026.03/nba.json",
                 "--op", "calc", // "--skip_backups",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.01/data",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",
                 // "--max_missing_infer", "1"
             ]
         },

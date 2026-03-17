@@ -71,12 +71,12 @@
             },
             "models": {
                 "NBA-DK": {
+                    // "cols_to_drop": [
+                    //     "calc:(y|fd)_score.+"
+                    // ],
                     "target": [
                         "calc",
                         "dk_score"
-                    ],
-                    "cols_to_drop": [
-                        "calc:(y|fd)_score.+"
                     ]
                 },
                 "NBA-player-pts": {

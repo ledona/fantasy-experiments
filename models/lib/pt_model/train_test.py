@@ -63,6 +63,7 @@ def _load_data_local(
     validation_season: int,
     target_col_name: str,
     original_model_cols: set[str] | None,
+    inf_pos_remap: dict[str, str] | None,
 ):
     """
     validation_season: make sure that there is some validation data, even if\
@@ -74,6 +75,7 @@ def _load_data_local(
         these are columns that start with a feature type prefix
     original_model_cols: not none means that we are retraining a model and so\
         have an expected list of final input cols
+    inf_pos_remap: rename/remap positions. dict[old-pos, inference_pos]
     """
     if filename.endswith(".csv"):
         df_raw = pd.read_csv(filename, nrows=limit)
@@ -118,18 +120,26 @@ def _load_data_local(
             f"Available targets are {available_targets}"
         )
 
-    if include_position is True and "pos" not in df_raw:
+    if "pos" in df_raw:
+        if include_position is None:
+            raise UnexpectedValueError(
+                "Column 'pos' found in data, 'include_position' kwarg is required!"
+            )
+        if inf_pos_remap is not None:
+            if unmapped_pos := set(df_raw.pos.unique()) - set(inf_pos_remap.keys()):
+                raise UnexpectedValueError(
+                    f"Position remapping is not complete. It does not include a mapping for {unmapped_pos}"
+                )
+            df_raw.pos = df_raw.pos.map(lambda pos: inf_pos_remap[pos])
+    elif include_position is True:
         raise UnexpectedValueError(
             "Column 'pos' not found in data, 'include_position' must be None!"
-        )
-    if include_position is None and "pos" in df_raw:
-        raise UnexpectedValueError(
-            "Column 'pos' found in data, 'include_position' kwarg is required!"
         )
 
     cols_to_drop: set[str] = set()
     if col_drop_filters:
         feature_regex = r"^(stat|extra|calc):.*"
+        drop_filters_not_used = []
         for filter_ in col_drop_filters:
             re_cols_to_drop: set[str] = {
                 col
@@ -139,18 +149,22 @@ def _load_data_local(
                 and col != target_col_name
             }
             if len(re_cols_to_drop) == 0:
-                _LOGGER.error(
-                    "Filter '%s' did not match any input columns: %s",
-                    filter_,
-                    sorted(df_raw.columns),
-                )
-            else:
-                _LOGGER.info(
-                    "Column drop filter '%s' matched to %i feature cols",
-                    filter_,
-                    len(re_cols_to_drop),
-                )
+                drop_filters_not_used.append(filter_)
+                continue
+
+            _LOGGER.info(
+                "Column drop filter '%s' matched to %i feature cols",
+                filter_,
+                len(re_cols_to_drop),
+            )
             cols_to_drop |= re_cols_to_drop
+
+        if len(drop_filters_not_used) > 0:
+            _LOGGER.error(
+                "Filter '%s' did not match any input columns: %s",
+                filter_,
+                sorted(df_raw.columns),
+            )
         _LOGGER.info(
             "Dropping n=%i of %i columns",  # : %s",
             len(cols_to_drop),
@@ -374,6 +388,7 @@ def load_data(
     limit: int | None = None,
     expected_cols: None | set[str] = None,
     skip_data_reports=False,
+    inf_pos_remap: dict[str, str] | None = None,
 ):
     """
     Create train, test and validation data
@@ -391,9 +406,13 @@ def load_data(
     missing_data_threshold: warn about feature columns where data is not\
         found for more than this percentage of cases.E.g. 0 = warn in any data is missing\
         .25 = warn if > 25% of data is missing
-
+    inf_pos_remap: used if include_position is set. dict mapping pos-in-data-file -> pos-for-inference.\
+        If a remapping is defined all positions in the data file must be mapped (even if it is to itself).
     returns tuple of (raw data, {train, test and validation data}, one-hot-transformed stats)
     """
+    assert inf_pos_remap is None or (inf_pos_remap is not None and include_position), (
+        "if pos_remap is defined then include_position must be True"
+    )
     target_col_name = target if isinstance(target, str) else ":".join(target)
     _LOGGER.info("Target column name set to '%s'", target_col_name)
 
@@ -405,6 +424,7 @@ def load_data(
         validation_season,
         target_col_name,
         expected_cols,
+        inf_pos_remap,
     )
     if filtering_query:
         try:
@@ -649,16 +669,12 @@ def _create_fantasy_model(
     target_pos: None | list[str],
     training_pos: None | list[str],
     limit: int | None,
-    model_params: dict[str, str | int],
+    inf_pos_remap: dict | None,
+    model_params: dict,
     model_info: None | dict,
-    one_hot_stats: dict[str, list[str]] | None = None,
-    recent_mean: bool = True,
-    recent_explode: bool = True,
-    only_starters: bool | None = None,
 ) -> PTPredictModel:
     """Create a model object"""
     _LOGGER.info("Creating fantasy model for '%s'", name)
-    assert one_hot_stats is None or list(one_hot_stats.keys()) == ["extra:venue"]
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features_sets: dict[FeatureType, set[str]] = defaultdict(set)
@@ -667,10 +683,18 @@ def _create_fantasy_model(
     db_manager = cast(
         SportDBManager, CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport_abbr.lower())
     )
+    recent_mean = False
+    recent_explode = False
     for col in columns:
         if col.startswith("pos_"):
             include_pos = True
             continue
+
+        if ":recent-mean" in col:
+            recent_mean = True
+        elif ":recent-1" in col:
+            recent_explode = True
+
         col_split = col.split(":")
 
         assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"]
@@ -726,10 +750,10 @@ def _create_fantasy_model(
     }
     if limit is not None:
         data_def["limit"] = limit
-    if only_starters is not None:
-        data_def["only_starters"] = only_starters
     if training_pos is not None:
         data_def["training_pos"] = training_pos
+    if inf_pos_remap is not None:
+        data_def["inf_pos_remap"] = inf_pos_remap
     imputes = _infer_imputes(training_features_df, p_or_t.is_team)
     uname = platform.uname()
     model_cls = _get_model_cls(cast(AlgorithmType, model_params["algorithm"]))
@@ -811,8 +835,9 @@ def model_and_test(
     dest_dir: str,
     mode: ModelFileFoundMode,
     limit: int | None,
-    model_dest_filename: str | None = None,
-    data_src_params: dict | None = None,
+    inf_pos_remap: dict | None,
+    model_dest_filename: str | None,
+    data_src_params: dict | None,
 ):
     """
     train or load a model, test it, then wrap it and export it for use
@@ -886,6 +911,7 @@ def model_and_test(
             target_pos,
             training_pos,
             limit,
+            inf_pos_remap,
             addl_params,
             addl_info,
         )

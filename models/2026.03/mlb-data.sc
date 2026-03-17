@@ -2,8 +2,7 @@
 
 DB_FILE=${FANTASY_HOME}/mlb.hist.2008-2025.scored.db
 DEST=/fantasy-isync/fantasy-modeling/2026.03/data
-# no more than 1 processes (dask tasks) per 4 GB of available RAM
-DASK_TASKS=7
+DASK_TASKS=10
 SHARED_CURRENT_X="odds_ou venue "weather_*" elo_mov indoors is_home elevation thfa pf"
 
 # dump hitter data, apart from obvious targets,
@@ -25,6 +24,7 @@ dumpdata.sc --seasons $SEASONS --no_team --only_starters \
    --target_calc_stats "*_score" \
    --hist_recent_games 5 --hist_recent_mode m \
    --dask_mode processes --dask_tasks $DASK_TASKS \
+   --inf_nofail_cols extra:pf#2008 extra:thfa#2008 \
    --slack $DB_FILE --format parquet -f ${DEST}/mlb_hitter.parquet
 
 # dump pitchers

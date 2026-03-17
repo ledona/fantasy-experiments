@@ -91,7 +91,13 @@ def _all_algo_params():
 
 """set of all valid param names"""
 
-_DATA_SRC_PARAMS = Literal["missing_data_threshold", "filtering_query", "data_filename"]
+_DataSrcParams = Literal[
+    "missing_data_threshold",
+    "filtering_query",
+    "data_filename",
+    "one_hot_features",
+    "inf_pos_remap",
+]
 """model parameters describing load and filtering of training data"""
 
 DEFAULT_ALGORITHM: AlgorithmType = "tpot"
@@ -132,6 +138,14 @@ class _TrainingParamsDict(TypedDict):
     original_model_columns: NotRequired[set[str]]
     """for use when retraining a model, the final input cols for the original model"""
     limit: NotRequired[int | None]
+    """limit the data used in training to this many cases"""
+    one_hot_features: NotRequired[None | list[str]]
+    """features that were one hotted"""
+    pos_remap: NotRequired[dict[str, str]]
+    """
+    mapping/renaming of position. final-pos-abbr -> comma-sep-list-of-original-pos
+    This is what will be defined in a model def file. 
+    """
 
 
 class TrainingConfiguration:
@@ -249,7 +263,7 @@ class TrainingConfiguration:
 
         model_params_dict = {
             key: orig_model.parameters[key]
-            for key in _DATA_SRC_PARAMS.__args__
+            for key in _DataSrcParams.__args__
             if key in orig_model.parameters
         }
         model_params_dict.update(
@@ -429,8 +443,7 @@ class TrainingConfiguration:
             param_dict["training_pos"] = param_dict["target_pos"]
         return cast(_TrainingParamsDict, param_dict)
 
-    @staticmethod
-    def _get_regressor_params(algorithm, cli_params: dict, model_params: dict):
+    def _get_regressor_params(self, cli_params: dict, model_params: dict):
         """
         Helper that finalizes regressor parameters based on the following (in order
         or precedence).
@@ -441,7 +454,7 @@ class TrainingConfiguration:
 
         return the finalized regressor params
         """
-        defaults = TRAINING_PARAM_DEFAULTS[algorithm]
+        defaults = TRAINING_PARAM_DEFAULTS[self.algorithm]
         regressor_params: dict = {}
 
         if (
@@ -466,11 +479,21 @@ class TrainingConfiguration:
             _LOGGER.warning(
                 "Ignoring following %i parameters not used by '%s' models: %s",
                 len(ignored_params),
-                algorithm,
+                self.algorithm,
                 ignored_params,
             )
 
         return regressor_params
+
+    @staticmethod
+    def _inference_pos_remap(pos_remap: dict[str, str]):
+        """return mapping from old-pos -> inference-pos. needed because input file has
+        inference-pos -> comma-sep-list-old-pos"""
+        return {
+            data_pos.strip(): inf_pos
+            for inf_pos, data_pos_comma_sep in pos_remap.items()
+            for data_pos in data_pos_comma_sep.split(",")
+        }
 
     @process_timer
     def train_and_test(
@@ -515,15 +538,16 @@ class TrainingConfiguration:
         ):
             raise UnexpectedValueError(f"Invalid model target: {target_tuple}")
 
-        final_regressor_params = self._get_regressor_params(
-            self.algorithm, train_params, cast(dict, params)
-        )
+        final_regressor_params = self._get_regressor_params(train_params, cast(dict, params))
         print(f"\nInitial training params from '{self.source}' for '{model_name}':")
         pprint(params)
         print(f"\nFinal regressor kwargs for '{model_name}':")
         pprint(final_regressor_params)
         if limit is not None:
             print(f"with a training data limit of {limit}")
+        raw_to_inf_pos_remap = (
+            self._inference_pos_remap(params["pos_remap"]) if "pos_remap" in params else None
+        )
 
         try:
             _, tt_data, one_hot_stats = load_data(
@@ -537,6 +561,7 @@ class TrainingConfiguration:
                 filtering_query=params.get("filtering_query"),
                 limit=limit,
                 expected_cols=params.get("original_model_columns") if self.retrain else None,
+                inf_pos_remap=raw_to_inf_pos_remap,
             )
             _LOGGER.info(
                 "for %s data load of '%s' complete. one_hot_stats=%s",
@@ -561,10 +586,11 @@ class TrainingConfiguration:
         if info:
             return None
 
-        data_src_params: dict[_DATA_SRC_PARAMS, str | float | None] = {
+        data_src_params: dict[_DataSrcParams, list | dict | str | float | None] = {
             "missing_data_threshold": params.get("missing_data_threshold", 0),
             "filtering_query": params.get("filtering_query"),
             "data_filename": params["data_filename"],
+            "one_hot_features": one_hot_stats,
         }
 
         model = model_and_test(
@@ -578,13 +604,14 @@ class TrainingConfiguration:
             params["recent_games"],
             params["training_seasons"],
             final_regressor_params,
-            params["target_pos"],
-            params["training_pos"] or params["target_pos"],
+            params.get("target_pos"),
+            params.get("training_pos") or params.get("target_pos"),
             dest_dir,
             file_found_mode,
             limit,
-            model_dest_filename=dest_filename,
-            data_src_params=data_src_params,
+            raw_to_inf_pos_remap,
+            dest_filename,
+            data_src_params,
         )
 
         return model
