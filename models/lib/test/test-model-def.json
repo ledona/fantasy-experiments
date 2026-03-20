@@ -9,7 +9,7 @@
             2021,
             2022
         ],
-        "missing_data_threshold": 0.1,
+        "missing_data_warn_threshold": 0.1,
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
@@ -37,7 +37,7 @@
             "data_filename": "mlb_pitcher.parquet",
             "p_or_t": "P",
             "include_pos": false,
-            "missing_data_threshold": 0.28,
+            "missing_data_warn_threshold": 0.28,
             "target_pos": [
                 "P"
             ],

@@ -21,7 +21,13 @@ from fantasy_py.inference import PTPredictModel, guess_sport_from_path
 from ledona import process_timer
 from typeguard import TypeCheckError, check_type
 
-from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
+from .train_test import (
+    AlgorithmType,
+    ModelFileFoundMode,
+    load_data,
+    model_and_test,
+    parse_fail_threshold,
+)
 
 if TYPE_CHECKING:
     from fantasy_py.sport import SportDBManager
@@ -92,13 +98,26 @@ def _all_algo_params():
 """set of all valid param names"""
 
 _DataSrcParams = Literal[
-    "missing_data_threshold",
+    "missing_data_warn_threshold",
+    "missing_data_fail_threshold",
     "filtering_query",
     "data_filename",
     "one_hot_features",
     "inf_pos_remap",
 ]
 """model parameters describing load and filtering of training data"""
+
+
+def _fail_threshold_to_str_list(value: float | dict[str | None, float]) -> list[str]:
+    """convert a resolved fail threshold back to a JSON-serializable list of token strings"""
+    if isinstance(value, (int, float)):
+        return [str(value)]
+    tokens = []
+    if (global_pct := value.get(None)) is not None:
+        tokens.append(str(global_pct))
+    tokens.extend(f"{pct}#{pattern}" for pattern, pct in value.items() if pattern is not None)
+    return tokens
+
 
 DEFAULT_ALGORITHM: AlgorithmType = "tpot"
 
@@ -128,7 +147,8 @@ class _TrainingParamsDict(TypedDict):
     cols_to_drop: list[str] | None
     """columns/features to drop from training data. wildcards/regexs are accepted
     must be None if cols_to_drop is not None"""
-    missing_data_threshold: float | None
+    missing_data_warn_threshold: float | None
+    missing_data_fail_threshold: NotRequired[float | list[str] | None]
     filtering_query: NotRequired[str | None]
     """pandas compatible query string that will be run on the loaded data"""
     target_pos: NotRequired[list[str] | None]
@@ -254,7 +274,7 @@ class TrainingConfiguration:
                 train_params[param] = orig_model.parameters[param]
                 continue
 
-            if train_cfg_params and param in train_cfg_params["train_params"]:
+            if train_cfg_params and train_cfg_params["train_params"] and param in train_cfg_params["train_params"]:
                 train_params[param] = train_cfg_params["train_params"][param]
                 continue
 
@@ -266,6 +286,14 @@ class TrainingConfiguration:
             for key in _DataSrcParams.__args__
             if key in orig_model.parameters
         }
+        # backward compat: old models stored the warn threshold under the old key name
+        if (
+            "missing_data_warn_threshold" not in model_params_dict
+            and "missing_data_threshold" in orig_model.parameters
+        ):
+            model_params_dict["missing_data_warn_threshold"] = orig_model.parameters[
+                "missing_data_threshold"
+            ]
         model_params_dict.update(
             {
                 "sport": orig_model.sport,
@@ -538,6 +566,16 @@ class TrainingConfiguration:
         ):
             raise UnexpectedValueError(f"Invalid model target: {target_tuple}")
 
+        cli_fail_threshold = train_params.pop("feature_na_fail_pct", None)
+        if cli_fail_threshold is not None:
+            missing_data_fail_threshold = cli_fail_threshold
+        elif (cfg_fail_threshold := params.get("missing_data_fail_threshold")) is not None:
+            missing_data_fail_threshold = parse_fail_threshold(cfg_fail_threshold)
+        else:
+            missing_data_fail_threshold: float | dict[str | None, float] = 0.5
+        missing_data_warn_threshold = (
+            params.get("missing_data_warn_threshold") or params.get("missing_data_threshold") or 0
+        )
         final_regressor_params = self._get_regressor_params(train_params, cast(dict, params))
         print(f"\nInitial training params from '{self.source}' for '{model_name}':")
         pprint(params)
@@ -557,7 +595,8 @@ class TrainingConfiguration:
                 params["seed"],
                 include_position=params.get("include_pos"),
                 col_drop_filters=params["cols_to_drop"],
-                missing_data_warn_threshold=params.get("missing_data_threshold") or 0,
+                missing_data_warn_threshold=missing_data_warn_threshold,
+                missing_data_fail_threshold=missing_data_fail_threshold,
                 filtering_query=params.get("filtering_query"),
                 limit=limit,
                 expected_cols=params.get("original_model_columns") if self.retrain else None,
@@ -587,7 +626,8 @@ class TrainingConfiguration:
             return None
 
         data_src_params: dict[_DataSrcParams, list | dict | str | float | None] = {
-            "missing_data_threshold": params.get("missing_data_threshold", 0),
+            "missing_data_warn_threshold": missing_data_warn_threshold,
+            "missing_data_fail_threshold": _fail_threshold_to_str_list(missing_data_fail_threshold),
             "filtering_query": params.get("filtering_query"),
             "data_filename": params["data_filename"],
             "one_hot_features": one_hot_stats,

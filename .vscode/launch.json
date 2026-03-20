@@ -32,7 +32,7 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 // "train", "2026.03/mlb.json", "*",
-                "train", "2026.03/nba.json", "NBA-DK", 
+                "train", "2026.03/nhl.json", "NHL-skater*", 
                 // "train", "2026.03/nfl.json", "NFL-QB-DK", // "*", 
                 // "train", "2026.03/nhl.json", "*", 
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
@@ -40,6 +40,7 @@
 
                 // "--info",
                 // "--slack",
+                // "--feature_na_fail_pct", ".65#*shift*",
 
                 // "--exists_mode", "reuse",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",

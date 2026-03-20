@@ -23,7 +23,7 @@
             20232024,
             20242025
         ],
-        "missing_data_threshold": 0.09,
+        "missing_data_warn_threshold": 0.09,
         "train_params": {
             "nn.early_stop": 20,
             "early_stop": 3,

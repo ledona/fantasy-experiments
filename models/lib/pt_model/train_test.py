@@ -1,5 +1,6 @@
 """use this module's functions to train and evaluate models"""
 
+import fnmatch
 import os
 import platform
 import re
@@ -161,9 +162,8 @@ def _load_data_local(
 
         if len(drop_filters_not_used) > 0:
             _LOGGER.error(
-                "Filter '%s' did not match any input columns: %s",
-                filter_,
-                sorted(df_raw.columns),
+                "Following filters did not match any input columns: %s",
+                drop_filters_not_used,
             )
         _LOGGER.info(
             "Dropping n=%i of %i columns",  # : %s",
@@ -233,8 +233,56 @@ def infer_feature_cols(df: pd.DataFrame, include_position: bool):
     ]
 
 
-def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_threshold, skip_report):
-    assert warning_threshold < fail_threshold
+def parse_fail_threshold(
+    value: float | list[str],
+) -> float | dict[str | None, float]:
+    """
+    Parse a fail threshold value from cfg-file/stored form into the runtime form
+    expected by _missing_feature_data_report. value is either a plain float (global
+    threshold) or a list of token strings in '<float>' or '<float>#<col-pattern>'
+    format (same format as the --feature_na_fail_pct CLI arg). Raises ValueError
+    on invalid input.
+    """
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    global_threshold: float | None = None
+    col_thresholds: dict[str, float] = {}
+    for token in value:
+        parts = token.split("#", 1)
+        try:
+            pct = float(parts[0])
+        except ValueError:
+            raise ValueError(f"invalid threshold value '{parts[0]}' in '{token}'")
+        if not (0 < pct <= 1):
+            raise ValueError(f"threshold '{pct}' must be > 0 and <= 1 (in '{token}')")
+        if len(parts) == 1:
+            if global_threshold is not None:
+                raise ValueError("only one global threshold (no col-pattern) allowed")
+            global_threshold = pct
+        else:
+            col_pattern = parts[1]
+            if col_pattern in col_thresholds:
+                raise ValueError(f"duplicate threshold for pattern '{col_pattern}'")
+            col_thresholds[col_pattern] = pct
+
+    if not col_thresholds:
+        return global_threshold  # type: ignore[return-value]
+    result: dict[str | None, float] = dict(col_thresholds)
+    if global_threshold is not None:
+        result[None] = global_threshold
+    return result
+
+
+def _missing_feature_data_report(
+    df: pd.DataFrame,
+    warning_threshold: float,
+    fail_threshold: float | dict[None | str, float],
+    skip_report,
+):
+    """
+    fail_threshold: see missing_data_fail_threshold in load_data
+    """
     counts = df.count()
     counts.name = "valid-data"
     counts.index.name = "feature-name"
@@ -251,14 +299,16 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_thres
         print("\n   -----  MISSING-DATA-REPORT  -----")
         print(f"cases={len(df)} warning_threshold={warning_threshold * 100:.02f}%")
         if len(warning_df) == 0:
-            print(f"All features have less than {warning_threshold * 100:.02f}% missing values")
+            print(
+                f"{log.GREEN}All features have less than {warning_threshold * 100:.02f}% missing values{log.COLOR_RESET}"
+            )
 
     if len(warning_df) == 0:
         return
 
     if not skip_report:
         print(
-            f"{len(warning_df)} of {len(df.columns)} features have "
+            log.BOLD_RED + f"{len(warning_df)} of {len(df.columns)} features have "
             f">{warning_threshold * 100:.02f}% missing values."
         )
 
@@ -271,12 +321,61 @@ def _missing_feature_data_report(df: pd.DataFrame, warning_threshold, fail_thres
                     formatters={"%-NA": "{:.02f}%".format, "%-valid": "{:.02f}%".format},
                 )
             )
-    fail_df = missing_data_df.query("`%-NA` > (@fail_threshold * 100)")
-    if len(fail_df) > 0:
-        raise DataNotAvailableException(
-            "The following features were below the fail threshold of "
-            f"{fail_threshold}: {fail_df['feature-name'].to_list()}"
-        )
+        print(log.COLOR_RESET)
+    if isinstance(fail_threshold, dict):
+        global_threshold = fail_threshold.get(None, 0.5)
+        col_patterns = {k: v for k, v in fail_threshold.items() if k is not None}
+        all_features = missing_data_df["feature-name"].to_list()
+
+        unmatched_patterns = [
+            p
+            for p in col_patterns
+            if not any(p == f or fnmatch.fnmatch(f, p) for f in all_features)
+        ]
+        if unmatched_patterns:
+            raise UnexpectedValueError(
+                f"feature_na_fail_pct patterns matched no feature columns: {unmatched_patterns}"
+            )
+
+        multi_matched = {
+            feature: matches
+            for feature in all_features
+            if len(
+                matches := [p for p in col_patterns if p == feature or fnmatch.fnmatch(feature, p)]
+            )
+            > 1
+        }
+        if multi_matched:
+            raise UnexpectedValueError(
+                f"feature_na_fail_pct: feature columns matched by multiple patterns: {multi_matched}"
+            )
+
+        def _resolve_threshold(feature: str) -> float | None:
+            if feature in col_patterns:
+                return col_patterns[feature]
+            for pattern, pct in col_patterns.items():
+                if fnmatch.fnmatch(feature, pattern):
+                    return pct
+            return global_threshold
+
+        failed = [
+            (row["feature-name"], f"{threshold=}", f"na%={row['%-NA']}")
+            for _, row in missing_data_df.iterrows()
+            if (threshold := _resolve_threshold(row["feature-name"])) is not None
+            and row["%-NA"] > threshold * 100
+        ]
+        if failed:
+            raise DataNotAvailableException(
+                "The following features exceeded their fail threshold. "
+                f"Check/rebuild the inf training data or use --feature_na_fail_pct to not fail: {failed}"
+            )
+    else:
+        fail_df = missing_data_df.query("`%-NA` > (@fail_threshold * 100)")
+        if len(fail_df) > 0:
+            raise DataNotAvailableException(
+                "The following features were below the fail threshold of "
+                f"{fail_threshold}: {fail_df['feature-name'].to_list()}"
+            )
 
 
 def _summarize_final_feature_cols(
@@ -384,7 +483,7 @@ def load_data(
     col_drop_filters: None | list[str] = None,
     filtering_query: None | str = None,
     missing_data_warn_threshold=0.0,
-    missing_data_fail_threshold=0.5,
+    missing_data_fail_threshold: float | dict[str | None, float] = 0.5,
     limit: int | None = None,
     expected_cols: None | set[str] = None,
     skip_data_reports=False,
@@ -403,9 +502,14 @@ def load_data(
     filtering_query: query to execute (using dataframe.query) to filter\
         for rows in the input data. Executed before one-hot and column drops.\
         Data is ALWAYS filtered for notna of target
-    missing_data_threshold: warn about feature columns where data is not\
+    missing_data_warn_threshold: warn about feature columns where data is not\
         found for more than this percentage of cases.E.g. 0 = warn in any data is missing\
         .25 = warn if > 25% of data is missing
+    missing_data_fail_threshold: fail on features where the % of NAs exceeds the threshold\
+        defined in this parameter. threshold is a percentage, from 0-1. If this args is a float\
+        then all features must have less than this %. If it is a dict then keys are column names\
+        for features and the value is the fail threshold for that feature, with a fallback fail\
+        threshold having a None key.
     inf_pos_remap: used if include_position is set. dict mapping pos-in-data-file -> pos-for-inference.\
         If a remapping is defined all positions in the data file must be mapped (even if it is to itself).
     returns tuple of (raw data, {train, test and validation data}, one-hot-transformed stats)

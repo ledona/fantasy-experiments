@@ -24,17 +24,14 @@
             20232024,
             20242025
         ],
-        "missing_data_threshold": 0.085,
+        "missing_data_warn_threshold": 0.085,
         "train_params": {
             "nn.early_stop": 20,
             "epochs_max": 500,
             "early_stop": 3,
             "tp:population_size": 50,
             "max_time_mins": 360
-        },
-        "cols_to_drop": [
-            "extra:venue"
-        ]
+        }
     },
     "model_groups": [
         {
@@ -64,6 +61,7 @@
             "data_filename": "nhl_skater.parquet",
             "include_pos": true,
             "p_or_t": "P",
+            "missing_data_fail_threshold": ["0.65#*shift*"],
             "train_params": {
                 "n_jobs": 5,
                 "tp:max_eval_time_mins": 10,

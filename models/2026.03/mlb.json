@@ -17,7 +17,7 @@
             2024,
             2025
         ],
-        "missing_data_threshold": 0.1,
+        "missing_data_warn_threshold": 0.1,
         "train_params": {
             "epochs_max": 500,
             "early_stop": 3,
@@ -60,7 +60,7 @@
             "data_filename": "mlb_pitcher.parquet",
             "p_or_t": "P",
             "include_pos": false,
-            "missing_data_threshold": 0.28,
+            "missing_data_warn_threshold": 0.28,
             "train_params": {
                 "tp:population_size": 40,
                 "nn:learning_rate": 0.00001,

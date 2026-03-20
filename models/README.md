@@ -70,7 +70,31 @@ To create, archive and use new predictive models perform the following steps
   ]
 }
 ```
-1. Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). From the models folder execute:
+1. Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). To start it is good to create test models to ensure that the model definition files work with the inference training data and are free of basic bugs.
+
+```
+cd /fantasy-experiments/models
+# replace {SPORT-ABBR} with a sport abbreviation matching a model training filename
+
+# dummy algorithm models
+python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
+  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo dummy
+
+# nn test models
+python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
+  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo nn --max_epochs 3
+
+# autogluon
+python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
+  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo autogluon --max_time 2 --ag:preset medium
+
+# tpot (for larger dataset use --limit 10000)
+python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
+  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo tpot-light --max_time 3 --max_iter_mins 1 --population 5
+```
+
+If models are created successfully either go ahead and create real models or do more testing by using model_manager.py to import the models for use in inference. To train models for real see the following examples of how to use lib.regressor.
+
 ```
 # list models defined in a model definition file
 python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
@@ -126,8 +150,8 @@ python -m lib.regressor performance [MODEL_FILE_PATTERN] \
 ## Loading Active Models (train uncertainty predictors)
 The active model folder is defined in the environment variable __FANTASY_MODELS_PATH__. Uncertainty/error estimation models are also required for numerous things and can be trained at this step.
 ```
-# model_manager.py import {paths to .model files or a single .csv file with best models}
-# model_manager.py fit-uncertainty --data_dir {path to data used to train the original models} {models to train, glob patterns supported}
+model_manager.py import {paths to .model files or a single .csv file with best models}
+model_manager.py fit-uncertainty --data_dir {path to data used to train the original models} {models to train, glob patterns supported}
 ```
 
 ## Cloud Training

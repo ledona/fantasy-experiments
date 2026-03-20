@@ -36,6 +36,59 @@ from .pt_model import (
 _LOGGER = log.get_logger(__name__)
 
 
+def _parse_feature_na_fail_pct(token: str) -> tuple[float, str | None]:
+    """
+    Argparse type function for a single --feature_na_fail_pct token.
+    Token format: '<float>' (global) or '<float>#<col-pattern>' (column-specific).
+    Column patterns support wildcards (* and ?). Threshold must be > 0 and <= 1.
+    Returns (threshold, col_pattern) where col_pattern is None for global thresholds.
+    """
+    parts = token.split("#", 1)
+    try:
+        pct = float(parts[0])
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"invalid threshold value '{parts[0]}' in '{token}'")
+    if not (0 < pct <= 1):
+        raise argparse.ArgumentTypeError(f"threshold '{pct}' must be > 0 and <= 1 (in '{token}')")
+    return (pct, parts[1] if len(parts) == 2 else None)
+
+
+def _combine_feature_na_fail_pct(
+    parsed_tokens: list[tuple[float, str | None]], parser: argparse.ArgumentParser
+) -> float | dict[str | None, float]:
+    """
+    Combine parsed --feature_na_fail_pct tokens into the form expected by
+    load_data's missing_data_fail_threshold. Only one global threshold (no
+    col-pattern) is allowed, and no duplicate col-patterns. Returns a float
+    if only a single global threshold is given, otherwise a dict with None
+    key for the global threshold and col-pattern keys for column-specific ones.
+    """
+    global_threshold: float | None = None
+    col_thresholds: dict[str, float] = {}
+
+    for pct, col_pattern in parsed_tokens:
+        if col_pattern is None:
+            if global_threshold is not None:
+                parser.error(
+                    "--feature_na_fail_pct: only one global threshold (no col-pattern) allowed"
+                )
+            global_threshold = pct
+        else:
+            if col_pattern in col_thresholds:
+                parser.error(
+                    f"--feature_na_fail_pct: duplicate threshold for pattern '{col_pattern}'"
+                )
+            col_thresholds[col_pattern] = pct
+
+    if not col_thresholds:
+        return global_threshold  # type: ignore[return-value]
+
+    result: dict[str | None, float] = {k: v for k, v in col_thresholds.items()}
+    if global_threshold is not None:
+        result[None] = global_threshold
+    return result
+
+
 def _expand_models(
     tdf: TrainingConfiguration,
     model_request: str | list[str] | None,
@@ -173,6 +226,8 @@ def _handle_train(args: argparse.Namespace):
         model_names = [original_model.name]
         assert original_model.parameters is not None
 
+    if args.feature_na_fail_pct is not None:
+        args.feature_na_fail_pct = _combine_feature_na_fail_pct(args.feature_na_fail_pct, args.parser)
     _LOGGER.info("Training %i models. info-mode=%s: %s", len(model_names), args.info, model_names)
 
     if args.slack and not args.info:
@@ -289,6 +344,19 @@ def _add_train_parser(sub_parsers):
         )
 
         # SHARED REGRESSOR PARAMS
+        train_parser.add_argument(
+            "--feature_na_fail_pct",
+            help="If the pct of NAs for a feature exceed this percentage then raise "
+            "an error (fail the training request). A global threshold can be defined, and/or "
+            "feature specific thresholds can be set using '#' as separator (e.g. '0.3#*stat*'). "
+            "Column patterns support wildcards (* and ?). A threshold value must be > 0, and <= 1. "
+            "Default is 0.5 unless overridden in the training definition file.",
+            type=_parse_feature_na_fail_pct,
+            nargs="+",
+            default=None,
+            metavar="%|%#col-pattern",
+        )
+
         train_parser.add_argument(
             "--n_jobs",
             help="Number of jobs/processors to use during training",

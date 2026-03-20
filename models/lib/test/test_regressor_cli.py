@@ -42,7 +42,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
             "extra:(whip|venue|opp|hit|is_home).*",
             "stat:.*:.*",
         ],
-        "missing_data_threshold": 0.1,
+        "missing_data_warn_threshold": 0.1,
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
@@ -60,7 +60,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
         "cols_to_drop": [".*dk_score:.*", ".*recent-.*", ".*y_score.*", "extra:venue.*"],
-        "missing_data_threshold": 0.28,
+        "missing_data_warn_threshold": 0.28,
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
@@ -80,7 +80,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
         "cols_to_drop": [".*y_score.*", "extra:bases"],
-        "missing_data_threshold": 0.1,
+        "missing_data_warn_threshold": 0.1,
         "train_params": {
             "nn:batch_size": 64,
             "nn:hidden_layers": 1,
@@ -103,7 +103,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "seed": 1,
         "p_or_t": PlayerOrTeam.PLAYER,
         "cols_to_drop": ["extra:bases"],
-        "missing_data_threshold": 0.1,
+        "missing_data_warn_threshold": 0.1,
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
@@ -304,7 +304,7 @@ def _create_expected_model_dict(
             "filtering_query",
             "train_params",
             "cols_to_drop",
-            "missing_data_threshold",
+            "missing_data_warn_threshold",
             "target_pos",
             "limit",
         ]
@@ -341,9 +341,10 @@ def _create_expected_model_dict(
         "parameters": {
             "algorithm": algorithm,
             "filtering_query": None,
-            "missing_data_threshold": _EXPECTED_TRAINING_CFG_PARAMS[model_name][
-                "missing_data_threshold"
+            "missing_data_warn_threshold": _EXPECTED_TRAINING_CFG_PARAMS[model_name][
+                "missing_data_warn_threshold"
             ],
+            "missing_data_fail_threshold": ["0.5"],
             "one_hot_features": ["pos"] if expected_training_data_def["include_pos"] else None,
             "data_filename": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["data_filename"],
             **TRAINING_PARAM_DEFAULTS["dummy"],

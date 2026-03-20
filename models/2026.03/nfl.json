@@ -23,7 +23,7 @@
             // 2024, validation
             2025
         ],
-        "missing_data_threshold": 0.15,
+        "missing_data_warn_threshold": 0.15,
         "train_params": {
             "nn.epochs_max": 2000,
             "early_stop": 3,

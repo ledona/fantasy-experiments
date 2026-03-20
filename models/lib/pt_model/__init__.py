@@ -7,7 +7,13 @@ from .cfg import (
     _TrainingParamsDict,
 )
 from .performance import PerformanceOperation, performance_calc
-from .train_test import AlgorithmType, ModelFileFoundMode, load_data, model_and_test
+from .train_test import (
+    AlgorithmType,
+    ModelFileFoundMode,
+    load_data,
+    model_and_test,
+    parse_fail_threshold,
+)
 
 __all__ = [
     "TrainingConfiguration",
@@ -20,4 +26,5 @@ __all__ = [
     "TRAINING_PARAM_DEFAULTS",
     "DEFAULT_ALGORITHM",
     "ModelFileFoundMode",
+    "parse_fail_threshold",
 ]
