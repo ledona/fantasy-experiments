@@ -189,7 +189,12 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
     final_season_home_teams = df.query("season == @final_season")[
         ["venue", "home_team_id", "home_team_abbr", "home_team_name"]
     ].drop_duplicates()
-    pad_df = final_season_home_teams.assign(season=final_season + 1)
+    if len(final_season_str := str(final_season)) == 8:
+        s1 = final_season_str[:4]
+        pad_season = ((int(s1) + 1) * 10000) + (int(s1) + 2)
+    else:
+        pad_season = final_season + 1
+    pad_df = final_season_home_teams.assign(season=pad_season)
 
     # Combine and Sort
     full_venue_df = pd.concat([venue_stats, pad_df], ignore_index=True)

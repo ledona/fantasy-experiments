@@ -36,12 +36,13 @@ Before models can be trained, training data must be constructed. To export train
 ### Creating Player/Team regression models
 To create, archive and use new predictive models perform the following steps
 
-1. Update the model training json files.
-    - The training files are json dicts with the following structure. 
-      - The union of _train_params_ are used to train a model. Values set at a lower level, more specific to the model, take precidence.
-      - _train_params_ can be designated as algorithm specific by prefixing the parameter name with "_algorithm._". E.g. a parameter named _param_ that only applies to the _tpot_ algorithm should be named _tpot.param_.Algorithm specific parameters take precidence over none algorithm specific parameters of the same name.
-      - The union of _train_params_ and _cols_to_drop_ are used to train a model. For _train_params_ values from the lowest (most specific to the model) level override parameters with the same name at a higher level.
-      - Refer to previous files for examples.
+#### Model JSON Files
+Update the model training json files.
+  - The training files are json dicts with the following structure. 
+    - The union of _train_params_ are used to train a model. Values set at a lower level, more specific to the model, take precidence.
+    - _train_params_ can be designated as algorithm specific by prefixing the parameter name with "_algorithm._". E.g. a parameter named _param_ that only applies to the _tpot_ algorithm should be named _tpot.param_.Algorithm specific parameters take precidence over none algorithm specific parameters of the same name.
+    - The union of _train_params_ and _cols_to_drop_ are used to train a model. For _train_params_ values from the lowest (most specific to the model) level override parameters with the same name at a higher level.
+    - Refer to previous files for examples.
 ```
 {
   "global_defaults": {
@@ -70,9 +71,14 @@ To create, archive and use new predictive models perform the following steps
   ]
 }
 ```
-1. Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). To start it is good to create test models to ensure that the model definition files work with the inference training data and are free of basic bugs.
+#### Model Creation
+Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). 
 
+##### Create Test Models
+To start it is good to create test models to ensure that the model definition files work with the inference training data and are free of basic bugs.
 ```
+# Create Test Models
+
 cd /fantasy-experiments/models
 # replace {SPORT-ABBR} with a sport abbreviation matching a model training filename
 
@@ -93,6 +99,7 @@ python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} 
   {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo tpot-light --max_time 3 --max_iter_mins 1 --population 5
 ```
 
+##### lib.regressor usage
 If models are created successfully either go ahead and create real models or do more testing by using model_manager.py to import the models for use in inference. To train models for real see the following examples of how to use lib.regressor.
 
 ```
@@ -127,11 +134,27 @@ DK" \
   --dest_dir /fantasy-isync/fantasy-modeling/2024.12/pt \
   --algo nn --lr .00001 --layers 3 --max_epochs 500 --early 10
 ```
-1. (Optional) Load the models into the sport database and run some tests. Load models using 
-model_manager.py from the fantasy repository (See fantasy repository's README). 
-Generate lineups or run backtesting using one of the debug configurations or lineup.sc or backtest.sc .
 
-### Deep Learning regression models
+##### Test the models (Optional)
+Load the models into the sport database and run some tests. This is important because new extra stats and inference data export changes follow different
+logic for exporting data from history versus preparing for game performance inference. Every algorithm type should be tried at least once and every model
+type should be tried at least once (e.g. test all nn models for each sport, and then tpot and autogluon for 1 sport). Note that these tests do not cover for non-historic games,
+which can only be tested in season.
+
+Load models using _model_manager.py_ . Generate lineups, create direct predictions or run backtesting using one of the debug configurations or lineup.sc,
+direct-predict.py or backtest.sc .
+
+```
+# load models
+model_manager.py import {PATH-TO-NEW-MODELS}/{MODEL-NAME-PATTERN}.model [--dryrun] [--overwrite]
+
+# direct predict
+direct-predict.py {SPORT-HIST-DATA.db}
+
+
+
+```
+##### Deep Learning regression models
 If the avg loss from one training iteration to the next is jumping around alot or not changing fast enough, increase/decrease the learning rate. As the learning rate decreases, updates to the model from one iteration to the next should lessen. Increasing the learning rate should cause models to change more from one iteration to the next.
 
 ## Model Cataloging
@@ -166,13 +189,18 @@ cd /fantasy-experiments/models
 Note that the model config file will be retrieved from S3, not from any local (to the cloud server) source.
 3. To copy/sync model results from S3 use aws cli.
 ```
-# install aws cli
-sudo apt-get install awscli
-# configure/setup security
+# install aws cli using snap
+sudo snap install aws-cli --classic
+# configure/setup security. access and secret keys will be needed
 aws configure
 
-# copy
+# list files in the fantasy bucket
+aws s3 ls s3://ledona-fantasy
+
+# copy. the S3 models path is probably s3://ledona-fantasy/models
 aws s3 cp {S3-models-path} {local-models-path} [--exclude "*" --include "MLB*"] [--dryrun]
-# or sync, this will only copy things in s3 that are not in/don't match the destination
+
+# sync, this will only copy things in s3 that are not in/don't match the destination
+# again, the models path is probably s3://ledona-fantasy/models
 aws s3 sync {S3-models-path} {local-models-path} [--dryrun]
 ```
