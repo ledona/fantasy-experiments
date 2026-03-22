@@ -1021,6 +1021,9 @@ def model_and_test(
         )
 
         model.dump(final_model_filepath, overwrite=mode == "overwrite")
-        slack.send_slack(f"Training done for {name}\n\nPerformance\n{pformat(model.performance)}")
+        slack.send_slack(
+            f"Training done for {name} {algorithm=}\n\n"
+            f"Performance\n{{pformat(model.performance)}}"
+        )
 
     return model

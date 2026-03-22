@@ -31,9 +31,19 @@ class NNWrapper(PTEstimatorWrapper):
             if "nn:resume_checkpoint_filepath" in model_params
             else None
         )
+
+        def nn_param_name(name):
+            if name.startswith("nn:"):
+                return name[3:]
+            if name == "early_stop":
+                return "early_stop_epochs"
+            return name
+
+        nn_params = {nn_param_name(param): value for param, value in model_params.items()}
+
         if resume_filepath is not None:
             model, best_model_info, optimizer_state = NNRegressor.load_checkpoint(
-                resume_filepath, input_size, **model_params
+                resume_filepath, input_size, **nn_params
             )
 
             assert model.checkpoint_dir is not None
@@ -49,20 +59,11 @@ class NNWrapper(PTEstimatorWrapper):
             }
         else:
             self.fit_kwargs = None
-            if model_params.get("checkpoint_dir") is None:
+            if nn_params.get("checkpoint_dir") is None:
                 tmpdir = tempfile.TemporaryDirectory(
                     prefix=f"fantasy-nn-checkpoints:{model_filebase}.", delete=False
                 )
-                model_params["nn:checkpoint_dir"] = tmpdir.name
-
-            def nn_param_name(name):
-                if name.startswith("nn:"):
-                    return name[3:]
-                if name == "early_stop":
-                    return "early_stop_epochs"
-                return name
-
-            nn_params = {nn_param_name(param): value for param, value in model_params.items()}
+                nn_params["checkpoint_dir"] = tmpdir.name
             model = NNRegressor(input_size, **nn_params)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = model.to(device)

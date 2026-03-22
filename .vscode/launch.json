@@ -32,8 +32,8 @@
             "cwd": "${workspaceFolder}/models",
             "args": [
                 // "train", "2026.03/mlb.json", "*",
-                "train", "2026.03/nhl.json", "NHL-skater*", 
-                // "train", "2026.03/nfl.json", "NFL-QB-DK", // "*", 
+                // "train", "2026.03/nhl.json", "NHL-skater*", 
+                "train", "2026.03/nfl.json", "NFL-QB-DK", // "*", 
                 // "train", "2026.03/nhl.json", "*", 
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
@@ -48,15 +48,15 @@
                 // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
                 // "--data_limit", "1000",
 
-                "--algo", "dummy", 
+                // "--algo", "dummy", 
                 // "--algo", "tpot",
                 // "--algo", "tpot-light",
-                "--max_iter_mins", "5",
-                "--gens", "10",
-                "--pop", "20",
-                "--early_stop", "2",
-                "--n_jobs", "4",
-                "--max_train_mins", "15",
+                // "--max_iter_mins", "5",
+                // "--gens", "10",
+                // "--pop", "20",
+                // "--early_stop", "2",
+                // "--n_jobs", "4",
+                // "--max_train_mins", "15",
                 // "--verbose", "4",
 
                 // "--algo", "autogluon",
@@ -65,7 +65,7 @@
                 // "--max_train_mins", "1",
                 // "--verbose", "3",
 
-                // "--algo", "nn",
+                "--algo", "nn",
                 // "--batch_size", "256",
                 // "--hidden_size", "64",
                 // "--layers", "3",
@@ -74,7 +74,7 @@
                 // "--early_stop", "2",
                 // "--checkpoint_dir", "/tmp/fantasy-test-checks",
                 // "--checkpoint_freq", "10"
-                // "--nn:resume", "/tmp/fantasy-test-checks/nn-checkpoint-100.pt",
+                "--nn:resume", "/tmp/fantasy-nn-checkpoints:NFL-QB-DK.dk_score_off.nn.2026-03-22T211827.vocna4b5/nn-checkpoint-033.best.pt",
             ]
         },
         {
