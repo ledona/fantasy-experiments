@@ -178,13 +178,14 @@ model_manager.py fit-uncertainty --data_dir {path to data used to train the orig
 ```
 
 ## Cloud Training
-1. Set up for training by following the instructions in the fantasy repo configuration management folder
-2. To train a model use the _aws_train.sc_ script in this folder. For example:
+1. Set up for training by following the instructions in the fantasy repo configuration management folder (either AWS or RunPod)
+2. Upload model definitions and training data to Cloudflare R2
+3. To train a model use the _cloud_train.sc_ script in this folder. For example:
 ```
-# ./aws_train.sc {S3-BUCKET} {DEST-DIR} {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
+# ./cloud_train.sc {S3-BUCKET} {DEST-DIR} {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
 # for example
 cd /fantasy-experiments/models
-./aws_train.sc s3://ledona-fantasy /tmp/models mlb.json "MLB-H-*" --exists reuse --algo tpot --slack --n_jobs 4
+./cloud_train.sc /tmp/models mlb.json "MLB-H-*" --exists reuse --algo tpot --slack --n_jobs 4
 ```
 Note that the model config file will be retrieved from S3, not from any local (to the cloud server) source.
 3. To copy/sync model results from S3 use aws cli.
@@ -192,15 +193,15 @@ Note that the model config file will be retrieved from S3, not from any local (t
 # install aws cli using snap
 sudo snap install aws-cli --classic
 # configure/setup security. access and secret keys will be needed
-aws configure
+aws configure [--profile PROFILE-NAME]
 
 # list files in the fantasy bucket
-aws s3 ls s3://ledona-fantasy
+aws s3 ls s3://ledona-fantasy [--profile PROFILE-NAME] [--endpoint-url ENDPOINT-URL]
 
 # copy. the S3 models path is probably s3://ledona-fantasy/models
-aws s3 cp {S3-models-path} {local-models-path} [--exclude "*" --include "MLB*"] [--dryrun]
+aws s3 cp {S3-models-path} {local-models-path} [--exclude "*" --include "MLB*"] [--dryrun] [--profile PROFILE-NAME] [--endpoint-url ENDPOINT-URL]
 
 # sync, this will only copy things in s3 that are not in/don't match the destination
 # again, the models path is probably s3://ledona-fantasy/models
-aws s3 sync {S3-models-path} {local-models-path} [--dryrun]
+aws s3 sync {S3-models-path} {local-models-path} [--dryrun] [--profile PROFILE-NAME] [--endpoint-url ENDPOINT-URL]
 ```
