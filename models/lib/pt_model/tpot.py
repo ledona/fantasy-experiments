@@ -36,7 +36,7 @@ class TPOTWrapper(PTEstimatorWrapper):
                 params[param[3:]] = params.pop(param)
 
         if tpot_light:
-            model_params["search_space"] = "linear-light"
+            params["search_space"] = "linear-light"
         self.tpot_regressor = TPOTRegressor(**params)
         self._imputer = None
 

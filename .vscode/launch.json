@@ -49,9 +49,9 @@
                 // "--data_limit", "1000",
 
                 // "--algo", "dummy", 
-                // "--algo", "tpot",
+                "--algo", "tpot",
                 // "--algo", "tpot-light",
-                // "--max_iter_mins", "5",
+                "--max_iter_mins", "5",
                 // "--gens", "10",
                 // "--pop", "20",
                 // "--early_stop", "2",
@@ -65,7 +65,7 @@
                 // "--max_train_mins", "1",
                 // "--verbose", "3",
 
-                "--algo", "nn",
+                // "--algo", "nn",
                 // "--batch_size", "256",
                 // "--hidden_size", "64",
                 // "--layers", "3",
@@ -74,7 +74,7 @@
                 // "--early_stop", "2",
                 // "--checkpoint_dir", "/tmp/fantasy-test-checks",
                 // "--checkpoint_freq", "10"
-                "--nn:resume", "/tmp/fantasy-nn-checkpoints:NFL-QB-DK.dk_score_off.nn.2026-03-22T211827.vocna4b5/nn-checkpoint-033.best.pt",
+                // "--nn:resume", "/tmp/fantasy-nn-checkpoints:NFL-QB-DK.dk_score_off.nn.2026-03-22T211827.vocna4b5/nn-checkpoint-033.best.pt",
             ]
         },
         {
