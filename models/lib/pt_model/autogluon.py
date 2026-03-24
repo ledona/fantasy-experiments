@@ -1,6 +1,7 @@
 import tempfile
 
 import pandas as pd
+import psutil
 import torch
 from autogluon.tabular import TabularPredictor
 from fantasy_py import InvalidArgumentsException, log
@@ -12,7 +13,15 @@ from .wrapper import PTEstimatorWrapper
 class AutoGluonWrapper(PTEstimatorWrapper):
     """wrapper around autogluon, simplifies instantiation, fitting and saving the model"""
 
-    VERSIONS_FOR_DEPS = ["sklearn", "autogluon.tabular", "lightgbm", "catboost", "xgboost", "fastai", "ray"]
+    VERSIONS_FOR_DEPS = [
+        "sklearn",
+        "autogluon.tabular",
+        "lightgbm",
+        "catboost",
+        "xgboost",
+        "fastai",
+        "ray",
+    ]
 
     _TARGET_COL = "autogluon_target_variable"
 
@@ -49,10 +58,16 @@ class AutoGluonWrapper(PTEstimatorWrapper):
             fit_kwargs["presets"] = self.preset
         if self.time_limit:
             fit_kwargs["time_limit"] = self.time_limit
+        if torch.cuda.is_available():
+            fit_kwargs["num_cpus"] = psutil.cpu_count(logical=True) - 2
+            fit_kwargs["ag_args_fit"] = {"num_gpus": torch.cuda.device_count()}
+
+        logger = log.get_logger(__name__)
+        logger.info("autogluon fit kwargs: %s", fit_kwargs)
         self.predictor.fit(x_with_y, **fit_kwargs)
 
         self.predictor.fit_summary()
-        log.get_logger(__name__).success("Autogluon fitted!")
+        logger.success("Autogluon fitted!")
 
     def predict(self, x: pd.DataFrame):
         with torch.device("cpu"):
