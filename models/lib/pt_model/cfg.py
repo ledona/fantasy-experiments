@@ -56,7 +56,12 @@ _TPOT_PARAM_DEFAULTS = {
 """defaults for all tpot algorithms"""
 
 TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | object]] = {
-    "autogluon": {"max_time_mins": _NO_DEFAULT, "verbose": 2, "ag:preset": "best_v150"},
+    "autogluon": {
+        "max_time_mins": _NO_DEFAULT,
+        "verbose": 2,
+        "ag:preset": "best_v150",
+        "ag:disable_cuda": False,
+    },
     "nn": {
         "epochs_max": _NO_DEFAULT,
         "early_stop": 20,
@@ -274,7 +279,11 @@ class TrainingConfiguration:
                 train_params[param] = orig_model.parameters[param]
                 continue
 
-            if train_cfg_params and train_cfg_params["train_params"] and param in train_cfg_params["train_params"]:
+            if (
+                train_cfg_params
+                and train_cfg_params["train_params"]
+                and param in train_cfg_params["train_params"]
+            ):
                 train_params[param] = train_cfg_params["train_params"][param]
                 continue
 

@@ -49,9 +49,9 @@
                 // "--data_limit", "1000",
 
                 // "--algo", "dummy", 
-                "--algo", "tpot",
+                // "--algo", "tpot",
                 // "--algo", "tpot-light",
-                "--max_iter_mins", "5",
+                // "--max_iter_mins", "5",
                 // "--gens", "10",
                 // "--pop", "20",
                 // "--early_stop", "2",
@@ -59,10 +59,11 @@
                 // "--max_train_mins", "15",
                 // "--verbose", "4",
 
-                // "--algo", "autogluon",
-                // "--ag:preset", "medium",
+                "--algo", "autogluon",
+                "--ag:preset", "medium",
                 // "--ag:preset", "best_v150"
-                // "--max_train_mins", "1",
+                // "--ag:disable_cuda",
+                "--max_train_mins", "1",
                 // "--verbose", "3",
 
                 // "--algo", "nn",

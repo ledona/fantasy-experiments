@@ -291,6 +291,7 @@ def _create_expected_model_dict(
     expected_r2,
     expected_mae,
     limit: int | None,
+    cuda_info: str | None,
 ):
     expected_training_data_def = {
         k_: v_
@@ -370,6 +371,7 @@ def _create_expected_model_dict(
                 "n_train_cases": 3,
                 "n_test_cases": 1,
                 "n_validation_cases": 4,
+                "cuda_device_properties": cuda_info,
             },
         },
     }
@@ -386,8 +388,9 @@ def _fake_metrics(mocker):
     return expected_r2, expected_mae
 
 
+@pytest.mark.parametrize("cuda_available", [False, True], ids=["no-cuda", "w-cuda"])
 @pytest.mark.parametrize("limit", [None, 10000], ids=["no-limit", "w-limit"])
-def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None):
+def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_available: bool):
     """test that the resulting model file is as expected and that
     the expected calls to fit the model, etc were made"""
     model_name = "MLB-H-DK"
@@ -437,9 +440,18 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None):
         }
     )
 
+    mock_torch_cuda = mocker.patch("lib.pt_model.wrapper.torch.cuda")
+    mock_torch_cuda.is_available.return_value = cuda_available
+    mock_torch_cuda.get_device_properties.return_value = "cuda-device-info"
+
     dt = datetime(_VALIDATION_SEASON, 12, 3, 0, 33, tzinfo=UTC)
     with freeze_time(dt):
         main("train " + cmdline)
+
+    mock_torch_cuda.is_available.assert_called_once()
+    assert mock_torch_cuda.get_device_properties.call_count == (1 if cuda_available else 0), (
+        "expected get_device_properties call count"
+    )
 
     dest_filepath_base = os.path.join(
         tmpdir, f"{model_name}.{target_calc_stat}.{algorithm}.{dt_to_filename_str(dt)}"
@@ -462,6 +474,11 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None):
         "Expecting a non-empty versions dict"
     )
     del model_dict["meta_extra"]["desc_info"]["versions"]
+    assert model_dict["meta_extra"]["desc_info"].get("cpu_info") is not None, (
+        "expecting that cpu_info is defined"
+    )
+    del model_dict["meta_extra"]["desc_info"]["cpu_info"]
+
     expected_model_dict = _create_expected_model_dict(
         model_name,
         feature_stat,
@@ -474,6 +491,7 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None):
         expected_r2,
         expected_mae,
         limit,
+        mock_torch_cuda.get_device_properties.return_value if cuda_available else None,
     )
     deep_compare_dicts(model_dict, expected_model_dict)
 
@@ -561,6 +579,9 @@ def _train_prep(
         mock_save_func = prev_save_func
         mock_save_func.reset_mock()
 
+    param_defaults = TRAINING_PARAM_DEFAULTS[algo]
+    cli_params = {k_: train_params[k_] for k_ in param_defaults if train_params.get(k_) is not None}
+
     if algo == "nn":
         if prev_algo != "nn":
             mock_save_func = mocker.MagicMock(name="fake-torch.save", autospec=True)
@@ -569,6 +590,11 @@ def _train_prep(
             mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
             mock_fitted.epochs_trained = 5
     elif algo == "autogluon":
+        if cli_params["ag:disable_cuda"]:
+            cli_params["ag:disable_cuda"] = ""
+        else:
+            del cli_params["ag:disable_cuda"]
+
         if prev_algo != "autogluon":
             mock_regressor = mocker.patch(
                 "lib.pt_model.autogluon.TabularPredictor", spec=TabularPredictor
@@ -595,8 +621,6 @@ def _train_prep(
     else:
         raise NotImplementedError(f"{algo=} not supported")
 
-    param_defaults = TRAINING_PARAM_DEFAULTS[algo]
-    cli_params = {k_: train_params[k_] for k_ in param_defaults if train_params.get(k_) is not None}
     cli_args = " ".join([f"--{key} {value}" for key, value in cli_params.items()])
 
     r2, mae = _fake_metrics(mocker)
@@ -623,7 +647,7 @@ def _train_prep(
         ("dummy", {"dmy:strategy": "mean"}),
         ("nn", {"early_stop": 10, "epochs_max": 1000}),
         ("tpot", {"max_time_mins": 120, "tp:max_eval_time_mins": 15}),
-        ("autogluon", {"ag:preset": "high", "max_time_mins": 120}),
+        ("autogluon", {"ag:preset": "high", "ag:disable_cuda": True, "max_time_mins": 120}),
     ],
     ids=[
         ">dummy",
@@ -646,7 +670,7 @@ def _train_prep(
             },
         ),
         ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2, "tp:population_size": 100}),
-        ("autogluon", {"ag:preset": "medium"}),
+        ("autogluon", {"ag:preset": "medium", "ag:disable_cuda": False}),
     ],
     ids=[
         "dummy>",

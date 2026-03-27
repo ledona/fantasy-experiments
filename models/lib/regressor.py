@@ -227,7 +227,9 @@ def _handle_train(args: argparse.Namespace):
         assert original_model.parameters is not None
 
     if args.feature_na_fail_pct is not None:
-        args.feature_na_fail_pct = _combine_feature_na_fail_pct(args.feature_na_fail_pct, args.parser)
+        args.feature_na_fail_pct = _combine_feature_na_fail_pct(
+            args.feature_na_fail_pct, args.parser
+        )
     _LOGGER.info("Training %i models. info-mode=%s: %s", len(model_names), args.info, model_names)
 
     if args.slack and not args.info:
@@ -463,6 +465,12 @@ def _add_train_parser(sub_parsers):
 
         # AUTOGLUON PARAMS
         train_parser.add_argument(
+            "--ag:disable_cuda",
+            help="disable autogluon cuda/gpu use",
+            action="store_true",
+            default=False,
+        )
+        train_parser.add_argument(
             "--ag:preset",
             choices=sorted(autogluon_presets.keys()),
             help="autogluon preset",
@@ -576,8 +584,8 @@ def _model_catalog_func(args):
                     "nn training stopped before early-stop-epochs-wo-improvement reached. "
                     f"{early_stop_epochs=} {epochs_trained=} {epochs_max=}"
                 )
-            # elif cat_data["algo"] == "autogluon":
-            #     raise NotImplementedError()
+            elif cat_data["algo"] == "autogluon":
+                cat_data["notes"].append("ag:preset=" + desc_info["autogluon"]["preset"])
         data.append(cat_data)
 
     if len(data) == 0:

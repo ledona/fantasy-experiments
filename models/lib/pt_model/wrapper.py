@@ -1,8 +1,11 @@
 import importlib
+import platform
 import sys
 from abc import ABC, abstractmethod
 
+import psutil
 import pandas as pd
+import torch
 from fantasy_py import log, now
 
 
@@ -28,6 +31,7 @@ class PTEstimatorWrapper(ABC):
         }
 
         versions = {"python": sys.version}
+
         if self.VERSIONS_FOR_DEPS:
             for dep in self.VERSIONS_FOR_DEPS:
                 try:
@@ -43,6 +47,29 @@ class PTEstimatorWrapper(ABC):
 
                 versions[dep] = getattr(module, "__version__", "__version__ attribute not defined")
         info["versions"] = versions
+        info["cuda_device_properties"] = (
+            str(torch.cuda.get_device_properties()) if torch.cuda.is_available() else None
+        )
+
+        vm = psutil.virtual_memory()
+        swap = psutil.swap_memory()
+        cpu_brand = "unknown"
+        try:
+            with open("/proc/cpuinfo") as f:
+                for line in f:
+                    if line.startswith("model name"):
+                        cpu_brand = line.split(":", 1)[1].strip()
+                        break
+        except OSError:
+            pass
+        info["cpu_info"] = {
+            "brand": cpu_brand,
+            "architecture": platform.machine(),
+            "cores": psutil.cpu_count(logical=False),
+            "logical_cores": psutil.cpu_count(logical=True),
+            "ram_total_gb": round(vm.total / 2**30, 2),
+            "swap_total_gb": round(swap.total / 2**30, 2),
+        }
 
         return info
 

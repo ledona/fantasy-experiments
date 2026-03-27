@@ -618,6 +618,7 @@ def _instantiate_regressor(
             model_filebase,
             verbosity=model_params["verbose"],
             preset=model_params["ag:preset"],
+            disable_cuda=model_params["ag:disable_cuda"],
             time_limit=model_params["max_time_mins"] * 60,
         )
         return model
@@ -1022,8 +1023,7 @@ def model_and_test(
 
         model.dump(final_model_filepath, overwrite=mode == "overwrite")
         slack.send_slack(
-            f"Training done for {name} {algorithm=}\n\n"
-            f"Performance\n{{pformat(model.performance)}}"
+            f"Training done for {name} {algorithm=}\n\nPerformance\n{{pformat(model.performance)}}"
         )
 
     return model

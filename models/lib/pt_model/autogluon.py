@@ -30,14 +30,21 @@ class AutoGluonWrapper(PTEstimatorWrapper):
     """training time limit in secs"""
     preset: str | None
     """fit preset"""
+    disable_cuda: bool
+    """
+    if cuda is not available this is ignored, if cuda device is found then
+    if this is true it will be ignored (cpu only training), if false then cuda device will be used
+    """
 
     def __init__(
         self,
         model_filebase,
         preset: str | None = None,
         time_limit: int | None = None,
+        disable_cuda: bool = False,
         **init_kwargs,
     ):
+        self.disable_cuda = disable_cuda
         self.preset = preset
         self.time_limit = time_limit
         model_path = tempfile.TemporaryDirectory(
@@ -58,11 +65,28 @@ class AutoGluonWrapper(PTEstimatorWrapper):
             fit_kwargs["presets"] = self.preset
         if self.time_limit:
             fit_kwargs["time_limit"] = self.time_limit
-        if torch.cuda.is_available():
-            fit_kwargs["num_cpus"] = psutil.cpu_count(logical=True) - 2
-            fit_kwargs["ag_args_fit"] = {"num_gpus": torch.cuda.device_count()}
 
         logger = log.get_logger(__name__)
+
+        if torch.cuda.is_available():
+            if self.disable_cuda:
+                logger.info(
+                    "CUDA device is available but will not be used because disable_cuda is True"
+                )
+                fit_kwargs["num_gpus"] = 0
+            else:
+                fit_kwargs["ag_args_fit"] = {"num_gpus": torch.cuda.device_count()}
+                cpu_count = psutil.cpu_count(logical=True)
+                if cpu_count is None:
+                    logger.warning(
+                        "Unable to determine the number of logical CPUs available for training. AutoGluon will be allowed to determine CPUs used for training."
+                    )
+                else:
+                    fit_kwargs["num_cpus"] = cpu_count - 2
+                logger.warning(
+                    "Autogluon will train using GPUs and %i cpus", fit_kwargs["num_cpus"] or "?"
+                )
+
         logger.info("autogluon fit kwargs: %s", fit_kwargs)
         self.predictor.fit(x_with_y, **fit_kwargs)
 
@@ -102,8 +126,14 @@ class AutoGluonWrapper(PTEstimatorWrapper):
 
         ag_info = self.predictor.info()
         clean_info = self._model_info_value_cleanup(ag_info)
-        info["autogluon"] = {"preset": self.preset, "info": clean_info}
-        info["device"] = "cuda" if torch.cuda.is_available() else "cpu"
+        cuda_available = torch.cuda.is_available()
+        info["autogluon"] = {
+            "preset": self.preset,
+            "cuda_available": cuda_available,
+            "cuda_disable_for_fit": self.disable_cuda,
+            "cuda_used": cuda_available and not self.disable_cuda,
+            "info": clean_info,
+        }
 
         return info
 
