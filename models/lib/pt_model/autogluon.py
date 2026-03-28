@@ -1,10 +1,11 @@
+import shutil
 import tempfile
 
 import pandas as pd
 import psutil
 import torch
 from autogluon.tabular import TabularPredictor
-from fantasy_py import InvalidArgumentsException, log
+from fantasy_py import FantasyException, InvalidArgumentsException, log
 from fantasy_py.inference import PTPredictModel
 
 from .wrapper import PTEstimatorWrapper
@@ -50,6 +51,11 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         model_path = tempfile.TemporaryDirectory(
             prefix=f"autogluon-model:{model_filebase}.", delete=False
         )
+        free_gb = shutil.disk_usage(model_path.name).free / 1024**3
+        if free_gb < 10:
+            raise FantasyException(
+                f"Insufficient disk space at '{model_path.name}': {free_gb:.1f} GB free, 10 GB required"
+            )
         self.predictor = TabularPredictor(
             self._TARGET_COL, problem_type="regression", path=model_path.name, **init_kwargs
         )
@@ -87,7 +93,7 @@ class AutoGluonWrapper(PTEstimatorWrapper):
                     "Autogluon will train using GPUs and %i cpus", fit_kwargs["num_cpus"] or "?"
                 )
 
-        logger.info("autogluon fit kwargs: %s", fit_kwargs)
+        logger.info("Autogluon fitting with kwargs: %s", fit_kwargs)
         self.predictor.fit(x_with_y, **fit_kwargs)
 
         self.predictor.fit_summary()
