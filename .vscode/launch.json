@@ -88,7 +88,7 @@
             "args": [
                 "catalog",
                 "--best",
-                "--root", "/fantasy-isync/fantasy-modeling/2026.01"
+                "--root", "/fantasy-isync/fantasy-modeling"
                 // "--exclude", ".*2023.12.*"
             ]
         },
