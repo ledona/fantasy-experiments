@@ -182,26 +182,18 @@ model_manager.py fit-uncertainty --data_dir {path to data used to train the orig
 2. Upload model definitions and training data to Cloudflare R2
 3. To train a model use the _cloud_train.sc_ script in this folder. For example:
 ```
-# ./cloud_train.sc {S3-BUCKET} {DEST-DIR} {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
+# ./cloud_train.sc [--s3-profile PROFILE] [--s3-path S3_PATH] [--local-dest-dir DEST_DIR] \
+  [--exclude_remote_models] {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
 # for example
 cd /fantasy-experiments/models
-./cloud_train.sc /tmp/models mlb.json "MLB-H-*" --exists reuse --algo tpot --slack --n_jobs 4
+./cloud_train.sc --exclude-remote-models mlb.json "MLB-H-*" --exists reuse --algo tpot --slack --n_jobs 4
 ```
-Note that the model config file will be retrieved from S3, not from any local (to the cloud server) source.
+Note that the model config file will be retrieved from S3 if it was not previously retrieved, and previously fitted models that exist in the S3 models directory will be written to a text file that will be used to exclude the existing modes from training (--exclude-remote-models).
 3. To copy/sync model results from S3 use aws cli.
 ```
-# install aws cli using snap
-sudo snap install aws-cli --classic
-# configure/setup security. access and secret keys will be needed
-aws configure [--profile PROFILE-NAME]
-
 # list files in the fantasy bucket
-aws s3 ls s3://ledona-fantasy [--profile PROFILE-NAME] [--endpoint-url ENDPOINT-URL]
+aws s3 ls s3://ledona-fantasy [--profile $S3_PROFILE] [--endpoint-url $S3_ENDPOINT_URL]
 
-# copy. the S3 models path is probably s3://ledona-fantasy/models
-aws s3 cp {S3-models-path} {local-models-path} [--exclude "*" --include "MLB*"] [--dryrun] [--profile PROFILE-NAME] [--endpoint-url ENDPOINT-URL]
-
-# sync, this will only copy things in s3 that are not in/don't match the destination
-# again, the models path is probably s3://ledona-fantasy/models
-aws s3 sync {S3-models-path} {local-models-path} [--dryrun] [--profile PROFILE-NAME] [--endpoint-url ENDPOINT-URL]
+# copy from local to s3 (note that the cloud monitor does this automatically)
+aws s3 cp $S3_BUCKET/models /tmp/models [--exclude "*" --include "MLB*"] [--dryrun] [--profile $S3_PROFILE] [--endpoint-url $S3_ENDPOINT_URL]
 ```

@@ -92,11 +92,39 @@ def _combine_feature_na_fail_pct(
 def _expand_models(
     tdf: TrainingConfiguration,
     model_request: str | list[str] | None,
+    exclude_model_file: str | None,
 ):
     """figure out which models match the model requests"""
     if model_request is None:
         print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
         exit(0)
+
+    if exclude_model_file:
+        exclude_models = set()
+        if not os.path.isfile(exclude_model_file):
+            raise FileNotFoundError(f"Exclude file '{exclude_model_file}' not found")
+        with open(exclude_model_file, "r") as f_:
+            for i, exclude_model in enumerate(f_.readlines(), 1):
+                exclude_model = exclude_model.strip()
+                if not exclude_model:
+                    continue
+                if "." not in exclude_model:
+                    exclude_models.add(exclude_model)
+                    continue
+                model_meta_filename_parts = exclude_model.split(".")
+                if len(model_meta_filename_parts) < 3 or model_meta_filename_parts[-1] != "model":
+                    raise UnexpectedValueError(
+                        f"The value on line {i} of {exclude_model_file=} is not recognized as a "
+                        f"model name or a model metadata filename: '{exclude_model}'"
+                    )
+                exclude_models.add(model_meta_filename_parts[0])
+        _LOGGER.info(
+            "Based on exclude_model_file='%s', the following models will be excluded from training: %s",
+            exclude_model_file,
+            sorted(exclude_models),
+        )
+    else:
+        exclude_models = set()
 
     filters = [model_request] if isinstance(model_request, str) else model_request
     model_names: list[str] = []
@@ -106,10 +134,18 @@ def _expand_models(
                 raise UnexpectedValueError(
                     f"Model name '{model_filter}' not found. valid models are {tdf.model_names}"
                 )
+            if model_filter in exclude_models:
+                raise UnexpectedValueError(
+                    f"Model '{model_filter}' was explicitly requested but is in the exclude list"
+                )
             model_names.append(model_filter)
             continue
         filter_re = model_filter.replace("*", ".*")
-        matches = [model_name for model_name in tdf.model_names if re.match(filter_re, model_name)]
+        matches = [
+            model_name
+            for model_name in tdf.model_names
+            if re.match(filter_re, model_name) and model_name not in exclude_models
+        ]
         if len(matches) == 0:
             raise UnexpectedValueError(
                 f"Model request '{model_filter}' did not match to any model names. "
@@ -138,7 +174,7 @@ def _train_model(
         f"{log.RED}\u274c{log.COLOR_RESET}={len(progress['failures'])}"
     )
     args_dict = dict(vars(args))
-    # drop train_and_test positional args from args_dict
+    # drop train_and_test positional args and unneeded args from args_dict
     for arg_name in [
         "dest_dir",
         "exists_mode",
@@ -217,7 +253,7 @@ def _handle_train(args: argparse.Namespace):
             args.parser.error(
                 f"Because model '{args.model}' was requested, --models cannot be used"
             )
-        model_names = _expand_models(tdf, args.model or args.models)
+        model_names = _expand_models(tdf, (args.model or args.models), args.exclude_model_file)
         original_model = None
     else:
         tdf, original_model = TrainingConfiguration.cfg_from_model(
@@ -300,6 +336,14 @@ def _add_train_parser(sub_parsers):
             )
         else:
             raise NotImplementedError()
+
+        if train_op == "train":
+            train_parser.add_argument(
+                "--exclude_model_file",
+                help="Path to a text file with a list of model names or fitted "
+                "model meta file names for models that should be excluded from training. "
+                "Model metadata filenames are expected to be of the form '{MODEL-NAME}.*.model' . If a line follows this pattern it will be treated as a metadata filename, otherwise it will be considered a model name.",
+            )
 
         train_parser.add_argument(
             "--slack",
