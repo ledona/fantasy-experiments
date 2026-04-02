@@ -48,17 +48,27 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         self.disable_cuda = disable_cuda
         self.preset = preset
         self.time_limit = time_limit
-        model_path = tempfile.TemporaryDirectory(
+        self._model_tmpdir = tempfile.TemporaryDirectory(
             prefix=f"autogluon-model:{model_filebase}.", delete=False
         )
-        free_gb = shutil.disk_usage(model_path.name).free / 1024**3
+        free_gb = shutil.disk_usage(self._model_tmpdir.name).free / 1024**3
         if free_gb < 10:
             raise FantasyException(
-                f"Insufficient disk space at '{model_path.name}': {free_gb:.1f} GB free, 10 GB required"
+                f"Insufficient disk space at '{self._model_tmpdir.name}': {free_gb:.1f} GB free, 10 GB required"
             )
-        self.predictor = TabularPredictor(
-            self._TARGET_COL, problem_type="regression", path=model_path.name, **init_kwargs
+        log.get_logger(__name__).info(
+            "Autogluon temp model data will be written to '%s'", self._model_tmpdir.name
         )
+        self.predictor = TabularPredictor(
+            self._TARGET_COL, problem_type="regression", path=self._model_tmpdir.name, **init_kwargs
+        )
+
+    def __exit__(self, *_):
+        """remove the temp dirextory when the model context manager is exited"""
+        log.get_logger(__name__).info(
+            "Removing autogluon temp model data from '%s'", self._model_tmpdir.name
+        )
+        self._model_tmpdir.cleanup()
 
     def fit(self, x: pd.DataFrame, y: pd.Series):
         if self._TARGET_COL in x:

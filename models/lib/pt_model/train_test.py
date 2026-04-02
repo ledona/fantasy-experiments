@@ -663,32 +663,32 @@ def _train_test(
             "Cannot train because width or length of training data is 0. "
             f"width={len(X_train.columns)} len={len(X_train)}"
         )
-    model = _instantiate_regressor(algo, model_params, X_test, y_test, model_filebase)
-    model.fit(X_train, y_train)
+    with _instantiate_regressor(algo, model_params, X_test, y_test, model_filebase) as model:
+        model.fit(X_train, y_train)
 
-    training_desc_info = model.get_training_desc_info(
-        dt_trained, len(X_train), len(X_test), len(X_val)
-    )
+        training_desc_info = model.get_training_desc_info(
+            dt_trained, len(X_train), len(X_test), len(X_val)
+        )
 
-    performance: PerformanceDict = {}
+        performance: PerformanceDict = {}
 
-    for test_type, x, y in [
-        ("train", X_train, y_train),
-        ("test", X_test, y_test),
-        ("val", X_val, y_val),
-    ]:
-        y_hat = model.predict(x)
-        r2 = float(sklearn.metrics.r2_score(y, y_hat))
-        mae = float(sklearn.metrics.mean_absolute_error(y, y_hat))
-        _LOGGER.info("%s r2=%g mae=%g", test_type, round(r2, 6), round(mae, 6))
-        performance["r2_" + test_type] = r2
-        performance["mae_" + test_type] = mae
+        for test_type, x, y in [
+            ("train", X_train, y_train),
+            ("test", X_test, y_test),
+            ("val", X_val, y_val),
+        ]:
+            y_hat = model.predict(x)
+            r2 = float(sklearn.metrics.r2_score(y, y_hat))
+            mae = float(sklearn.metrics.mean_absolute_error(y, y_hat))
+            _LOGGER.info("%s r2=%g mae=%g", test_type, round(r2, 6), round(mae, 6))
+            performance["r2_" + test_type] = r2
+            performance["mae_" + test_type] = mae
 
-    artifact_filebase = (
-        model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
-    )
-    artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
-    artifact_filepath = model.save_artifact(artifact_filebase_path)
+        artifact_filebase = (
+            model_filebase or f"{model_name}.{algo}.{target[1]}.{dt_to_filename_str(dt_trained)}"
+        )
+        artifact_filebase_path = os.path.join(dest_dir, artifact_filebase)
+        artifact_filepath = model.save_artifact(artifact_filebase_path)
 
     _LOGGER.info("Exported model artifact to '%s'", artifact_filepath)
     return artifact_filepath, performance, dt_trained, training_desc_info
@@ -1023,7 +1023,7 @@ def model_and_test(
 
         model.dump(final_model_filepath, overwrite=mode == "overwrite")
         slack.send_slack(
-            f"Training done for {name} {algorithm=}\n\nPerformance\n{{pformat(model.performance)}}"
+            f"Training done for {name} {algorithm=}\n\nPerformance\n{pformat(model.performance)}"
         )
 
     return model

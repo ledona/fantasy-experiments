@@ -73,6 +73,15 @@ class PTEstimatorWrapper(ABC):
 
         return info
 
+    def __enter__(self):
+        """estimator can be used as a context manager so that 
+        cleanup is handled on context exit"""
+        return self
+
+    def __exit__(self, *_):
+        """context manager exit, if cleanup is required then override"""
+        pass
+
     @abstractmethod
     def fit(self, x: pd.DataFrame, y: pd.Series):
         raise NotImplementedError()
