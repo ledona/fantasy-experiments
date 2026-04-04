@@ -74,13 +74,18 @@ class PTEstimatorWrapper(ABC):
         return info
 
     def __enter__(self):
-        """estimator can be used as a context manager so that 
+        """estimator can be used as a context manager so that
         cleanup is handled on context exit"""
         return self
 
     def __exit__(self, *_):
         """context manager exit, if cleanup is required then override"""
         pass
+
+    @property
+    def sample_weight_support(self):
+        """override to indicate support for training data sample weights"""
+        return False
 
     @abstractmethod
     def fit(self, x: pd.DataFrame, y: pd.Series):

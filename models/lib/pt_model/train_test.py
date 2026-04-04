@@ -8,8 +8,9 @@ from collections import defaultdict
 from datetime import datetime
 from glob import glob
 from pprint import pformat
-from typing import Literal, cast
+from typing import Literal, NamedTuple, TypedDict, cast
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -46,7 +47,36 @@ from .nn import NNWrapper
 from .tpot import TPOTWrapper
 from .wrapper import PTEstimatorWrapper
 
-TrainTestData = tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
+
+class TrainingDataDecay(TypedDict):
+    """used to add a seasonal decay weighting to training samples"""
+
+    decay_rate: float
+    """the amount of decay to apply per seasons from the most recent season (which will get
+    a weight of 1) going back in time. Formula to use season-weight = exp(-decay_rate × years_ago)"""
+    min_weight: float
+    """the minimum weight to use for a season"""
+
+
+class DataSrcParams(TypedDict):
+    """model parameters describing load and filtering of training data"""
+
+    missing_data_warn_threshold: float
+    missing_data_fail_threshold: list[str]
+    filtering_query: str | None
+    data_filename: str
+    one_hot_features: list[str]
+    pos_remap: dict[str, str] | None
+    training_data_decay: None | TrainingDataDecay
+
+
+class TrainTestData(NamedTuple):
+    X_train: pd.DataFrame
+    y_train: pd.Series
+    X_test: pd.DataFrame
+    y_test: pd.Series
+    X_val: pd.DataFrame
+    y_val: pd.Series
 
 
 _LOGGER = log.get_logger(__name__)
@@ -65,7 +95,7 @@ def _load_data_local(
     training_seasons: list[int],
     target_col_name: str,
     original_model_cols: set[str] | None,
-    inf_pos_remap: dict[str, str] | None,
+    pos_remap: dict[str, str] | None,
 ):
     """
     validation_season: make sure that there is some validation data, even if\
@@ -77,7 +107,7 @@ def _load_data_local(
         these are columns that start with a feature type prefix
     original_model_cols: not none means that we are retraining a model and so\
         have an expected list of final input cols
-    inf_pos_remap: rename/remap positions. dict[old-pos, inference_pos]
+    pos_remap: rename/remap positions. dict[old-pos, inference_pos]
     """
     if validation_season in training_seasons:
         _LOGGER.warning(
@@ -133,12 +163,12 @@ def _load_data_local(
             raise UnexpectedValueError(
                 "Column 'pos' found in data, 'include_position' kwarg is required!"
             )
-        if inf_pos_remap is not None:
-            if unmapped_pos := set(df_raw.pos.unique()) - set(inf_pos_remap.keys()):
+        if pos_remap is not None:
+            if unmapped_pos := set(df_raw.pos.unique()) - set(pos_remap.keys()):
                 raise UnexpectedValueError(
                     f"Position remapping is not complete. It does not include a mapping for {unmapped_pos}"
                 )
-            df_raw.pos = df_raw.pos.map(lambda pos: inf_pos_remap[pos])
+            df_raw.pos = df_raw.pos.map(lambda pos: pos_remap[pos])
     elif include_position is True:
         raise UnexpectedValueError(
             "Column 'pos' not found in data, 'include_position' must be None!"
@@ -480,6 +510,10 @@ def _summarize_final_feature_cols(
     return feature_cols
 
 
+_TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL = "TRAINING-DATA-DECAY-WEIGHT"
+"""name of the column to use for training data decay sample weighting"""
+
+
 def load_data(
     filename: str,
     target: tuple[str, str] | str,
@@ -494,7 +528,8 @@ def load_data(
     limit: int | None = None,
     expected_cols: None | set[str] = None,
     skip_data_reports=False,
-    inf_pos_remap: dict[str, str] | None = None,
+    pos_remap: dict[str, str] | None = None,
+    training_data_decay: TrainingDataDecay | None = None,
 ):
     """
     Create train, test and validation data
@@ -517,11 +552,11 @@ def load_data(
         then all features must have less than this %. If it is a dict then keys are column names\
         for features and the value is the fail threshold for that feature, with a fallback fail\
         threshold having a None key.
-    inf_pos_remap: used if include_position is set. dict mapping pos-in-data-file -> pos-for-inference.\
+    pos_remap: used if include_position is set. dict mapping pos-in-data-file -> pos-for-inference.\
         If a remapping is defined all positions in the data file must be mapped (even if it is to itself).
     returns tuple of (raw data, {train, test and validation data}, one-hot-transformed stats)
     """
-    assert inf_pos_remap is None or (inf_pos_remap is not None and include_position), (
+    assert pos_remap is None or (pos_remap is not None and include_position), (
         "if pos_remap is defined then include_position must be True"
     )
     target_col_name = target if isinstance(target, str) else ":".join(target)
@@ -536,7 +571,7 @@ def load_data(
         training_seasons,
         target_col_name,
         expected_cols,
-        inf_pos_remap,
+        pos_remap,
     )
     if filtering_query:
         try:
@@ -564,6 +599,18 @@ def load_data(
     X = train_test_df[feature_cols]
     y = train_test_df[target_col_name]
 
+    if training_data_decay:
+        assert _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL not in X
+        most_recent_season = cast(int, train_test_df.season.max())
+        years_ago = most_recent_season - train_test_df.season
+        weights = years_ago.map(
+            lambda ya: max(
+                np.exp(-training_data_decay["decay_rate"] * ya),
+                training_data_decay["min_weight"],
+            )
+        )
+        X = X.assign(**{_TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL: weights})
+
     _missing_feature_data_report(
         X, missing_data_warn_threshold, missing_data_fail_threshold, skip_data_reports
     )
@@ -589,7 +636,7 @@ def load_data(
 
     return (
         df_raw,
-        cast(TrainTestData, (X_train, y_train, X_test, y_test, X_val, y_val)),
+        TrainTestData(X_train, y_train, X_test, y_test, X_val, y_val),
         one_hot_stats,
     )
 
@@ -618,7 +665,12 @@ AlgorithmType = Literal["autogluon", "tpot", "tpot-light", "dummy", "nn", "xgboo
 
 
 def _instantiate_regressor(
-    algorithm: AlgorithmType, model_params: dict, x: pd.DataFrame, y: pd.Series, model_filebase: str
+    algorithm: AlgorithmType,
+    model_params: dict,
+    x: pd.DataFrame,
+    y: pd.Series,
+    model_filebase: str,
+    training_sample_weights: bool,
 ) -> PTEstimatorWrapper:
     """returns (model-obj, fit-args, fit-kwargs)"""
     if algorithm == "autogluon":
@@ -628,6 +680,9 @@ def _instantiate_regressor(
             preset=model_params["ag:preset"],
             disable_cuda=model_params["ag:disable_cuda"],
             time_limit=model_params["max_time_mins"] * 60,
+            sample_weight=(
+                _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL if training_sample_weights else None
+            ),
         )
         return model
 
@@ -640,7 +695,15 @@ def _instantiate_regressor(
         return model
 
     if algorithm == "nn":
-        model = NNWrapper(x, y, model_filebase, **model_params)
+        model = NNWrapper(
+            x,
+            y,
+            model_filebase,
+            sample_weight=(
+                _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL if training_sample_weights else None
+            ),
+            **model_params,
+        )
         return model
 
     raise NotImplementedError(f"{algorithm=} not recognized")
@@ -671,7 +734,24 @@ def _train_test(
             "Cannot train because width or length of training data is 0. "
             f"width={len(X_train.columns)} len={len(X_train)}"
         )
-    with _instantiate_regressor(algo, model_params, X_test, y_test, model_filebase) as model:
+
+    sample_weights_exist = _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL in X_train
+    with _instantiate_regressor(
+        algo,
+        model_params,
+        X_test,
+        y_test,
+        model_filebase,
+        sample_weights_exist,
+    ) as model:
+        if sample_weights_exist and not model.sample_weight_support:
+            _LOGGER.warning(
+                "algo=%s does not support training data sample weights. "
+                "Training data seasonal decay rate weighting will be ignored",
+                algo,
+            )
+            X_train = X_train.drop(columns=_TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL)
+
         model.fit(X_train, y_train)
 
         training_desc_info = model.get_training_desc_info(
@@ -685,6 +765,8 @@ def _train_test(
             ("test", X_test, y_test),
             ("val", X_val, y_val),
         ]:
+            if _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL in x:
+                x = x.drop(columns=_TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL)
             y_hat = model.predict(x)
             r2 = float(sklearn.metrics.r2_score(y, y_hat))
             mae = float(sklearn.metrics.mean_absolute_error(y, y_hat))
@@ -783,7 +865,7 @@ def _create_fantasy_model(
     target_pos: None | list[str],
     training_pos: None | list[str],
     limit: int | None,
-    inf_pos_remap: dict | None,
+    data_src_params: DataSrcParams | None,
     model_params: dict,
     model_info: None | dict,
 ) -> PTPredictModel:
@@ -792,14 +874,16 @@ def _create_fantasy_model(
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features_sets: dict[FeatureType, set[str]] = defaultdict(set)
-    columns = training_features_df.columns.to_list()
     sport_abbr = name.split("-", 1)[0]
     db_manager = cast(
         SportDBManager, CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport_abbr.lower())
     )
     recent_mean = False
     recent_explode = False
-    for col in columns:
+    columns = []
+    for col in training_features_df.columns.to_list():
+        if col == _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL:
+            continue
         if col.startswith("pos_"):
             include_pos = True
             continue
@@ -810,8 +894,8 @@ def _create_fantasy_model(
             recent_explode = True
 
         col_split = col.split(":")
-
-        assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"]
+        assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"], f"unexpected {col_split=}"
+        columns.append(col)
 
         if col_split[0] == "extra":
             extra_name, extra_type = _infer_extra_stat_name_type(col_split)
@@ -841,7 +925,6 @@ def _create_fantasy_model(
             features_sets[extra_type].add(extra_name)
             continue
 
-        assert col_split[0] in ["calc", "stat"]
         if len(col_split) == 4:
             if col_split[-1] == "player-team":
                 features_sets[cast(FeatureType, "player_team_" + col_split[0])].add(col_split[1])
@@ -866,8 +949,11 @@ def _create_fantasy_model(
         data_def["limit"] = limit
     if training_pos is not None:
         data_def["training_pos"] = training_pos
-    if inf_pos_remap is not None:
-        data_def["inf_pos_remap"] = inf_pos_remap
+    if data_src_params:
+        if pos_remap := data_src_params["pos_remap"]:
+            data_def["pos_remap"] = pos_remap
+        if training_data_decay := data_src_params["training_data_decay"]:
+            data_def["training_data_decay"] = training_data_decay
     imputes = _infer_imputes(training_features_df, p_or_t.is_team)
     uname = platform.uname()
     model_cls = _get_model_cls(cast(AlgorithmType, model_params["algorithm"]))
@@ -951,9 +1037,8 @@ def model_and_test(
     dest_dir: str,
     mode: ModelFileFoundMode,
     limit: int | None,
-    inf_pos_remap: dict | None,
     model_dest_filename: str | None,
-    data_src_params: dict | None,
+    data_src_params: DataSrcParams | None,
 ):
     """
     train or load a model, test it, then wrap it and export it for use
@@ -1028,7 +1113,7 @@ def model_and_test(
             target_pos,
             training_pos,
             limit,
-            inf_pos_remap,
+            data_src_params,
             addl_params,
             addl_info,
         )

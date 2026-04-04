@@ -123,7 +123,7 @@ def performance_calc(
             col_drop_filters=params["cols_to_drop"],
             filtering_query=params.get("filtering_query"),
             skip_data_reports=True,
-            inf_pos_remap=raw_to_inf_pos_remap
+            pos_remap=raw_to_inf_pos_remap
         )[1]
 
         y_train = tt_data[1]

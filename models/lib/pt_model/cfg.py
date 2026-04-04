@@ -23,7 +23,9 @@ from typeguard import TypeCheckError, check_type
 
 from .train_test import (
     AlgorithmType,
+    DataSrcParams,
     ModelFileFoundMode,
+    TrainingDataDecay,
     load_data,
     model_and_test,
     parse_fail_threshold,
@@ -100,19 +102,6 @@ def _all_algo_params():
     }
 
 
-"""set of all valid param names"""
-
-_DataSrcParams = Literal[
-    "missing_data_warn_threshold",
-    "missing_data_fail_threshold",
-    "filtering_query",
-    "data_filename",
-    "one_hot_features",
-    "inf_pos_remap",
-]
-"""model parameters describing load and filtering of training data"""
-
-
 def _fail_threshold_to_str_list(value: float | dict[str | None, float]) -> list[str]:
     """convert a resolved fail threshold back to a JSON-serializable list of token strings"""
     if isinstance(value, (int, float)):
@@ -147,6 +136,8 @@ class _TrainingParamsDict(TypedDict):
 
     # nullable/optional values
     description: NotRequired[str]
+    training_data_decay: NotRequired[None | TrainingDataDecay]
+    """training data season decay rate and minimum season weight for recent seasons used for training"""
     seed: None | int
     p_or_t: PlayerOrTeam | None
     include_pos: NotRequired[bool | None]
@@ -167,7 +158,7 @@ class _TrainingParamsDict(TypedDict):
     """limit the data used in training to this many cases"""
     one_hot_features: NotRequired[None | list[str]]
     """features that were one hotted"""
-    pos_remap: NotRequired[dict[str, str]]
+    pos_remap: NotRequired[None | dict[str, str]]
     """
     mapping/renaming of position. final-pos-abbr -> comma-sep-list-of-original-pos
     This is what will be defined in a model def file. 
@@ -293,7 +284,7 @@ class TrainingConfiguration:
 
         model_params_dict = {
             key: orig_model.parameters[key]
-            for key in _DataSrcParams.__args__
+            for key in DataSrcParams.__annotations__
             if key in orig_model.parameters
         }
         # backward compat: old models stored the warn threshold under the old key name
@@ -314,6 +305,7 @@ class TrainingConfiguration:
                 "validation_season": orig_model.performance.get("season_val"),
                 "recent_games": orig_model.data_def["recent_games"],
                 "training_seasons": orig_model.data_def["seasons"],
+                "training_data_decay": orig_model.data_def.get("training_data_decay"),
                 "seed": orig_model.parameters.get("random_state"),
                 "p_or_t": orig_model.target.p_or_t,
                 "include_pos": orig_model.data_def["include_pos"],
@@ -596,7 +588,7 @@ class TrainingConfiguration:
         if limit is not None:
             print(f"with a training data limit of {limit}")
         raw_to_inf_pos_remap = (
-            self._inference_pos_remap(params["pos_remap"]) if "pos_remap" in params else None
+            self._inference_pos_remap(params["pos_remap"]) if params.get("pos_remap") else None
         )
 
         try:
@@ -613,7 +605,8 @@ class TrainingConfiguration:
                 filtering_query=params.get("filtering_query"),
                 limit=limit,
                 expected_cols=params.get("original_model_columns") if self.retrain else None,
-                inf_pos_remap=raw_to_inf_pos_remap,
+                pos_remap=raw_to_inf_pos_remap,
+                training_data_decay=params.get("training_data_decay"),
             )
             _LOGGER.info(
                 "for %s data load of '%s' complete. one_hot_stats=%s",
@@ -638,12 +631,14 @@ class TrainingConfiguration:
         if info:
             return None
 
-        data_src_params: dict[_DataSrcParams, list | dict | str | float | None] = {
+        data_src_params: DataSrcParams = {
             "missing_data_warn_threshold": missing_data_warn_threshold,
             "missing_data_fail_threshold": _fail_threshold_to_str_list(missing_data_fail_threshold),
             "filtering_query": params.get("filtering_query"),
             "data_filename": params["data_filename"],
             "one_hot_features": one_hot_stats,
+            "pos_remap": raw_to_inf_pos_remap,
+            "training_data_decay": params.get("training_data_decay"),
         }
 
         description = train_params.get("description") or params.get("description")
@@ -665,7 +660,6 @@ class TrainingConfiguration:
             dest_dir,
             file_found_mode,
             limit,
-            raw_to_inf_pos_remap,
             dest_filename,
             data_src_params,
         )

@@ -166,7 +166,7 @@ def _train_model(
     """
     help to train an individual model
 
-    args: dict with all args (e.g. entire command line args)
+    args: namespace with all cli args (e.g. entire command line args)
     """
     _LOGGER.info("Training %s", model_name)
     p_bar.set_postfix_str(
@@ -255,12 +255,14 @@ def _handle_train(args: argparse.Namespace):
             )
         model_names = _expand_models(tdf, (args.model or args.models), args.exclude_model_file)
         original_model = None
-    else:
+    elif args.train_op == "retrain":
         tdf, original_model = TrainingConfiguration.cfg_from_model(
             args.cfg_file, args.orig_cfg_file, algorithm=args.algorithm
         )
         model_names = [original_model.name]
         assert original_model.parameters is not None
+    else:
+        raise NotImplementedError(f"handling of train_op='{args.train_op}' not implemented")
 
     if args.feature_na_fail_pct is not None:
         args.feature_na_fail_pct = _combine_feature_na_fail_pct(
@@ -325,6 +327,14 @@ def _add_train_parser(sub_parsers):
                 "--models", nargs="+", help="Models to train. Wildcard '*' is supported"
             )
             train_parser.add_argument(
+                "--exclude_model_file",
+                help="Path to a text file with a list of model names or fitted "
+                "model meta file names for models that should be excluded from training. "
+                "Model metadata filenames are expected to be of the form '{MODEL-NAME}.*.model' . "
+                "If a line follows this pattern it will be treated as a metadata filename, "
+                "otherwise it will be considered a model name.",
+            )
+            train_parser.add_argument(
                 "--description",
                 help="Description text that should be included in the .model file's metadata.",
             )
@@ -336,14 +346,6 @@ def _add_train_parser(sub_parsers):
             )
         else:
             raise NotImplementedError()
-
-        if train_op == "train":
-            train_parser.add_argument(
-                "--exclude_model_file",
-                help="Path to a text file with a list of model names or fitted "
-                "model meta file names for models that should be excluded from training. "
-                "Model metadata filenames are expected to be of the form '{MODEL-NAME}.*.model' . If a line follows this pattern it will be treated as a metadata filename, otherwise it will be considered a model name.",
-            )
 
         train_parser.add_argument(
             "--slack",

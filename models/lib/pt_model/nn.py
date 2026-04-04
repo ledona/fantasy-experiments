@@ -18,7 +18,17 @@ class NNWrapper(PTEstimatorWrapper):
 
     VERSIONS_FOR_DEPS = ["torch"]
 
-    def __init__(self, x_test: pd.DataFrame, y_test: pd.Series, model_filebase, **params):
+    def __init__(
+        self,
+        x_test: pd.DataFrame,
+        y_test: pd.Series,
+        model_filebase,
+        sample_weight: str | None = None,
+        **params,
+    ):
+        """
+        sample_weight: column containing sample weights
+        """
         self._fitted = None
         self._logger = log.get_logger(__name__)
         self.x_test = x_test
@@ -26,6 +36,8 @@ class NNWrapper(PTEstimatorWrapper):
 
         model_params = dict(params)
         input_size = len(x_test.columns)
+        if sample_weight:
+            input_size -= 1
         resume_filepath = (
             model_params.pop("nn:resume_checkpoint_filepath")
             if "nn:resume_checkpoint_filepath" in model_params
@@ -64,9 +76,14 @@ class NNWrapper(PTEstimatorWrapper):
                     prefix=f"fantasy-nn-checkpoints:{model_filebase}.", delete=False
                 )
                 nn_params["checkpoint_dir"] = tmpdir.name
-            model = NNRegressor(input_size, **nn_params)
+            model = NNRegressor(input_size, sample_weight=sample_weight, **nn_params)
+
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = model.to(device)
+
+    @property
+    def sample_weight_support(self):
+        return True
 
     def fit(self, x: pd.DataFrame, y: pd.Series):
         self._fitted = self.model.fit(x, y, self.x_test, self.y_test, **(self.fit_kwargs or {}))

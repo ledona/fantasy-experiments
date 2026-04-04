@@ -349,6 +349,8 @@ def _create_expected_model_dict(
             "one_hot_features": ["pos"] if expected_training_data_def["include_pos"] else None,
             "data_filename": _EXPECTED_TRAINING_CFG_PARAMS[model_name]["data_filename"],
             **TRAINING_PARAM_DEFAULTS["dummy"],
+            "training_data_decay": None,
+            "pos_remap": None,
         },
         "trained_parameters": {"regressor_path": final_artifact_filepath},
         "training_data_def": expected_training_data_def,

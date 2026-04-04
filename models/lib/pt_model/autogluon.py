@@ -70,6 +70,10 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         )
         self._model_tmpdir.cleanup()
 
+    @property
+    def sample_weight_support(self):
+        return True
+
     def fit(self, x: pd.DataFrame, y: pd.Series):
         if self._TARGET_COL in x:
             raise InvalidArgumentsException(
