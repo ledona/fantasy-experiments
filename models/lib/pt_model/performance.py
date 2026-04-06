@@ -117,6 +117,7 @@ def performance_calc(
             data_filepath,
             (model.target.type, model.target.name),
             params["validation_season"],
+            params["training_seasons"],
             params["seed"],
             include_position=params["include_pos"],
             col_drop_filters=params["cols_to_drop"],

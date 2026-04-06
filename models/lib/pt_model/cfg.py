@@ -296,13 +296,15 @@ class TrainingConfiguration:
             if key in orig_model.parameters
         }
         # backward compat: old models stored the warn threshold under the old key name
-        if (
-            "missing_data_warn_threshold" not in model_params_dict
-            and "missing_data_threshold" in orig_model.parameters
-        ):
-            model_params_dict["missing_data_warn_threshold"] = orig_model.parameters[
-                "missing_data_threshold"
-            ]
+        assert "missing_data_threshold" not in orig_model.parameters
+        # if (
+        #     "missing_data_warn_threshold" not in model_params_dict
+        #     and "missing_data_threshold" in orig_model.parameters
+        # ):
+        #     model_params_dict["missing_data_warn_threshold"] = orig_model.parameters[
+        #         "missing_data_threshold"
+        #     ]
+
         model_params_dict.update(
             {
                 "sport": orig_model.sport,
@@ -601,6 +603,7 @@ class TrainingConfiguration:
                 data_filepath,
                 target_tuple,
                 params["validation_season"],
+                params["training_seasons"],
                 params["seed"],
                 include_position=params.get("include_pos"),
                 col_drop_filters=params["cols_to_drop"],

@@ -62,6 +62,7 @@ def _load_data_local(
     col_drop_filters: list[str] | None,
     limit: int | None,
     validation_season: int,
+    training_seasons: list[int],
     target_col_name: str,
     original_model_cols: set[str] | None,
     inf_pos_remap: dict[str, str] | None,
@@ -78,6 +79,11 @@ def _load_data_local(
         have an expected list of final input cols
     inf_pos_remap: rename/remap positions. dict[old-pos, inference_pos]
     """
+    if validation_season in training_seasons:
+        _LOGGER.warning(
+            "validation season %s is also one of the list of training seasons", validation_season
+        )
+    seasons_to_load = [validation_season, *training_seasons]
     if filename.endswith(".csv"):
         df_raw = pd.read_csv(filename, nrows=limit)
         if len(df_raw.query("season == @validation_season")) == 0:
@@ -86,6 +92,7 @@ def _load_data_local(
                 "to retrieve data from validation season. Try again without limit, "
                 "or try a different the validation season."
             )
+        df_raw = df_raw.query("season in @seasons_to_load")
     elif filename.endswith(".parquet") or filename.endswith(".pq"):
         if limit is not None:
             pf = pq.ParquetFile(filename)
@@ -107,7 +114,7 @@ def _load_data_local(
                     len(df_raw),
                 )
         else:
-            df_raw = pd.read_parquet(filename)
+            df_raw = pd.read_parquet(filename, filters=[("season", "in", seasons_to_load)])
     else:
         raise NotImplementedError(
             f"Don't know how to load data files with extension {filename.rsplit('.', 1)[-1]}"
@@ -166,10 +173,9 @@ def _load_data_local(
                 drop_filters_not_used,
             )
         _LOGGER.info(
-            "Dropping n=%i of %i columns",  # : %s",
+            "Dropping n=%i of %i columns",
             len(cols_to_drop),
             len([col for col in df_raw.columns if ":" in col]),
-            # sorted(cols_to_drop),
         )
         df = df_raw.drop(columns=list(cols_to_drop))
     else:
@@ -478,6 +484,7 @@ def load_data(
     filename: str,
     target: tuple[str, str] | str,
     validation_season: int,
+    training_seasons: list[int],
     seed: int | None,
     include_position: None | bool = None,
     col_drop_filters: None | list[str] = None,
@@ -526,6 +533,7 @@ def load_data(
         col_drop_filters,
         limit,
         validation_season,
+        training_seasons,
         target_col_name,
         expected_cols,
         inf_pos_remap,
