@@ -288,6 +288,10 @@ def _add_train_parser(sub_parsers):
             train_parser.add_argument(
                 "--models", nargs="+", help="Models to train. Wildcard '*' is supported"
             )
+            train_parser.add_argument(
+                "--description",
+                help="Description text that should be included in the .model file's metadata.",
+            )
         elif train_op == "retrain":
             train_parser.add_argument(
                 "--orig_cfg_file",

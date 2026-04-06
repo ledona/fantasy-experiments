@@ -770,6 +770,7 @@ def _infer_extra_stat_name_type(
 
 def _create_fantasy_model(
     name: str,
+    description: str | None,
     sport: str,
     model_artifact_path: str,
     dt_trained: datetime,
@@ -787,7 +788,7 @@ def _create_fantasy_model(
     model_info: None | dict,
 ) -> PTPredictModel:
     """Create a model object"""
-    _LOGGER.info("Creating fantasy model for '%s'", name)
+    _LOGGER.info("Creating fantasy model object for name='%s' description='%s'", name, description)
     target_info = StatInfo(target[0], p_or_t, target[1])
     include_pos = False
     features_sets: dict[FeatureType, set[str]] = defaultdict(set)
@@ -885,6 +886,7 @@ def _create_fantasy_model(
         input_cols=columns,
         impute_values=imputes,
         desc_info=model_info,
+        description=description,
     )
 
     return model
@@ -935,6 +937,7 @@ def _reuse_model_helper(
 def model_and_test(
     name: str,
     sport: str,
+    description: str | None,
     validation_season: int,
     tt_data,
     target: tuple[FeatureType, str],
@@ -1012,6 +1015,7 @@ def model_and_test(
 
         model = _create_fantasy_model(
             name,
+            description,
             sport,
             model_artifact_path,
             dt_trained,

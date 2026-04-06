@@ -146,6 +146,7 @@ class _TrainingParamsDict(TypedDict):
     algorithm: AlgorithmType
 
     # nullable/optional values
+    description: NotRequired[str]
     seed: None | int
     p_or_t: PlayerOrTeam | None
     include_pos: NotRequired[bool | None]
@@ -645,9 +646,12 @@ class TrainingConfiguration:
             "one_hot_features": one_hot_stats,
         }
 
+        description = train_params.get("description") or params.get("description")
+
         model = model_and_test(
             model_name,
             params["sport"],
+            description,
             params["validation_season"],
             tt_data,
             target_tuple,
