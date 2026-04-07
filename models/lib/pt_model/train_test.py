@@ -601,6 +601,7 @@ def load_data(
 
     if training_data_decay:
         assert _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL not in X
+        _LOGGER.info("Adding training data decay weight %s", training_data_decay)
         most_recent_season = cast(int, train_test_df.season.max())
         years_ago = most_recent_season - train_test_df.season
         weights = years_ago.map(
