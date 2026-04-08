@@ -10,12 +10,13 @@ function usage() {
         echo
     fi
     echo "Cloud Model Trainer
-Usage: $0 [--dryrun] [--s3-profile PROFILE] [--s3-path S3_PATH] [--local-dest-dir DEST_DIR] [--exclude-remote-models] MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
+Usage: $0 [--dryrun] [--s3-profile PROFILE] [--s3-path S3_PATH] [--local-dest-dir DEST_DIR] [--local-data-dir DATA_DIR] [--exclude-remote-models] MODEL-FILE MODEL-NAME [ARG1 ARG2 ...]
 
 --s3-path: S3 path to use. If not specified, falls back to the S3_BUCKET env variable.
 --s3-profile: AWS profile to use (default: 'default'). Can also be set via S3_PROFILE env variable.
 --local-dest-dir: Local destination directory for models (default: /tmp/models).
---exclude-remote-models: List *.model files in \$S3_PATH/models and write their names to \$DEST_DIR/exclude-from-training.txt before training.
+--local-data-dir: Local directory for data files, model json files, and exclude file (default: \$HOME).
+--exclude-remote-models: List *.model files in \$S3_PATH/models and write their names to DATA_DIR/exclude-from-training.txt before training.
 S3_ENDPOINT_URL env variable can optionally be set to specify a custom S3 endpoint (e.g. Cloudflare R2).
 On AWS, S3 access should be granted through AWS permissions to the VPC, which means
 access should already be granted. If Cloudflare R2 is being used then ~/.aws/credentials
@@ -29,6 +30,11 @@ Training proceeds using the following steps:
 4) copy the data file from s3 if it is not available locally from a previous run
 5) Train model(s) matching the cli arg MODEL-NAME. MODEL-NAME can contain wildcards. Wildcard character is
    '*'. All command line args for this script after the MODEL-FILE are passed to the training program.
+
+Example:
+# train mlb hitter models, exclude any that exist locally or on on the remote (S3) storage
+# pass along --exists --algo --slack and --n_jobs arguments to lib.regression
+bash ./cloud_train.sc --exclude-remote-models mlb.json \"MLB-H-*\" --exists reuse --algo tpot --slack --n_jobs 4
 "
     exit 1
 }
@@ -38,6 +44,7 @@ S3_PROFILE=${S3_PROFILE:-default}
 S3_PATH=""
 DEST_DIR=/tmp/models
 EXCLUDE_REMOTE_MODELS=false
+LOCAL_DATA_DIR=$HOME
 
 S3_ENDPOINT_PARAM=""
 if [ -n "$S3_ENDPOINT_URL" ]; then
@@ -67,6 +74,12 @@ while true; do
             usage "--local-dest-dir requires an argument"
         fi
         DEST_DIR=$2
+        shift 2
+    elif [ "$1" = "--local-data-dir" ]; then
+        if [ -z "$2" ]; then
+            usage "--local-data-dir requires an argument"
+        fi
+        LOCAL_DATA_DIR=$2
         shift 2
     elif [ "$1" = "--exclude-remote-models" ]; then
         EXCLUDE_REMOTE_MODELS=true
@@ -99,22 +112,23 @@ fi
 shift 2  # Remove parsed arguments, leaving only optional args
 
 echo "----------------------------------------"
-echo "  S3 path:      ${S3_PATH}"
-echo "  S3 profile:   ${S3_PROFILE}"
-echo "  Endpoint URL: ${S3_ENDPOINT_URL:-<none>}"
-echo "  Dest dir:     ${DEST_DIR}"
-echo "  Model file:   ${MODEL_FILE}"
-echo "  Model name:   ${MODEL_NAME}"
-echo "  Excl. models: ${EXCLUDE_REMOTE_MODELS}"
+echo "  S3 path:        ${S3_PATH}"
+echo "  S3 profile:     ${S3_PROFILE}"
+echo "  Endpoint URL:   ${S3_ENDPOINT_URL:-<none>}"
+echo "  Dest dir:       ${DEST_DIR}"
+echo "  Model file:     ${MODEL_FILE}"
+echo "  Model pattern:  ${MODEL_NAME}"
+echo "  Local data:     ${LOCAL_DATA_DIR}"
+echo "  Excl. models:   ${EXCLUDE_REMOTE_MODELS}"
 echo "----------------------------------------"
 echo
 
 # Copy MODEL_FILE from S3 if not present locally
-cmd="aws --profile ${S3_PROFILE} ${S3_ENDPOINT_PARAM} s3 cp '${S3_PATH}/${MODEL_FILE}' ."
+cmd="aws --profile ${S3_PROFILE} ${S3_ENDPOINT_PARAM} s3 cp '${S3_PATH}/${MODEL_FILE}' '${LOCAL_DATA_DIR}/'"
 if [ $DRYRUN = true ]; then
     echo "# if the model file does not exist copy it from '${S3_PATH}'"
     echo $cmd
-elif [ ! -f "$MODEL_FILE" ]; then
+elif [ ! -f "${LOCAL_DATA_DIR}/${MODEL_FILE}" ]; then
     echo "# Model file '$MODEL_FILE' not found, copying from '${S3_PATH}'"
     eval "$cmd"
 else
@@ -123,23 +137,19 @@ fi
 
 # List remote *.model files and write names to exclude-from-training.txt
 if [ $EXCLUDE_REMOTE_MODELS = true ]; then
-    if [ ! -d "$DEST_DIR" ]; then
-        echo "Error: DEST_DIR '${DEST_DIR}' does not exist"
-        exit 1
-    fi
     ls_cmd="aws --profile ${S3_PROFILE} ${S3_ENDPOINT_PARAM} s3 ls '${S3_PATH}/models/'"
     if [ $DRYRUN = true ]; then
         echo "# list remote models to build exclude-from-training.txt:"
         echo $ls_cmd
     else
-        eval "$ls_cmd" | awk '{print $NF}' | grep '\.model$' > "${DEST_DIR}/exclude-from-training.txt"
-        echo "# wrote $(wc -l < "${DEST_DIR}/exclude-from-training.txt") model names to ${DEST_DIR}/exclude-from-training.txt"
+        eval "$ls_cmd" | awk '{print $NF}' | grep '\.model$' > "${LOCAL_DATA_DIR}/exclude-from-training.txt" || true
+        echo "# wrote $(wc -l < "${LOCAL_DATA_DIR}/exclude-from-training.txt") model names to ${LOCAL_DATA_DIR}/exclude-from-training.txt"
     fi
 fi
 
-train_cmd="python -m lib.regressor train $MODEL_FILE $MODEL_NAME --dest_dir $DEST_DIR $@"
+train_cmd="python -m lib.regressor train ${LOCAL_DATA_DIR}/${MODEL_FILE} $MODEL_NAME --data_dir $LOCAL_DATA_DIR --dest_dir $DEST_DIR $@"
 if [ $EXCLUDE_REMOTE_MODELS = true ]; then
-    train_cmd="$train_cmd --exclude_model_file ${DEST_DIR}/exclude-from-training.txt"
+    train_cmd="$train_cmd --exclude_model_file ${LOCAL_DATA_DIR}/exclude-from-training.txt"
 fi
 
 # Run train in info mode and capture output
@@ -153,28 +163,29 @@ if [ $DRYRUN = false ]; then
     echo "$INFO"
     echo ---------------------------------------------------
     echo
-    # Extract DATAFILE filename
-    DATAFILE=$(echo "$INFO" | grep "'data_filename'" | head -n 1 | sed "s/.*'data_filename': '\([^']*\)'.*/\1/")
-    if [ -z "$DATAFILE" ]; then
+    # Extract all data filenames
+    DATAFILES=$(echo "$INFO" | grep "'data_filename'" | sed "s/.*'data_filename': '\([^']*\)'.*/\1/" | sort -u)
+    if [ -z "$DATAFILES" ]; then
         echo "Error: Could not extract filename from INFO"
         exit 1
     fi
-    echo "Data filename is '$DATAFILE'"
-else
-    DATAFILE=DATAFILE.parquet
+    echo "Data filenames: $(echo "$DATAFILES" | tr '\n' ' ')"
 fi
 
-# Check if file not found message exists in INFO
-cmd="aws --profile ${S3_PROFILE} ${S3_ENDPOINT_PARAM} s3 cp '${S3_PATH}/${DATAFILE}' ."
+# Download any data files not found locally
 if [ $DRYRUN = true ]; then
-    echo "# if data file is not local copy it from S3"
-    echo $cmd
-elif echo "$INFO" | grep -q "Data file '${DATAFILE}' was not found"; then
-    echo "Data file '${DATAFILE}' was not found, copying from S3"
-    echo $cmd
-    eval "$cmd"
+    echo "# if data files are not local copy them from S3"
+    echo "aws --profile ${S3_PROFILE} ${S3_ENDPOINT_PARAM} s3 cp '${S3_PATH}/<DATAFILE>' '${LOCAL_DATA_DIR}/'"
 else
-    echo "Data file '${DATAFILE}' found locally"
+    while IFS= read -r datafile; do
+        if echo "$INFO" | grep -q "Data file '.*${datafile}' was not found"; then
+            cmd="aws --profile ${S3_PROFILE} ${S3_ENDPOINT_PARAM} s3 cp '${S3_PATH}/${datafile}' '${LOCAL_DATA_DIR}/'"
+            echo "Data file '${datafile}' was not found, copying from S3"
+            eval "$cmd"
+        else
+            echo "Data file '${datafile}' found locally"
+        fi
+    done <<< "$DATAFILES"
 fi
 
 # Run training with remaining args and temp directory

@@ -33,7 +33,7 @@
             "args": [
                 // "train", "2026.04/mlb.json", "*",
                 // "train", "2026.04/nhl.json", "NHL-skater*", 
-                "train", "2026.04/nfl.json", "NFL-QB-DK", // "*", 
+                "train", "2026.04/nfl.json", "NFL-team-*", // "*", 
                 // "train", "2026.04/nhl.json", "*", 
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
@@ -41,6 +41,7 @@
                 // "--info",
                 // "--slack",
                 // "--feature_na_fail_pct", ".65#*shift*",
+                "--exclude_model_file", "/tmp/exclude-test.txt",
 
                 // "--exists_mode", "reuse",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",
@@ -49,7 +50,7 @@
                 // "--data_limit", "1000",
                 "--description", "testing",
 
-                // "--algo", "dummy", 
+                "--algo", "dummy", 
                 // "--algo", "tpot",
                 // "--algo", "tpot-light",
                 // "--max_iter_mins", "5",
@@ -67,12 +68,12 @@
                 // "--max_train_mins", "1",
                 // "--verbose", "3",
 
-                "--algo", "nn",
+                // "--algo", "nn",
                 // "--batch_size", "256",
                 // "--hidden_size", "64",
                 // "--layers", "3",
                 // "--lr", ".000001",
-                "--max_epochs", "2",
+                // "--max_epochs", "2",
                 // "--early_stop", "2",
                 // "--checkpoint_dir", "/tmp/fantasy-test-checks",
                 // "--checkpoint_freq", "10"

@@ -100,7 +100,7 @@ def _expand_models(
         exit(0)
 
     if exclude_model_file:
-        exclude_models = set()
+        exclude_models: set[str] = set()
         if not os.path.isfile(exclude_model_file):
             raise FileNotFoundError(f"Exclude file '{exclude_model_file}' not found")
         with open(exclude_model_file, "r") as f_:
@@ -123,8 +123,6 @@ def _expand_models(
             exclude_model_file,
             sorted(exclude_models),
         )
-    else:
-        exclude_models = set()
 
     filters = [model_request] if isinstance(model_request, str) else model_request
     model_names: list[str] = []
@@ -134,25 +132,32 @@ def _expand_models(
                 raise UnexpectedValueError(
                     f"Model name '{model_filter}' not found. valid models are {tdf.model_names}"
                 )
-            if model_filter in exclude_models:
+            if exclude_model_file and model_filter in exclude_models:
                 raise UnexpectedValueError(
                     f"Model '{model_filter}' was explicitly requested but is in the exclude list"
                 )
             model_names.append(model_filter)
             continue
+
         filter_re = model_filter.replace("*", ".*")
-        matches = [
-            model_name
-            for model_name in tdf.model_names
-            if re.match(filter_re, model_name) and model_name not in exclude_models
-        ]
+        matches = {model_name for model_name in tdf.model_names if re.match(filter_re, model_name)}
         if len(matches) == 0:
             raise UnexpectedValueError(
                 f"Model request '{model_filter}' did not match to any model names. "
                 f"valid models are {tdf.model_names}"
             )
+
+        if exclude_model_file:
+            matches_to_exclude = {
+                model_name for model_name in matches if model_name in exclude_models
+            }
+            if matches_to_exclude:
+                _LOGGER.success(
+                    f"Excluding {len(matches_to_exclude)} models from training found in '{exclude_model_file}': {sorted(matches_to_exclude)}"
+                )
+                matches -= matches_to_exclude
         model_names += matches
-    return model_names
+    return sorted(model_names)
 
 
 def _train_model(
@@ -288,17 +293,19 @@ def _handle_train(args: argparse.Namespace):
             "models trained successfully. failed models="
         )
         l_msg = f"{msg_prefix}{progress['failures']}"
-        final_slack_msg = f"{msg_prefix}{[failure[0] for failure in progress['failures']]}"
+        slack_msg = f"{msg_prefix}{[failure[0] for failure in progress['failures']]}"
         _LOGGER.warning(l_msg)
     elif not args.info:
-        final_slack_msg = (
-            f"All models trained successfully: {model_names}"
-            if len(model_names) > 1
-            else f"{model_names[0]} trained successfully"
-        )
-        _LOGGER.success(final_slack_msg)
-    if not args.info:
-        slack.send_slack(final_slack_msg)
+        if len(model_names) > 1:
+            slack_msg = msg = f"All models trained successfully: {model_names}"
+        elif len(model_names) == 1:
+            slack_msg = msg = f"{model_names[0]} trained successfully"
+        else:
+            msg = "Nothing to do! No models to train"
+            slack_msg = None
+        _LOGGER.success(msg)
+    if not args.info and slack_msg:
+        slack.send_slack(slack_msg)
 
 
 _MODEL_CATALOG_PATTERN = "model-catalog.{TIMESTAMP}.csv"
