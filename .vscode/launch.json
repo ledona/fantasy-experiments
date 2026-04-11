@@ -41,7 +41,7 @@
                 // "--info",
                 // "--slack",
                 // "--feature_na_fail_pct", ".65#*shift*",
-                "--exclude_model_file", "/tmp/exclude-test.txt",
+                // "--exclude_model_file", "/tmp/exclude-test.txt",
 
                 // "--exists_mode", "reuse",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",
@@ -50,7 +50,7 @@
                 // "--data_limit", "1000",
                 "--description", "testing",
 
-                "--algo", "dummy", 
+                // "--algo", "dummy", 
                 // "--algo", "tpot",
                 // "--algo", "tpot-light",
                 // "--max_iter_mins", "5",
@@ -61,11 +61,11 @@
                 // "--max_train_mins", "15",
                 // "--verbose", "4",
 
-                // "--algo", "autogluon",
+                "--algo", "autogluon",
                 // "--ag:preset", "medium",
-                // "--ag:preset", "best_v150"
+                "--ag:preset", "best_v150",
                 // "--ag:disable_cuda",
-                // "--max_train_mins", "1",
+                "--max_train_mins", "1",
                 // "--verbose", "3",
 
                 // "--algo", "nn",
