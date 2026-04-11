@@ -87,39 +87,16 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         if self.time_limit:
             fit_kwargs["time_limit"] = self.time_limit
 
-        if torch.cuda.is_available():
-            if self.disable_cuda:
+        if "extreme" in self.preset:
+            if not torch.cuda.is_available() or self.disable_cuda:
+                raise InvalidArgumentsException("Extreme preset requested but either no GPU was found or cuda was disabled")
+            # let autogluon handle everything
+        elif self.preset.startswith("best") or self.preset == "bq":
+            if torch.cuda.is_available() or self.disable_cuda:
                 self._logger.info(
-                    "CUDA device is available but will not be used because disable_cuda is True"
+                    "CUDA device is available but will not be used because disable_cuda is True or running a 'best' preset"
                 )
-                fit_kwargs["num_gpus"] = 0
-            else:
-                fit_kwargs["ag_args_fit"] = {"num_gpus": torch.cuda.device_count()}
-                cpu_count = psutil.cpu_count(logical=True)
-                if cpu_count is None:
-                    self._logger.warning(
-                        "Unable to determine the number of logical CPUs available for training. AutoGluon will choose"
-                    )
-                elif self.preset.startswith("best") or self.preset == "bq":
-                    # Calculate safe cores based on available memory
-                    # cpus_to_use = min(cpus - 2, floor(total_mem / 4GB))
-                    total_mem = get_total_memory()
-                    used_mem = get_used_memory()
-                    avail_mem_gb = (total_mem - used_mem) / (1024**3)
-                    # Reserve 4GB for OS/Driver, then divide by 4GB per core
-                    safe_cpus = min(int(avail_mem_gb / 4) or 1, cpu_count - 2)
-                    self._logger.info(
-                        "Autogluon 'best' preset will use gpu and %i cpus based on avail memory of %.1fGB. "
-                        "total-mem=%s used-mem=%s",
-                        safe_cpus,
-                        avail_mem_gb,
-                        bytes2human(total_mem),
-                        bytes2human(used_mem),
-                    )
-                    fit_kwargs["num_cpus"] = safe_cpus
-                    fit_kwargs["ag_args_ensemble"] = {"fold_fitting_strategy": "parallel_local"}
-                else:
-                    fit_kwargs["num_cpus"] = cpu_count - 2
+            fit_kwargs["ag_args_fit"] = {"num_gpus": 0}
 
         self._logger.info("Autogluon fitting with kwargs: %s", fit_kwargs)
         self.predictor.fit(x_with_y, **fit_kwargs)
