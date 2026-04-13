@@ -32,6 +32,7 @@ from fantasy_py import (
 )
 from fantasy_py.inference import (
     AutogluonModel,
+    FlamlModel,
     NNModel,
     PerformanceDict,
     PTPredictModel,
@@ -43,6 +44,7 @@ from ledona import slack
 
 from .autogluon import AutoGluonWrapper
 from .dummy import DummyWrapper
+from .flaml import FlamlWrapper
 from .nn import NNWrapper
 from .wrapper import PTEstimatorWrapper
 
@@ -660,7 +662,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-AlgorithmType = Literal["autogluon", "dummy", "nn", "xgboost"]
+AlgorithmType = Literal["autogluon", "dummy", "flaml", "nn", "xgboost"]
 """machine learning algorithm used for model selection and training"""
 
 
@@ -689,6 +691,21 @@ def _instantiate_regressor(
     if algorithm == "dummy":
         model = DummyWrapper(model_params)
         return model
+
+    if algorithm == "flaml":
+        return FlamlWrapper(
+            time_budget=(
+                model_params["max_time_mins"] * 60
+                if model_params.get("max_time_mins") is not None
+                else None
+            ),
+            n_jobs=model_params.get("n_jobs"),
+            use_gpu=model_params.get("use_gpu", False),
+            concurrent_trials=model_params.get("concurrent_trials"),
+            sample_weight=(
+                _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL if training_sample_weights else None
+            ),
+        )
 
     if algorithm == "nn":
         model = NNWrapper(
@@ -785,6 +802,8 @@ def _get_model_cls(algo: AlgorithmType):
         return SKLModel
     if algo == "autogluon":
         return AutogluonModel
+    if algo == "flaml":
+        return FlamlModel
     if algo == "nn":
         return NNModel
     raise NotImplementedError(f"Don't know what model class to use for {algo=}")

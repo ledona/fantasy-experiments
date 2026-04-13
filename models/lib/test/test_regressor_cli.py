@@ -607,7 +607,20 @@ def _train_prep(
         if prev_algo != "dummy":
             mock_save_func = mocker.patch("lib.pt_model.dummy.joblib").dump
             mock_regressor = mocker.patch("lib.pt_model.dummy.DummyRegressor", autospec=True)
-            mock_fitted = mock_regressor.return_value.fit.return_value
+    elif algo == "flaml":
+        if cli_params.get("flaml:use_gpu"):
+            cli_params["flaml:use_gpu"] = ""
+        else:
+            cli_params.pop("flaml:use_gpu", None)
+
+        if prev_algo != "flaml":
+            mock_save_func = mocker.patch("lib.pt_model.flaml.joblib").dump
+            mock_regressor = mocker.patch(
+                "lib.pt_model.flaml.AutoML", name="fake-AutoML", autospec=True
+            )
+            mock_regressor.return_value = mocker.MagicMock(
+                name="flaml-regressor-inst", best_estimator="est", best_config={}, best_loss=0.1
+            )
     else:
         raise NotImplementedError(f"{algo=} not supported")
 
@@ -637,8 +650,9 @@ def _train_prep(
         ("dummy", {"dmy:strategy": "mean"}),
         ("nn", {"early_stop": 10, "epochs_max": 1000}),
         ("autogluon", {"ag:preset": "high", "ag:disable_cuda": True, "max_time_mins": 120}),
+        ("flaml", {"max_time_mins": 30}),
     ],
-    ids=[">dummy", ">nn", ">autogluon"],
+    ids=[">dummy", ">nn", ">autogluon", ">flaml"],
 )
 @pytest.mark.parametrize(
     "orig_algo, orig_params",
@@ -654,8 +668,9 @@ def _train_prep(
             },
         ),
         ("autogluon", {"ag:preset": "medium", "ag:disable_cuda": False}),
+        ("flaml", {"max_time_mins": 60}),
     ],
-    ids=["dummy>", "nn>", "autogluon>"],
+    ids=["dummy>", "nn>", "autogluon>", "flaml>"],
 )
 def test_train_retrain_params(
     mocker: MockFixture,

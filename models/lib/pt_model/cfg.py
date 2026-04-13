@@ -65,6 +65,12 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | objec
         "nn:checkpoint_frequency": _NO_DEFAULT,
     },
     "dummy": ({"dmy:strategy": "mean"}),
+    "flaml": {
+        "max_time_mins": _NO_DEFAULT,
+        "n_jobs": _NO_DEFAULT,
+        "flaml:use_gpu": False,
+        "flaml:concurrent_trials": _NO_DEFAULT,
+    },
     "xgboost": {"verbose": 2},
 }
 """

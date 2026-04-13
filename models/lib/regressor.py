@@ -501,6 +501,20 @@ def _add_train_parser(sub_parsers):
             help="resume nn training from this checkpoint",
         )
 
+        # FLAML PARAMS
+        train_parser.add_argument(
+            "--flaml:use_gpu",
+            help="enable GPU use for flaml training",
+            action="store_true",
+            default=False,
+        )
+        train_parser.add_argument(
+            "--flaml:concurrent_trials",
+            type=int,
+            help="number of concurrent flaml trials (requires Ray)",
+            default=argparse.SUPPRESS,
+        )
+
         # AUTOGLUON PARAMS
         train_parser.add_argument(
             "--ag:disable_cuda",
