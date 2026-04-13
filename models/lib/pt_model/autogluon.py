@@ -2,12 +2,10 @@ import shutil
 import tempfile
 
 import pandas as pd
-import psutil
 import torch
 from autogluon.tabular import TabularPredictor
 from fantasy_py import FantasyException, InvalidArgumentsException, log
 from fantasy_py.inference import PTPredictModel
-from ledona import bytes2human, get_total_memory, get_used_memory
 
 from .wrapper import PTEstimatorWrapper
 
@@ -89,7 +87,9 @@ class AutoGluonWrapper(PTEstimatorWrapper):
 
         if "extreme" in self.preset:
             if not torch.cuda.is_available() or self.disable_cuda:
-                raise InvalidArgumentsException("Extreme preset requested but either no GPU was found or cuda was disabled")
+                raise InvalidArgumentsException(
+                    "Extreme preset requested but either no GPU was found or cuda was disabled"
+                )
             # let autogluon handle everything
         elif self.preset.startswith("best") or self.preset == "bq":
             if torch.cuda.is_available() or self.disable_cuda:
