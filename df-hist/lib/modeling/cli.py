@@ -152,7 +152,7 @@ def _process_cmd_line(cmd_line_str=None):
         help="The type of ml framework/algorithm to use",
         choices=Framework.__args__,
         nargs="+",
-        default=["tpot"],
+        default=["reg_chain"],
     )
     parser.add_argument(
         "--existing_model_mode",

@@ -13,11 +13,10 @@ from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
 from sklearn.dummy import DummyRegressor
 from sklearn.multioutput import RegressorChain
 from sklearn.tree import DecisionTreeRegressor
-from tpot2 import TPOTRegressor
 
 _LOGGER = log.get_logger(__name__)
 
-Framework = Literal["dummy", "tpot", "reg_chain"]
+Framework = Literal["dummy", "reg_chain"]
 """ml framework"""
 
 ModelTarget = Literal["top-score", "last-win-score", "top+lw-score"]
@@ -109,25 +108,7 @@ def _fit_model(
     model_filepath,
 ):
     fit_params = {}
-    if framework == "tpot":
-        if max_train_time is not None:
-            if (rem := max_train_time % 60) != 0:
-                new_train_time = max_train_time + 60 - rem
-                _LOGGER.warning(
-                    "TPot requires a training time in minutes. Rounding requested "
-                    "train time from %i up to %i seconds",
-                    max_train_time,
-                    new_train_time,
-                )
-                max_train_time = new_train_time
-            max_train_time /= 60
-        modeler = TPOTRegressor(
-            random_state=random_state,
-            max_time_mins=max_train_time,
-            **automl_params,
-        )
-        extract_regressor = lambda model_: model_.fitted_pipeline_
-    elif framework == "dummy":
+    if framework == "dummy":
         modeler = DummyRegressor()
         extract_regressor = lambda model_: model_
     elif framework == "reg_chain":
@@ -180,7 +161,7 @@ def create_model(
     X_test,
     y_test,
     random_state=1,
-    framework: Framework = "tpot",
+    framework: Framework = "reg_chain",
     max_train_time=None,
     mode: ExistingModelMode = "fail",
     eval_results_path=None,

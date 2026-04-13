@@ -40,7 +40,7 @@ To create, archive and use new predictive models perform the following steps
 Update the model training json files.
   - The training files are json dicts with the following structure. 
     - The union of _train_params_ are used to train a model. Values set at a lower level, more specific to the model, take precidence.
-    - _train_params_ can be designated as algorithm specific by prefixing the parameter name with "_algorithm._". E.g. a parameter named _param_ that only applies to the _tpot_ algorithm should be named _tpot.param_.Algorithm specific parameters take precidence over none algorithm specific parameters of the same name.
+    - _train_params_ can be designated as algorithm specific by prefixing the parameter name with "_algorithm._". E.g. a parameter named _param_ that only applies to algorithm _X_ should be named _X.param_. Algorithm specific parameters take precidence over none algorithm specific parameters of the same name.
     - The union of _train_params_ and _cols_to_drop_ are used to train a model. For _train_params_ values from the lowest (most specific to the model) level override parameters with the same name at a higher level.
     - Refer to previous files for examples.
 ```
@@ -93,10 +93,6 @@ python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} 
 # autogluon
 python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
   {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo autogluon --max_time 2 --ag:preset medium
-
-# tpot (for larger dataset use --limit 10000)
-python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
-  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo tpot-light --max_time 3 --max_iter_mins 1 --population 5
 ```
 
 ##### lib.regressor usage
@@ -122,11 +118,6 @@ python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {
 python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--orig_cfg_file {MODEL_DIR}/{SPORT}.json] [--slack] {EXISTING_MODEL_FILEPATH}
 
-# example which forces tpot and specifies number of processes
-python -O -m lib.regressor train --n_jobs 4 --algo tpot 2024.02/nba.json NBA-DK \
-  --data_dir /fantasy-isync/fantasy-modeling/2024.04/pt \
-  --dest_dir /fantasy-isync/fantasy-modeling/2024.04/data
-
 # example that uses a simple NN
 python -m lib.regressor train 2024.12/nfl.json "NFL-QB-
 DK" \
@@ -138,7 +129,7 @@ DK" \
 ##### Test the models (Optional)
 Load the models into the sport database and run some tests. This is important because new extra stats and inference data export changes follow different
 logic for exporting data from history versus preparing for game performance inference. Every algorithm type should be tried at least once and every model
-type should be tried at least once (e.g. test all nn models for each sport, and then tpot and autogluon for 1 sport). Note that these tests do not cover for non-historic games,
+type should be tried at least once (e.g. test all autogluon for 1 sport). Note that these tests do not cover for non-historic games,
 which can only be tested in season.
 
 Load models using _model_manager.py_ . Generate lineups, create direct predictions or run backtesting using one of the debug configurations or lineup.sc,
@@ -186,7 +177,7 @@ model_manager.py fit-uncertainty --data_dir {path to data used to train the orig
   [--exclude_remote_models] {MODEL-CFG-FILE} {MODEL-NAME} {training args ...}
 # for example
 cd /fantasy-experiments/models
-./cloud_train.sc --exclude-remote-models mlb.json "MLB-H-*" --exists reuse --algo tpot --slack --n_jobs 4
+./cloud_train.sc --exclude-remote-models mlb.json "MLB-H-*" --exists reuse --algo <model-algo> --slack <model algo params>
 ```
 Note that the model config file will be retrieved from S3 if it was not previously retrieved, and previously fitted models that exist in the S3 models directory will be written to a text file that will be used to exclude the existing modes from training (--exclude-remote-models).
 3. To copy/sync model results from S3 use aws cli.

@@ -44,7 +44,6 @@ from ledona import slack
 from .autogluon import AutoGluonWrapper
 from .dummy import DummyWrapper
 from .nn import NNWrapper
-from .tpot import TPOTWrapper
 from .wrapper import PTEstimatorWrapper
 
 
@@ -661,7 +660,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     return impute_values
 
 
-AlgorithmType = Literal["autogluon", "tpot", "tpot-light", "dummy", "nn", "xgboost"]
+AlgorithmType = Literal["autogluon", "dummy", "nn", "xgboost"]
 """machine learning algorithm used for model selection and training"""
 
 
@@ -685,10 +684,6 @@ def _instantiate_regressor(
                 _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL if training_sample_weights else None
             ),
         )
-        return model
-
-    if algorithm.startswith("tpot"):
-        model = TPOTWrapper(tpot_light=algorithm == "tpot-light", **model_params)
         return model
 
     if algorithm == "dummy":
@@ -786,7 +781,7 @@ def _train_test(
 
 
 def _get_model_cls(algo: AlgorithmType):
-    if algo.startswith("tpot") or algo == "dummy":
+    if algo == "dummy":
         return SKLModel
     if algo == "autogluon":
         return AutogluonModel

@@ -51,8 +51,6 @@
                 "--description", "testing",
 
                 // "--algo", "dummy", 
-                // "--algo", "tpot",
-                // "--algo", "tpot-light",
                 // "--max_iter_mins", "5",
                 // "--gens", "10",
                 // "--pop", "20",
@@ -90,8 +88,8 @@
             "args": [
                 "catalog",
                 "--best",
-                "--root", "/fantasy-isync/fantasy-modeling"
-                // "--exclude", ".*2023.12.*"
+                "--root", "/fantasy-isync/fantasy-modeling",
+                "--exclude", ".*tpot.*"
             ]
         },
         {
@@ -183,7 +181,7 @@
                 "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.03",
                 "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2026.03",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/data",
-                "--framework", "reg_chain", "tpot"
+                "--framework", "reg_chain", "autogluon"
             ]
         },
         {

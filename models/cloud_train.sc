@@ -34,7 +34,7 @@ Training proceeds using the following steps:
 Example:
 # train mlb hitter models, exclude any that exist locally or on on the remote (S3) storage
 # pass along --exists --algo --slack and --n_jobs arguments to lib.regression
-bash ./cloud_train.sc --exclude-remote-models mlb.json \"MLB-H-*\" --exists reuse --algo tpot --slack --n_jobs 4
+bash ./cloud_train.sc --exclude-remote-models mlb.json \"MLB-H-*\" --exists reuse --algo autogluon --slack --ag:preset medium
 "
     exit 1
 }

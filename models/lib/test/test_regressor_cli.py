@@ -46,7 +46,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
-            "tp:max_eval_time_mins": 15,
+            "ag:preset": "medium",
             "max_time_mins": 60,
         },
         "validation_season": _VALIDATION_SEASON,
@@ -64,7 +64,7 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
-            "tp:max_eval_time_mins": 15,
+            "ag:preset": "medium",
             "max_time_mins": 60,
         },
         "include_pos": False,
@@ -82,13 +82,12 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "cols_to_drop": [".*y_score.*", "extra:bases"],
         "missing_data_warn_threshold": 0.1,
         "train_params": {
+            "ag:preset": "high",
             "nn:batch_size": 64,
             "nn:hidden_layers": 1,
             "epochs_max": 100,
             "early_stop": 5,
-            "tp:max_eval_time_mins": 15,
             "max_time_mins": 45,
-            "n_jobs": 2,
         },
         "validation_season": _VALIDATION_SEASON,
         "recent_games": 5,
@@ -107,9 +106,8 @@ _EXPECTED_TRAINING_CFG_PARAMS = {
         "train_params": {
             "epochs_max": 100,
             "early_stop": 5,
-            "tp:max_eval_time_mins": 15,
             "max_time_mins": 45,
-            "n_jobs": 2,
+            "ag:preset": "high",
         },
         "validation_season": _VALIDATION_SEASON,
         "recent_games": 5,
@@ -404,7 +402,7 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_availabl
     expected_r2, expected_mae = _fake_metrics(mocker)
 
     cmdline = (
-        f"--algorithm {algorithm} --max_time_mins 8 --max_eval_time_mins 4 "
+        f"--algorithm {algorithm} --max_time_mins 8 "
         f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
     )
 
@@ -605,16 +603,6 @@ def _train_prep(
             mock_save_func = mock_regressor.return_value.clone_for_deployment
             mock_regressor.return_value.info.return_value = {"version": "x.y.z"}
             mock_regressor.return_value.model_info.return_value = {"info": "all-da-info"}
-    elif algo.startswith("tpot"):
-        if prev_algo != "tpot":
-            mock_save_func = mocker.patch("lib.pt_model.tpot.joblib").dump
-            mock_regressor = mocker.patch("lib.pt_model.tpot.TPOTRegressor", autospec=True)
-            mock_regressor.return_value.evaluated_individuals = mocker.MagicMock(
-                name="fake-evaluated-individuals"
-            )
-            mock_regressor.return_value.evaluated_individuals.Generation.max.return_value = 1
-            mock_regressor.return_value.predict = mocker.MagicMock(name="fake-predict")
-            mock_regressor.return_value.fitted_pipeline_ = mocker.Mock(name="fake-pipeline")
     elif algo == "dummy":
         if prev_algo != "dummy":
             mock_save_func = mocker.patch("lib.pt_model.dummy.joblib").dump
@@ -648,15 +636,9 @@ def _train_prep(
     [
         ("dummy", {"dmy:strategy": "mean"}),
         ("nn", {"early_stop": 10, "epochs_max": 1000}),
-        ("tpot", {"max_time_mins": 120, "tp:max_eval_time_mins": 15}),
         ("autogluon", {"ag:preset": "high", "ag:disable_cuda": True, "max_time_mins": 120}),
     ],
-    ids=[
-        ">dummy",
-        ">nn",
-        ">tpot",
-        ">autogluon",
-    ],
+    ids=[">dummy", ">nn", ">autogluon"],
 )
 @pytest.mark.parametrize(
     "orig_algo, orig_params",
@@ -671,15 +653,9 @@ def _train_prep(
                 "nn:checkpoint_dir": "/tmp/check",
             },
         ),
-        ("tpot", {"n_jobs": 5, "epochs_max": 10, "early_stop": 2, "tp:population_size": 100}),
         ("autogluon", {"ag:preset": "medium", "ag:disable_cuda": False}),
     ],
-    ids=[
-        "dummy>",
-        "nn>",
-        "tpot>",
-        "autogluon>",
-    ],
+    ids=["dummy>", "nn>", "autogluon>"],
 )
 def test_train_retrain_params(
     mocker: MockFixture,

@@ -45,18 +45,6 @@ This results in no kwarg being set for the regressor init param
 """
 
 
-_TPOT_PARAM_DEFAULTS = {
-    "max_time_mins": _NO_DEFAULT,
-    "n_jobs": _NO_DEFAULT,
-    "epochs_max": _NO_DEFAULT,  # epochs_max will be used for generations
-    "early_stop": 3,
-    "tp:max_eval_time_mins": _NO_DEFAULT,
-    "tp:population_size": _NO_DEFAULT,
-    # Following should have no impact on the resulting model
-    "verbose": 3,
-}
-"""defaults for all tpot algorithms"""
-
 TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | object]] = {
     "autogluon": {
         "max_time_mins": _NO_DEFAULT,
@@ -77,8 +65,6 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | objec
         "nn:checkpoint_frequency": _NO_DEFAULT,
     },
     "dummy": ({"dmy:strategy": "mean"}),
-    "tpot": _TPOT_PARAM_DEFAULTS,
-    "tpot-light": _TPOT_PARAM_DEFAULTS,
     "xgboost": {"verbose": 2},
 }
 """
@@ -113,7 +99,7 @@ def _fail_threshold_to_str_list(value: float | dict[str | None, float]) -> list[
     return tokens
 
 
-DEFAULT_ALGORITHM: AlgorithmType = "tpot"
+DEFAULT_ALGORITHM: AlgorithmType = "dummy"
 
 _IGNORE_ORIGINAL_PARAMS = {"resume_checkpoint_filepath"}
 """

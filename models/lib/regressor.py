@@ -205,7 +205,6 @@ def _train_model(
         )
         progress["successes"].append(model_name)
     except RuntimeError as ex:
-        # RuntimeError likely means a fail due to tpot
         _LOGGER.error("Failed to train '%s'", model_name, exc_info=ex)
         progress["failures"].append((model_name, ex))
         return
@@ -451,24 +450,6 @@ def _add_train_parser(sub_parsers):
         )
         train_parser.add_argument("--verbose", type=int)
 
-        # TPOT PARAMS
-        train_parser.add_argument(
-            "--tp:max_eval_time_mins",
-            "--max_eval_time_mins",
-            "--training_iter_mins",
-            "--max_iter_mins",
-            "--iter_mins",
-            "--iter_time",
-            type=int,
-            default=argparse.SUPPRESS,
-        )
-        train_parser.add_argument(
-            "--tp:population_size",
-            "--population",
-            type=int,
-            default=argparse.SUPPRESS,
-        )
-
         # NEURAL NET PARAMS
         train_parser.add_argument(
             "--nn:batch_size",
@@ -613,29 +594,7 @@ def _model_catalog_func(args):
             model_data["meta_extra"].get("desc_info") if "meta_extra" in model_data else None
         )
         if desc_info:
-            if cat_data["algo"].startswith("tpot"):
-                if (
-                    (early_stop := model_data["parameters"].get("early_stop"))
-                    and (gens := desc_info["generations_tested"])
-                    and gens < early_stop
-                ):
-                    cat_data["tags"].append("incomplete-training")
-                    cat_data["notes"].append(
-                        f"tpot generations is lower than early-stop, {gens=} < {early_stop=}"
-                    )
-
-                if (
-                    (max_train_time_mins := model_data["parameters"].get("max_time_mins"))
-                    and (ttf := desc_info["time_to_fit"])
-                    and (ttf_secs := time_to_secs(ttf)) / 60 >= max_train_time_mins
-                ):
-                    cat_data["tags"].append("early-stop")
-                    cat_data["notes"].append(
-                        "tpot search exceeded max time. "
-                        f"max-automl-time={secs_to_time(max_train_time_mins * 60)} "
-                        f"search-time={secs_to_time(ttf_secs)}"
-                    )
-            elif (
+            if (
                 cat_data["algo"] == "nn"
                 and (epochs_trained := desc_info.get("epochs_trained"))
                 and (epochs_max := model_data["parameters"].get("epochs_max"))
