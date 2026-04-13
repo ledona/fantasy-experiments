@@ -543,14 +543,20 @@ def _add_train_parser(sub_parsers):
 def _model_catalog_func(args):
     """parser func that creates/updates the model catalog"""
     data = []
-    glob_pattern = (
-        os.path.join(args.root, "**", "*.model")
-        if args.recursive
-        else os.path.join(args.root, "*.model")
-    )
     excluded_models: dict[str, list[str]] | None = defaultdict(list) if args.exclude_r else None
 
-    for model_filepath in tqdm.tqdm(glob.glob(glob_pattern, recursive=True)):
+    if args.recursive:
+        model_files = []
+        for dirpath, dirnames, filenames in os.walk(args.root):
+            # skip autogluon dirs
+            dirnames[:] = [d for d in dirnames if not d.endswith(".ag")]
+            model_files.extend(
+                os.path.join(dirpath, f) for f in filenames if f.endswith(".model")
+            )
+    else:
+        model_files = glob.glob(os.path.join(args.root, "*.model"))
+
+    for model_filepath in tqdm.tqdm(model_files):
         if excluded_models is not None:
             exclude = False
             for x_r in args.exclude_r:
