@@ -887,6 +887,7 @@ def _create_fantasy_model(
             continue
         if col.startswith("pos_"):
             include_pos = True
+            columns.append(col)
             continue
 
         if ":recent-mean" in col:
