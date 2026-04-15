@@ -648,18 +648,36 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
     returns - a dict mapping column names to impute value to use, None if no
         imputation needed (i.e. no missing values)
     """
-    df = train_df.fillna(0)
-    impute_values = {
-        PTPredictModel.impute_key_for_feature_name(col, team_target): round(df[col].median(), 2)
+    impute_cols = [
+        col
         for col in sorted(train_df.columns)
         if (":std-mean" in col or col.startswith("extra:"))
-    }
-    if len(impute_values) == 0:
+    ]
+    if not impute_cols:
         _LOGGER.info(
             "No season to date features found in data. Impute data will not be included in model."
         )
         return None
-    return impute_values
+
+    impute_values = {}
+    all_na_cols = []
+    for col in impute_cols:
+        non_na = train_df[col].dropna()
+        if non_na.empty:
+            all_na_cols.append(col)
+            continue
+        impute_values[PTPredictModel.impute_key_for_feature_name(col, team_target)] = round(
+            non_na.median(), 2
+        )
+
+    if all_na_cols:
+        _LOGGER.warning(
+            "%i column(s) are all NA, no impute value could be identified, skipping: %s",
+            len(all_na_cols),
+            all_na_cols,
+        )
+
+    return impute_values or None
 
 
 AlgorithmType = Literal["autogluon", "dummy", "flaml", "nn", "xgboost"]
