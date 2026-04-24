@@ -1,7 +1,7 @@
 {
     "sport": "mlb",
     "global_default": {
-        "description": "drop-tpot, add-flaml, odds-cleanup",
+        "description": "*flaml* and updates to odds-ou,odds-spread,impute",
         "seed": 1,
         "validation_season": 2025,
         "recent_games": 5,
@@ -10,7 +10,6 @@
             "min_weight": 0.15
         },
         "training_seasons": [
-            // 2015,
             2016,
             2017,
             2018,

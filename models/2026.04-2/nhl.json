@@ -1,7 +1,7 @@
 {
     "sport": "nhl",
     "global_default": {
-        "description": "drop-tpot, add-flaml, odds-cleanup",
+        "description": "*flaml* and updates to odds-ou,odds-spread,impute",
         "seed": 1,
         "validation_season": 20242025,
         "recent_games": 5,
@@ -10,13 +10,6 @@
             "min_weight": 0.1
         },
         "training_seasons": [
-            // 20072008,
-            // 20082009,
-            // 20092010,
-            // 20102011,
-            // 20112012,
-            // 20122013,
-            // 20132014,
             20142015,
             20152016,
             20162017,
