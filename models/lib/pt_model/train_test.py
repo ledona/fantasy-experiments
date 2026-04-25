@@ -276,8 +276,8 @@ def parse_fail_threshold(
     """
     Parse a fail threshold value from cfg-file/stored form into the runtime form
     expected by _missing_feature_data_report. value is either a plain float (global
-    threshold) or a list of token strings in '<float>' or '<float>#<col-pattern>'
-    format (same format as the --feature_na_fail_pct CLI arg). Raises ValueError
+    threshold) or a list of token strings with format '<float>' or '<float>#<col-pattern>'
+    (same format as the --feature_na_fail_pct CLI arg). Raises ValueError
     on invalid input.
     """
     if isinstance(value, (int, float)):

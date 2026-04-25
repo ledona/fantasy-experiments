@@ -14,13 +14,7 @@ import pandas as pd
 import tqdm
 from autogluon.tabular.configs.presets_configs import tabular_presets_alias as autogluon_presets
 from dateutil import parser as du_parser
-from fantasy_py import (
-    UnexpectedValueError,
-    dt_to_filename_str,
-    log,
-    secs_to_time,
-    time_to_secs,
-)
+from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
 from fantasy_py.inference import PTPredictModel
 from ledona import slack
 
@@ -545,9 +539,7 @@ def _model_catalog_func(args):
         for dirpath, dirnames, filenames in os.walk(args.root):
             # skip autogluon dirs
             dirnames[:] = [d for d in dirnames if not d.endswith(".ag")]
-            model_files.extend(
-                os.path.join(dirpath, f) for f in filenames if f.endswith(".model")
-            )
+            model_files.extend(os.path.join(dirpath, f) for f in filenames if f.endswith(".model"))
     else:
         model_files = glob.glob(os.path.join(args.root, "*.model"))
 

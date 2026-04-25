@@ -136,8 +136,9 @@ class _TrainingParamsDict(TypedDict):
     cols_to_drop: list[str] | None
     """columns/features to drop from training data. wildcards/regexs are accepted
     must be None if cols_to_drop is not None"""
-    missing_data_warn_threshold: float | None
+    missing_data_warn_threshold: NotRequired[float | None]
     missing_data_fail_threshold: NotRequired[float | list[str] | None]
+    """see _parse_feature_na_fail_pct"""
     filtering_query: NotRequired[str | None]
     """pandas compatible query string that will be run on the loaded data"""
     target_pos: NotRequired[list[str] | None]
