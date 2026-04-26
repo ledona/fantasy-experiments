@@ -50,7 +50,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | objec
         "max_time_mins": _NO_DEFAULT,
         "verbose": 2,
         "ag:preset": "best_v150",
-        "ag:disable_cuda": False,
+        "disable_gpu": False,
     },
     "nn": {
         "epochs_max": _NO_DEFAULT,
@@ -68,7 +68,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | objec
     "flaml": {
         "max_time_mins": _NO_DEFAULT,
         "n_jobs": _NO_DEFAULT,
-        "flaml:use_gpu": False,
+        "disable_gpu": False,
         "flaml:concurrent_trials": _NO_DEFAULT,
     },
     "xgboost": {"verbose": 2},

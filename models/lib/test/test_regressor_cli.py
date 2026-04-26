@@ -590,10 +590,10 @@ def _train_prep(
             mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
             mock_fitted.epochs_trained = 5
     elif algo == "autogluon":
-        if cli_params["ag:disable_cuda"]:
-            cli_params["ag:disable_cuda"] = ""
+        if cli_params["disable_gpu"]:
+            cli_params["disable_gpu"] = ""
         else:
-            del cli_params["ag:disable_cuda"]
+            del cli_params["disable_gpu"]
 
         if prev_algo != "autogluon":
             mock_regressor = mocker.patch(
@@ -608,10 +608,10 @@ def _train_prep(
             mock_save_func = mocker.patch("lib.pt_model.dummy.joblib").dump
             mock_regressor = mocker.patch("lib.pt_model.dummy.DummyRegressor", autospec=True)
     elif algo == "flaml":
-        if cli_params.get("flaml:use_gpu"):
-            cli_params["flaml:use_gpu"] = ""
+        if cli_params["disable_gpu"]:
+            cli_params["disable_gpu"] = ""
         else:
-            cli_params.pop("flaml:use_gpu", None)
+            del cli_params["disable_gpu"]
 
         if prev_algo != "flaml":
             mock_save_func = mocker.patch("lib.pt_model.flaml.joblib").dump
@@ -649,8 +649,8 @@ def _train_prep(
     [
         ("dummy", {"dmy:strategy": "mean"}),
         ("nn", {"early_stop": 10, "epochs_max": 1000}),
-        ("autogluon", {"ag:preset": "high", "ag:disable_cuda": True, "max_time_mins": 120}),
-        ("flaml", {"max_time_mins": 30}),
+        ("autogluon", {"ag:preset": "high", "disable_gpu": True, "max_time_mins": 120}),
+        ("flaml", {"max_time_mins": 30, "disable_gpu": True}),
     ],
     ids=[">dummy", ">nn", ">autogluon", ">flaml"],
 )
@@ -667,8 +667,8 @@ def _train_prep(
                 "nn:checkpoint_dir": "/tmp/check",
             },
         ),
-        ("autogluon", {"ag:preset": "medium", "ag:disable_cuda": False}),
-        ("flaml", {"max_time_mins": 60}),
+        ("autogluon", {"ag:preset": "medium", "disable_gpu": False}),
+        ("flaml", {"max_time_mins": 60, "disable_gpu": False}),
     ],
     ids=["dummy>", "nn>", "autogluon>", "flaml>"],
 )

@@ -698,7 +698,7 @@ def _instantiate_regressor(
             model_filebase,
             verbosity=model_params["verbose"],
             preset=model_params["ag:preset"],
-            disable_cuda=model_params["ag:disable_cuda"],
+            disable_gpu=model_params["disable_gpu"],
             time_limit=model_params["max_time_mins"] * 60,
             sample_weight=(
                 _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL if training_sample_weights else None
@@ -718,7 +718,7 @@ def _instantiate_regressor(
                 else None
             ),
             n_jobs=model_params.get("n_jobs"),
-            use_gpu=model_params.get("use_gpu", False),
+            use_gpu=not model_params["disable_gpu"],
             concurrent_trials=model_params.get("concurrent_trials"),
             sample_weight=(
                 _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL if training_sample_weights else None

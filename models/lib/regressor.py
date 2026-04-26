@@ -442,6 +442,13 @@ def _add_train_parser(sub_parsers):
             default=argparse.SUPPRESS,
             help="The maximum number of epochs/generations to train a model",
         )
+        train_parser.add_argument(
+            "--disable_gpu",
+            help="When running on a machine with a gpu, with an algo that uses "
+            "gpu this will disable cuda/gpu use",
+            action="store_true",
+            default=False,
+        )
         train_parser.add_argument("--verbose", type=int)
 
         # NEURAL NET PARAMS
@@ -497,12 +504,6 @@ def _add_train_parser(sub_parsers):
 
         # FLAML PARAMS
         train_parser.add_argument(
-            "--flaml:use_gpu",
-            help="enable GPU use for flaml training",
-            action="store_true",
-            default=False,
-        )
-        train_parser.add_argument(
             "--flaml:concurrent_trials",
             type=int,
             help="number of concurrent flaml trials (requires Ray)",
@@ -510,12 +511,6 @@ def _add_train_parser(sub_parsers):
         )
 
         # AUTOGLUON PARAMS
-        train_parser.add_argument(
-            "--ag:disable_cuda",
-            help="disable autogluon cuda/gpu use",
-            action="store_true",
-            default=False,
-        )
         train_parser.add_argument(
             "--ag:preset",
             choices=sorted(autogluon_presets.keys()),

@@ -24,7 +24,7 @@ class FlamlWrapper(PTEstimatorWrapper):
         """
         time_budget: max training time in seconds
         n_jobs: number of parallel threads (-1 = all available)
-        use_gpu: enable GPU use (gpu_per_trial=1)
+        use_gpu: enable GPU for GPU-supporting learners (xgboost, xgb_limitdepth) via gpu_per_trial=1
         concurrent_trials: number of concurrent trials, requires Ray
         sample_weight: column name in x containing per-sample training weights
         """
@@ -35,7 +35,10 @@ class FlamlWrapper(PTEstimatorWrapper):
         if n_jobs is not None:
             fit_kwargs["n_jobs"] = n_jobs
         if use_gpu:
-            fit_kwargs["gpu_per_trial"] = 1
+            _gpu_learners = frozenset({"xgboost", "xgb_limitdepth"})
+            fit_kwargs["custom_hp"] = {
+                learner: {"gpu_per_trial": {"domain": 1}} for learner in _gpu_learners
+            }
         if concurrent_trials is not None:
             fit_kwargs["n_concurrent_trials"] = concurrent_trials
         fit_kwargs["early_stop"] = early_stop

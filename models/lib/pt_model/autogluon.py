@@ -30,7 +30,7 @@ class AutoGluonWrapper(PTEstimatorWrapper):
     """training time limit in secs"""
     preset: str
     """fit preset"""
-    disable_cuda: bool
+    disable_gpu: bool
     """
     if cuda is not available this is ignored, if cuda device is found then
     if this is true it will be ignored (cpu only training), if false then cuda device will be used
@@ -41,11 +41,11 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         model_filebase,
         preset: str | None = None,
         time_limit: int | None = None,
-        disable_cuda: bool = False,
+        disable_gpu: bool = False,
         **init_kwargs,
     ):
         """preset: default is medium"""
-        self.disable_cuda = disable_cuda
+        self.disable_gpu = disable_gpu
         self._logger = log.get_logger(__name__)
         if preset is None:
             self._logger.info("Autogluon preset not set, falling back on medium")
@@ -86,15 +86,15 @@ class AutoGluonWrapper(PTEstimatorWrapper):
             fit_kwargs["time_limit"] = self.time_limit
 
         if "extreme" in self.preset:
-            if not torch.cuda.is_available() or self.disable_cuda:
+            if not torch.cuda.is_available() or self.disable_gpu:
                 raise InvalidArgumentsException(
                     "Extreme preset requested but either no GPU was found or cuda was disabled"
                 )
             # let autogluon handle everything
         elif self.preset.startswith("best") or self.preset == "bq":
-            if torch.cuda.is_available() or self.disable_cuda:
+            if torch.cuda.is_available() or self.disable_gpu:
                 self._logger.info(
-                    "CUDA device is available but will not be used because disable_cuda is True or running a 'best' preset"
+                    "CUDA device is available but will not be used because disable_gpu is True or running a 'best' preset"
                 )
             fit_kwargs["ag_args_fit"] = {"num_gpus": 0}
 
@@ -141,8 +141,8 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         info["autogluon"] = {
             "preset": self.preset,
             "cuda_available": cuda_available,
-            "cuda_disable_for_fit": self.disable_cuda,
-            "cuda_used": cuda_available and not self.disable_cuda,
+            "cuda_disable_for_fit": self.disable_gpu,
+            "cuda_used": cuda_available and not self.disable_gpu,
             "info": clean_info,
         }
 
