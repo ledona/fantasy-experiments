@@ -16,9 +16,10 @@ class FlamlWrapper(PTEstimatorWrapper):
         self,
         time_budget: int | None = None,
         n_jobs: int | None = None,
-        use_gpu: bool = False,
+        use_gpu=False,
         concurrent_trials: int | None = None,
         sample_weight: str | None = None,
+        early_stop=True,
     ):
         """
         time_budget: max training time in seconds
@@ -37,6 +38,7 @@ class FlamlWrapper(PTEstimatorWrapper):
             fit_kwargs["gpu_per_trial"] = 1
         if concurrent_trials is not None:
             fit_kwargs["n_concurrent_trials"] = concurrent_trials
+        fit_kwargs["early_stop"] = early_stop
 
         self._fit_kwargs = fit_kwargs
         self._sample_weight_col = sample_weight
@@ -51,6 +53,7 @@ class FlamlWrapper(PTEstimatorWrapper):
         if self._sample_weight_col and self._sample_weight_col in x:
             fit_kwargs["sample_weight"] = x[self._sample_weight_col].to_numpy()
             x = x.drop(columns=self._sample_weight_col)
+        self._logger.info("FLAML fitting with kwargs: %s", fit_kwargs)
         self._regressor.fit(FlamlModel.sanitize_columns(x), y, **fit_kwargs)
         self._logger.success("FLAML fitted!")
 
