@@ -8,7 +8,8 @@ OWN_TEAM_STATS="$TEAM_STATS passing_yds rushing_yds"
 OPP_TEAM_STATS="$TEAM_STATS def_fumble_recov def_int def_sacks op_passing_yds op_rushing_yds"
 SHARED_NOFAILS="extra:thfa#2009 extra:odds_ou_*_odds#2005-2022 extra:odds_spread_odds#2005-2022"
 CURRENT_X="indoors is_home elo_mov odds_ou_* odds_spread_* venue thfa pf weather*"
-DASK_TASKS=10
+# same number of tasks as seasons
+DASK_TASKS=11
 
 # WR TE
 dumpdata.sc ${DB_FILE} \

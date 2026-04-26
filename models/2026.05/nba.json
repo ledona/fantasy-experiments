@@ -21,6 +21,7 @@
             20232024
             // 20242025 validation
         ],
+        "missing_data_fail_threshold": ["0.1", "0.80#extra:odds_*_odds"],
         "missing_data_warn_threshold": 0.09,
         "train_params": {
             "nn.early_stop": 20,

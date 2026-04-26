@@ -217,7 +217,7 @@
                     ],
                     "data_filename": "nfl_K.csv",
                     "p_or_t": "P",
-                    "include_pos": true,
+                    "include_pos": false,
                     "target_pos": [
                         "K"
                     ]

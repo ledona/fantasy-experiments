@@ -2,13 +2,14 @@
 
 DB_FILE=${FANTASY_HOME}/nhl.hist.20072008-20242025.scored.db
 DEST=/fantasy-isync/fantasy-modeling/2026.04-2/data
-SEASONS='20142015 20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024 20242025'
 SKATER_STATS=("assist*" "fo*" "*away" "goal" "goal_pp" "goal_sh" 
     "goal_t" "goal_w" "hit" "p*" "shift" "shot*" "toi" "toi_ev" "toi_pp" "toi_sh")
 GOALIE_STATS='giveaway goal_ag loss save toi win'
 SHARED_CURRENT_X="is_home odds_ou_* odds_spread_odds odds_ml thfa elo_mov days_rest_team"
 SHARED_CURRENT_OPP_X=("sg_*" "days_rest_team")
-DASK_TASKS=10
+SEASONS='20142015 20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024 20242025'
+# same number of tasks as seasons
+DASK_TASKS=11
 
 # skater data
 dumpdata.sc $DB_FILE --slack --seasons $SEASONS \

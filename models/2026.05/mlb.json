@@ -21,6 +21,7 @@
             2024
             // 2025 validation
         ],
+        "missing_data_fail_threshold": ["0.2", "0.80#extra:odds_spread_odds"],
         "missing_data_warn_threshold": 0.1,
         "train_params": {
             "epochs_max": 500,

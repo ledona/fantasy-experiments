@@ -2,9 +2,10 @@
 
 DB_FILE=${FANTASY_HOME}/mlb.hist.2008-2025.scored.db
 DEST=/fantasy-isync/fantasy-modeling/2026.04-2/data
-DASK_TASKS=10
 SHARED_CURRENT_X="odds_ou_* odds_spread_odds venue weather_* elo_mov indoors is_home elevation thfa pf"
 SEASONS="2016 2017 2018 2019 2020 2021 2022 2023 2024 2025"
+# same number of tasks as seasons
+DASK_TASKS=10
 
 # dump hitter data, apart from obvious targets,
 dumpdata.sc --seasons $SEASONS --no_team --only_starters \
@@ -24,7 +25,6 @@ dumpdata.sc --seasons $SEASONS --no_team --only_starters \
    --target_calc_stats "*_score" \
    --hist_recent_games 5 --hist_recent_mode m \
    --dask_mode processes --dask_tasks $DASK_TASKS \
-   --inf_nofail_cols extra:pf#2008 extra:thfa#2008 \
    --slack $DB_FILE --format parquet -f ${DEST}/mlb_hitter.parquet
 
 # dump pitchers
