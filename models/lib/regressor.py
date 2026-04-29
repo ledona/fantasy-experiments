@@ -194,7 +194,8 @@ def _train_model(
             args.info,
             args.dump_data,
             args.limited_data,
-            args.dest_filename,
+            dest_filename=args.dest_filename,
+            dest_filename_infix=args.dest_infix,
             **args_dict,
         )
         progress["successes"].append(model_name)
@@ -380,12 +381,18 @@ def _add_train_parser(sub_parsers):
         train_parser.add_argument(
             "--dest_dir", default=".", help="Destination directory for model files"
         )
-        train_parser.add_argument(
+        group = train_parser.add_mutually_exclusive_group()
+        group.add_argument(
             "--dest_filename",
             help="The filename to write the model to. "
             "Model filenames will have the extension '.model'. "
             "If the requested filename does not have this extension it will be appended. "
             "Default is to use a filename based on the model name and a datetime stamp.",
+        )
+        group.add_argument(
+            "--dest_infix",
+            "--infix",
+            help="Add this into the auto generated default model filename.",
         )
         train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
         train_parser.add_argument(

@@ -530,7 +530,8 @@ class TrainingConfiguration:
         info: bool,
         dump_data: str,
         training_data_limit: None | int,
-        dest_filename: str | None,
+        dest_filename: str | None = None,
+        dest_filename_infix: str | None = None,
         **train_params,
     ):
         """
@@ -654,6 +655,7 @@ class TrainingConfiguration:
             file_found_mode,
             limit,
             dest_filename,
+            dest_filename_infix,
             data_src_params,
         )
 

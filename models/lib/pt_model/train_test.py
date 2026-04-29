@@ -24,6 +24,7 @@ from fantasy_py import (
     ExtraFeatureType,
     FantasyException,
     FeatureType,
+    InvalidArgumentsException,
     PlayerOrTeam,
     UnexpectedValueError,
     dt_to_filename_str,
@@ -649,9 +650,7 @@ def _infer_imputes(train_df: pd.DataFrame, team_target: bool):
         imputation needed (i.e. no missing values)
     """
     impute_cols = [
-        col
-        for col in sorted(train_df.columns)
-        if (":std-mean" in col or col.startswith("extra:"))
+        col for col in sorted(train_df.columns) if (":std-mean" in col or col.startswith("extra:"))
     ]
     if not impute_cols:
         _LOGGER.info(
@@ -928,7 +927,9 @@ def _create_fantasy_model(
             recent_explode = True
 
         col_split = col.split(":")
-        assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"], f"unexpected {col_split=}"
+        assert len(col_split) >= 2 and col_split[0] in ["calc", "stat", "extra"], (
+            f"unexpected {col_split=}"
+        )
         columns.append(col)
 
         if col_split[0] == "extra":
@@ -1026,25 +1027,52 @@ ModelFileFoundMode = Literal["reuse", "overwrite", "create-w-ts"]
 """
 
 
+def _generate_model_filename(model_name, target, algo, infix, use_wildcard=False):
+    if "." in model_name:
+        raise InvalidArgumentsException(
+            f"Auto generated model filename failed because model name has '.'. {model_name=}"
+        )
+    parts = [model_name, target[1], algo]
+    if infix:
+        if "." in infix:
+            raise InvalidArgumentsException(
+                f"Auto generated model filename failed because filename infix has '.'. {infix=}"
+            )
+        parts.append(infix)
+    parts.append("*" if use_wildcard else dt_to_filename_str())
+    filename = ".".join([*parts, "model"])
+    return filename
+
+
 def _reuse_model_helper(
-    model_dest_filename: str | None, dest_dir: str, name: str, target, algorithm: AlgorithmType
+    filename: str | None,
+    filename_infix: str | None,
+    dest_dir: str,
+    name: str,
+    target,
+    algorithm: AlgorithmType,
 ):
     """can an existing model be reused? if so return it."""
-    if model_dest_filename is not None:
-        dest_filename_w_ext = (
-            (model_dest_filename + ".model") if not model_dest_filename.endswith(".model") else ""
-        )
+    if filename is not None:
+        dest_filename_w_ext = (filename + ".model") if not filename.endswith(".model") else ""
         final_model_filepath = os.path.join(dest_dir, dest_filename_w_ext)
         if os.path.isfile(final_model_filepath):
             _LOGGER.success("Reusing model at '%s'", final_model_filepath)
             return PTPredictModel.load(final_model_filepath)
 
-    model_filename_pattern = ".".join([name, target[1], algorithm, "*", "model"])
+    model_filename_pattern = _generate_model_filename(
+        name, target, algorithm, filename_infix, use_wildcard=True
+    )
+    basename_example = _generate_model_filename(name, target, algorithm, filename_infix)
     most_recent_model: tuple[datetime, str] | None = None
-    for filebase_name in glob(os.path.join(dest_dir, model_filename_pattern)):
-        model_dt = du_parser.parse(filebase_name.split(".")[-2])
+    for filepath in glob(os.path.join(dest_dir, model_filename_pattern)):
+        if len(basename_example) != len(os.path.basename(filepath)):
+            # if the basename lengths don't match then this can't be an old version of the same model
+            continue
+
+        model_dt = du_parser.parse(filepath.split(".")[-2])
         if (most_recent_model is None) or (most_recent_model[0] < model_dt):
-            most_recent_model = (model_dt, filebase_name)
+            most_recent_model = (model_dt, filepath)
 
     if most_recent_model is not None:
         final_model_filepath = most_recent_model[1]
@@ -1072,6 +1100,7 @@ def model_and_test(
     mode: ModelFileFoundMode,
     limit: int | None,
     model_dest_filename: str | None,
+    model_dest_filename_infix: str | None,
     data_src_params: DataSrcParams | None,
 ):
     """
@@ -1082,8 +1111,14 @@ def model_and_test(
     mode: See ModelFileFoundMode
     data_src_params: parameters describing the data source for model training
     """
+    if model_dest_filename and model_dest_filename_infix:
+        raise InvalidArgumentsException(
+            "destination filename and infix must not be defined at the same time"
+        )
     model = (
-        _reuse_model_helper(model_dest_filename, dest_dir, name, target, algorithm)
+        _reuse_model_helper(
+            model_dest_filename, model_dest_filename_infix, dest_dir, name, target, algorithm
+        )
         if mode == "reuse"
         else None
     )
@@ -1091,28 +1126,22 @@ def model_and_test(
     if model is None:
         slack.send_slack(f"Starting training of {name}")
 
-        filebase_name = model_dest_filename or ".".join(
-            [name, target[1], algorithm, dt_to_filename_str()]
-        )
-        if filebase_name.endswith(".model"):
-            filebase_name = filebase_name.rsplit(".", 1)[0]
+        if model_dest_filename:
+            filename = model_dest_filename
+            if not filename.endswith(".model"):
+                filename += ".model"
+        else:
+            filename = _generate_model_filename(name, target, algorithm, model_dest_filename_infix)
 
-        final_model_filepath = os.path.join(dest_dir, filebase_name) + ".model"
+        final_model_filepath = os.path.join(dest_dir, filename)
+
         if os.path.isfile(final_model_filepath):
-            if mode == "overwrite":
-                _LOGGER.info(
-                    "A new model will be written to '%s'. This will overwriting an existing model",
-                    final_model_filepath,
-                )
-            else:
-                existing_model_filepath = final_model_filepath
-                filebase_name += "." + dt_to_filename_str()
-                final_model_filepath = os.path.join(dest_dir, filebase_name) + ".model"
-                _LOGGER.info(
-                    "A model already exists at '%s'. A new model will be saved to '%s'",
-                    existing_model_filepath,
-                    final_model_filepath,
-                )
+            if mode != "overwrite":
+                raise FileExistsError(f"A model file already exists at '{final_model_filepath}'")
+            _LOGGER.warning(
+                "A new model will be written to '%s' overwriting an existing model",
+                final_model_filepath,
+            )
         else:
             _LOGGER.info("A new model will be saved to '%s'", final_model_filepath)
 
@@ -1122,7 +1151,7 @@ def model_and_test(
             target,
             tt_data,
             dest_dir,
-            filebase_name,
+            filename[:-6],
             **model_params,
         )
         performance["season_val"] = validation_season

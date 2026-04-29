@@ -31,9 +31,9 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                // "train", "2026.04-2/mlb.json", "MLB-H-DK",
+                "train", "2026.05/mlb.json", "MLB*",
                 // "train", "2026.04/nhl.json", "NHL-skater*", 
-                "train", "2026.04-2/nfl.json", "NFL-team-*", // "*", 
+                // "train", "2026.05/nfl.json", "NFL-team-*", // "*", 
                 // "train", "2026.04/nhl.json", "*", 
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
@@ -43,17 +43,18 @@
                 // "--feature_na_fail_pct", ".65#*shift*",
                 // "--exclude_model_file", "/tmp/exclude-test.txt",
 
-                // "--exists_mode", "reuse",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.04-2/data",
-                "--dest_dir", "/tmp",
+                "--exists_mode", "reuse",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.05/data",
+                "--dest_dir", "/tmp/fantasy-test",
+                // "--dest_infix", "TEST",
                 // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
                 // "--data_limit", "1000",
-                "--description", "testing",
+                // "--description", "testing",
 
-                // "--algo", "dummy", 
+                "--algo", "dummy", 
 
-                "--algo", "flaml",
-                "--max_train_mins", "1",
+                // "--algo", "flaml",
+                // "--max_train_mins", "1",
                 // "--disable_gpu"
 
                 // "--algo", "autogluon",
