@@ -182,6 +182,7 @@ def _train_model(
         "dump_data",
         "limited_data",
         "dest_filename",
+        "dest_infix",
     ]:
         del args_dict[arg_name]
 
@@ -244,8 +245,19 @@ def _train_model(
 def _handle_train(args: argparse.Namespace):
     if not os.path.isdir(args.dest_dir):
         args.parser.error(f"Destination directory '{args.dest_dir}' does not exist.")
+    if args.train_op not in ("train", "retrain"):
+        raise NotImplementedError(f"handling of train_op='{args.train_op}' not implemented")
 
     model_names: list[str]
+
+    if (
+        not args.dest_filename
+        and args.algorithm == "autogluon"
+        and (preset := getattr(args, "ag:preset"))
+        and not args.dest_infix
+    ):
+        args.dest_infix = preset
+
     if args.train_op == "train":
         tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
         if args.model is not None and args.models is not None:
@@ -254,14 +266,13 @@ def _handle_train(args: argparse.Namespace):
             )
         model_names = _expand_models(tdf, (args.model or args.models), args.exclude_model_file)
         original_model = None
-    elif args.train_op == "retrain":
+    else:
+        # retrain
         tdf, original_model = TrainingConfiguration.cfg_from_model(
             args.cfg_file, args.orig_cfg_file, algorithm=args.algorithm
         )
         model_names = [original_model.name]
         assert original_model.parameters is not None
-    else:
-        raise NotImplementedError(f"handling of train_op='{args.train_op}' not implemented")
 
     if args.feature_na_fail_pct is not None:
         args.feature_na_fail_pct = _combine_feature_na_fail_pct(
@@ -387,12 +398,13 @@ def _add_train_parser(sub_parsers):
             help="The filename to write the model to. "
             "Model filenames will have the extension '.model'. "
             "If the requested filename does not have this extension it will be appended. "
-            "Default is to use a filename based on the model name and a datetime stamp.",
+            "Default is to use a filename based on the model name, datetime stamp and "
+            "possibly some model parameters (e.g. autogluon will use the cli preset as an infix.",
         )
         group.add_argument(
             "--dest_infix",
             "--infix",
-            help="Add this into the auto generated default model filename.",
+            help="Add this string into the auto generated default model filename.",
         )
         train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
         train_parser.add_argument(
