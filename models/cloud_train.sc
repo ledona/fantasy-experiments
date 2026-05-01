@@ -166,7 +166,7 @@ if [ $DRYRUN = false ]; then
     # Extract all data filenames
     DATAFILES=$(echo "$INFO" | grep "'data_filename'" | sed "s/.*'data_filename': '\([^']*\)'.*/\1/" | sort -u)
     if [ -z "$DATAFILES" ]; then
-        echo "Error: Could not extract filename from INFO"
+        echo "Failed to extract any data filenames from INFO. Either there is nothing to train (everything is excluded) or this is an error"
         exit 1
     fi
     echo "Data filenames: $(echo "$DATAFILES" | tr '\n' ' ')"
