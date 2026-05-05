@@ -4,6 +4,7 @@ import fnmatch
 import os
 import platform
 import re
+import tempfile
 from collections import defaultdict
 from datetime import datetime
 from glob import glob
@@ -113,7 +114,7 @@ def _load_data_local(
     """
     if validation_season in training_seasons:
         _LOGGER.warning(
-            "validation season %s is also one of the list of training seasons", validation_season
+            "validation season %s is also one of the training seasons", validation_season
         )
     seasons_to_load = [validation_season, *training_seasons]
     if filename.endswith(".csv"):
@@ -1145,43 +1146,49 @@ def model_and_test(
         else:
             _LOGGER.info("A new model will be saved to '%s'", final_model_filepath)
 
-        model_artifact_path, performance, dt_trained, addl_info = _train_test(
-            algorithm,
-            name,
-            target,
-            tt_data,
-            dest_dir,
-            filename[:-6],
-            **model_params,
-        )
-        performance["season_val"] = validation_season
-        addl_params = {
-            **model_params,
-            **(data_src_params or {}),
-            "algorithm": algorithm,
-        }
+        with tempfile.TemporaryDirectory(prefix="fantasy-fit-dest.") as fit_dest:
+            model_artifact_path, performance, dt_trained, addl_info = _train_test(
+                algorithm,
+                name,
+                target,
+                tt_data,
+                fit_dest,
+                filename[:-6],
+                **model_params,
+            )
+            performance["season_val"] = validation_season
+            addl_params = {
+                **model_params,
+                **(data_src_params or {}),
+                "algorithm": algorithm,
+            }
 
-        model = _create_fantasy_model(
-            name,
-            description,
-            sport,
-            model_artifact_path,
-            dt_trained,
-            tt_data[0],
-            target,
-            performance,
-            p_or_t,
-            recent_games,
-            training_seasons,
-            target_pos,
-            training_pos,
-            limit,
-            data_src_params,
-            addl_params,
-            addl_info,
-        )
+            model = _create_fantasy_model(
+                name,
+                description,
+                sport,
+                model_artifact_path,
+                dt_trained,
+                tt_data[0],
+                target,
+                performance,
+                p_or_t,
+                recent_games,
+                training_seasons,
+                target_pos,
+                training_pos,
+                limit,
+                data_src_params,
+                addl_params,
+                addl_info,
+            )
 
-        model.dump(final_model_filepath, overwrite=mode == "overwrite")
+            model.dump(
+                final_model_filepath,
+                overwrite=mode == "overwrite",
+                compress_artifacts=True,
+                del_src_artifacts=True,
+            )
         slack.send_slack(
             f"Training done for {name} {algorithm=}\n\nPerformance\n{pformat(model.performance)}"
         )

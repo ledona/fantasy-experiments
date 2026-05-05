@@ -31,7 +31,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/models",
             "args": [
-                "train", "2026.05/mlb.json", "MLB-*DK",
+                "train", "2026.05/mlb.json", "MLB-P-DK",
                 // "train", "2026.04/nhl.json", "NHL-skater*", 
                 // "train", "2026.05/nfl.json", "NFL-team-*", // "*", 
                 // "train", "2026.04/nhl.json", "*", 
@@ -86,8 +86,8 @@
             "args": [
                 "catalog",
                 "--best",
-                "--root", "/fantasy-isync/fantasy-modeling",
-                "--exclude", ".*tpot.*"
+                "--root", "/fantasy-isync/fantasy-modeling/2026.05",
+                // "--exclude", ".*tpot.*"
             ]
         },
         {

@@ -49,15 +49,20 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         self._logger = log.get_logger(__name__)
         if preset is None:
             self._logger.info("Autogluon preset not set, falling back on medium")
+        elif preset == "best":
+            self._logger.warning(
+                "Autogluon requested preset was 'best'. Will use 'best_v150' instead"
+            )
+            preset = "best_v150"
         self.preset = preset or "medium"
         self.time_limit = time_limit
         self._model_tmpdir = tempfile.TemporaryDirectory(
             prefix=f"autogluon-model:{model_filebase}.", delete=False
         )
         free_gb = shutil.disk_usage(self._model_tmpdir.name).free / 1024**3
-        if free_gb < 10:
+        if free_gb < 25:
             raise FantasyException(
-                f"Insufficient disk space at '{self._model_tmpdir.name}': {free_gb:.1f} GB free, 10 GB required"
+                f"Insufficient disk space at '{self._model_tmpdir.name}': {free_gb:.1f} GB free, 25 GB required to be safe"
             )
         self._logger.info(
             "Autogluon temp model data will be written to '%s'", self._model_tmpdir.name

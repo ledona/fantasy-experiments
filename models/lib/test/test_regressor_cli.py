@@ -4,7 +4,9 @@ import json
 import os
 import platform
 import random
+import tarfile
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
 
@@ -331,7 +333,7 @@ def _create_expected_model_dict(
     model_parent_dir = os.path.dirname(model_filepath)
     final_artifact_filepath = (
         pkl_filepath if model_parent_dir != artifact_parent_dir else artifact_filename
-    )
+    ) + ".tar.gz"
 
     return {
         "name": model_name,
@@ -457,8 +459,15 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_availabl
         tmpdir, f"{model_name}.{target_calc_stat}.{algorithm}.{dt_to_filename_str(dt)}"
     )
 
-    pkl_filepath = dest_filepath_base + ".pkl"
-    with open(pkl_filepath, "rb") as f_:
+    expected_artifact_filepath = dest_filepath_base + ".pkl"
+    expected_artifact_targz_path = expected_artifact_filepath + ".tar.gz"
+    assert os.path.exists(expected_artifact_targz_path)
+
+    with tarfile.open(expected_artifact_targz_path, mode="r:gz") as tar:
+        tar.extractall(tmpdir)
+        os.sync()
+
+    with open(expected_artifact_filepath, "rb") as f_:
         regressor = joblib.load(f_)
     assert (
         isinstance(regressor, DummyRegressor)
@@ -485,7 +494,7 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_availabl
         feature_col,
         pos_col,
         dt,
-        pkl_filepath,
+        expected_artifact_filepath,
         model_filepath,
         algorithm,
         expected_r2,
@@ -497,7 +506,7 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_availabl
 
 
 def _check_model_params(
-    filepath_base: str,
+    filepath: str,
     expected_r2,
     expected_mae,
     mock_save_func,
@@ -513,12 +522,13 @@ def _check_model_params(
     """
     mock_regressor_cls.assert_called_once()
     mock_save_func.assert_called_once()
-    with open(filepath_base + ".model", "r") as f_:
+    with open(filepath, "r") as f_:
         model_dict = cast(dict, json.load(f_))
 
-    assert model_dict["trained_parameters"]["regressor_path"].rsplit(".", 1)[0] == filepath_base, (
-        f"{label}: expected regressor path"
-    )
+    assert (
+        model_dict["trained_parameters"]["regressor_path"]
+        == os.path.splitext(os.path.basename(filepath))[0] + ".tar.gz"
+    ), f"{label}: expected regressor path"
     assert model_dict["meta_extra"]["performance"]["r2_val"] == expected_r2, f"{label}: expected_r2"
     assert model_dict["meta_extra"]["performance"]["mae_val"] == expected_mae, (
         f"{label}: expected_mae"
@@ -685,7 +695,7 @@ def test_train_retrain_params(
     """
     Ensure that when training/retraining models on cli expected params are used.
     Test execution:
-    1) train model on cli
+    1) call train model on cli (training and artifact file management is mocked)
     2) test that the expected params are used
     3) retrain using different command line args
     4) Test that the resulting models have the expected parameters
@@ -705,6 +715,11 @@ def test_train_retrain_params(
 
     model_name = "MLB-H-DK"
     tdf_params = test_definition_file.get_params(model_name)
+    orig_model_filename = "orig.model"
+    expected_orig_model_filepath = os.path.join(tmpdir, orig_model_filename)
+    expected_orig_artifact_filepath = os.path.join(
+        tmpdir, os.path.splitext(orig_model_filename)[0] + ".tar.gz"
+    )
 
     # mock the training data load
     fake_raw_df = mocker.Mock(name="fake-raw-training-df")
@@ -723,7 +738,12 @@ def test_train_retrain_params(
     mock_tt_os = mocker.patch("lib.pt_model.train_test.os")
     mock_tt_os.path.join = os.path.join
     mock_tt_os.path.isfile.return_value = False
-    mocker.patch.object(PTPredictModel, "dump_artifacts")
+
+    # resolved artifact filepath post fit
+    mock__dump_artifact = mocker.patch.object(
+        PTPredictModel, "_dump_artifact", return_value=expected_orig_artifact_filepath
+    )
+    mocker.patch.object(PTPredictModel, "artifact_exists_at", return_value=True)
 
     (
         cli_args,
@@ -735,21 +755,25 @@ def test_train_retrain_params(
     ) = _train_prep(mocker, orig_params, orig_algo, tdf_params)
 
     main(
-        f"train --algorithm {orig_algo} {cli_args} --dest_filename orig-model --dest_dir "
-        f"{tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
+        f"train --algorithm {orig_algo} {cli_args} --dest_filename {orig_model_filename} "
+        f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
     )
-    orig_model_filepath_base = os.path.join(tmpdir, "orig-model")
 
     _check_model_params(
-        orig_model_filepath_base,
+        expected_orig_model_filepath,
         expected_orig_r2,
         expected_orig_mae,
         mock_save_func,
         orig_model_regressor,
         expected_orig_params,
-        "orig-model",
+        orig_model_filename,
     )
+    mock__dump_artifact.assert_called_once_with(Path(expected_orig_model_filepath), True, True)
 
+    mock__dump_artifact.reset_mock()
+    new_model_filename = "new.model"
+    expected_new_model_filepath = os.path.join(tmpdir, new_model_filename)
+    mock__dump_artifact.return_value = "new.tar.gz"
     (
         cli_args,
         expected_retrained_r2,
@@ -768,14 +792,13 @@ def test_train_retrain_params(
     )
 
     orig_cfg_args = f"--orig_cfg_file {_TEST_DEF_FILE_FILEPATH}" if retrain_w_def_file else ""
-
     main(
-        f"retrain {orig_model_filepath_base}.model --dest_filename model-2 "
+        f"retrain {expected_orig_model_filepath} --dest_filename {new_model_filename} "
         f"--algo {retrain_algo} --dest_dir {tmpdir} {orig_cfg_args} {cli_args}"
     )
 
     _check_model_params(
-        os.path.join(tmpdir, "model-2"),
+        expected_new_model_filepath,
         expected_retrained_r2,
         expected_retrained_mae,
         mock_save_func,
@@ -783,3 +806,4 @@ def test_train_retrain_params(
         expected_retrain_params,
         "retrained-model",
     )
+    mock__dump_artifact.assert_called_once_with(Path(expected_new_model_filepath), True, True)
