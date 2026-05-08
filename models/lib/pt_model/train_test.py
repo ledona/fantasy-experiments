@@ -13,8 +13,6 @@ from typing import Literal, NamedTuple, TypedDict, cast
 
 import numpy as np
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 import sklearn.metrics
 import sklearn.model_selection
 from dateutil import parser as du_parser
@@ -93,7 +91,6 @@ def _load_data_local(
     filename: str,
     include_position: bool | None,
     col_drop_filters: list[str] | None,
-    limit: int | None,
     validation_season: int,
     training_seasons: list[int],
     target_col_name: str,
@@ -118,7 +115,7 @@ def _load_data_local(
         )
     seasons_to_load = [validation_season, *training_seasons]
     if filename.endswith(".csv"):
-        df_raw = pd.read_csv(filename, nrows=limit)
+        df_raw = pd.read_csv(filename)
         if len(df_raw.query("season == @validation_season")) == 0:
             raise DataNotAvailableException(
                 "No data returned from limited load of data from csv file failed "
@@ -127,27 +124,7 @@ def _load_data_local(
             )
         df_raw = df_raw.query("season in @seasons_to_load")
     elif filename.endswith(".parquet") or filename.endswith(".pq"):
-        if limit is not None:
-            pf = pq.ParquetFile(filename)
-            first_n_rows = next(pf.iter_batches(batch_size=limit))
-            df_raw = cast(pd.DataFrame, pa.Table.from_batches([first_n_rows]).to_pandas())
-            if len(df_raw.query("season == @validation_season")) == 0:
-                df_validation = pd.read_parquet(
-                    filename, filters=[("season", "=", validation_season)]
-                )
-                df_raw = pd.concat([df_raw, df_validation])
-                _LOGGER.info(
-                    "Loaded %i rows from '%s' but no validation data from "
-                    "season %i was loaded. Additional load for "
-                    "validation data was done resulting in total (limit+validation) of "
-                    "%i rows.",
-                    limit,
-                    filename,
-                    validation_season,
-                    len(df_raw),
-                )
-        else:
-            df_raw = pd.read_parquet(filename, filters=[("season", "in", seasons_to_load)])
+        df_raw = pd.read_parquet(filename, filters=[("season", "in", seasons_to_load)])
     else:
         raise NotImplementedError(
             f"Don't know how to load data files with extension {filename.rsplit('.', 1)[-1]}"
@@ -569,7 +546,6 @@ def load_data(
         filename,
         include_position,
         col_drop_filters,
-        limit,
         validation_season,
         training_seasons,
         target_col_name,
@@ -599,6 +575,11 @@ def load_data(
             f"Following requested feature models not found in data: {features_not_found}"
         )
 
+    if limit and len(train_test_df) < limit:
+        raise DataNotAvailableException(
+            f"{limit=} is greater than the available the amount of data found at '{filename}' (n={len(train_test_df)})"
+        )
+
     X = train_test_df[feature_cols]
     y = train_test_df[target_col_name]
 
@@ -619,7 +600,7 @@ def load_data(
         X, missing_data_warn_threshold, missing_data_fail_threshold, skip_data_reports
     )
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
-        X, y, random_state=seed
+        X, y, random_state=seed, train_size=limit
     )
 
     validation_df = df[df.season == validation_season]
@@ -1146,7 +1127,7 @@ def model_and_test(
         else:
             _LOGGER.info("A new model will be saved to '%s'", final_model_filepath)
 
-        with tempfile.TemporaryDirectory(prefix="fantasy-fit-dest.") as fit_dest:
+        with tempfile.TemporaryDirectory(prefix="fantasy-fit-staging.") as fit_dest:
             model_artifact_path, performance, dt_trained, addl_info = _train_test(
                 algorithm,
                 name,

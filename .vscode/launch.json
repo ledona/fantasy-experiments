@@ -42,13 +42,13 @@
                 // "--slack",
                 // "--feature_na_fail_pct", ".65#*shift*",
                 // "--exclude_model_file", "/tmp/exclude-test.txt",
+                "--data_limit", "1000",
 
                 // "--exists_mode", "reuse",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2026.05/data",
                 "--dest_dir", "/tmp/fantasy-test",
                 // "--dest_infix", "TEST",
                 // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
-                // "--data_limit", "1000",
                 // "--description", "testing",
 
                 // "--algo", "dummy", 

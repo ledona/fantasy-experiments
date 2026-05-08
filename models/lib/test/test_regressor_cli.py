@@ -391,7 +391,7 @@ def _fake_metrics(mocker):
 
 
 @pytest.mark.parametrize("cuda_available", [False, True], ids=["no-cuda", "w-cuda"])
-@pytest.mark.parametrize("limit", [None, 10000], ids=["no-limit", "w-limit"])
+@pytest.mark.parametrize("limit", [None, 3], ids=["no-limit", "w-limit"])
 def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_available: bool):
     """test that the resulting model file is as expected and that
     the expected calls to fit the model, etc were made"""
@@ -422,12 +422,7 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_availabl
 
     if limit is not None:
         cmdline += f" --limit {limit}"
-        mock_pq = mocker.patch("lib.pt_model.train_test.pq")
-        mock_pq.ParquetFile.return_value.iter_batches.return_value = iter([0])
-        mock_pa = mocker.patch("lib.pt_model.train_test.pa")
-        mock_pa.Table.from_batches.return_value.to_pandas.return_value = loaded_data_df
-    else:
-        mock_pd.read_parquet.return_value = loaded_data_df
+    mock_pd.read_parquet.return_value = loaded_data_df
 
     feature_col = f"stat:{feature_stat}"
     pos_col = f"pos_{position}"
