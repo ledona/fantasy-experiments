@@ -3,19 +3,19 @@ import argparse
 import glob
 import json
 import os
-import re
 import shlex
 import sys
 import traceback
 from collections import defaultdict
 from datetime import UTC
+from fnmatch import fnmatch
 
 import pandas as pd
 import tqdm
 from autogluon.tabular.configs.presets_configs import tabular_presets_alias as autogluon_presets
 from dateutil import parser as du_parser
-from fantasy_py import UnexpectedValueError, dt_to_filename_str, log
-from fantasy_py.inference import PTPredictModel
+from fantasy_py import InvalidArgumentsException, UnexpectedValueError, dt_to_filename_str, log
+from fantasy_py.inference import ModelNotFound, PTPredictModel
 from ledona import slack
 
 from .pt_model import (
@@ -90,67 +90,88 @@ def _expand_models(
 ):
     """figure out which models match the model requests"""
     if model_request is None:
+        # if no models are requested then just list the defined model names and exit
         print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
         exit(0)
 
     if exclude_model_file:
-        exclude_models: set[str] = set()
+        # load the excluded models
+        exclude_models: set[tuple[str, str, None | str]] = set()
         if not os.path.isfile(exclude_model_file):
             raise FileNotFoundError(f"Exclude file '{exclude_model_file}' not found")
         with open(exclude_model_file, "r") as f_:
             for i, exclude_model in enumerate(f_.readlines(), 1):
                 exclude_model = exclude_model.strip()
-                if not exclude_model:
+                if not exclude_model or exclude_model[0] in "/\\#":
+                    # skip blank or comment lines
                     continue
-                if "." not in exclude_model:
-                    exclude_models.add(exclude_model)
-                    continue
+
                 model_meta_filename_parts = exclude_model.split(".")
-                if len(model_meta_filename_parts) < 3 or model_meta_filename_parts[-1] != "model":
+                if (parts := len(model_meta_filename_parts)) == 6:
+                    infix = model_meta_filename_parts[3]
+                elif parts == 5:
+                    infix = None
+                else:
                     raise UnexpectedValueError(
-                        f"The value on line {i} of {exclude_model_file=} is not recognized as a "
-                        f"model name or a model metadata filename: '{exclude_model}'"
+                        f"The value on line {i} of {exclude_model_file=} is '{exclude_model}'. "
+                        "This not recognized as a model metadata filename. "
+                        "See --exclude_model_file for details."
                     )
-                exclude_models.add(model_meta_filename_parts[0])
+
+                exclude_models.add(
+                    (model_meta_filename_parts[0], model_meta_filename_parts[2], infix)
+                )
         _LOGGER.info(
             "Based on exclude_model_file='%s', the following models will be excluded from training: %s",
             exclude_model_file,
             sorted(exclude_models),
         )
 
-    filters = [model_request] if isinstance(model_request, str) else model_request
+    requested_models_filters = [model_request] if isinstance(model_request, str) else model_request
     model_names: list[str] = []
-    for model_filter in filters:
+    for model_filter in requested_models_filters:
         if "*" not in model_filter:
+            # model name (no wildcard)
             if model_filter not in tdf.model_names:
-                raise UnexpectedValueError(
+                raise ModelNotFound(
                     f"Model name '{model_filter}' not found. valid models are {tdf.model_names}"
                 )
-            if exclude_model_file and model_filter in exclude_models:
-                raise UnexpectedValueError(
+            model_exclude_match_item = (model_filter, tdf.algorithm, tdf.get_infix(model_filter))
+            if exclude_model_file and model_exclude_match_item in exclude_models:
+                raise InvalidArgumentsException(
                     f"Model '{model_filter}' was explicitly requested but is in the exclude list"
                 )
             model_names.append(model_filter)
             continue
 
-        filter_re = model_filter.replace("*", ".*")
-        matches = {model_name for model_name in tdf.model_names if re.match(filter_re, model_name)}
+        # matches is set of tuple[model-name, infix]
+        matches: set[tuple[str, str | None]] = set()
+        for model_name in tdf.model_names:
+            if not fnmatch(model_name, model_filter):
+                continue
+            matches.add((model_name, tdf.get_infix(model_name)))
         if len(matches) == 0:
-            raise UnexpectedValueError(
+            raise ModelNotFound(
                 f"Model request '{model_filter}' did not match to any model names. "
                 f"valid models are {tdf.model_names}"
             )
 
         if exclude_model_file:
-            matches_to_exclude = {
-                model_name for model_name in matches if model_name in exclude_models
-            }
+            matches_to_exclude: set[tuple[str, str | None]] = set()
+            for model_name, infix in matches:
+                model_exclude_match_item = (model_name, tdf.algorithm, infix)
+                if model_exclude_match_item in exclude_models:
+                    matches_to_exclude.add((model_name, infix))
             if matches_to_exclude:
                 _LOGGER.success(
                     f"Excluding {len(matches_to_exclude)} models from training found in '{exclude_model_file}': {sorted(matches_to_exclude)}"
                 )
                 matches -= matches_to_exclude
-        model_names += matches
+        model_names += [model_name for model_name, _ in matches]
+
+    if len(model_names) == 0:
+        raise InvalidArgumentsException("No models matched or remaining after filtering")
+
     return sorted(model_names)
 
 
@@ -182,7 +203,6 @@ def _train_model(
         "dump_data",
         "limited_data",
         "dest_filename",
-        "dest_infix",
     ]:
         del args_dict[arg_name]
 
@@ -196,7 +216,6 @@ def _train_model(
             args.dump_data,
             args.limited_data,
             dest_filename=args.dest_filename,
-            dest_filename_infix=args.dest_infix,
             **args_dict,
         )
         progress["successes"].append(model_name)
@@ -250,14 +269,6 @@ def _handle_train(args: argparse.Namespace):
 
     model_names: list[str]
 
-    if (
-        not args.dest_filename
-        and args.algorithm == "autogluon"
-        and (preset := getattr(args, "ag:preset"))
-        and not args.dest_infix
-    ):
-        args.dest_infix = preset
-
     if args.train_op == "train":
         tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
         if args.model is not None and args.models is not None:
@@ -269,7 +280,9 @@ def _handle_train(args: argparse.Namespace):
     else:
         # retrain
         tdf, original_model = TrainingConfiguration.cfg_from_model(
-            args.cfg_file, args.orig_cfg_file, algorithm=args.algorithm
+            args.cfg_file,
+            args.orig_cfg_file,
+            algorithm=args.algorithm,
         )
         model_names = [original_model.name]
         assert original_model.parameters is not None
@@ -340,11 +353,9 @@ def _add_train_parser(sub_parsers):
             )
             train_parser.add_argument(
                 "--exclude_model_file",
-                help="Path to a text file with a list of model names or fitted "
-                "model meta file names for models that should be excluded from training. "
-                "Model metadata filenames are expected to be of the form '{MODEL-NAME}.*.model' . "
-                "If a line follows this pattern it will be treated as a metadata filename, "
-                "otherwise it will be considered a model name.",
+                help="Path to a text file with a list of model metadata file names for models "
+                "that should be excluded from training. Model metadata filenames are expected "
+                "to be of the form '{MODEL-NAME}.{target}.{algo}[.{infix}].model' .",
             )
             train_parser.add_argument(
                 "--description",
@@ -399,12 +410,7 @@ def _add_train_parser(sub_parsers):
             "Model filenames will have the extension '.model'. "
             "If the requested filename does not have this extension it will be appended. "
             "Default is to use a filename based on the model name, datetime stamp and "
-            "possibly some model parameters (e.g. autogluon will use the cli preset as an infix.",
-        )
-        group.add_argument(
-            "--dest_infix",
-            "--infix",
-            help="Add this string into the auto generated default model filename.",
+            "possibly some model parameters (e.g. autogluon will use the cli preset as an infix).",
         )
         train_parser.add_argument("--data_dir", help="The directory that data files are stored.")
         train_parser.add_argument(

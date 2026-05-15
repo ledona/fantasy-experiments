@@ -215,10 +215,7 @@ class TrainingConfiguration:
 
     @classmethod
     def cfg_from_model(
-        cls,
-        model_filepath: str,
-        training_filepath: str | None,
-        algorithm: AlgorithmType | None,
+        cls, model_filepath: str, training_filepath: str | None, algorithm: AlgorithmType | None
     ):
         """
         construct a model training definition that reflects the model
@@ -280,15 +277,7 @@ class TrainingConfiguration:
             for key in DataSrcParams.__annotations__
             if key in orig_model.parameters
         }
-        # backward compat: old models stored the warn threshold under the old key name
         assert "missing_data_threshold" not in orig_model.parameters
-        # if (
-        #     "missing_data_warn_threshold" not in model_params_dict
-        #     and "missing_data_threshold" in orig_model.parameters
-        # ):
-        #     model_params_dict["missing_data_warn_threshold"] = orig_model.parameters[
-        #         "missing_data_threshold"
-        #     ]
 
         model_params_dict.update(
             {
@@ -520,6 +509,14 @@ class TrainingConfiguration:
             for data_pos in data_pos_comma_sep.split(",")
         }
 
+    def get_infix(self, model_name: str):
+        """dest filename infix to use"""
+        if self.algorithm == "autogluon":
+            params = self.get_params(model_name)
+            assert params is not None, "autogluon should have params, at a minimum 'ag:preset'"
+            return cast(str, params["train_params"]["ag:preset"])
+        return None
+
     @process_timer
     def train_and_test(
         self,
@@ -531,7 +528,6 @@ class TrainingConfiguration:
         dump_data: str,
         training_data_limit: None | int,
         dest_filename: str | None = None,
-        dest_filename_infix: str | None = None,
         **train_params,
     ):
         """
@@ -655,7 +651,7 @@ class TrainingConfiguration:
             file_found_mode,
             limit,
             dest_filename,
-            dest_filename_infix,
+            self.infix,
             data_src_params,
         )
 
