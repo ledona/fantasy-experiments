@@ -124,8 +124,8 @@
                 "--skip-entry-filepath", "${workspaceFolder}\\df-hist\\skip_entries.txt",
                 // "--cache-only", 
                 "-o", "${env:FANTASY_IDRIVE_HOME}\\fantasy-dfs-hist\\betting",
-                "--sports", "nba", 
-                "--start-date", "20250418", // "--end-date", "2025-04-18",
+                "--sports", "nhl", "mlb", "nba", "nfl",
+                // "--start-date", "20250418", // "--end-date", "2025-04-18",
             ]
         },
         {
@@ -176,10 +176,10 @@
             "args": [
                 "--mode", "reuse", 
                 "nfl", "mlb", "nhl", "nba", //"lol",
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.03",
-                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2026.03",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.05",
+                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2026.05",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/data",
-                "--framework", "reg_chain", "autogluon"
+                "--framework", "dummy", "reg_chain", "flaml"
             ]
         },
         {

@@ -90,7 +90,7 @@ def _multi_run(
                 sport,
                 service,
                 style.name,
-                contest_type.NAME,
+                (contest_type if isinstance(contest_type, str) else contest_type.TYPE_NAME),
             )
             continue
         models.update(new_models)

@@ -59,14 +59,14 @@ def evaluate_models(
         "Sport": sport,
         "Service": service,
         "Style": style.name,
-        "Type": contest_type.NAME,
+        "Type": contest_type.TYPE_NAME,
         "Framework": framework,
         "Date": now().strftime("%Y%m%d"),
     }
     final_models_to_test: set[ModelTargetGroup] = (
         set(ModelTargetGroup.__args__) if models_to_test is None else models_to_test
     )
-    model_desc_pre = "-".join([sport, service_name, style.name, contest_type.NAME])
+    model_desc_pre = "-".join([sport, service_name, style.name, contest_type.TYPE_NAME])
 
     try:
         df = load_csv(sport, service, style, contest_type, data_folder=data_folder)
@@ -79,7 +79,7 @@ def evaluate_models(
         pbar.update(len(final_models_to_test))
         failed_models = [
             (
-                f"{sport}-{service_name}-{style.name}-{contest_type.NAME}-{target}-{framework}",
+                f"{sport}-{service_name}-{style.name}-{contest_type.TYPE_NAME}-{target}-{framework}",
                 {"cause": "No data file found"},
             )
             for target in _targets_from_models_to_test(final_models_to_test)

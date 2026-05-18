@@ -1,4 +1,10 @@
+# following are used a kwargs for the instanciation of fitter class of the framework
 {
     "dummy": null,
-    "reg_chain": null
+    "reg_chain": null,
+    "flaml": {
+        # in seconds
+        "time_budget": 600,
+        "early_stop": true
+    }
 }

@@ -3,6 +3,7 @@ from typing import cast
 
 import pandas as pd
 from fantasy_py import dt_to_filename_str, log
+from tabulate import tabulate
 
 _LOGGER = log.get_logger(__name__)
 
@@ -58,12 +59,5 @@ def show_eval_results(eval_results, failed_models, dest_path):
         )
 
         if eval_results_df is not None:
-            with pd.option_context(
-                "display.max_rows",
-                None,
-                "display.max_columns",
-                None,
-                "display.max_colwidth",
-                None,
-            ):
-                print(eval_results_df.to_string(index=False))
+            print()
+            print(tabulate(eval_results_df, showindex=False, headers="keys"))

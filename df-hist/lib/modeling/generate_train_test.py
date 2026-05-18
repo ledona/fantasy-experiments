@@ -26,7 +26,7 @@ def load_csv(
     contest_type: Contest | str,
     data_folder=".",
 ) -> pd.DataFrame:
-    contest_type_name = contest_type if isinstance(contest_type, str) else contest_type.NAME
+    contest_type_name = contest_type if isinstance(contest_type, str) else contest_type.TYPE_NAME
     style_name = style if isinstance(style, str) else style.name
     services = [service_] if service_ is not None else ["fanduel", "draftkings", "yahoo"]
 

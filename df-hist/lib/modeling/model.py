@@ -2,6 +2,7 @@ import os
 from math import sqrt
 from typing import Literal
 
+from tabulate import tabulate
 import joblib
 import numpy as np
 import pandas as pd
@@ -10,13 +11,14 @@ from fantasy_py import DataNotAvailableException, FantasyException, log
 from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
     feature_names_from_win_score_model,
 )
+from flaml import AutoML as FlamlAutoML
 from sklearn.dummy import DummyRegressor
 from sklearn.multioutput import RegressorChain
 from sklearn.tree import DecisionTreeRegressor
 
 _LOGGER = log.get_logger(__name__)
 
-Framework = Literal["dummy", "reg_chain"]
+Framework = Literal["dummy", "reg_chain", "flaml"]
 """ml framework"""
 
 ModelTarget = Literal["top-score", "last-win-score", "top+lw-score"]
@@ -86,9 +88,12 @@ def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_p
                 plot_data.to_csv(f_, index=False)
 
         if show_results:
-            print(f"**** Error Report for {desc} ****: {result}")
-            print()
-            print(plot_data)
+            print(f"""
+**** Error Report for {desc} ****
+{result}
+
+{tabulate(plot_data, showindex=False, headers="keys")}
+""")
 
     return result
 
@@ -102,19 +107,18 @@ def _fit_model(
     X_train,
     y_train,
     framework,
-    max_train_time,
     random_state,
-    automl_params,
+    model_params,
     model_filepath,
 ):
     fit_params = {}
     if framework == "dummy":
-        modeler = DummyRegressor()
-        extract_regressor = lambda model_: model_
+        modeler = DummyRegressor(**(model_params or {}))
     elif framework == "reg_chain":
-        base_estimator = DecisionTreeRegressor()
+        base_estimator = DecisionTreeRegressor(**(model_params or {}))
         modeler = RegressorChain(base_estimator=base_estimator, order=[0, 1])
-        extract_regressor = lambda model_: model_
+    elif framework == "flaml":
+        modeler = FlamlAutoML(**(model_params or {}))
     else:
         raise NotImplementedError(f"framework '{framework}' not supported")
 
@@ -128,11 +132,10 @@ def _fit_model(
                 f"available was {len(X_train)}"
             ) from ex
 
-    model = extract_regressor(modeler)
     try:
-        feature_names_from_win_score_model(model)
+        feature_names_from_win_score_model(modeler)
     except DataNotAvailableException:
-        if model.steps[0][0].startswith("zero"):
+        if modeler.steps[0][0].startswith("zero"):
             _LOGGER.info(
                 "For '%s' adding 'fantasy_features_names' attribute to the "
                 "estimator that does not implement feature_names_in_",
@@ -147,10 +150,10 @@ def _fit_model(
                 "get features from the estimator type",
                 model_desc,
             )
-        model.fantasy_feature_names = X_train.columns
+        modeler.fantasy_feature_names = X_train.columns
     _LOGGER.info("writing model to pickled file '%s'", model_filepath)
-    joblib.dump(model, model_filepath)
-    return model, fit_params
+    joblib.dump(modeler, model_filepath)
+    return modeler, fit_params
 
 
 def create_model(
@@ -162,7 +165,6 @@ def create_model(
     y_test,
     random_state=1,
     framework: Framework = "reg_chain",
-    max_train_time=None,
     mode: ExistingModelMode = "fail",
     eval_results_path=None,
     **model_params,
@@ -170,11 +172,10 @@ def create_model(
     """
     create the model
 
-    max_train_time - time to train the model in seconds
     X_train, y_train - if not None then train the model
     X_test, y_test - if not None then score
     model_desc - model description used for filename and logging
-    **automl_params - used when creating the model object
+    model_params - used when creating the model object
 
     returns - dict containing model, fit_params and evaluation results
     """
@@ -193,7 +194,6 @@ def create_model(
             X_train,
             y_train,
             framework,
-            max_train_time,
             random_state,
             model_params,
             model_filepath,
