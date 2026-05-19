@@ -92,7 +92,9 @@ def _process_cmd_line(cmd_line_str=None):
     )
 
     parser.add_argument("--sports", nargs="+", choices=SPORT_CFGS.keys(), default=SPORT_CFGS.keys())
-    CacheSettings.add_parser_args(parser, dir_create_mode_default="prompt")
+    CacheSettings.add_parser_args(
+        parser, dir_create_mode_default="prompt", cache_mode_default="cache-only"
+    )
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)

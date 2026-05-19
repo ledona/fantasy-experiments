@@ -196,10 +196,13 @@ def _get_exploded_pos_df(
 
 
 _DK_WARNED_GAME_TYPE_PATTERNS = [
-    r"Series",
-    r"Campbell?s Chunky? Pick",
-    r"Single Stat.*",
     r"Best Ball",
+    r"Campbell.s Chunky. Pick",
+    r"Madden Classic",
+    r"Series",
+    r"Single Stat.*",
+    r"Starting 5",
+    r"WNBA",
 ]
 """uncategorized draftkings game types to warn about"""
 
@@ -215,7 +218,12 @@ def _infer_contest_style(service, row) -> DFSContestStyle:
             return DFSContestStyle.DK_TIERS
         for warn_pattern in _DK_WARNED_GAME_TYPE_PATTERNS:
             if re.match(warn_pattern, row.dk_game_type):
-                _LOGGER.warning("Unhandled dk game type found. '%s'", row.dk_game_type)
+                _LOGGER.limited_warning(
+                    "Unhandled dk game type found. '%s'",
+                    row.dk_game_type,
+                    limit=1,
+                    limit_show_hidden_warning=False,
+                )
                 return row.dk_game_type
         raise UnexpectedValueError(f"Unexpected dk game type {row.dk_game_type=}")
 

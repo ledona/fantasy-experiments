@@ -8,7 +8,7 @@ from typing import Literal, cast
 
 from fantasy_py import FANTASY_SERVICE_DOMAIN, CLSRegistry, DataNotAvailableException, db, log
 from fantasy_py.analysis.backtest.daily_fantasy.contest_dfs import top_lineup_scoring
-from fantasy_py.lineup import FantasyService
+from fantasy_py.lineup import FantasyService, LineupGenerationFailure
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import Starters
 
@@ -190,20 +190,20 @@ def slate_scoring(
             epoch,
             screen_lineup_constraints_mode,
         )
-    except DataNotAvailableException as dna_ex:
+    except (DataNotAvailableException, LineupGenerationFailure) as ex:
         _LOGGER.warning(
-            "Lineup generation data not available for service_abbr='%s' sport='%s' "
-            "slate_id=%i on %s: %s",
+            "Top Lineup generation failure for service_abbr='%s' sport='%s' slate '%s' (id=%i) on %s: %s",
             service_abbr,
             sport,
+            slate_name,
             slate_id,
             game_date,
-            dna_ex,
+            ex,
         )
         return None, None
     except Exception as ex:
         _LOGGER.error(
-            "Error calculating best lineup for service_abbr='%s' sport='%s' slate_id=%i on %s.",
+            "Unhandled error generating best lineup for service_abbr='%s' sport='%s' slate '%s' (id=%i) on %s.",
             service_abbr,
             sport,
             slate_id,
