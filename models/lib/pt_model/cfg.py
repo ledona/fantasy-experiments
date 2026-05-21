@@ -86,7 +86,7 @@ regressor to use its default.
 
 @cache
 def _all_algo_params():
-    """return a set of all valid params across all algorithms"""
+    """return a set of all valid param names across all algorithms"""
     return {
         param
         for algo_defaults in TRAINING_PARAM_DEFAULTS.values()
@@ -156,6 +156,52 @@ class _TrainingParamsDict(TypedDict):
     mapping/renaming of position. final-pos-abbr -> comma-sep-list-of-original-pos
     This is what will be defined in a model def file. 
     """
+
+
+def _finalize_regressor_params(
+    algo: AlgorithmType, cli_params: dict | object, model_params: _TrainingParamsDict
+):
+    """
+    Helper that finalizes regressor parameters based on the following (in order
+    or precedence).
+
+    1) cli/requested parameters
+    2) config file model params
+    3) algorithm defaults
+
+    return the finalized regressor params
+    """
+    defaults = TRAINING_PARAM_DEFAULTS[algo]
+    regressor_params: dict = {}
+    getter = getattr if not isinstance(cli_params, dict) else (lambda _d, _k, _default: _d.get(_k, _default))
+
+    if (
+        "random_state" in defaults
+        and getter(cli_params, "random_state", None) is None
+        and model_params["seed"]
+    ):
+        regressor_params["random_state"] = model_params["seed"]
+
+    for param_name in defaults:
+        if (cli_value := getter(cli_params, param_name, None)) is not None:
+            regressor_params[param_name] = cli_value
+            continue
+        if (cfg_file_model_value := model_params["train_params"].get(param_name)) is not None:
+            regressor_params[param_name] = cfg_file_model_value
+            continue
+        if (default_value := defaults[param_name]) != _NO_DEFAULT:
+            regressor_params[param_name] = default_value
+            continue
+
+    if len(ignored_params := model_params["train_params"].keys() - defaults.keys()):
+        _LOGGER.warning(
+            "Ignoring following %i parameters not used by '%s' models: %s",
+            len(ignored_params),
+            algo,
+            ignored_params,
+        )
+
+    return regressor_params
 
 
 class TrainingConfiguration:
@@ -457,48 +503,6 @@ class TrainingConfiguration:
             param_dict["training_pos"] = param_dict["target_pos"]
         return cast(_TrainingParamsDict, param_dict)
 
-    def _get_regressor_params(self, cli_params: dict, model_params: dict):
-        """
-        Helper that finalizes regressor parameters based on the following (in order
-        or precedence).
-
-        1) cli/requested parameters
-        2) config file model params
-        3) algorithm defaults
-
-        return the finalized regressor params
-        """
-        defaults = TRAINING_PARAM_DEFAULTS[self.algorithm]
-        regressor_params: dict = {}
-
-        if (
-            "random_state" in defaults
-            and cli_params.get("random_state") is None
-            and model_params["seed"]
-        ):
-            regressor_params["random_state"] = model_params["seed"]
-
-        for param_name in defaults:
-            if (cli_value := cli_params.get(param_name)) is not None:
-                regressor_params[param_name] = cli_value
-                continue
-            if (cfg_file_model_value := model_params["train_params"].get(param_name)) is not None:
-                regressor_params[param_name] = cfg_file_model_value
-                continue
-            if (default_value := defaults[param_name]) != _NO_DEFAULT:
-                regressor_params[param_name] = default_value
-                continue
-
-        if len(ignored_params := model_params["train_params"].keys() - defaults.keys()):
-            _LOGGER.warning(
-                "Ignoring following %i parameters not used by '%s' models: %s",
-                len(ignored_params),
-                self.algorithm,
-                ignored_params,
-            )
-
-        return regressor_params
-
     @staticmethod
     def _inference_pos_remap(pos_remap: dict[str, str]):
         """return mapping from old-pos -> inference-pos. needed because input file has
@@ -509,12 +513,20 @@ class TrainingConfiguration:
             for data_pos in data_pos_comma_sep.split(",")
         }
 
-    def get_infix(self, model_name: str):
-        """dest filename infix to use"""
-        if self.algorithm == "autogluon":
-            params = self.get_params(model_name)
-            assert params is not None, "autogluon should have params, at a minimum 'ag:preset'"
-            return cast(str, params["train_params"]["ag:preset"])
+    @staticmethod
+    def get_infix(
+        algo: AlgorithmType,
+        baseline_model_params: _TrainingParamsDict,
+        override_params: dict | object,
+    ):
+        """dest filename infix to use for an algorithm, basemodel model params and override (e.g. cli) params"""
+        if algo == "autogluon":
+            # need something special/clumsy here to get the preset
+            params = _finalize_regressor_params(algo, override_params, baseline_model_params)
+            assert (params is not None) or not params.get("ag:preset"), (
+                "autogluon should have params, at a minimum 'ag:preset'"
+            )
+            return cast(str, params["ag:preset"])
         return None
 
     @process_timer
@@ -570,11 +582,14 @@ class TrainingConfiguration:
         missing_data_warn_threshold = (
             params.get("missing_data_warn_threshold") or params.get("missing_data_threshold") or 0
         )
-        final_regressor_params = self._get_regressor_params(train_params, cast(dict, params))
+
         print(f"\nInitial training params from '{self.source}' for '{model_name}':")
         pprint(params)
+
+        final_regressor_params = _finalize_regressor_params(self.algorithm, train_params, params)
         print(f"\nFinal regressor kwargs for '{model_name}':")
         pprint(final_regressor_params)
+
         if limit is not None:
             print(f"with a training data limit of {limit}")
         raw_to_inf_pos_remap = (
@@ -632,7 +647,11 @@ class TrainingConfiguration:
         }
 
         description = train_params.get("description") or params.get("description")
-
+        infix = (
+            None
+            if dest_filename
+            else self.get_infix(self.algorithm, self.get_params(model_name), train_params)
+        )
         model = model_and_test(
             model_name,
             params["sport"],
@@ -651,7 +670,7 @@ class TrainingConfiguration:
             file_found_mode,
             limit,
             dest_filename,
-            self.infix,
+            infix,
             data_src_params,
         )
 

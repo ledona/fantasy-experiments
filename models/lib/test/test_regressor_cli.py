@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import platform
@@ -805,19 +806,21 @@ def test_train_retrain_params(
     mock__dump_artifact.assert_called_once_with(Path(expected_new_model_filepath), True, True)
 
 
+_EXCLUDE_TESTS = {
+    "flaml-team_wildcard": ("*team*", "flaml", None, {"MLB-team-X", "MLB-team-win"}),
+    "flaml-H-wildcard": ("MLB-H*", "flaml", None, {"MLB-H-DK", "MLB-H-hit"}),
+    "ag-wildcard-no-exclude": ("MLB-H*", "autogluon", "extreme", {"MLB-H-DK", "MLB-H-hit"}),
+    "ag-wildcard-1-exclude": ("MLB-H*", "autogluon", "best", {"MLB-H-hit"}),
+    "fail-single-exists": ("MLB-P-K", "autogluon", "extreme", InvalidArgumentsException),
+    "fail-wildcard-exists": ("MLB-P-O*", "autogluon", "extreme", InvalidArgumentsException),
+    "unknown-model": ("XYZ", "flaml", None, ModelNotFound),
+}
+
+
 @pytest.mark.parametrize(
-    "pattern, algo, infix, expected_models",
-    [
-        ("*team*", "flaml", None, {"MLB-team-X", "MLB-team-win"}),
-        ("MLB-H*", "flaml", None, {"MLB-H-DK", "MLB-H-hit"}),
-        ("MLB-H*", "autogluon", "extreme", {"MLB-H-DK", "MLB-H-hit"}),
-        ("MLB-H*", "autogluon", "best", {"MLB-H-hit"}),
-        ("MLB-P-K", "autogluon", "extreme", InvalidArgumentsException),
-        ("MLB-P-O*", "autogluon", "extreme", InvalidArgumentsException),
-        ("XYZ", "flaml", None, ModelNotFound),
-    ],
+    "pattern, algo, ag_preset, expected_models", _EXCLUDE_TESTS.values(), ids=_EXCLUDE_TESTS.keys()
 )
-def test_exclude_modelfile(mocker, pattern, expected_models, algo, infix):
+def test_exclude_modelfile(mocker, pattern, expected_models, algo, ag_preset):
     """test that expand_models excludes models in the exclusion file"""
     fake_tdf = mocker.Mock(
         model_names=[
@@ -832,13 +835,22 @@ def test_exclude_modelfile(mocker, pattern, expected_models, algo, infix):
             "MLB-team-X",
         ],
         algorithm=algo,
-        get_infix=lambda _: infix,
+        get_infix=TrainingConfiguration.get_infix,
+        get_params=lambda _: {"train_params": {}},
     )
     exclude_filepath = os.path.join(os.path.dirname(__file__), "test-model-exclude.txt")
+
+    args = {
+        "model": pattern,
+        "models": None,
+        "dest_filename": None,
+        "exclude_model_file": exclude_filepath,
+        "ag:preset": ag_preset,
+    }
     with ExitStack() as es:
         if not isinstance(expected_models, set):
             es.enter_context(pytest.raises(expected_models))
-        models_to_train = _expand_models(fake_tdf, pattern, exclude_filepath)
+        models_to_train = _expand_models(fake_tdf, argparse.Namespace(**args))
     if not isinstance(expected_models, set):
         return
     assert set(models_to_train) == expected_models

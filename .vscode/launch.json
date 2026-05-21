@@ -47,7 +47,7 @@
                 // "--exists_mode", "reuse",
                 "--data_dir", "/fantasy-isync/fantasy-modeling/2026.05/data",
                 "--dest_dir", "/tmp/fantasy-test",
-                // "--dest_infix", "TEST",
+                "--dest_filename", "XYZ",
                 // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
                 // "--description", "testing",
 

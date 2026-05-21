@@ -83,23 +83,27 @@ def _combine_feature_na_fail_pct(
     return result
 
 
-def _expand_models(
-    tdf: TrainingConfiguration,
-    model_request: str | list[str] | None,
-    exclude_model_file: str | None,
-):
+def _expand_models(tdf: TrainingConfiguration, args: argparse.Namespace):
     """figure out which models match the model requests"""
-    if model_request is None:
-        # if no models are requested then just list the defined model names and exit
-        print(f"Following {len(tdf.model_names)} models are defined: {sorted(tdf.model_names)}")
-        exit(0)
+    if args.model is not None and args.models is not None:
+        args.parser.error(
+            "Either both or neither of the positional model arg and optional --models args were specified. Pick one"
+        )
+    model_filters = [args.model] if args.model else args.models
+    if args.dest_filename:
+        if len(model_filters) > 1 or "*" in model_filters[0]:
+            args.parser.error(
+                "If a model destination filename is given multiple models cannot be requested for training"
+            )
+        if args.exclude_model_file:
+            args.parser.error("--exclude_model_file cannot be used with --dest_filename")
 
-    if exclude_model_file:
-        # load the excluded models
+    if args.exclude_model_file:
+        # load the excluded models, should only be here if auto-filenaming is enabled
         exclude_models: set[tuple[str, str, None | str]] = set()
-        if not os.path.isfile(exclude_model_file):
-            raise FileNotFoundError(f"Exclude file '{exclude_model_file}' not found")
-        with open(exclude_model_file, "r") as f_:
+        if not os.path.isfile(args.exclude_model_file):
+            raise FileNotFoundError(f"Exclude file '{args.exclude_model_file}' not found")
+        with open(args.exclude_model_file, "r") as f_:
             for i, exclude_model in enumerate(f_.readlines(), 1):
                 exclude_model = exclude_model.strip()
                 if not exclude_model or exclude_model[0] in "/\\#":
@@ -113,7 +117,7 @@ def _expand_models(
                     infix = None
                 else:
                     raise UnexpectedValueError(
-                        f"The value on line {i} of {exclude_model_file=} is '{exclude_model}'. "
+                        f"The value on line {i} of {args.exclude_model_file=} is '{exclude_model}'. "
                         "This not recognized as a model metadata filename. "
                         "See --exclude_model_file for details."
                     )
@@ -123,21 +127,21 @@ def _expand_models(
                 )
         _LOGGER.info(
             "Based on exclude_model_file='%s', the following models will be excluded from training: %s",
-            exclude_model_file,
+            args.exclude_model_file,
             sorted(exclude_models),
         )
 
-    requested_models_filters = [model_request] if isinstance(model_request, str) else model_request
     model_names: list[str] = []
-    for model_filter in requested_models_filters:
+    for model_filter in model_filters:
         if "*" not in model_filter:
             # model name (no wildcard)
             if model_filter not in tdf.model_names:
                 raise ModelNotFound(
                     f"Model name '{model_filter}' not found. valid models are {tdf.model_names}"
                 )
-            model_exclude_match_item = (model_filter, tdf.algorithm, tdf.get_infix(model_filter))
-            if exclude_model_file and model_exclude_match_item in exclude_models:
+            infix = tdf.get_infix(tdf.algorithm, tdf.get_params(model_filter), args)
+            model_exclude_match_item = (model_filter, tdf.algorithm, infix)
+            if args.exclude_model_file and model_exclude_match_item in exclude_models:
                 raise InvalidArgumentsException(
                     f"Model '{model_filter}' was explicitly requested but is in the exclude list"
                 )
@@ -149,14 +153,15 @@ def _expand_models(
         for model_name in tdf.model_names:
             if not fnmatch(model_name, model_filter):
                 continue
-            matches.add((model_name, tdf.get_infix(model_name)))
+            infix = tdf.get_infix(tdf.algorithm, tdf.get_params(model_name), args)
+            matches.add((model_name, infix))
         if len(matches) == 0:
             raise ModelNotFound(
                 f"Model request '{model_filter}' did not match to any model names. "
                 f"valid models are {tdf.model_names}"
             )
 
-        if exclude_model_file:
+        if args.exclude_model_file:
             matches_to_exclude: set[tuple[str, str | None]] = set()
             for model_name, infix in matches:
                 model_exclude_match_item = (model_name, tdf.algorithm, infix)
@@ -164,7 +169,10 @@ def _expand_models(
                     matches_to_exclude.add((model_name, infix))
             if matches_to_exclude:
                 _LOGGER.success(
-                    f"Excluding {len(matches_to_exclude)} models from training found in '{exclude_model_file}': {sorted(matches_to_exclude)}"
+                    "Excluding %i models from training found in '%s': %s",
+                    len(matches_to_exclude),
+                    args.exclude_model_file,
+                    sorted(matches_to_exclude),
                 )
                 matches -= matches_to_exclude
         model_names += [model_name for model_name, _ in matches]
@@ -271,11 +279,8 @@ def _handle_train(args: argparse.Namespace):
 
     if args.train_op == "train":
         tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
-        if args.model is not None and args.models is not None:
-            args.parser.error(
-                f"Because model '{args.model}' was requested, --models cannot be used"
-            )
-        model_names = _expand_models(tdf, (args.model or args.models), args.exclude_model_file)
+        model_names = _expand_models(tdf, args)
+        assert not (len(model_names) > 1 and args.dest_filename)
         original_model = None
     else:
         # retrain
