@@ -4,8 +4,7 @@ import tempfile
 import pandas as pd
 import torch
 from autogluon.tabular import TabularPredictor
-from fantasy_py import FantasyException, InvalidArgumentsException, log
-from fantasy_py.inference import PTPredictModel
+from fantasy_py import FantasyException, InvalidArgumentsException, copy_dir_no_metadata, log
 
 from .wrapper import PTEstimatorWrapper
 
@@ -165,6 +164,6 @@ class AutoGluonWrapper(PTEstimatorWrapper):
         with tempfile.TemporaryDirectory(prefix="autogluon-model-clone-4-deploy") as tmpdir:
             local_clone = f"{tmpdir}/model_clone"
             self.predictor.clone_for_deployment(path=local_clone)
-            PTPredictModel.copy_artifact_dir(local_clone, dest_path)
+            copy_dir_no_metadata(local_clone, dest_path)
 
         return dest_path
