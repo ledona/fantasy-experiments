@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import sqlite3
 from datetime import date
 from functools import partial
 from typing import Any, Callable, cast
@@ -15,16 +14,13 @@ from fantasy_py import (
     DataNotAvailableException,
     DFSContestStyle,
     UnexpectedValueError,
+    db,
 )
-from fantasy_py.betting import FiftyFifty, GeneralPrizePool
+from fantasy_py.betting import Contest, FiftyFifty, GeneralPrizePool
+from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from .best_possible_lineup_score import (
-    TopScoreCacheMode,
-    get_stat_names,
-    score_cache_ctx,
-    slate_scoring,
-)
+from .slate_scoring import SlateScoreCacheMode, get_stat_names, score_cache_ctx, slate_scoring
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -94,8 +90,11 @@ _ABBR_REMAPPERS: dict[str, Callable[[str, str], str]] = {
 }
 
 
-def _create_team_score_df(db_filename, slate_ids_str, top_player_percentile) -> None | pd.DataFrame:
-    conn = sqlite3.connect(f"file:{db_filename}?mode=ro", uri=True)
+def _create_team_score_df(
+    session: Session, slate_ids_str, percentile, style: DFSContestStyle
+) -> None | pd.DataFrame:
+    """return a dataframe with a slate's median team score, total team score and
+    the score closest to the requested percentile"""
     sql = f"""
     select distinct daily_fantasy_slate.id as slate_id, game.id as game_id, 
            game.score_home, game.score_away, (game.score_home + game.score_away) as total_score
@@ -107,37 +106,45 @@ def _create_team_score_df(db_filename, slate_ids_str, top_player_percentile) -> 
                       (daily_fantasy_cost.team_id in (game.away_team_id, game.home_team_id)))
     where daily_fantasy_slate.id in ({slate_ids_str})
     """
-
-    db_team_score_df = pd.read_sql_query(sql, conn, parse_dates=["date"])
-    conn.close()
+    db_team_score_df = pd.read_sql_query(sql, session.connection())
     if len(db_team_score_df) == 0:
-        return None
+        raise DataNotAvailableException("Empty team score df")
+
+    if style.name != "CLASSIC":
+        raise NotImplementedError()
 
     team_score_df = (
         db_team_score_df.melt(
             id_vars=["slate_id", "game_id"], value_vars=["score_home", "score_away", "total_score"]
         )
         .groupby(["slate_id"])
-        .agg({"value": ["median", lambda x: np.percentile(x, top_player_percentile * 100), "sum"]})
+        .agg({"value": ["median", lambda x: np.percentile(x, percentile * 100), "sum"]})
     )
-    team_score_df.columns = ["team-med", f"team-{top_player_percentile * 100}th_pctl", "team-total"]
+    team_score_df.columns = ["team-med", f"team-{percentile * 100}th_pctl", "team-total"]
+
+    top3_sum = (
+        db_team_score_df.groupby("slate_id")["total_score"]
+        .apply(lambda x: x.nlargest(3).sum())
+        .rename("top3-total")
+    )
+    team_score_df = team_score_df.join(top3_sum)
     return team_score_df
 
 
 def _get_exploded_pos_df(
-    db_filename,
+    session,
     sport,
-    service_abbr,
     slate_ids_str,
     cost_pos_drop: None | set,
     cost_pos_rename: None | dict,
-) -> None | pd.DataFrame:
-    conn = sqlite3.connect(f"file:{db_filename}?mode=ro", uri=True)
-    stat_names = get_stat_names(sport, service_abbr, as_str=True)
-
-    # for mlb double headers this query will cause inaccuracy for players
+    df_stat_names,
+):
+    # For mlb double headers this query will cause inaccuracy for players
     # that played in both games have a date equal to the slate date or
     # must have a datetime starting prior to 6am on the following date
+    # To fix, game_id will need to be accurately/specifically linked to
+    # slate (as opposed to assuming that the only game on a date for a
+    # player/team is the same game that is in the slate.
     sql = f"""
     select daily_fantasy_slate.id as slate_id, positions as cost_positions, 
         player_position.abbr as stat_position, 
@@ -160,13 +167,12 @@ def _get_exploded_pos_df(
         join player on daily_fantasy_cost.player_id = player.id
         join player_position on player.player_position_id = player_position.id
     where daily_fantasy_slate.id in ({slate_ids_str}) and
-        statistic.name in ({stat_names})
+        statistic.name in ({df_stat_names})
     """
-    db_df = pd.read_sql_query(sql, conn, parse_dates=["date"])
-    conn.close()
+    db_df = pd.read_sql_query(sql, session.connection())
 
     if len(db_df) == 0:
-        return None
+        raise DataNotAvailableException("No exploded positional data returned!")
 
     db_manager = CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport)
 
@@ -300,12 +306,12 @@ _EXPECTED_CONTEST_COLS = {
 
 
 def _get_contest_df(
-    service, sport, style, contest_type, min_date, max_date, contest_data_path
+    service_name, sport, style, contest_type: Contest, min_date, max_date, contest_data_path
 ) -> pd.DataFrame:
     """
     create a dataframe from the contest dataset
     """
-    contest_csv_path = os.path.join(contest_data_path, service + ".contest.csv")
+    contest_csv_path = os.path.join(contest_data_path, service_name + ".contest.csv")
     contest_df = pd.read_csv(contest_csv_path, parse_dates=["date"]).query(
         "sport == @sport and @min_date <= date < @max_date"
     )
@@ -318,7 +324,7 @@ def _get_contest_df(
 
     # add style and type
     contest_type_cols = contest_df.apply(
-        partial(_infer_contest_info_cols, service), axis=1, result_type="expand"
+        partial(_infer_contest_info_cols, service_name), axis=1, result_type="expand"
     )
     contest_df = pd.concat([contest_df, contest_type_cols], axis=1)
     queries = []
@@ -329,7 +335,7 @@ def _get_contest_df(
     if len(queries) > 0:
         contest_df = contest_df.query(" and ".join(queries))
 
-    betting_csv_path = os.path.join(contest_data_path, service + ".betting.csv")
+    betting_csv_path = os.path.join(contest_data_path, service_name + ".betting.csv")
     bet_df = (
         pd.read_csv(betting_csv_path)
         .drop_duplicates("contest_id")
@@ -386,8 +392,10 @@ def _common_title(title_series: pd.Series) -> str:
     return "" if None in title_list else os.path.commonprefix(title_list)
 
 
-def _create_teams_contest_df(tc_df):
+def _create_teams_contest_df(contest_df, draft_df, service, sport):
     """group contests together and create team sets used in each contest"""
+    tc_df = _create_team_contest_df(contest_df, draft_df, service, sport)
+
     tc_df = pd.DataFrame(
         tc_df.groupby(["contest_id", "date", "style", "type", "link", "entries"]).agg(
             {
@@ -403,10 +411,7 @@ def _create_teams_contest_df(tc_df):
     return tc_df
 
 
-def _get_slate_df(db_filename, service, style, min_date, max_date) -> None | pd.DataFrame:
-    if not os.path.isfile(db_filename):
-        raise FileNotFoundError(f"DB file '{db_filename}' does not exist")
-    conn = sqlite3.connect(f"file:{db_filename}?mode=ro", uri=True)
+def _get_slate_df(session: Session, service, style, min_date, max_date):
     sql = f"""
     select distinct daily_fantasy_slate.id as slate_id, date, 
         daily_fantasy_slate.name as slate_name, style as contest_style, abbr
@@ -415,14 +420,12 @@ def _get_slate_df(db_filename, service, style, min_date, max_date) -> None | pd.
         join team on team_id = team.id
     where service = '{service}' and date between '{min_date}' and date('{max_date}', '-1 days')
     """
-
     if style is not None:
         sql += f" and style = '{style.name}'"
 
-    db_df = pd.read_sql_query(sql, conn, parse_dates=["date"])
-    conn.close()
+    db_df = pd.read_sql_query(sql, session.connection(), parse_dates=["date"])
     if len(db_df) == 0:
-        return None
+        raise DataNotAvailableException("No slates found for", service, style, min_date, max_date)
 
     # get team sets
     slate_db_df = pd.DataFrame(
@@ -473,22 +476,38 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
     return slates.iloc[0][["slate_id", "team-count"]]
 
 
-def _get_position_scores(db_exploded_pos_df, top_player_percentile):
+def _get_position_scores(session, cfg, sport, slate_ids_str, top_percentile, df_stat_names):
+    """return a dataframe containing the top_percentileth player dfs score for
+    each position for the requested slate(s), sport and service"""
+    db_exploded_pos_df = _get_exploded_pos_df(
+        session,
+        sport,
+        slate_ids_str,
+        cfg.get("cost_pos_drop"),
+        cfg.get("cost_pos_rename"),
+        df_stat_names,
+    )
+
     db_pos_scores_df = (
         db_exploded_pos_df[["slate_id", "position", "score"]]
         .groupby(["slate_id", "position"])
-        .agg(["median", lambda x: np.percentile(x, top_player_percentile * 100)])
+        .agg(["median", lambda x: np.percentile(x, top_percentile * 100)])
     )
-    db_pos_scores_df.columns = ["med-dfs", f"{top_player_percentile * 100}th-pctl-dfs"]
+    db_pos_scores_df.columns = ["med-dfs", f"{top_percentile * 100}th-pctl-dfs"]
     db_pos_scores_df = db_pos_scores_df.reset_index(level="position").pivot(
         columns="position",
-        values=["med-dfs", f"{top_player_percentile * 100}th-pctl-dfs"],
+        values=["med-dfs", f"{top_percentile * 100}th-pctl-dfs"],
     )
     return db_pos_scores_df
 
 
-def _create_predict_df(
-    teams_contest_df, slate_ids_df, team_score_df, db_pos_scores_df, slate_scores
+def _create_inference_df(
+    teams_contest_df,
+    slate_ids_df,
+    team_score_df,
+    db_pos_scores_df,
+    slate_scores,
+    player_value_density_df,
 ) -> pd.DataFrame:
     """
     join contest, slate id, team score, player position scores, slate_scores
@@ -496,6 +515,28 @@ def _create_predict_df(
     slate_scores: ps series of tuples of
     (best-possible-slate-score, mean-diff-hist-vs-pred-for-top-players)
     """
+
+    raise NotImplementedError("""
+Add the following features
+1) low cost player value density
+2) mean diff between true and predicted scores for 'chalk' players (e.g. top 15 highest projected players)
+3) optimal 'rational' score (i.e. highest score using typical strategy by use actual scores instead of projected)
+4) sanity gap (diff between best possible score and optimal rational score)
+5) top 3 game actual totals (or actual total for a showdown)
+6) NBA - minimum salaries players with 25+ mins
+7) MLB - max team score, teams with 8+ runs, optimal lineup pitcher score
+8) NFL - overall touchdown/yardage, % points contributed by DST/K in optimal lineup
+9) NHL - goals scored by same line
+                              
+for showdown add
+1) score differential
+2) total contest entries
+3) position of optimal captain
+4) winning team actual score
+5) (NBA) raw actual DFS score for the highest cost player
+6) (NHL) optimal goalie dfs score
+7) (MLB) optimal pitcher dfs score
+            """)
 
     best_slate_score, mean_hist_pred_diffs = zip(*slate_scores)
     dfs = [
@@ -514,15 +555,15 @@ def _create_predict_df(
 def _generate_dataset(
     cfg,
     sport,
-    service,
-    style,
-    contest_type,
+    service_name,
+    style: DFSContestStyle,
+    contest_type: Contest,
     contest_data_path,
-    top_player_percentile,
+    top_percentile,
     min_date: date,
     max_date: date,
     max_count: None | int = None,
-    top_score_cache_mode: TopScoreCacheMode = "default",
+    slate_score_cache_mode: SlateScoreCacheMode = "default",
     datapath: str = "data",
     screen_lineup_constraints_mode="fail",
 ) -> pd.DataFrame:
@@ -539,79 +580,66 @@ def _generate_dataset(
     """
     # get dfs contests from scraped dataset
     contest_df = _get_contest_df(
-        service, sport, style, contest_type, min_date, max_date, contest_data_path
+        service_name, sport, style, contest_type, min_date, max_date, contest_data_path
     )
     if contest_df is not None and max_count is not None:
         contest_df = contest_df.head(max_count)
 
-    draft_df = _get_draft_df(service, sport, style, min_date, max_date, contest_data_path)
+    draft_df = _get_draft_df(service_name, sport, style, min_date, max_date, contest_data_path)
 
-    team_contest_df = _create_team_contest_df(contest_df, draft_df, service, sport)
+    teams_contest_df = _create_teams_contest_df(contest_df, draft_df, service_name, sport)
 
-    teams_contest_df = _create_teams_contest_df(team_contest_df)
+    df_stat_names = get_stat_names(sport, _SERVICE_NAME_TO_ABBR[service_name], as_str=True)
 
-    slate_db_df = _get_slate_df(cfg["db_filename"], service, style, min_date, max_date)
-    if slate_db_df is None:
-        raise DataNotAvailableException("No slates found for", service, style, min_date, max_date)
+    db_obj = db.get_db_obj(cfg["db_filename"], readonly=True)
+    with db_obj.session_scoped() as session:
+        slate_db_df = _get_slate_df(session, service_name, style, min_date, max_date)
 
-    slate_ids_df = teams_contest_df.apply(_get_slate_id, axis=1, args=(slate_db_df,))
-
-    if len(slate_ids_df) == 0:
-        raise DataNotAvailableException("No slates ids found (based on teams contest df)")
-
-    slate_ids_str = ",".join(map(str, slate_ids_df.slate_id.dropna().astype(int)))
-
-    if len(slate_ids_str) == 0:
-        raise DataNotAvailableException("No slate ids found after removing Nones")
-
-    team_score_df = _create_team_score_df(cfg["db_filename"], slate_ids_str, top_player_percentile)
-    if team_score_df is None:
-        raise DataNotAvailableException("Empty team score df")
-
-    db_exploded_pos_df = _get_exploded_pos_df(
-        cfg["db_filename"],
-        sport,
-        _SERVICE_NAME_TO_ABBR[service],
-        slate_ids_str,
-        cfg.get("cost_pos_drop"),
-        cfg.get("cost_pos_rename"),
-    )
-
-    if db_exploded_pos_df is None:
-        raise DataNotAvailableException("No exploded positional data returned!")
-
-    db_pos_scores_df = _get_position_scores(db_exploded_pos_df, top_player_percentile)
-
-    # cache for top scores
-    with score_cache_ctx(sport, top_score_cache_mode, cache_dir=datapath) as score_dict:
-        lineup_score_part = partial(
-            slate_scoring,
-            cfg["db_filename"],
-            _SERVICE_NAME_TO_ABBR[service],
-            sport=sport,
-            score_cache=score_dict,
-            screen_lineup_constraints_mode=screen_lineup_constraints_mode,
+        team_count_and_slate_id_df = teams_contest_df.apply(
+            _get_slate_id, axis=1, args=(slate_db_df,)
         )
-        tqdm.pandas(desc="slates")
-        lineup_scores = slate_ids_df.slate_id.progress_map(lineup_score_part)
+        if len(team_count_and_slate_id_df) == 0:
+            raise DataNotAvailableException("No slates ids found (based on teams contest df)")
 
-    predict_df = _create_predict_df(
+        slate_ids = team_count_and_slate_id_df.slate_id.dropna().astype(int)
+        slate_ids_str = ",".join(map(str, slate_ids))
+
+        team_score_df = _create_team_score_df(session, slate_ids_str, top_percentile, style)
+
+        pos_scores_df = _get_position_scores(
+            session, cfg, sport, slate_ids_str, top_percentile, df_stat_names
+        )
+
+        # cache for top scores
+        with score_cache_ctx(sport, slate_score_cache_mode, cache_dir=datapath) as score_dict:
+            # bpl=best possible lineup ; slate_id -> (bpl-true-score, bpl-true-score - bpl-pred-score, lchv_count)
+            slate_to_scores_func = partial(
+                slate_scoring,
+                session,
+                score_cache=score_dict,
+                screen_lineup_constraints_mode=screen_lineup_constraints_mode,
+            )
+            tqdm.pandas(desc="slates")
+            slate_scores = team_count_and_slate_id_df.slate_id.progress_map(slate_to_scores_func)
+
+    inf_df = _create_inference_df(
         teams_contest_df,
-        slate_ids_df,
+        team_count_and_slate_id_df,
         team_score_df,
-        db_pos_scores_df,
-        lineup_scores,
+        pos_scores_df,
+        slate_scores,
+        player_value_density_df,
     )
 
     filepath = os.path.join(
-        datapath, f"{sport}-{service}-{style.name}-{contest_type.TYPE_NAME}.csv"
+        datapath, f"{sport}-{service_name}-{style.name}-{contest_type.TYPE_NAME}.csv"
     )
     _LOGGER.info("Writing data to '%s'", filepath)
-    predict_df.to_csv(filepath, index=False)
-    return predict_df
+    inf_df.to_csv(filepath, index=False)
+    return inf_df
 
 
-def _get_date_range(cfg: dict, service: str):
+def _get_date_range(cfg: dict, service: str) -> tuple[date | None, date | None]:
     min_date_by_service = cast(dict, cfg["min_date"])
     max_date_by_service = cast(dict, cfg["max_date"])
     min_date = (
@@ -636,7 +664,7 @@ def xform(
     top_score_cache_mode,
     data_path,
     contest_data_path,
-    top_player_percentile,
+    top_percentile,
     date_override: tuple[date, date] | None,
 ):
     """
@@ -679,10 +707,10 @@ def xform(
                         style,
                         contest_type,
                         contest_data_path,
-                        top_player_percentile,
+                        top_percentile,
                         min_date=min_date,
                         max_date=max_date,
-                        top_score_cache_mode=top_score_cache_mode,
+                        slate_score_cache_mode=top_score_cache_mode,
                         screen_lineup_constraints_mode=slcm,
                         datapath=data_path,
                     )
