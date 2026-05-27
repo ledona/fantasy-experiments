@@ -1,0 +1,12 @@
+// dict mapping "{sport}-{contest-style}" to a list of gen lineup params to be tried in
+//   succession to generate a "rational" lineup using typical stategic lineup generation constraints
+{
+    "mlb-classic": [
+        {
+            "stacks": [4, 3],
+            "stackable_teams_predicted_pctl": 70,
+            "exclude_below_ppg_pctl": {"P": 70, "": 40},
+            "exclude_below_games_played": 2
+        }
+    ]
+}

@@ -10,13 +10,13 @@ from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
 from ..data_cfg import SPORT_CFGS
-from .best_possible_lineup_score import TopScoreCacheMode
 from .data_xform import xform
+from .slate_scoring import SlateScoreCacheMode
 
 _DEFAULT_TOP_PERCENTILE = 0.7
 _DEFAULT_DATA_PARENT_DIR = "/fantasy-isync/fantasy-dfs-hist"
 _DEFAULT_INPUT_DATA_DIR = os.path.join(_DEFAULT_DATA_PARENT_DIR, "betting")
-_DEFAULT_OUTPUT_DATA_DIR = os.path.join(_DEFAULT_DATA_PARENT_DIR, "data")
+_DEFAULT_OUTPUT_DATA_DIR = os.path.join(_DEFAULT_DATA_PARENT_DIR, "processed-data")
 
 
 def _process_cmd_line(cmd_line_str=None):
@@ -58,7 +58,7 @@ def _process_cmd_line(cmd_line_str=None):
     )
 
     parser.add_argument(
-        "--top_score_cache_mode", choices=TopScoreCacheMode.__args__, default="default"
+        "--slate_score_cache_mode", choices=SlateScoreCacheMode.__args__, default="default"
     )
 
     parser.add_argument(
@@ -93,7 +93,10 @@ def _process_cmd_line(cmd_line_str=None):
 
     parser.add_argument("--sports", nargs="+", choices=SPORT_CFGS.keys(), default=SPORT_CFGS.keys())
     CacheSettings.add_parser_args(
-        parser, dir_create_mode_default="prompt", cache_mode_default="cache-only"
+        parser,
+        dir_create_mode_default="prompt",
+        mode_default="cache-only",
+        timeout_mode_default="disabled",
     )
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
@@ -113,7 +116,7 @@ def _process_cmd_line(cmd_line_str=None):
                 sorted(set(args.services)),
                 sorted(set(args.contest_styles)),
                 sorted(set(args.contest_types), key=lambda ct: ct.TYPE_NAME),
-                args.top_score_cache_mode,
+                args.slate_score_cache_mode,
                 args.data_path,
                 args.contest_data_path,
                 args.top_percentile,

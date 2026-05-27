@@ -139,11 +139,9 @@
                 // "yahoo",
                 "draftkings", 
                 // "fanduel". 
-                // "--address", "127.0.0.1:9222",
-                // "--web-limit", "25",
                 "--history-file-dir", "/fantasy-isync/fantasy-dfs-hist/betting",
                 "--cache", "/fantasy-isync/fantasy-dfs-hist/betting/df-hist-cache",
-
+                "--skip-entry-filepath", "skip_entries.txt",
                 "--cache-only", 
                 "-o", "/fantasy-isync/fantasy-dfs-hist/betting",
                 // "--sports", "mlb", 
@@ -158,12 +156,14 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
-                "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/data/xform-cache",
+                "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/processed-data/xform-cache",
                 "--services", "draftkings",
-                // "--style", "classic",
+                "--style", "classic",
+                // "--style", "showdown",
                 // "--type", "GPP",
-                // "--", "--dates", "20200901", "20201101",
-                "--sports", "nfl", "nhl", "nba", "mlb"
+                // "--dates", "20200810", "20200811",
+                "--sports", "mlb", // "nfl", "nhl", "nba", "mlb"
+                "--cache_mode", "enable",
             ]
         },
         {

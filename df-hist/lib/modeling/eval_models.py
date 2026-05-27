@@ -86,6 +86,7 @@ def evaluate_models(
         ]
         return None, None, failed_models
 
+    raise NotImplementedError("model_cols should be pinned to either the old (expected) cols or the new features")
     model_data = generate_train_test(
         df,
         model_cols=None,
