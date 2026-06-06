@@ -22,10 +22,10 @@ from tqdm import tqdm
 
 from .slate_scoring import (
     SlateScoreCacheMode,
+    SlateScoreItem,
     get_stat_names,
     score_cache_ctx,
     slate_scoring,
-    SlateScoreItem,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -96,26 +96,28 @@ _ABBR_REMAPPERS: dict[str, Callable[[str, str], str]] = {
 }
 
 
-def _create_team_score_df(session: Session, slate_ids_str, percentile, style: DFSContestStyle):
+def _create_team_score_df(
+    slate_to_games: dict[int, list[db.Game]], percentile, style: DFSContestStyle, sport: str
+):
     """return a dataframe with final game score (e.g. mlb run total) features"""
-    sql = f"""
-    select distinct daily_fantasy_slate.id as slate_id, game.id as game_id
-           ,game.score_home, game.score_away
-           ,(game.score_home + game.score_away) as total_score
-           ,max(game.score_home, game.score_away) as high_score
-           ,abs(game.score_home - game.score_away) as margin_of_victory
-    from daily_fantasy_slate
-        join daily_fantasy_cost on daily_fantasy_slate.id = daily_fantasy_cost.daily_fantasy_slate_id
-        join game on ((game.date = daily_fantasy_slate.date or 
-		               game.dt between daily_fantasy_slate.date and datetime(daily_fantasy_slate.date, '+1 days', '+6 hours')) and
-                      game.season = daily_fantasy_slate.season and 
-                      (daily_fantasy_cost.team_id in (game.away_team_id, game.home_team_id)))
-    where daily_fantasy_slate.id in ({slate_ids_str})
-    """
-    db_team_score_df = pd.read_sql_query(sql, session.connection())
+    _LOGGER.info("calculating team scoring data for %d slates", len(slate_to_games))
+    rows = [
+        {
+            "slate_id": slate_id,
+            "game_id": game.id,
+            "score_home": game.score_home,
+            "score_away": game.score_away,
+            "total_score": game.score_home + game.score_away,
+            "high_score": max(game.score_home, game.score_away),
+            "margin_of_victory": abs(game.score_home - game.score_away),
+        }
+        for slate_id, games in slate_to_games.items()
+        for game in games
+    ]
+    db_team_score_df = pd.DataFrame(rows)
     if len(db_team_score_df) == 0:
         raise DataNotAvailableException(
-            f"Empty team score df when retrieving for slates: {slate_ids_str}"
+            f"Empty team score df when retrieving for slates: {list(slate_to_games.keys())}"
         )
 
     if style.name == "CLASSIC":
@@ -133,7 +135,7 @@ def _create_team_score_df(session: Session, slate_ids_str, percentile, style: DF
             .rename("top3-total")
         )
         team_score_df = team_score_df.join(top3_sum)
-        if session.info["fantasy.db_manager"].ABBR == "mlb":
+        if sport == "mlb":
             high_score = db_team_score_df.groupby("slate_id")["high_score"].apply(max)
             team_score_df = team_score_df.join(high_score)
 
@@ -143,51 +145,45 @@ def _create_team_score_df(session: Session, slate_ids_str, percentile, style: DF
         if db_team_score_df.game_id.duplicated().any():
             raise UnexpectedValueError("Showdown slate data should not have any duplicated games")
         cols = ["slate_id", "total_score", "margin_of_victory"]
-        if session.info["fantasy.db_manager"].ABBR == "mlb":
+        if sport == "mlb":
             cols.append("high_score")
         team_score_df = db_team_score_df[cols]
         return team_score_df.set_index("slate_id")
 
-    raise NotImplementedError()
+    raise NotImplementedError(f"don't know how to do this for {style.name}")
 
 
 def _get_exploded_pos_df(
     session,
     sport,
-    slate_ids_str,
+    slate_to_games: dict[int, list[db.Game]],
     cost_pos_drop: None | set,
     cost_pos_rename: None | dict,
     df_stat_names,
 ):
-    # For mlb double headers this query will cause inaccuracy for players
-    # that played in both games have a date equal to the slate date or
-    # must have a datetime starting prior to 6am on the following date
-    # To fix, game_id will need to be accurately/specifically linked to
-    # slate (as opposed to assuming that the only game on a date for a
-    # player/team is the same game that is in the slate.
+    slate_ids_str = ", ".join(str(sid) for sid in slate_to_games)
+    # CTE maps each slate to its exact game IDs, fixing the doubleheader inaccuracy
+    # that existed when games were inferred from date/season/team_id
+    slate_game_values = ", ".join(
+        f"({slate_id}, {game.id})" for slate_id, games in slate_to_games.items() for game in games
+    )
     sql = f"""
-    select daily_fantasy_slate.id as slate_id, positions as cost_positions, 
-        player_position.abbr as stat_position, 
-        value as score, daily_fantasy_cost.team_id, daily_fantasy_cost.player_id
-    from daily_fantasy_slate
-        join daily_fantasy_cost on 
-           daily_fantasy_slate.id = daily_fantasy_cost.daily_fantasy_slate_id
-        join game on (
-           (game.date = daily_fantasy_slate.date or 
-		    game.dt between daily_fantasy_slate.date and datetime(daily_fantasy_slate.date, '+1 days', '+6 hours')) and
-           game.season = daily_fantasy_slate.season and 
-           (daily_fantasy_cost.team_id in (game.away_team_id, game.home_team_id))
+    with slate_games(slate_id, game_id) as (values {slate_game_values})
+    select dfc.daily_fantasy_slate_id as slate_id, dfc.positions as cost_positions,
+        pp.abbr as stat_position,
+        cd.value as score, dfc.team_id, dfc.player_id
+    from daily_fantasy_cost dfc
+        join slate_games sg on sg.slate_id = dfc.daily_fantasy_slate_id
+        join calculation_datum cd on (
+            cd.game_id = sg.game_id and
+            cd.player_id is dfc.player_id and
+            cd.team_id = dfc.team_id
         )
-        join calculation_datum on (
-            calculation_datum.game_id = game.id and 
-            calculation_datum.player_id is daily_fantasy_cost.player_id and
-            calculation_datum.team_id = daily_fantasy_cost.team_id
-        )
-        join statistic on calculation_datum.statistic_id = statistic.id
-        join player on daily_fantasy_cost.player_id = player.id
-        join player_position on player.player_position_id = player_position.id
-    where daily_fantasy_slate.id in ({slate_ids_str}) and
-        statistic.name in ({df_stat_names})
+        join statistic s on cd.statistic_id = s.id
+        join player p on dfc.player_id = p.id
+        join player_position pp on p.player_position_id = pp.id
+    where dfc.daily_fantasy_slate_id in ({slate_ids_str}) and
+        s.name in ({df_stat_names})
     """
     db_df = pd.read_sql_query(sql, session.connection())
 
@@ -498,13 +494,14 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
     return slates.iloc[0][["slate_id", "team-count"]]
 
 
-def _get_position_scores(session, cfg, sport, slate_ids_str, top_percentile, df_stat_names):
+def _get_position_scores(session, cfg, sport, slate_to_games, top_percentile, df_stat_names):
     """return a dataframe containing the top_percentileth player dfs score for
     each position for the requested slate(s), sport and service"""
+    _LOGGER.info("calculating player position scores for %d slates", len(slate_to_games))
     db_exploded_pos_df = _get_exploded_pos_df(
         session,
         sport,
-        slate_ids_str,
+        slate_to_games,
         cfg.get("cost_pos_drop"),
         cfg.get("cost_pos_rename"),
         df_stat_names,
@@ -524,8 +521,8 @@ def _get_position_scores(session, cfg, sport, slate_ids_str, top_percentile, df_
 
 
 def _create_inference_df(
-    sport,
-    style: DFSContestStyle,
+    # sport,
+    # style: DFSContestStyle,
     teams_contest_df: pd.DataFrame,
     slate_ids_df: pd.DataFrame,
     team_score_df: pd.DataFrame,
@@ -535,13 +532,13 @@ def _create_inference_df(
     """
     join contest, slate id, team score, player position scores, slate_scores
     """
-    assert (
-        len(teams_contest_df)
-        == len(slate_ids_df)
-        == len(team_score_df)
-        == len(db_pos_scores_df)
-        == len(slate_scores)
-    ), "all of these should be the same length"
+    assert len(slate_ids_df) == len(team_score_df) == len(db_pos_scores_df) >= len(slate_scores), (
+        "all of these should be the same length except slate_scores which may be shorted"
+    )
+
+    assert len(teams_contest_df) >= len(slate_ids_df), (
+        "should be more than or equal the number of rows in teams_contest_df"
+    )
 
     db_pos_scores_df.columns = db_pos_scores_df.columns.map(lambda names: names[1] + "|" + names[0])
     slate_scores_df = pd.DataFrame(
@@ -549,40 +546,128 @@ def _create_inference_df(
         index=list(slate_scores.keys()),
         columns=SlateScoreItem._fields,
     )
-
-    df = (
-        teams_contest_df[["date", "style", "type", "top_score", "last_winning_score", "link"]].rename(columns={'top_score': 'top_winning_score'})
-        .join(slate_ids_df)
-        .join(slate_scores_df)
-        .join(team_score_df)
-        .join(db_pos_scores_df)
+    slate_scores_df = slate_scores_df.assign(
+        top_possible_minus_rational=(
+            slate_scores_df.top_possible_lineup_score - slate_scores_df.top_rational_lineup_score
+        )
     )
-    raise NotImplementedError("""
-Add the following features
-1) low cost player value density
-2) mean diff between true and predicted scores for 'chalk' players (e.g. top 15 highest projected players)
-3) optimal 'rational' score (i.e. highest score using typical strategy by use actual scores instead of projected)
-4) sanity gap (diff between best possible score and optimal rational score)
-5) top 3 game actual totals (or actual total for a showdown)
-6) NBA - minimum salaries players with 25+ mins
-7) MLB - max team score, teams with 8+ runs, optimal lineup pitcher score
-8) NFL - overall touchdown/yardage, % points contributed by DST/K in optimal lineup
-9) NHL - goals scored by same line
-                              
-for showdown add
-1) score differential
-2) total contest entries
-3) position of optimal captain
-4) winning team actual score
-5) (NBA) raw actual DFS score for the highest cost player
-6) (NHL) optimal goalie dfs score
-7) (MLB) optimal pitcher dfs score
-            """)
+    df = (
+        teams_contest_df[
+            ["date", "style", "type", "top_score", "last_winning_score", "link", "slate_id"]
+        ]
+        .rename(columns={"top_score": "top_winning_score"})
+        .join(slate_ids_df, on="slate_id")
+        .join(slate_scores_df, on="slate_id")
+        .join(team_score_df, on="slate_id")
+        .join(db_pos_scores_df, on="slate_id")
+    )
     return df
 
 
-def _get_expected_features(sport, style: DFSContestStyle) -> set[str]:
-    raise NotImplementedError()
+_SHARED_EXPECTED_COLS = [
+    # slate descriptives
+    "date",
+    "style",
+    "type",
+    "link",
+    "slate_id",
+    # target variables
+    "top_winning_score",
+    "last_winning_score",
+    # old&new features
+    "top_possible_lineup_score",
+    # old features
+    "team_med",
+    "total_score",
+    # new featuers
+    "top_rational_lineup_score",
+    "top_possible_minus_rational",
+    "low_cost_high_value_player_count",
+    # unknown
+    "top_players_scoring_diff_n",
+    "top_players_scoring_diff_pctl",
+]
+
+
+def _test_for_expected_cols(sport, style: DFSContestStyle, inf_df: pd.DataFrame):
+    if style == DFSContestStyle.CLASSIC:
+        expected_cols = [
+            # old&new features
+            "team-count",
+            # old features
+            "team-70.0th_pctl",
+            "top3-total",
+        ]
+    elif style == DFSContestStyle.SHOWDOWN:
+        expected_cols = [
+            # new features
+            "contest_entries",
+            "game-total_score",  # same as total score, added because total score is not needed in new classic
+            "game-margin_of_victor",
+        ]
+    else:
+        raise NotImplementedError()
+
+    if sport == "mlb":
+        expected_cols += [
+            # new features
+            "high-team-score",
+        ]
+        if style == DFSContestStyle.SHOWDOWN:
+            # new features
+            expected_cols += [
+                "winning-team-WH-allowed",
+                "losing-team-WH-allowed",
+            ]
+    elif sport == "nfl":
+        expected_cols += [
+            # new features
+            "td-to-yardage",
+            "%-dst+k-pts",
+        ]
+    elif sport == "nhl":
+        # new features
+        if style == DFSContestStyle.CLASSIC:
+            # infer 3 player line goals for a line by using for each line
+            # the minimum of (goals, assists/2)
+            # sum this across all lines then divide by total goals
+            expected_cols.append("3-player-line-goals%")
+        elif style == DFSContestStyle.SHOWDOWN:
+            # goalie stats
+            expected_cols += [
+                "winning-team-saves",
+                "losing-team-saves",
+            ]
+    elif sport == "nba":
+        expected_cols += [
+            # new features
+            "low_cost_high_use",  # low cost players with 25 mins+
+        ]
+    else:
+        raise NotImplementedError()
+
+    # test all cols except for positional scoring
+    cols_to_test = {
+        col
+        for col in inf_df.columns
+        if not (col.endswith("|70.0th-pctl-dfs") or col.endswith("|med-dfs"))
+    }
+    if len(cols_to_test) == len(inf_df.columns):
+        fail_msgs = ["(old) position dfs scoring is missing"]
+    else:
+        fail_msgs = []
+
+    sym_diff = cols_to_test.symmetric_difference([*expected_cols, *_SHARED_EXPECTED_COLS])
+    if len(sym_diff) > 0:
+        if unexpected_cols := sorted(sym_diff.difference(expected_cols)):
+            fail_msgs.append(f"unexpected-cols(n={len(unexpected_cols)}) = {unexpected_cols}")
+        if missing_cols := sorted(sym_diff.difference(inf_df.columns)):
+            fail_msgs.append(f"missing-cols(n={len(missing_cols)}) = {missing_cols}")
+
+    if fail_msgs:
+        raise UnexpectedValueError(
+            "inf_df columns don't match expectations. " + " ".join(fail_msgs)
+        )
 
 
 def _generate_dataset(
@@ -615,6 +700,9 @@ def _generate_dataset(
     contest_df = _get_contest_df(
         service_name, sport, style, contest_type, min_date, max_date, contest_data_path
     )
+    if len(contest_df) == 0:
+        raise DataNotAvailableException(f"No contest data found for {min_date=} {max_date=}")
+
     if contest_df is not None and max_count is not None:
         contest_df = contest_df.head(max_count)
 
@@ -629,23 +717,40 @@ def _generate_dataset(
     with db_obj.session_scoped() as session:
         slate_db_df = _get_slate_df(session, service_name, style, min_date, max_date)
 
-        team_count_and_slate_id_df = teams_contest_df.apply(
-            _get_slate_id, axis=1, args=(slate_db_df,)
+        # note that some slates will not be found due to mismatches in games found in cost files and the games in the the downloaded contest results
+        team_count_and_slate_id_df = (
+            teams_contest_df.apply(_get_slate_id, axis=1, args=(slate_db_df,))
+            .assign(date=teams_contest_df["date"])
+            .drop_duplicates()
         )
-        teams_contest_df = teams_contest_df.set_index(team_count_and_slate_id_df.slate_id)
+        teams_contest_df = teams_contest_df.assign(slate_id=team_count_and_slate_id_df.slate_id)
+
         if team_count_and_slate_id_df.slate_id.isna().any():
-            raise UnexpectedValueError("dataframe should not have any NAs for slate id")
-        if len(team_count_and_slate_id_df) == 0:
-            raise DataNotAvailableException("No slates ids found (based on teams contest df)")
+            team_count_and_slate_id_df = team_count_and_slate_id_df.dropna(subset="slate_id")
+            _LOGGER.warning(
+                "Slate scoring features for %d of %s slates will be skipped because slate could not be matched in DB",
+                len(teams_contest_df) - len(team_count_and_slate_id_df),
+                len(teams_contest_df),
+            )
+            if len(team_count_and_slate_id_df) == 0:
+                raise DataNotAvailableException("No slates ids found (based on teams contest df)")
 
         team_count_and_slate_id_df = team_count_and_slate_id_df.set_index("slate_id")
-        slate_ids = team_count_and_slate_id_df.index.astype(int)
-        slate_ids_str = ",".join(map(str, slate_ids))
+        # sort slates by date (ascending) and slate side (descending) so that bigger slates are done first on each date to help with caching
+        slate_ids = team_count_and_slate_id_df.sort_values(
+            ["date", "team-count"], ascending=[True, False]
+        ).index.astype(int)
+        slate_to_games = {
+            slate.id: slate.games
+            for slate in session.query(db.DailyFantasySlate).where(
+                db.DailyFantasySlate.id.in_(slate_ids)
+            )
+        }
 
-        team_score_df = _create_team_score_df(session, slate_ids_str, top_percentile, style)
+        team_score_df = _create_team_score_df(slate_to_games, top_percentile, style, sport)
 
         pos_scores_df = _get_position_scores(
-            session, cfg, sport, slate_ids_str, top_percentile, df_stat_names
+            session, cfg, sport, slate_to_games, top_percentile, df_stat_names
         )
 
         # cache for top scores
@@ -657,25 +762,29 @@ def _generate_dataset(
                 score_cache=score_dict,
                 screen_lineup_constraints_mode=screen_lineup_constraints_mode,
             )
-            slate_scores = {
-                int(slate_id): slate_to_scores_func(slate_id)
-                for slate_id in tqdm(slate_ids, desc="slates")
-            }
+            slate_scores = {}
+            for slate_id in (tqdm_iter := tqdm(slate_ids, desc="slates")):
+                slate_date_str = (
+                    team_count_and_slate_id_df[team_count_and_slate_id_df.index == slate_id]
+                    .iloc[0]["date"]
+                    .date()
+                    .strftime("%Y%m%d")
+                )
+                tqdm_iter.set_postfix_str(slate_date_str)
+                if ss := slate_to_scores_func(slate_id):
+                    slate_scores[int(slate_id)] = ss
 
     inf_df = _create_inference_df(
-        sport,
-        style,
+        # sport,
+        # style,
         teams_contest_df,
-        team_count_and_slate_id_df,
+        team_count_and_slate_id_df.drop(columns=["date"]),
         team_score_df,
         pos_scores_df,
         slate_scores,
     )
 
-    expected_features = _get_expected_features(sport, style)
-
-    if missing_cols := expected_features.difference(inf_df.columns):
-        raise UnexpectedValueError(f"inf_df is missing columns: {sorted(missing_cols)}")
+    _test_for_expected_cols(sport, style, inf_df)
 
     filepath = os.path.join(
         datapath, f"{sport}-{service_name}-{style.name}-{contest_type.TYPE_NAME}.csv"
@@ -705,7 +814,7 @@ def xform(
     sport,
     cfg: dict[str, Any],
     services: list[str],
-    styles,
+    styles: list[DFSContestStyle],
     contest_types,
     top_score_cache_mode,
     data_path,
@@ -725,6 +834,9 @@ def xform(
             min_date, max_date = _get_date_range(cfg, service)
         assert (min_date is None) or (max_date is None) or min_date < max_date, (
             "invalid date range. max_date must be greater than min_date. Or one must be None"
+        )
+        assert DFSContestStyle.CLASSIC not in styles or styles[0] == DFSContestStyle.CLASSIC, (
+            "if classic is in styles it should be first so that its lineup generation cache can be reused"
         )
 
         for style in (style_iter := tqdm(styles, desc="contest-style", disable=len(styles) == 1)):

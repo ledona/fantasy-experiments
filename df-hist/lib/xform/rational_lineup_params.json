@@ -1,12 +1,131 @@
 // dict mapping "{sport}-{contest-style}" to a list of gen lineup params to be tried in
-//   succession to generate a "rational" lineup using typical stategic lineup generation constraints
+// succession to generate a "rational" lineup using typical stategic lineup generation constraints
 {
     "mlb-classic": [
         {
+            // should work for most slates
             "stacks": [4, 3],
             "stackable_teams_predicted_pctl": 70,
             "exclude_below_ppg_pctl": {"P": 70, "": 40},
             "exclude_below_games_played": 2
+        },
+        {
+            // for small slates (5-3 games)
+            "stacks": [4, 3],
+            "stackable_teams_predicted_pctl": 60,
+            "exclude_below_ppg_pctl": {"P": 50, "": 30},
+            "exclude_below_games_played": 2
+        },
+        {
+            // for mini slate (2 games or very early season)
+            "stacks": [4, 3],
+            "stackable_teams_predicted_pctl": 50,
+            "exclude_below_ppg_pctl": {"": 25},
+            "exclude_below_games_played": 1
+        }
+    ],
+    "mlb-showdown": [
+        {
+            // Hitters Stacking: Force the lineup to contain at least one 3+hitter team stack
+            // (review) Pitcher/Hitter Split: If your starting pitcher is in the Captain/MVP slot, do not allow any hitters from the opposing team into the flex spots.
+        }
+    ],
+    "nba-classic": [
+        {
+            // should work for most slates
+            "stacks": [3, 3],
+            "stackable_teams_predicted_pctl": 75,
+            "stackable_players_ppg_pctl": 55,
+            "exclude_below_ppg_pctl": {"": 50},
+            "exclude_below_games_played": 2,
+            "exclude_for_cost": ["<", 3000]
+        },
+        {
+            // ~7 game slate
+            "stacks": [3, 3],
+            "stackable_teams_predicted_pctl": 60,
+            "stackable_players_ppg_pctl": 55,
+            "exclude_below_ppg_pctl": {"": 40},
+            "exclude_below_games_played": 2,
+            "exclude_for_cost": ["<", 3000]
+        },
+        {
+            // ~4 game slate
+            "stacks": [3, 3],
+            "stackable_teams_predicted_pctl": 55,
+            "exclude_below_ppg_pctl": {"": 20},
+            "exclude_below_games_played": 2
+        },
+        {
+            // 2 game slate, normally the following would fail because 3,3 stack with no other team stack filtering
+            // creates too many constraints, however assuming we get to trying these params we are likely with a
+            // low number of games and so the number of constraints will be small and the solver will not fail
+            "stacks": [3],
+            "stackable_teams_predicted_pctl": 50,
+            "exclude_below_games_played": 2
+        }
+    ],
+    "nba-showdown": [
+        {
+            // Star Allocation: Force the lineup to contain at least 2 of the top 4 highest-salaried players on the slate
+        }
+    ],
+    "nfl-classic": [
+        {
+            // should work for most slates
+            "stacks": [2, 2],
+            "stackable_teams_predicted_pctl": 90,
+            "stackable_players_ppg_pctl": 50,
+            "exclude_below_ppg_pctl": {"QB": 80},
+            "exclude_for_cost": ["<=", 2500]
+        },
+        {
+            "stacks": [2, 2],
+            "stackable_teams_predicted_pctl": 75,
+            "stackable_players_ppg_pctl": 50,
+            "exclude_below_ppg_pctl": {"": 40},
+            "exclude_for_cost": ["<=", 2500]
+        },
+        {
+            "stacks": [2, 2],
+            "stackable_teams_predicted_pctl": 60,
+            "exclude_below_ppg_pctl": {"": 40},
+            "exclude_for_cost": ["<=", 2500]
+        },
+        {
+            "stacks": [2, 2],
+            "stackable_teams_predicted_pctl": 60,
+            "exclude_below_ppg_pctl": {"": 20},
+            "exclude_for_cost": ["<=", 2500]
+        }
+    ],
+    "nfl-showdown": [
+        {
+            // Captain/MVP Match: If a Quarterback (QB) is your Captain/MVP, force at least 1 Wide Receiver (WR) or Tight End (TE) from the same team into a flex spot.
+            // Anti-Correlation Rule: Do not allow a Defense (DST) and the opposing starting Quarterback or top rb or WR in the same lineup.
+        }
+    ],
+    "nhl-classic": [
+        {
+            // should work for most slates
+            "stacks": [4, 3],
+            "stackable_teams_predicted_pctl": 80,
+            "stackable_players_ppg_pctl": 55,
+            "exclude_below_ppg_pctl": {"G": 80},
+            "exclude_for_cost": ["<", 4000]
+        },
+        {
+            "stacks": [4, 3],
+            "stackable_teams_predicted_pctl": 50,
+            "stackable_players_ppg_pctl": 40,
+            "exclude_below_ppg_pctl": {"G": 50},
+            "exclude_for_cost": ["<", 4000]
+        }
+    ],
+    "nhl-showdown": [
+        {
+            //   (review, perhaps allow 1 or 2) Goalie/Skater Lock: If the Goalie is your Captain/MVP, do not allow any opposing skaters (Centers/Wingers) into the flex spots.
+            //   Line Correlation: Force at least one 2+ line combination (skaters from the same team and same line number).
         }
     ]
 }

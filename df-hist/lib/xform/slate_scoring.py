@@ -93,11 +93,14 @@ def _top_players_scoring_diff(score_data, contest_style) -> tuple[float, float]:
 def _slate_overperformances(slate_id: int, service, fca: FantasyCostAggregate, score_data):
     """return count of low cost players that overperformed in the slate"""
 
-    def cost_func(player_id):
-        player_dict = fca.get_mi_player(int(player_id))
-        if not player_dict or "cost" not in player_dict:
+    def cost_func(row):
+        if not pd.isna(row.player_id):
+            pt_dict = fca.get_mi_player(int(row.player_id))
+        else:
+            pt_dict = fca.get_mi_team(int(row.team_id))
+        if not pt_dict or "cost" not in pt_dict:
             return None
-        if isinstance(cost_val := player_dict["cost"], Number):
+        if isinstance(cost_val := pt_dict["cost"], Number):
             return cost_val
         if service not in cost_val:
             return None
@@ -109,7 +112,7 @@ def _slate_overperformances(slate_id: int, service, fca: FantasyCostAggregate, s
         raise NotImplementedError("don't know what else to try to get cost")
 
     cost_and_score_df = score_data["historic"].assign(
-        cost=score_data["historic"].player_id.map(cost_func)
+        cost=score_data["historic"].apply(cost_func, axis=1)
     )
 
     # dataframe with cost and score thresholds for each slate
@@ -194,15 +197,24 @@ def _score_lineup(
     screen_lineup_constraints_mode,
     label: str,
     gen_lineup_params: GenLineupsParams,
+    verbose: bool,
 ):
     """
     calculate the best possible lineup score for a historic slate
 
-    returns (best-possible-lineup, score diff between actual score and predicted score, hist and pred player scores)
+    returns (historic lineup fpts total, hist and pred player scores) or None if lineup this slate should be skipped
     """
     model_names = service_cls.DEFAULT_MODEL_NAMES.get(db_obj.db_manager.ABBR)
     assert model_names
     epoch = db_obj.db_manager.epoch_for_date(game_date)
+    if epoch.game_number == 1:
+        _LOGGER.warning(
+            "Skipping lineup generation for %s slate %s (id=%d) because it is on the first date of the season",
+            game_date,
+            slate_name,
+            slate_id,
+        )
+        return None
 
     try:
         lineups, score_data = gen_lineups(
@@ -217,16 +229,17 @@ def _score_lineup(
             slate_epoch=epoch,
             screen_lineup_constraints_mode=screen_lineup_constraints_mode,
             scores_to_include=["predicted"],
+            verbose=verbose,
         )
     except (DataNotAvailableException, LineupGenerationFailure) as ex:
         _LOGGER.warning(
-            "%s: Lineup generation failed for service_abbr='%s' sport='%s' slate '%s' (id=%i) on %s: %s",
+            "%s: Lineup generation failed for %s-%s-%s slate '%s' (id=%i): %s",
             label,
-            service_cls.ABBR,
             db_obj.db_manager.ABBR,
+            service_cls.ABBR,
+            game_date,
             slate_name,
             slate_id,
-            game_date,
             ex,
         )
         raise
@@ -284,7 +297,6 @@ def slate_scoring(
     """
     if not isinstance(slate_id, (int, float)) or math.isnan(slate_id):
         raise UnexpectedValueError("id of slate is expected to be a number")
-        # return None
 
     slate_id = int(slate_id)
     if score_cache:
@@ -303,8 +315,6 @@ def slate_scoring(
     )
     if slate is None:
         raise UnexpectedValueError("failed to find slate id in db")
-        _LOGGER.warning("Error: Unable to find slate_id=%i in database", slate_id)
-        return None
 
     game_date = slate.date
     slate_name = slate.name
@@ -351,7 +361,8 @@ def slate_scoring(
     )
 
     top_lineup_params = GenLineupsParams(score_data_type="historic", n_lineups=1)
-    top_lineup_score, scoring_data = _score_lineup(
+
+    lineup_score_info = _score_lineup(
         session.info["db_obj"],
         fca,
         solver,
@@ -363,31 +374,53 @@ def slate_scoring(
         screen_lineup_constraints_mode,
         "top-lineup",
         top_lineup_params,
+        True,
     )
+    if lineup_score_info is None:
+        return None
 
+    top_lineup_score, scoring_data = lineup_score_info
     contest_style = str(slate.style)
-    for brl_gl_params_kwargs in _get_rational_lineup_gen_params(db_manager.ABBR, contest_style):
+    gen_lineup_params_list = _get_rational_lineup_gen_params(db_manager.ABBR, contest_style)
+    for try_number, brl_gl_params_kwargs in enumerate(gen_lineup_params_list, 1):
         brl_gl_params = GenLineupsParams(
             score_data_type="historic", n_lineups=1, **brl_gl_params_kwargs
         )
-        brl_score = _score_lineup(
-            session.info["db_obj"],
-            fca,
-            solver,
-            service_cls,
-            slate_name,
-            slate_id,
-            starters.slates[slate_name],
-            game_date,
-            screen_lineup_constraints_mode,
-            "rational-lineup",
-            brl_gl_params,
-        )[0]
-        break
+        try:
+            score_info = _score_lineup(
+                session.info["db_obj"],
+                fca,
+                solver,
+                service_cls,
+                slate_name,
+                slate_id,
+                starters.slates[slate_name],
+                game_date,
+                screen_lineup_constraints_mode,
+                "rational-lineup",
+                brl_gl_params,
+                try_number == len(gen_lineup_params_list),
+            )
+            if score_info is None:
+                raise UnexpectedValueError(
+                    "_score_lineup for best rational lineups should not return None"
+                )
+            brl_score = score_info[0]
+            break
+        except (DataNotAvailableException, LineupGenerationFailure) as ex:
+            _LOGGER.warning(
+                "failure on attempt #%d for rational lineup generation of %s %s '%s' %s :: %s",
+                try_number,
+                db_manager.ABBR,
+                game_date,
+                slate_name,
+                contest_style,
+                ex,
+            )
     else:
         raise NotImplementedError(
             "Failed to generate a rational lineup after generating a top lineup "
-            f"for sport={db_manager.ABBR} {game_date=} {slate_name=} {contest_style=}. "
+            f"for {db_manager.ABBR} {game_date=} {slate_name=} {contest_style=}. "
             "Additional, less restrictive, rational lineup generation params are needed."
         )
 

@@ -162,7 +162,7 @@
                 // "--style", "showdown",
                 // "--type", "GPP",
                 // "--dates", "20200810", "20200811",
-                "--sports", "mlb", // "nfl", "nhl", "nba", "mlb"
+                "--sports", "nhl", // "nfl", "nhl", "nba", "mlb"
                 "--cache_mode", "enable",
             ]
         },

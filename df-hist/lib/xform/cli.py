@@ -107,7 +107,7 @@ def _process_cmd_line(cmd_line_str=None):
     CacheSettings.update(args)
 
     dfs: dict[tuple, pd.DataFrame] = {}
-    for sport in (tqdm_progress := tqdm(sorted(set(args.sports)), desc="sport")):
+    for sport in (tqdm_progress := tqdm(sorted(set(args.sports)), desc="sport", disable=len(args.sports) == 1)):
         tqdm_progress.set_postfix_str(sport)
         dfs.update(
             xform(
@@ -142,4 +142,5 @@ def _process_cmd_line(cmd_line_str=None):
 
 if __name__ == "__main__":
     log.configure_logging(progress=True)
+    log.set_log_level(log.LIMITED_INFO, only_fantasy=False)
     _process_cmd_line()
