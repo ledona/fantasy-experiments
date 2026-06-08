@@ -23,6 +23,7 @@ from fantasy_py.lineup import (
     FantasyCostAggregate,
     FantasyService,
     GenLineupsParams,
+    Lineup,
     LineupGenerationFailure,
     gen_lineups,
 )
@@ -55,7 +56,7 @@ def get_stat_names(sport, service_abbr: Literal["dk", "fd", "y"], as_str=False) 
     return stats
 
 
-_LOW_COST_HIGH_VALUE_COST_PCTL = 0.25
+_LOW_PLAYER_COST_PCTL = 0.25
 """used to identify low cost players in a slate"""
 
 _LOW_COST_HIGH_VALUE_SCORE_PCTL = 0.9
@@ -117,7 +118,7 @@ def _slate_overperformances(slate_id: int, service, fca: FantasyCostAggregate, s
 
     # dataframe with cost and score thresholds for each slate
     min_score = np.percentile(cost_and_score_df.fpts, _LOW_COST_HIGH_VALUE_SCORE_PCTL * 100)
-    max_cost = np.percentile(cost_and_score_df.cost, _LOW_COST_HIGH_VALUE_COST_PCTL * 100)
+    max_cost = np.percentile(cost_and_score_df.cost, _LOW_PLAYER_COST_PCTL * 100)
 
     low_cost_high_val_rows = cost_and_score_df[
         (cost_and_score_df.fpts > min_score) & (cost_and_score_df.cost < max_cost)
@@ -140,6 +141,8 @@ class SlateScoreItem(NamedTuple):
     """mean diff between true and predicted scores of top n predicted players"""
     top_players_scoring_diff_pctl: float
     """mean diff between true and predicted scores of top percentile predicted players"""
+    addl_scoring: dict | None
+    """additional sport/style related scoring information for this slate"""
 
 
 @contextmanager
@@ -161,14 +164,21 @@ def score_cache_ctx(sport: str, cache_mode: SlateScoreCacheMode, cache_dir="."):
             for slate_id, score in cache_data.items():
                 if cache_mode == "missing" and score is None:
                     continue
-                orig_score_dict[int(slate_id)] = SlateScoreItem(*score)
+                try:
+                    orig_score_dict[int(slate_id)] = SlateScoreItem(*score)
+                except TypeError:
+                    _LOGGER.error(
+                        "Parsing error while loading slate score cache from '%s'. Cache will be rebuilt",
+                        score_cache_filepath,
+                    )
+                    orig_score_dict = {}
+                    break
         elif cache_mode == "overwrite":
             _LOGGER.info("Overwriting existing best score cache data at '%s'", score_cache_filepath)
         else:
             raise UnexpectedValueError("Unexpected lineup score cache mode", cache_mode)
     else:
         _LOGGER.info("Best score cache data not found! '%s'", score_cache_filepath)
-        orig_score_dict = {}
 
     # make a copy so that we can figure out if there are updates
     # TODO: for diff, can probably do this more efficiently by comparing a hash of the before and after
@@ -256,7 +266,7 @@ def _score_lineup(
         )
         raise
 
-    return float(lineups[0].historic_fpts), score_data
+    return cast(Lineup, lineups[0]), score_data
 
 
 @cache
@@ -379,15 +389,29 @@ def slate_scoring(
     if lineup_score_info is None:
         return None
 
-    top_lineup_score, scoring_data = lineup_score_info
+    top_lineup, scoring_data = lineup_score_info
+    top_lineup_score = float(top_lineup.historic_fpts)
     contest_style = str(slate.style)
+    if session.info["fantasy.db_manager"].ABBR == "nfl":
+        k_dst_pts = 0
+        for kid in top_lineup.knap_ids:
+            if kid.p_or_t.is_team or "K" in fca.get_mi_player(kid.id_)["positions"]:
+                k_dst_pts += top_lineup.get_fpts(
+                    "historic",
+                    player_id=(kid.id_ if kid.is_player else None),
+                    team_id=(kid.id_ if kid.is_team else None),
+                )
+        addl_scoring = {"top-possible-lineup-DEF+K-score%": k_dst_pts / top_lineup_score}
+    else:
+        addl_scoring = None
+
     gen_lineup_params_list = _get_rational_lineup_gen_params(db_manager.ABBR, contest_style)
     for try_number, brl_gl_params_kwargs in enumerate(gen_lineup_params_list, 1):
         brl_gl_params = GenLineupsParams(
             score_data_type="historic", n_lineups=1, **brl_gl_params_kwargs
         )
         try:
-            score_info = _score_lineup(
+            best_rational_lineup_info = _score_lineup(
                 session.info["db_obj"],
                 fca,
                 solver,
@@ -401,11 +425,10 @@ def slate_scoring(
                 brl_gl_params,
                 try_number == len(gen_lineup_params_list),
             )
-            if score_info is None:
+            if best_rational_lineup_info is None:
                 raise UnexpectedValueError(
                     "_score_lineup for best rational lineups should not return None"
                 )
-            brl_score = score_info[0]
             break
         except (DataNotAvailableException, LineupGenerationFailure) as ex:
             _LOGGER.warning(
@@ -432,10 +455,11 @@ def slate_scoring(
 
     scoring = SlateScoreItem(
         top_possible_lineup_score=top_lineup_score,
-        top_rational_lineup_score=brl_score,
+        top_rational_lineup_score=float(best_rational_lineup_info[0].historic_fpts),
         low_cost_high_value_player_count=lchv_count,
         top_players_scoring_diff_n=top_n_players_diff,
         top_players_scoring_diff_pctl=top_pctl_players_diff,
+        addl_scoring=addl_scoring,
     )
     if score_cache is not None:
         score_cache[slate_id] = scoring

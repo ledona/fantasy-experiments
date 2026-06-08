@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 from .slate_scoring import (
+    _LOW_PLAYER_COST_PCTL,
     SlateScoreCacheMode,
     SlateScoreItem,
     get_stat_names,
@@ -96,8 +97,85 @@ _ABBR_REMAPPERS: dict[str, Callable[[str, str], str]] = {
 }
 
 
+def _get_nfl_showdown_features(session, slate_to_games: dict) -> pd.DataFrame:
+    """Return per-slate NFL SHOWDOWN feature: td-to-yardage."""
+    slate_game_values = ", ".join(
+        f"({slate_id}, {game.id})" for slate_id, games in slate_to_games.items() for game in games
+    )
+    team_sql = f"""
+    WITH slate_games(slate_id, game_id) AS (VALUES {slate_game_values})
+    SELECT sg.slate_id, s.name AS stat_name, SUM(d.value) AS total
+    FROM datum d
+    JOIN slate_games sg ON sg.game_id = d.game_id
+    JOIN statistic s ON d.statistic_id = s.id
+    WHERE s.name IN ('yds', 'def_tds')
+        AND d.player_id IS NULL
+    GROUP BY sg.slate_id, s.name
+    """
+    player_sql = f"""
+    WITH slate_games(slate_id, game_id) AS (VALUES {slate_game_values})
+    SELECT sg.slate_id, s.name AS stat_name, SUM(d.value) AS total
+    FROM datum d
+    JOIN slate_games sg ON sg.game_id = d.game_id
+    JOIN statistic s ON d.statistic_id = s.id
+    WHERE s.name = 'tds'
+        AND d.player_id IS NOT NULL
+    GROUP BY sg.slate_id, s.name
+    """
+    conn = session.connection()
+    pivoted = (
+        pd.concat([pd.read_sql_query(team_sql, conn), pd.read_sql_query(player_sql, conn)])
+        .pivot_table(index="slate_id", columns="stat_name", values="total", aggfunc="first")
+        .rename_axis(None, axis=1)
+        .fillna(0)
+    )
+    for col in ("yds", "def_tds", "tds"):
+        if col not in pivoted.columns:
+            pivoted[col] = 0.0
+
+    result = pd.DataFrame(index=pivoted.index)
+    result["td-to-yardage"] = (pivoted["tds"] + pivoted["def_tds"]) / pivoted["yds"]
+    return result
+
+
+def _get_nhl_showdown_saves(session, slate_to_games: dict) -> pd.DataFrame:
+    """Return winning-team-saves and losing-team-saves per slate for NHL SHOWDOWN."""
+    # SHOWDOWN: exactly one game per slate
+    game_id_to_slate = {games[0].id: slate_id for slate_id, games in slate_to_games.items()}
+    game_ids_str = ", ".join(str(game_id) for game_id in game_id_to_slate)
+    sql = f"""
+    SELECT d.game_id, d.team_id, d.value AS saves
+    FROM datum d
+    JOIN statistic s ON d.statistic_id = s.id
+    WHERE s.name = 'save' AND d.player_id IS NULL
+        AND d.game_id IN ({game_ids_str})
+    """
+    saves_df = pd.read_sql_query(sql, session.connection())
+    saves_df["slate_id"] = saves_df["game_id"].map(game_id_to_slate)
+    saves_dict = saves_df.set_index(["slate_id", "team_id"])["saves"].to_dict()
+
+    rows = []
+    for slate_id, games in slate_to_games.items():
+        game = games[0]
+        winner_id = game.winning_team_id
+        assert winner_id, f"game {game.id} has no winner"
+        loser_id = game.away_team_id if winner_id == game.home_team_id else game.home_team_id
+        rows.append(
+            {
+                "slate_id": slate_id,
+                "winning-team-saves": saves_dict[(slate_id, winner_id)],
+                "losing-team-saves": saves_dict[(slate_id, loser_id)],
+            }
+        )
+    return pd.DataFrame(rows).set_index("slate_id")
+
+
 def _create_team_score_df(
-    slate_to_games: dict[int, list[db.Game]], percentile, style: DFSContestStyle, sport: str
+    session,
+    slate_to_games: dict[int, list[db.Game]],
+    percentile,
+    style: DFSContestStyle,
+    sport: str,
 ):
     """return a dataframe with final game score (e.g. mlb run total) features"""
     _LOGGER.info("calculating team scoring data for %d slates", len(slate_to_games))
@@ -108,8 +186,8 @@ def _create_team_score_df(
             "score_home": game.score_home,
             "score_away": game.score_away,
             "total_score": game.score_home + game.score_away,
-            "high_score": max(game.score_home, game.score_away),
-            "margin_of_victory": abs(game.score_home - game.score_away),
+            "high-team-score": max(game.score_home, game.score_away),
+            "game-margin_of_victor": abs(game.score_home - game.score_away),
         }
         for slate_id, games in slate_to_games.items()
         for game in games
@@ -120,10 +198,10 @@ def _create_team_score_df(
             f"Empty team score df when retrieving for slates: {list(slate_to_games.keys())}"
         )
 
+    melted_db_df = db_team_score_df.melt(
+        id_vars=["slate_id", "game_id"], value_vars=["score_home", "score_away"]
+    )
     if style.name == "CLASSIC":
-        melted_db_df = db_team_score_df.melt(
-            id_vars=["slate_id", "game_id"], value_vars=["score_home", "score_away"]
-        )
         team_score_df = melted_db_df.groupby(["slate_id"]).agg(
             {"value": ["median", lambda x: np.percentile(x, percentile * 100), "sum"]}
         )
@@ -136,21 +214,28 @@ def _create_team_score_df(
         )
         team_score_df = team_score_df.join(top3_sum)
         if sport == "mlb":
-            high_score = db_team_score_df.groupby("slate_id")["high_score"].apply(max)
+            high_score = db_team_score_df.groupby("slate_id")["high-team-score"].apply(max)
             team_score_df = team_score_df.join(high_score)
-
-        return team_score_df
-
-    if style.name == "SHOWDOWN":
+    elif style.name == "SHOWDOWN":
         if db_team_score_df.game_id.duplicated().any():
             raise UnexpectedValueError("Showdown slate data should not have any duplicated games")
-        cols = ["slate_id", "total_score", "margin_of_victory"]
+        cols = ["slate_id", "total_score", "game-margin_of_victor"]
         if sport == "mlb":
-            cols.append("high_score")
-        team_score_df = db_team_score_df[cols]
-        return team_score_df.set_index("slate_id")
+            cols.append("high-team-score")
+        team_score_df = (
+            db_team_score_df[cols]
+            .set_index("slate_id")
+            .assign(**{"game-total_score": db_team_score_df.total_score})
+        )
 
-    raise NotImplementedError(f"don't know how to do this for {style.name}")
+        if sport == "nhl":
+            team_score_df = team_score_df.join(_get_nhl_showdown_saves(session, slate_to_games))
+        elif sport == "nfl":
+            team_score_df = team_score_df.join(_get_nfl_showdown_features(session, slate_to_games))
+    else:
+        raise NotImplementedError(f"don't know how to do this for {style.name}")
+
+    return team_score_df
 
 
 def _get_exploded_pos_df(
@@ -453,23 +538,31 @@ def _get_slate_df(session: Session, service, style, min_date, max_date):
     except Exception as ex:
         raise ValueError("Error processing slate db df", slate_db_df) from ex
 
-    slate_db_df["team-count"] = slate_db_df.teams.map(len)
+    if style != DFSContestStyle.SHOWDOWN:
+        slate_db_df["team-count"] = slate_db_df.teams.map(len)
     return slate_db_df
 
 
-_NO_SLATE_ID_FOUND = pd.Series({"slate_id": None, "team-count": None})
+_NO_SLATE_ID_FOUND = pd.Series({"slate_id": None})
 
 
-def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
+def _get_slate_id(contest_row: pd.Series, slate_db_df: pd.DataFrame) -> pd.Series:
     """
     guesses the db slate id for the contest_row
     returns - series of (slate_id, number of teams playing in slate)
     """
     try:
-        date_slates = slate_db_df.loc[[contest_row.date]].sort_values("team-count")
+        date_slates = slate_db_df.loc[[contest_row.date]]
     except KeyError:
-        _LOGGER.warning("get_slate_id::Key error/No slates found for %s", contest_row.date)
+        _LOGGER.warning(
+            "get_slate_id::Key error/No slates found for %s %s '%s'",
+            contest_row.date,
+            contest_row.style,
+            contest_row.title,
+        )
         return _NO_SLATE_ID_FOUND
+    if "team-count" in date_slates:
+        date_slates = date_slates.sort_values("team-count")
     try:
         slates = date_slates.query(
             "@contest_row.teams <= teams and contest_style == @contest_row.style.name"
@@ -491,13 +584,120 @@ def _get_slate_id(contest_row, slate_db_df) -> pd.Series:
         )
         return _NO_SLATE_ID_FOUND
 
-    return slates.iloc[0][["slate_id", "team-count"]]
+    cols = ["slate_id"]
+    if "team-count" in slates:
+        cols.append("team-count")
+    return slates.iloc[0][cols]
 
 
-def _get_position_scores(session, cfg, sport, slate_to_games, top_percentile, df_stat_names):
-    """return a dataframe containing the top_percentileth player dfs score for
-    each position for the requested slate(s), sport and service"""
-    _LOGGER.info("calculating player position scores for %d slates", len(slate_to_games))
+def _get_nhl_3player_line_goal_pct(session, slate_to_games: dict) -> pd.Series:
+    """
+    Calculate 3-player-line-goals% per slate, indexed by slate_id.
+
+    infer 3 player line goals for a line by using for each line
+    the minimum of (goals, assists/2)
+    sum this across all lines then divide by total goals
+    """
+    slate_game_values = ", ".join(
+        f"({slate_id}, {game.id})" for slate_id, games in slate_to_games.items() for game in games
+    )
+    total_goals_sql = f"""
+    WITH slate_games(slate_id, game_id) AS (VALUES {slate_game_values})
+    SELECT sg.slate_id, SUM(d.value) AS total_goals
+    FROM datum d
+    JOIN slate_games sg ON sg.game_id = d.game_id
+    JOIN statistic s ON d.statistic_id = s.id
+    WHERE s.name = 'goal' AND d.player_id IS NULL
+    GROUP BY sg.slate_id
+    """
+    fwd_stats_sql = f"""
+    WITH slate_games(slate_id, game_id) AS (VALUES {slate_game_values})
+    SELECT sg.slate_id, d.game_id, d.team_id, d.player_id, s.name AS stat_name, d.value
+    FROM datum d
+    JOIN slate_games sg ON sg.game_id = d.game_id
+    JOIN statistic s ON d.statistic_id = s.id
+    JOIN player p ON d.player_id = p.id
+    JOIN player_position pp ON p.player_position_id = pp.id
+    WHERE s.name IN ('goal', 'assist', 'line')
+        AND d.player_id IS NOT NULL
+        AND pp.abbr NOT IN ('G', 'D')
+    """
+    conn = session.connection()
+    total_goals = pd.read_sql_query(total_goals_sql, conn).set_index("slate_id")["total_goals"]
+    fwd_df = pd.read_sql_query(fwd_stats_sql, conn)
+
+    if fwd_df.empty:
+        raise DataNotAvailableException("No NHL forward stat data for 3-player-line-goals%")
+
+    pivoted = (
+        fwd_df.pivot_table(
+            index=["slate_id", "game_id", "team_id", "player_id"],
+            columns="stat_name",
+            values="value",
+            aggfunc="first",
+        )
+        .rename_axis(None, axis=1)
+        .reset_index()
+    )
+    for col in ("goal", "assist", "line"):
+        if col not in pivoted.columns:
+            pivoted[col] = np.nan
+
+    pivoted["goal"] = pivoted["goal"].fillna(0)
+    pivoted["assist"] = pivoted["assist"].fillna(0)
+
+    fwd_with_line = pivoted[pivoted["line"].notna()]
+    line_groups = (
+        fwd_with_line.groupby(["slate_id", "game_id", "team_id", "line"])
+        .agg(line_goals=("goal", "sum"), line_assists=("assist", "sum"))
+        .reset_index()
+    )
+    line_groups["inferred_line_goals"] = np.minimum(
+        line_groups["line_goals"], line_groups["line_assists"] / 2
+    )
+    inferred_goals = line_groups.groupby("slate_id")["inferred_line_goals"].sum()
+
+    return (inferred_goals / total_goals).rename("3-player-line-goals%")
+
+
+def _get_nba_low_cost_high_use(session, slate_to_games: dict) -> pd.Series:
+    """Count of players per slate who are low cost (below 25th pctl) and played 25+ minutes."""
+    slate_ids_str = ", ".join(str(sid) for sid in slate_to_games)
+    slate_game_values = ", ".join(
+        f"({slate_id}, {game.id})" for slate_id, games in slate_to_games.items() for game in games
+    )
+    cost_sql = f"""
+    SELECT daily_fantasy_slate_id AS slate_id, player_id, cost
+    FROM daily_fantasy_cost
+    WHERE daily_fantasy_slate_id IN ({slate_ids_str}) AND player_id IS NOT NULL
+    """
+    time_sql = f"""
+    WITH slate_games(slate_id, game_id) AS (VALUES {slate_game_values})
+    SELECT sg.slate_id, d.player_id, SUM(d.value) AS seconds_played
+    FROM datum d
+    JOIN slate_games sg ON sg.game_id = d.game_id
+    JOIN statistic s ON d.statistic_id = s.id
+    WHERE s.name = 'time' AND d.player_id IS NOT NULL
+    GROUP BY sg.slate_id, d.player_id
+    """
+    conn = session.connection()
+    cost_df = pd.read_sql_query(cost_sql, conn)
+    time_df = pd.read_sql_query(time_sql, conn)
+    merged = cost_df.merge(time_df, on=["slate_id", "player_id"], how="inner")
+    cost_threshold = merged.groupby("slate_id")["cost"].transform(
+        lambda x: np.percentile(x, _LOW_PLAYER_COST_PCTL * 100)
+    )
+    qualifying = merged[(merged["cost"] < cost_threshold) & (merged["seconds_played"] >= 1500)]
+    return qualifying.groupby("slate_id").size().rename("low_cost_high_use")
+
+
+def _get_player_scores(session, cfg, sport, style, slate_to_games, top_percentile, df_stat_names):
+    """
+    return a dataframe containing slate player features
+    - the top_percentileth player dfs score for
+      each position for the requested slate(s), sport and service
+    """
+    _LOGGER.info("calculating player scores for %d slates", len(slate_to_games))
     db_exploded_pos_df = _get_exploded_pos_df(
         session,
         sport,
@@ -507,32 +707,38 @@ def _get_position_scores(session, cfg, sport, slate_to_games, top_percentile, df
         df_stat_names,
     )
 
-    db_pos_scores_df = (
+    player_scores_df = (
         db_exploded_pos_df[["slate_id", "position", "score"]]
         .groupby(["slate_id", "position"])
         .agg(["median", lambda x: np.percentile(x, top_percentile * 100)])
     )
-    db_pos_scores_df.columns = ["med-dfs", f"{top_percentile * 100}th-pctl-dfs"]
-    db_pos_scores_df = db_pos_scores_df.reset_index(level="position").pivot(
+    player_scores_df.columns = ["med-dfs", f"{top_percentile * 100}th-pctl-dfs"]
+    player_scores_df = player_scores_df.reset_index(level="position").pivot(
         columns="position",
         values=["med-dfs", f"{top_percentile * 100}th-pctl-dfs"],
     )
-    return db_pos_scores_df
+
+    if sport == "nhl" and style == DFSContestStyle.CLASSIC:
+        player_scores_df["3-player-line-goals%"] = _get_nhl_3player_line_goal_pct(
+            session, slate_to_games
+        )
+    elif sport == "nba":
+        player_scores_df["low_cost_high_use"] = _get_nba_low_cost_high_use(session, slate_to_games)
+    return player_scores_df
 
 
 def _create_inference_df(
-    # sport,
-    # style: DFSContestStyle,
+    style: DFSContestStyle,
     teams_contest_df: pd.DataFrame,
     slate_ids_df: pd.DataFrame,
     team_score_df: pd.DataFrame,
-    db_pos_scores_df: pd.DataFrame,
+    player_scores_df: pd.DataFrame,
     slate_scores: dict[int, SlateScoreItem],
 ) -> pd.DataFrame:
     """
     join contest, slate id, team score, player position scores, slate_scores
     """
-    assert len(slate_ids_df) == len(team_score_df) == len(db_pos_scores_df) >= len(slate_scores), (
+    assert len(slate_ids_df) == len(team_score_df) == len(player_scores_df) >= len(slate_scores), (
         "all of these should be the same length except slate_scores which may be shorted"
     )
 
@@ -540,7 +746,9 @@ def _create_inference_df(
         "should be more than or equal the number of rows in teams_contest_df"
     )
 
-    db_pos_scores_df.columns = db_pos_scores_df.columns.map(lambda names: names[1] + "|" + names[0])
+    player_scores_df.columns = player_scores_df.columns.map(
+        lambda names: (names[1] + "|" + names[0]) if names[1] else names[0]
+    )
     slate_scores_df = pd.DataFrame(
         list(slate_scores.values()),
         index=list(slate_scores.keys()),
@@ -551,15 +759,23 @@ def _create_inference_df(
             slate_scores_df.top_possible_lineup_score - slate_scores_df.top_rational_lineup_score
         )
     )
+    if slate_scores_df.addl_scoring.notna().any():
+        addl_df = pd.DataFrame(
+            [ss.addl_scoring for ss in slate_scores.values()], index=list(slate_scores.keys())
+        )
+        slate_scores_df = pd.concat([slate_scores_df, addl_df], axis=1)
+    slate_scores_df = slate_scores_df.drop(columns=["addl_scoring"])
+    contest_cols = ["date", "style", "type", "top_score", "last_winning_score", "link", "slate_id"]
+    if style == DFSContestStyle.SHOWDOWN:
+        teams_contest_df = teams_contest_df.rename(columns={"entries": "contest_entries"})
+        contest_cols.append("contest_entries")
     df = (
-        teams_contest_df[
-            ["date", "style", "type", "top_score", "last_winning_score", "link", "slate_id"]
-        ]
+        teams_contest_df[contest_cols]
         .rename(columns={"top_score": "top_winning_score"})
         .join(slate_ids_df, on="slate_id")
         .join(slate_scores_df, on="slate_id")
         .join(team_score_df, on="slate_id")
-        .join(db_pos_scores_df, on="slate_id")
+        .join(player_scores_df, on="slate_id")
     )
     return df
 
@@ -577,7 +793,6 @@ _SHARED_EXPECTED_COLS = [
     # old&new features
     "top_possible_lineup_score",
     # old features
-    "team_med",
     "total_score",
     # new featuers
     "top_rational_lineup_score",
@@ -595,6 +810,7 @@ def _test_for_expected_cols(sport, style: DFSContestStyle, inf_df: pd.DataFrame)
             # old&new features
             "team-count",
             # old features
+            "team_med",
             "team-70.0th_pctl",
             "top3-total",
         ]
@@ -620,17 +836,12 @@ def _test_for_expected_cols(sport, style: DFSContestStyle, inf_df: pd.DataFrame)
                 "losing-team-WH-allowed",
             ]
     elif sport == "nfl":
-        expected_cols += [
-            # new features
-            "td-to-yardage",
-            "%-dst+k-pts",
-        ]
+        if style == DFSContestStyle.SHOWDOWN:
+            expected_cols.append("td-to-yardage")
+        expected_cols.append("top-possible-lineup-DEF+K-score%")
     elif sport == "nhl":
         # new features
         if style == DFSContestStyle.CLASSIC:
-            # infer 3 player line goals for a line by using for each line
-            # the minimum of (goals, assists/2)
-            # sum this across all lines then divide by total goals
             expected_cols.append("3-player-line-goals%")
         elif style == DFSContestStyle.SHOWDOWN:
             # goalie stats
@@ -641,23 +852,25 @@ def _test_for_expected_cols(sport, style: DFSContestStyle, inf_df: pd.DataFrame)
     elif sport == "nba":
         expected_cols += [
             # new features
-            "low_cost_high_use",  # low cost players with 25 mins+
+            "low_cost_high_use",
         ]
     else:
         raise NotImplementedError()
 
+    expected_cols += _SHARED_EXPECTED_COLS
+
     # test all cols except for positional scoring
-    cols_to_test = {
+    cols_in_df = {
         col
         for col in inf_df.columns
         if not (col.endswith("|70.0th-pctl-dfs") or col.endswith("|med-dfs"))
     }
-    if len(cols_to_test) == len(inf_df.columns):
+    if len(cols_in_df) == len(inf_df.columns):
         fail_msgs = ["(old) position dfs scoring is missing"]
     else:
         fail_msgs = []
 
-    sym_diff = cols_to_test.symmetric_difference([*expected_cols, *_SHARED_EXPECTED_COLS])
+    sym_diff = cols_in_df.symmetric_difference(expected_cols)
     if len(sym_diff) > 0:
         if unexpected_cols := sorted(sym_diff.difference(expected_cols)):
             fail_msgs.append(f"unexpected-cols(n={len(unexpected_cols)}) = {unexpected_cols}")
@@ -736,10 +949,15 @@ def _generate_dataset(
                 raise DataNotAvailableException("No slates ids found (based on teams contest df)")
 
         team_count_and_slate_id_df = team_count_and_slate_id_df.set_index("slate_id")
+
         # sort slates by date (ascending) and slate side (descending) so that bigger slates are done first on each date to help with caching
-        slate_ids = team_count_and_slate_id_df.sort_values(
-            ["date", "team-count"], ascending=[True, False]
-        ).index.astype(int)
+        if "team-count" in team_count_and_slate_id_df:
+            slate_ids = team_count_and_slate_id_df.sort_values(
+                ["date", "team-count"], ascending=[True, False]
+            ).index.astype(int)
+        else:
+            slate_ids = team_count_and_slate_id_df.index.astype(int)
+
         slate_to_games = {
             slate.id: slate.games
             for slate in session.query(db.DailyFantasySlate).where(
@@ -747,21 +965,15 @@ def _generate_dataset(
             )
         }
 
-        team_score_df = _create_team_score_df(slate_to_games, top_percentile, style, sport)
+        team_score_df = _create_team_score_df(session, slate_to_games, top_percentile, style, sport)
 
-        pos_scores_df = _get_position_scores(
-            session, cfg, sport, slate_to_games, top_percentile, df_stat_names
+        player_scores_df = _get_player_scores(
+            session, cfg, sport, style, slate_to_games, top_percentile, df_stat_names
         )
 
         # cache for top scores
         with score_cache_ctx(sport, slate_score_cache_mode, cache_dir=datapath) as score_dict:
             # bpl=best possible lineup ; slate_id -> (bpl-true-score, bpl-true-score - bpl-pred-score, lchv_count)
-            slate_to_scores_func = partial(
-                slate_scoring,
-                session,
-                score_cache=score_dict,
-                screen_lineup_constraints_mode=screen_lineup_constraints_mode,
-            )
             slate_scores = {}
             for slate_id in (tqdm_iter := tqdm(slate_ids, desc="slates")):
                 slate_date_str = (
@@ -771,16 +983,21 @@ def _generate_dataset(
                     .strftime("%Y%m%d")
                 )
                 tqdm_iter.set_postfix_str(slate_date_str)
-                if ss := slate_to_scores_func(slate_id):
+                ss = slate_scoring(
+                    session,
+                    slate_id,
+                    score_cache=score_dict,
+                    screen_lineup_constraints_mode=screen_lineup_constraints_mode,
+                )
+                if ss:
                     slate_scores[int(slate_id)] = ss
 
     inf_df = _create_inference_df(
-        # sport,
-        # style,
+        style,
         teams_contest_df,
         team_count_and_slate_id_df.drop(columns=["date"]),
         team_score_df,
-        pos_scores_df,
+        player_scores_df,
         slate_scores,
     )
 
