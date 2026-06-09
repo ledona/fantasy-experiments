@@ -191,7 +191,7 @@ def score_cache_ctx(sport: str, cache_mode: SlateScoreCacheMode, cache_dir="."):
             # TODO: should save the cache as new scores are added
             _LOGGER.info("Writing updated best score values to cache '%s'", score_cache_filepath)
             with open(score_cache_filepath, "w") as f:
-                json.dump(score_dict, f)
+                json.dump(score_dict, f, indent=2)
         _LOGGER.info("Exiting best_score_cache")
 
 
@@ -406,10 +406,9 @@ def slate_scoring(
         addl_scoring = None
 
     gen_lineup_params_list = _get_rational_lineup_gen_params(db_manager.ABBR, contest_style)
-    for try_number, brl_gl_params_kwargs in enumerate(gen_lineup_params_list, 1):
-        brl_gl_params = GenLineupsParams(
-            score_data_type="historic", n_lineups=1, **brl_gl_params_kwargs
-        )
+    for try_number, brl_gl_params in enumerate(gen_lineup_params_list, 1):
+        raise NotImplementedError("do something about default plans")
+        brl_gl_params = GenLineupsParams(score_data_type="historic", n_lineups=1, **brl_gl_params)
         try:
             best_rational_lineup_info = _score_lineup(
                 session.info["db_obj"],

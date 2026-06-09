@@ -7,27 +7,42 @@
             "stacks": [4, 3],
             "stackable_teams_predicted_pctl": 70,
             "exclude_below_ppg_pctl": {"P": 70, "": 40},
-            "exclude_below_games_played": 2
+            "exclude_below_games_played": 2,
+            "constraints": [
+                ["no_opp_team", {"position": "P", "opp_excluded_positions": ["C","1B","2B","3B","SS","LF","CF","RF"]}]
+            ]
         },
         {
             // for small slates (5-3 games)
             "stacks": [4, 3],
             "stackable_teams_predicted_pctl": 60,
             "exclude_below_ppg_pctl": {"P": 50, "": 30},
-            "exclude_below_games_played": 2
+            "exclude_below_games_played": 2,
+            "constraints": [
+                ["no_opp_team", {"position": "P", "opp_excluded_positions": ["C","1B","2B","3B","SS","LF","CF","RF"]}]
+            ]
         },
         {
             // for mini slate (2 games or very early season)
             "stacks": [4, 3],
             "stackable_teams_predicted_pctl": 50,
             "exclude_below_ppg_pctl": {"": 25},
-            "exclude_below_games_played": 1
+            "exclude_below_games_played": 1,
+            "constraints": [
+                ["no_opp_team", {
+                    "position": "P", 
+                    "opp_excluded_positions": ["C","1B","2B","3B","SS","LF","CF","RF"],
+                    "max_opp_players": 1
+                }]
+            ]
         }
     ],
     "mlb-showdown": [
         {
-            // Hitters Stacking: Force the lineup to contain at least one 3+hitter team stack
-            // (review) Pitcher/Hitter Split: If your starting pitcher is in the Captain/MVP slot, do not allow any hitters from the opposing team into the flex spots.
+            // Pitcher/Hitter Split: If a starting pitcher CPT, max of 2 opposing hitters
+            "slot_pos_opp_team_cap": [
+                ["CPT", "P", [["C","1B","2B","3B","SS","LF","CF","RF"], 2]]
+            ]
         }
     ],
     "nba-classic": [
@@ -67,7 +82,8 @@
     ],
     "nba-showdown": [
         {
-            // Star Allocation: Force the lineup to contain at least 2 of the top 4 highest-salaried players on the slate
+            // Star Allocation: Force the lineup to contain at least 2 of the top 80th ppg percentile players
+            "ppg_pctl_player_pool": [2, 80]
         }
     ],
     "nfl-classic": [
@@ -77,20 +93,48 @@
             "stackable_teams_predicted_pctl": 90,
             "stackable_players_ppg_pctl": 50,
             "exclude_below_ppg_pctl": {"QB": 80},
-            "exclude_for_cost": ["<=", 2500]
+            "exclude_for_cost": ["<=", 2500],
+            "constraints": [
+                ["stack_same_team_diff_pos", {
+                    "position": "QB",
+                    "team_position": "team.D",
+                    "stack_positions": ["TE", "WR"]
+                }],
+                ["no_opp_team", {"team_position": "team.D", "position": "team.D"}],
+                ["max_team_players", {"max_players": 2, "positions": ["TE", "WR"]}],
+                ["max_team_players", {"max_players": 1, "positions": ["RB"]}]
+            ]
         },
         {
             "stacks": [2, 2],
             "stackable_teams_predicted_pctl": 75,
             "stackable_players_ppg_pctl": 50,
             "exclude_below_ppg_pctl": {"": 40},
-            "exclude_for_cost": ["<=", 2500]
+            "exclude_for_cost": ["<=", 2500],
+            "constraints": [
+                ["stack_same_team_diff_pos", {
+                    "position": "QB",
+                    "team_position": "team.D",
+                    "stack_positions": ["TE", "WR"]
+                }],
+                ["no_opp_team", {"team_position": "team.D", "position": "team.D"}],
+                ["max_team_players", {"max_players": 2, "positions": ["TE", "WR"]}],
+                ["max_team_players", {"max_players": 1, "positions": ["RB"]}]
+            ]
         },
         {
             "stacks": [2, 2],
             "stackable_teams_predicted_pctl": 60,
             "exclude_below_ppg_pctl": {"": 40},
-            "exclude_for_cost": ["<=", 2500]
+            "exclude_for_cost": ["<=", 2500],
+            "constraints": [
+                ["stack_same_team_diff_pos", {
+                    "position": "QB",
+                    "team_position": "team.D",
+                    "stack_positions": ["TE", "WR"]
+                }],
+                ["no_opp_team", {"team_position": "team.D", "position": "team.D"}]
+            ]
         },
         {
             "stacks": [2, 2],
@@ -101,8 +145,16 @@
     ],
     "nfl-showdown": [
         {
-            // Captain/MVP Match: If a Quarterback (QB) is your Captain/MVP, force at least 1 Wide Receiver (WR) or Tight End (TE) from the same team into a flex spot.
-            // Anti-Correlation Rule: Do not allow a Defense (DST) and the opposing starting Quarterback or top rb or WR in the same lineup.
+            // TODO: Captain/MVP Match: If a Quarterback (QB) is your Captain/MVP, force at least 1 Wide Receiver (WR) or Tight End (TE) from the same team into a flex spot.
+            // Anti-Correlation Rule: Do not allow a Defense (DST) and the opposing starting Quarterback or
+            //      TODO: opposing top rb or WR in the same lineup.
+            "constraints": [
+                ["no_opp_team", {
+                    "team_position": "team.D", 
+                    "position": "team.D", 
+                    "opp_excluded_positions": ["QB"]
+                }]
+            ]
         }
     ],
     "nhl-classic": [
@@ -112,20 +164,29 @@
             "stackable_teams_predicted_pctl": 80,
             "stackable_players_ppg_pctl": 55,
             "exclude_below_ppg_pctl": {"G": 80},
-            "exclude_for_cost": ["<", 4000]
+            "exclude_for_cost": ["<", 4000],
+            "constraints": [
+                ["no_opp_team", {"position": "G", "opp_excluded_positions": ["W","LW","RW","C"]}]
+            ]
         },
         {
             "stacks": [4, 3],
             "stackable_teams_predicted_pctl": 50,
             "stackable_players_ppg_pctl": 40,
             "exclude_below_ppg_pctl": {"G": 50},
-            "exclude_for_cost": ["<", 4000]
+            "exclude_for_cost": ["<", 4000],
+            "constraints": [
+                ["no_opp_team", {"position": "G", "opp_excluded_positions": ["W","LW","RW","C"]}]
+            ]
         }
     ],
     "nhl-showdown": [
         {
-            //   (review, perhaps allow 1 or 2) Goalie/Skater Lock: If the Goalie is your Captain/MVP, do not allow any opposing skaters (Centers/Wingers) into the flex spots.
-            //   Line Correlation: Force at least one 2+ line combination (skaters from the same team and same line number).
+            // TODO:  Line Correlation: Force at least one 2+ line combination (skaters from the same team and same line number).
+            // Goalie/Skater Lock: If the Goalie is your Captain/MVP, max of 2 opposing skaters (Centers/Wingers).
+            "slot_pos_opp_team_cap": [
+                ["CPT", "G", [["W","LW","RW","C"], 2]]
+            ]
         }
     ]
 }
