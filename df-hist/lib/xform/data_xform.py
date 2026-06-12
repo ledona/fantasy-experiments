@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from datetime import date
+from datetime import date, timedelta
 from functools import partial
 from typing import Any, Callable, cast
 
@@ -138,21 +138,26 @@ def _get_nfl_showdown_features(session, slate_to_games: dict) -> pd.DataFrame:
     return result
 
 
-def _get_nhl_showdown_saves(session, slate_to_games: dict) -> pd.DataFrame:
-    """Return winning-team-saves and losing-team-saves per slate for NHL SHOWDOWN."""
-    # SHOWDOWN: exactly one game per slate
+def _showdown_team_stat_helper(
+    session, slate_to_games: dict, stat_names: list[str]
+) -> pd.DataFrame:
+    """
+    For SHOWDOWN slates (one game per slate), returns a dataframe indexed by slate_id
+    with columns winning-team-{stat_name} and losing-team-{stat_name} for each requested stat.
+    """
     game_id_to_slate = {games[0].id: slate_id for slate_id, games in slate_to_games.items()}
-    game_ids_str = ", ".join(str(game_id) for game_id in game_id_to_slate)
+    game_ids_str = ", ".join(str(gid) for gid in game_id_to_slate)
+    stat_names_str = ", ".join(f"'{s}'" for s in stat_names)
     sql = f"""
-    SELECT d.game_id, d.team_id, d.value AS saves
+    SELECT d.game_id, d.team_id, s.name AS stat_name, d.value
     FROM datum d
     JOIN statistic s ON d.statistic_id = s.id
-    WHERE s.name = 'save' AND d.player_id IS NULL
+    WHERE s.name IN ({stat_names_str}) AND d.player_id IS NULL
         AND d.game_id IN ({game_ids_str})
     """
-    saves_df = pd.read_sql_query(sql, session.connection())
-    saves_df["slate_id"] = saves_df["game_id"].map(game_id_to_slate)
-    saves_dict = saves_df.set_index(["slate_id", "team_id"])["saves"].to_dict()
+    df = pd.read_sql_query(sql, session.connection())
+    df["slate_id"] = df["game_id"].map(game_id_to_slate)
+    stat_dict = df.set_index(["slate_id", "team_id", "stat_name"])["value"].to_dict()
 
     rows = []
     for slate_id, games in slate_to_games.items():
@@ -160,13 +165,11 @@ def _get_nhl_showdown_saves(session, slate_to_games: dict) -> pd.DataFrame:
         winner_id = game.winning_team_id
         assert winner_id, f"game {game.id} has no winner"
         loser_id = game.away_team_id if winner_id == game.home_team_id else game.home_team_id
-        rows.append(
-            {
-                "slate_id": slate_id,
-                "winning-team-saves": saves_dict[(slate_id, winner_id)],
-                "losing-team-saves": saves_dict[(slate_id, loser_id)],
-            }
-        )
+        row = {"slate_id": slate_id}
+        for stat_name in stat_names:
+            row[f"winning-team-{stat_name}"] = stat_dict[(slate_id, winner_id, stat_name)]
+            row[f"losing-team-{stat_name}"] = stat_dict[(slate_id, loser_id, stat_name)]
+        rows.append(row)
     return pd.DataFrame(rows).set_index("slate_id")
 
 
@@ -229,9 +232,36 @@ def _create_team_score_df(
         )
 
         if sport == "nhl":
-            team_score_df = team_score_df.join(_get_nhl_showdown_saves(session, slate_to_games))
+            nhl_showdown_stats_df = _showdown_team_stat_helper(session, slate_to_games, ["save"])
+            team_score_df = team_score_df.join(nhl_showdown_stats_df).rename(
+                columns={
+                    "winning-team-save": "winning-team-saves",
+                    "losing-team-save": "losing-team-saves",
+                }
+            )
         elif sport == "nfl":
             team_score_df = team_score_df.join(_get_nfl_showdown_features(session, slate_to_games))
+        elif sport == "mlb":
+            _LOGGER.info("Calculating mlb [winning|losing]-team-WH-allowed")
+            mlb_showdown_stats_df = _showdown_team_stat_helper(
+                session, slate_to_games, ["p_hits", "p_bb"]
+            )
+            wh_dict = {
+                "winning-team-WH-allowed": mlb_showdown_stats_df["winning-team-p_bb"]
+                + mlb_showdown_stats_df["winning-team-p_hits"],
+                "losing-team-WH-allowed": mlb_showdown_stats_df["losing-team-p_bb"]
+                + mlb_showdown_stats_df["losing-team-p_hits"],
+            }
+            mlb_showdown_stats_df = mlb_showdown_stats_df.assign(**wh_dict).drop(
+                columns=[
+                    "winning-team-p_bb",
+                    "winning-team-p_hits",
+                    "losing-team-p_bb",
+                    "losing-team-p_hits",
+                ]
+            )
+            team_score_df = team_score_df.join(mlb_showdown_stats_df)
+
     else:
         raise NotImplementedError(f"don't know how to do this for {style.name}")
 
@@ -416,9 +446,13 @@ def _get_contest_df(
     contest_df = pd.read_csv(contest_csv_path, parse_dates=["date"]).query(
         "sport == @sport and @min_date <= date < @max_date"
     )
+    if len(contest_df) == 0:
+        raise DataNotAvailableException(
+            f"No contest data for {sport=} {min_date=} {max_date=} found in '{contest_csv_path}'"
+        )
     if missing_cols := _EXPECTED_CONTEST_COLS.difference(contest_df.keys()):
         raise DataNotAvailableException(
-            f"Not all expected contest data columns were found. Missing cols={missing_cols}"
+            f"Not all expected contest data columns were found in '{contest_csv_path}'. Missing cols={missing_cols}"
         )
     contest_df.date = contest_df.date.dt.normalize()
     contest_df = contest_df.where(contest_df.notnull(), None)
@@ -474,31 +508,24 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
     return draft_df
 
 
-def _create_team_contest_df(contest_df, draft_df, service, sport):
+def _create_teams_contest_df(contest_df, draft_df, service, sport):
+    """group contests together and create team sets used in each contest"""
     service_cls = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service)
     abbr_remaps = service_cls.TEAM_ABBR_ALIASES.get(sport)
 
     # add team/lineup draft data
-    team_contest_df = pd.merge(contest_df, draft_df, on="contest_id")
-    team_contest_df.team_abbr = team_contest_df.team_abbr.map(
+    contest_draft_df = pd.merge(contest_df, draft_df, on="contest_id")
+    contest_draft_df["team_abbr"] = contest_draft_df.team_abbr.map(
         lambda abbr: (abbr_remaps.get(abbr) or abbr) if abbr_remaps else abbr
     )
 
-    return team_contest_df
-
-
-def _common_title(title_series: pd.Series) -> str:
-    """the title of a contest will be the common prefix amongst all the possible contest titles"""
-    title_list = title_series.tolist()
-    return "" if None in title_list else os.path.commonprefix(title_list)
-
-
-def _create_teams_contest_df(contest_df, draft_df, service, sport):
-    """group contests together and create team sets used in each contest"""
-    tc_df = _create_team_contest_df(contest_df, draft_df, service, sport)
+    def _common_title(title_series: pd.Series) -> str:
+        """the title of a contest will be the common prefix amongst all the possible contest titles"""
+        title_list = title_series.tolist()
+        return "" if None in title_list else os.path.commonprefix(title_list)
 
     tc_df = pd.DataFrame(
-        tc_df.groupby(["contest_id", "date", "style", "type", "link", "entries"]).agg(
+        contest_draft_df.groupby(["contest_id", "date", "style", "type", "link", "entries"]).agg(
             {
                 "team_abbr": set,
                 "title": _common_title,
@@ -539,7 +566,7 @@ def _get_slate_df(session: Session, service, style, min_date, max_date):
         raise ValueError("Error processing slate db df", slate_db_df) from ex
 
     if style != DFSContestStyle.SHOWDOWN:
-        slate_db_df["team-count"] = slate_db_df.teams.map(len)
+        slate_db_df["team_count"] = slate_db_df.teams.map(len)
     return slate_db_df
 
 
@@ -561,8 +588,8 @@ def _get_slate_id(contest_row: pd.Series, slate_db_df: pd.DataFrame) -> pd.Serie
             contest_row.title,
         )
         return _NO_SLATE_ID_FOUND
-    if "team-count" in date_slates:
-        date_slates = date_slates.sort_values("team-count")
+    if "team_count" in date_slates:
+        date_slates = date_slates.sort_values("team_count")
     try:
         slates = date_slates.query(
             "@contest_row.teams <= teams and contest_style == @contest_row.style.name"
@@ -585,8 +612,8 @@ def _get_slate_id(contest_row: pd.Series, slate_db_df: pd.DataFrame) -> pd.Serie
         return _NO_SLATE_ID_FOUND
 
     cols = ["slate_id"]
-    if "team-count" in slates:
-        cols.append("team-count")
+    if "team_count" in slates:
+        cols.append("team_count")
     return slates.iloc[0][cols]
 
 
@@ -730,7 +757,6 @@ def _get_player_scores(session, cfg, sport, style, slate_to_games, top_percentil
 def _create_inference_df(
     style: DFSContestStyle,
     teams_contest_df: pd.DataFrame,
-    slate_ids_df: pd.DataFrame,
     team_score_df: pd.DataFrame,
     player_scores_df: pd.DataFrame,
     slate_scores: dict[int, SlateScoreItem],
@@ -738,12 +764,12 @@ def _create_inference_df(
     """
     join contest, slate id, team score, player position scores, slate_scores
     """
-    assert len(slate_ids_df) == len(team_score_df) == len(player_scores_df) >= len(slate_scores), (
-        "all of these should be the same length except slate_scores which may be shorted"
-    )
-
-    assert len(teams_contest_df) >= len(slate_ids_df), (
-        "should be more than or equal the number of rows in teams_contest_df"
+    assert (
+        len(teams_contest_df) >= len(team_score_df) == len(player_scores_df) >= len(slate_scores)
+    ), (
+        "expecting more team_contest rows (one for every known dfs contest entry) "
+        "than team/player score data (one for every slate?) which should be more "
+        "than the found slates (slate scoring will fail on opening day due to no season to date data)"
     )
 
     player_scores_df.columns = player_scores_df.columns.map(
@@ -764,15 +790,18 @@ def _create_inference_df(
             [ss.addl_scoring for ss in slate_scores.values()], index=list(slate_scores.keys())
         )
         slate_scores_df = pd.concat([slate_scores_df, addl_df], axis=1)
-    slate_scores_df = slate_scores_df.drop(columns=["addl_scoring"])
+    slate_scores_df = slate_scores_df.drop(
+        columns=["addl_scoring", "rational_lineup_settings_index", "games_count"]
+    )
     contest_cols = ["date", "style", "type", "top_score", "last_winning_score", "link", "slate_id"]
     if style == DFSContestStyle.SHOWDOWN:
         teams_contest_df = teams_contest_df.rename(columns={"entries": "contest_entries"})
         contest_cols.append("contest_entries")
+    elif style == DFSContestStyle.CLASSIC:
+        contest_cols.append("team_count")
     df = (
         teams_contest_df[contest_cols]
         .rename(columns={"top_score": "top_winning_score"})
-        .join(slate_ids_df, on="slate_id")
         .join(slate_scores_df, on="slate_id")
         .join(team_score_df, on="slate_id")
         .join(player_scores_df, on="slate_id")
@@ -808,7 +837,7 @@ def _test_for_expected_cols(sport, style: DFSContestStyle, inf_df: pd.DataFrame)
     if style == DFSContestStyle.CLASSIC:
         expected_cols = [
             # old&new features
-            "team-count",
+            "team_count",
             # old features
             "team_med",
             "team-70.0th_pctl",
@@ -879,7 +908,8 @@ def _test_for_expected_cols(sport, style: DFSContestStyle, inf_df: pd.DataFrame)
 
     if fail_msgs:
         raise UnexpectedValueError(
-            "inf_df columns don't match expectations. " + " ".join(fail_msgs)
+            f"For {sport=} style={style.value} inf_df columns don't match expectations. "
+            + " ".join(fail_msgs)
         )
 
 
@@ -930,33 +960,40 @@ def _generate_dataset(
     with db_obj.session_scoped() as session:
         slate_db_df = _get_slate_df(session, service_name, style, min_date, max_date)
 
-        # note that some slates will not be found due to mismatches in games found in cost files and the games in the the downloaded contest results
-        team_count_and_slate_id_df = (
-            teams_contest_df.apply(_get_slate_id, axis=1, args=(slate_db_df,))
-            .assign(date=teams_contest_df["date"])
-            .drop_duplicates()
-        )
-        teams_contest_df = teams_contest_df.assign(slate_id=team_count_and_slate_id_df.slate_id)
+        # note that some slates will not be found due to mismatches in games found in
+        # cost files and the games in the the downloaded contest results, and other slates
+        # may appear multiple times if multiple contests were entered (hence the drop_duplicates call
+        team_count_and_slate_id_df = teams_contest_df.apply(
+            _get_slate_id, axis=1, args=(slate_db_df,)
+        ).assign(date=teams_contest_df["date"])
+        teams_contest_new_cols = {"slate_id": team_count_and_slate_id_df.slate_id}
+        if "team_count" in team_count_and_slate_id_df:
+            teams_contest_new_cols["team_count"] = team_count_and_slate_id_df.team_count
+        teams_contest_df = teams_contest_df.assign(**teams_contest_new_cols)
 
         if team_count_and_slate_id_df.slate_id.isna().any():
-            team_count_and_slate_id_df = team_count_and_slate_id_df.dropna(subset="slate_id")
+            defined_slates_df = team_count_and_slate_id_df.dropna(subset="slate_id")
             _LOGGER.warning(
                 "Slate scoring features for %d of %s slates will be skipped because slate could not be matched in DB",
-                len(teams_contest_df) - len(team_count_and_slate_id_df),
+                len(teams_contest_df) - len(defined_slates_df),
                 len(teams_contest_df),
             )
-            if len(team_count_and_slate_id_df) == 0:
+            if len(teams_contest_df) - len(defined_slates_df) == 0:
                 raise DataNotAvailableException("No slates ids found (based on teams contest df)")
+        else:
+            defined_slates_df = team_count_and_slate_id_df
 
-        team_count_and_slate_id_df = team_count_and_slate_id_df.set_index("slate_id")
+        # df with index of slate_id and columns team_count and date
+        defined_slates_df = defined_slates_df.set_index("slate_id").drop_duplicates()
 
-        # sort slates by date (ascending) and slate side (descending) so that bigger slates are done first on each date to help with caching
-        if "team-count" in team_count_and_slate_id_df:
-            slate_ids = team_count_and_slate_id_df.sort_values(
-                ["date", "team-count"], ascending=[True, False]
+        if "team_count" in defined_slates_df:
+            # sort slates by date (ascending) and slate side (descending) so that bigger
+            # slates are done first on each date to help with caching
+            slate_ids = defined_slates_df.sort_values(
+                ["date", "team_count"], ascending=[True, False]
             ).index.astype(int)
         else:
-            slate_ids = team_count_and_slate_id_df.index.astype(int)
+            slate_ids = defined_slates_df.index.astype(int)
 
         slate_to_games = {
             slate.id: slate.games
@@ -972,12 +1009,14 @@ def _generate_dataset(
         )
 
         # cache for top scores
-        with score_cache_ctx(sport, slate_score_cache_mode, cache_dir=datapath) as score_dict:
+        with score_cache_ctx(
+            sport, style, slate_score_cache_mode, cache_dir=datapath
+        ) as score_dict:
             # bpl=best possible lineup ; slate_id -> (bpl-true-score, bpl-true-score - bpl-pred-score, lchv_count)
             slate_scores = {}
             for slate_id in (tqdm_iter := tqdm(slate_ids, desc="slates")):
                 slate_date_str = (
-                    team_count_and_slate_id_df[team_count_and_slate_id_df.index == slate_id]
+                    defined_slates_df[defined_slates_df.index == slate_id]
                     .iloc[0]["date"]
                     .date()
                     .strftime("%Y%m%d")
@@ -993,12 +1032,7 @@ def _generate_dataset(
                     slate_scores[int(slate_id)] = ss
 
     inf_df = _create_inference_df(
-        style,
-        teams_contest_df,
-        team_count_and_slate_id_df.drop(columns=["date"]),
-        team_score_df,
-        player_scores_df,
-        slate_scores,
+        style, teams_contest_df, team_score_df, player_scores_df, slate_scores
     )
 
     _test_for_expected_cols(sport, style, inf_df)
@@ -1049,13 +1083,15 @@ def xform(
         service_iter.set_postfix_str(service)
         if date_override is None:
             min_date, max_date = _get_date_range(cfg, service)
-        assert (min_date is None) or (max_date is None) or min_date < max_date, (
+        assert (min_date is None) or (max_date is None) or min_date <= max_date, (
             "invalid date range. max_date must be greater than min_date. Or one must be None"
         )
         assert DFSContestStyle.CLASSIC not in styles or styles[0] == DFSContestStyle.CLASSIC, (
             "if classic is in styles it should be first so that its lineup generation cache can be reused"
         )
 
+        if min_date == max_date:
+            max_date += timedelta(days=1)
         for style in (style_iter := tqdm(styles, desc="contest-style", disable=len(styles) == 1)):
             style_iter.set_postfix_str(style.name)
             for contest_type in (

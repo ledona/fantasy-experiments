@@ -158,11 +158,11 @@
             "args": [
                 "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/processed-data/xform-cache",
                 "--services", "draftkings",
-                "--style", "classic",
+                // "--style", "classic",
                 // "--style", "showdown",
                 // "--type", "GPP",
                 // "--dates", "20200810", "20200811",
-                "--sports", "nhl", // "nfl", "nhl", "nba", "mlb"
+                "--sports", "nba", // "nfl", "nhl", "nba", "mlb"
                 "--cache_mode", "enable",
             ]
         },

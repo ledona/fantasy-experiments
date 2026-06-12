@@ -3,6 +3,7 @@ import json
 import math
 import os
 from argparse import Namespace
+from collections import defaultdict
 from contextlib import contextmanager
 from functools import cache
 from numbers import Number
@@ -27,8 +28,10 @@ from fantasy_py.lineup import (
     LineupGenerationFailure,
     gen_lineups,
 )
+from fantasy_py.lineup.constraint import UnsupportedStackingError
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import SportDBManager
+from ledona import constant_hasher
 from typeguard import check_type
 
 _LOGGER = log.get_logger(__name__)
@@ -135,6 +138,8 @@ class SlateScoreItem(NamedTuple):
     top_rational_lineup_score: float
     """actual fantasy points scored by the lineup built using rational 
     lineup constuction strategies optimized with historic scoring"""
+    rational_lineup_settings_index: int
+    """the index of the rational_lineup_settings used to generate the rational lineup"""
     low_cost_high_value_player_count: int
     """number of low cost players that significantly overperformed"""
     top_players_scoring_diff_n: float
@@ -143,36 +148,44 @@ class SlateScoreItem(NamedTuple):
     """mean diff between true and predicted scores of top percentile predicted players"""
     addl_scoring: dict | None
     """additional sport/style related scoring information for this slate"""
+    games_count: int
+    """how many games were in the slate"""
 
 
 @contextmanager
-def score_cache_ctx(sport: str, cache_mode: SlateScoreCacheMode, cache_dir="."):
+def score_cache_ctx(sport: str, contest_style, cache_mode: SlateScoreCacheMode, cache_dir="."):
     """context manager for caching lineup scoring results"""
     if not os.path.isdir(cache_dir):
         raise FileNotFoundError(f"Cache directory '{cache_dir}' does not exist")
-    score_cache_filename = sport + "-slate.score.json"
+    score_cache_filename = f"{sport}-{contest_style.value}-slate.score.json"
     score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
 
     score_dict: dict[int, SlateScoreItem]
 
     orig_score_dict: dict[int, SlateScoreItem] = {}
 
+    rational_lineup_params = _get_rational_lineup_gen_params(sport, contest_style.value)
+    rlp_hash = constant_hasher(rational_lineup_params)
+
     if os.path.isfile(score_cache_filepath):
         if cache_mode in ("default", "missing"):
             with open(score_cache_filepath, "r") as f:
                 cache_data = json.load(f)
-            for slate_id, score in cache_data.items():
-                if cache_mode == "missing" and score is None:
-                    continue
-                try:
-                    orig_score_dict[int(slate_id)] = SlateScoreItem(*score)
-                except TypeError:
-                    _LOGGER.error(
-                        "Parsing error while loading slate score cache from '%s'. Cache will be rebuilt",
-                        score_cache_filepath,
-                    )
-                    orig_score_dict = {}
-                    break
+
+            if cache_data.get("rational_lineup_params_hash") == rlp_hash:
+                # params have not changed, reuse is allowed
+                for slate_id, score in cache_data["scores"].items():
+                    if cache_mode == "missing" and score is None:
+                        continue
+                    try:
+                        orig_score_dict[int(slate_id)] = SlateScoreItem(*score)
+                    except TypeError:
+                        _LOGGER.error(
+                            "Parsing error while loading slate score cache from '%s'. Cache will be rebuilt",
+                            score_cache_filepath,
+                        )
+                        orig_score_dict = {}
+                        break
         elif cache_mode == "overwrite":
             _LOGGER.info("Overwriting existing best score cache data at '%s'", score_cache_filepath)
         else:
@@ -191,7 +204,30 @@ def score_cache_ctx(sport: str, cache_mode: SlateScoreCacheMode, cache_dir="."):
             # TODO: should save the cache as new scores are added
             _LOGGER.info("Writing updated best score values to cache '%s'", score_cache_filepath)
             with open(score_cache_filepath, "w") as f:
-                json.dump(score_dict, f, indent=2)
+                json.dump(
+                    {"rational_lineup_params_hash": rlp_hash, "scores": score_dict}, f, indent=2
+                )
+
+        counts: dict[int, int] = defaultdict(int)
+        game_counts: dict[int, list[int]] = defaultdict(list)
+        for score in score_dict.values():
+            idx = score.rational_lineup_settings_index + 1
+            counts[idx] += 1
+            game_counts[idx].append(score.games_count)
+        rls_report = "\n".join(
+            f"{i}\t{counts[i]}\t{min(game_counts[i])}-{max(game_counts[i])}"
+            if game_counts[i]
+            else f"{i}\t{counts[i]}\t-"
+            for i in range(1, len(rational_lineup_params) + 1)
+        )
+        print(f"""
+
+*** Rational Lineup Settings Usage {sport=} contest_style={contest_style.value} ***
+params\tcount\tgames
+{rls_report}
+**************************************
+
+""")
         _LOGGER.info("Exiting best_score_cache")
 
 
@@ -363,7 +399,7 @@ def slate_scoring(
     contest_constraints = service_cls.get_constraints(db_manager.ABBR, slate=slate_info)
     assert contest_constraints is not None
 
-    solver = MixedIntegerKnapsackSolver(
+    top_lineup_solver = MixedIntegerKnapsackSolver(
         contest_constraints.knapsack_constraints,
         contest_constraints.budget,
         totals_func=contest_constraints.totals_func,
@@ -375,7 +411,7 @@ def slate_scoring(
     lineup_score_info = _score_lineup(
         session.info["db_obj"],
         fca,
-        solver,
+        top_lineup_solver,
         service_cls,
         slate_name,
         slate_id,
@@ -407,8 +443,15 @@ def slate_scoring(
 
     gen_lineup_params_list = _get_rational_lineup_gen_params(db_manager.ABBR, contest_style)
     for try_number, brl_gl_params in enumerate(gen_lineup_params_list, 1):
-        raise NotImplementedError("do something about default plans")
         brl_gl_params = GenLineupsParams(score_data_type="historic", n_lineups=1, **brl_gl_params)
+        solver = MixedIntegerKnapsackSolver(
+            contest_constraints.knapsack_constraints,
+            contest_constraints.budget,
+            totals_func=contest_constraints.totals_func,
+            fill_all_positions=contest_constraints.fill_all_positions,
+            **brl_gl_params.solver_kwargs,
+        )
+
         try:
             best_rational_lineup_info = _score_lineup(
                 session.info["db_obj"],
@@ -429,7 +472,7 @@ def slate_scoring(
                     "_score_lineup for best rational lineups should not return None"
                 )
             break
-        except (DataNotAvailableException, LineupGenerationFailure) as ex:
+        except (DataNotAvailableException, LineupGenerationFailure, UnsupportedStackingError) as ex:
             _LOGGER.warning(
                 "failure on attempt #%d for rational lineup generation of %s %s '%s' %s :: %s",
                 try_number,
@@ -439,10 +482,21 @@ def slate_scoring(
                 contest_style,
                 ex,
             )
+            continue
+        except Exception as ex:
+            _LOGGER.critical(
+                "Unhandled exception raised when on lineup generation attempt #%d for  %s %s '%s' %s :: %s",
+                try_number,
+                db_manager.ABBR,
+                game_date,
+                slate_name,
+                contest_style,
+                ex,
+            )
+            raise
     else:
         raise NotImplementedError(
-            "Failed to generate a rational lineup after generating a top lineup "
-            f"for {db_manager.ABBR} {game_date=} {slate_name=} {contest_style=}. "
+            f"Failed to generate a rational lineup for {db_manager.ABBR} {contest_style=} {game_date=} {slate_name=}, {len(starters.games)} games. "
             "Additional, less restrictive, rational lineup generation params are needed."
         )
 
@@ -455,10 +509,12 @@ def slate_scoring(
     scoring = SlateScoreItem(
         top_possible_lineup_score=top_lineup_score,
         top_rational_lineup_score=float(best_rational_lineup_info[0].historic_fpts),
+        rational_lineup_settings_index=try_number - 1,
         low_cost_high_value_player_count=lchv_count,
         top_players_scoring_diff_n=top_n_players_diff,
         top_players_scoring_diff_pctl=top_pctl_players_diff,
         addl_scoring=addl_scoring,
+        games_count=len(starters.games),
     )
     if score_cache is not None:
         score_cache[slate_id] = scoring

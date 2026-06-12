@@ -20,8 +20,8 @@ SPORT_CFGS = {
     },
     "nba": {
         "min_date": {None: date(2017, 8, 1), "yahoo": date(2020, 8, 1)},
-        "max_date": date(2026, 5, 17),
-        "db_filename": os.path.join(_FANTASY_HOME, "nba.hist.20082009-20242025.scored.db"),
+        "max_date": date(2026, 6, 14),
+        "db_filename": os.path.join(_FANTASY_HOME, "nba.hist.20082009-20252026.scored.db"),
     },
     "nhl": {
         "min_date": {
@@ -29,8 +29,8 @@ SPORT_CFGS = {
             "fanduel": date(2019, 8, 1),  # fd missing positional data prior to 2019 season
             None: date(2017, 8, 1),
         },
-        "max_date": date(2026, 5, 17),
-        "db_filename": os.path.join(_FANTASY_HOME, "nhl.hist.20072008-20242025.scored.db"),
+        "max_date": date(2026, 6, 15),
+        "db_filename": os.path.join(_FANTASY_HOME, "nhl.hist.20072008-20252026.scored.db"),
         "cost_pos_rename": {"LW": "W", "RW": "W"},
     },
     "lol": {
