@@ -152,6 +152,104 @@ class SlateScoreItem(NamedTuple):
     """how many games were in the slate"""
 
 
+class ScoreCache:
+    """cache for slate scores"""
+
+    _UPDATE_TO_SAVE_PERIOD = 10
+    """how many updates before the cache saves its current state"""
+
+    def __init__(
+        self,
+        score_cache_filepath: str,
+        rlp_hash,
+        cache_mode: SlateScoreCacheMode = "default",
+    ):
+        self.data: dict[int, SlateScoreItem] = {}
+        self._unsaved_updates = 0
+        """changes that have been made since the data was loaded/last-saved"""
+
+        self._rlp_hash = rlp_hash
+        """hash used to test if cached data should be reused"""
+
+        self.score_cache_filepath = score_cache_filepath
+
+        if cache_mode == "overwrite":
+            _LOGGER.info("Overwriting existing best score cache data at '%s'", score_cache_filepath)
+            return
+
+        if not os.path.isfile(score_cache_filepath):
+            _LOGGER.info(
+                "Best score cache data not found! Starting a new cache at '%s'",
+                score_cache_filepath,
+            )
+            return
+
+        with open(score_cache_filepath, "r") as f:
+            cache_data = json.load(f)
+
+        if cache_data.get("rational_lineup_params_hash") != rlp_hash:
+            _LOGGER.warning(
+                "Cached slate scores in '%s' cannot be used because of change in lineup gen params",
+                score_cache_filepath,
+            )
+            return
+
+        for slate_id, score in cache_data["scores"].items():
+            if cache_mode == "missing" and score is None:
+                continue
+            try:
+                self.data[int(slate_id)] = SlateScoreItem(*score)
+            except TypeError:
+                _LOGGER.error(
+                    "Parsing error while loading slate score cache from '%s'. Cache will be rebuilt",
+                    score_cache_filepath,
+                )
+                self.data = {}
+                return
+
+        _LOGGER.success(
+            "Reusing %d cached slate score entries found at '%s'",
+            len(self.data),
+            score_cache_filepath,
+        )
+
+    def __setitem__(self, slate_id, item: SlateScoreItem):
+        if self.data.get(slate_id) == item:
+            return
+        self.data[slate_id] = item
+        self._unsaved_updates += 1
+        if self._unsaved_updates >= self._UPDATE_TO_SAVE_PERIOD:
+            self.save()
+
+    def __getitem__(self, slate_id):
+        return self.data.get(slate_id)
+
+    def __contains__(self, slate_id):
+        return slate_id in self.data
+
+    def __len__(self):
+        return len(self.data)
+
+    def save(self):
+        if not self._unsaved_updates > 0:
+            return
+
+        with open(self.score_cache_filepath, "w") as f:
+            json.dump(
+                {"rational_lineup_params_hash": self._rlp_hash, "scores": self.data},
+                f,
+                indent=2,
+            )
+        _LOGGER.success(
+            "Saved %d items (%d new items) to best score cache '%s'",
+            len(self.data),
+            self._unsaved_updates,
+            self.score_cache_filepath,
+        )
+
+        self._unsaved_updates = 0
+
+
 @contextmanager
 def score_cache_ctx(sport: str, contest_style, cache_mode: SlateScoreCacheMode, cache_dir="."):
     """context manager for caching lineup scoring results"""
@@ -160,57 +258,19 @@ def score_cache_ctx(sport: str, contest_style, cache_mode: SlateScoreCacheMode, 
     score_cache_filename = f"{sport}-{contest_style.value}-slate.score.json"
     score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
 
-    score_dict: dict[int, SlateScoreItem]
-
-    orig_score_dict: dict[int, SlateScoreItem] = {}
-
     rational_lineup_params = _get_rational_lineup_gen_params(sport, contest_style.value)
     rlp_hash = constant_hasher(rational_lineup_params)
 
-    if os.path.isfile(score_cache_filepath):
-        if cache_mode in ("default", "missing"):
-            with open(score_cache_filepath, "r") as f:
-                cache_data = json.load(f)
-
-            if cache_data.get("rational_lineup_params_hash") == rlp_hash:
-                # params have not changed, reuse is allowed
-                for slate_id, score in cache_data["scores"].items():
-                    if cache_mode == "missing" and score is None:
-                        continue
-                    try:
-                        orig_score_dict[int(slate_id)] = SlateScoreItem(*score)
-                    except TypeError:
-                        _LOGGER.error(
-                            "Parsing error while loading slate score cache from '%s'. Cache will be rebuilt",
-                            score_cache_filepath,
-                        )
-                        orig_score_dict = {}
-                        break
-        elif cache_mode == "overwrite":
-            _LOGGER.info("Overwriting existing best score cache data at '%s'", score_cache_filepath)
-        else:
-            raise UnexpectedValueError("Unexpected lineup score cache mode", cache_mode)
-    else:
-        _LOGGER.info("Best score cache data not found! '%s'", score_cache_filepath)
-
-    # make a copy so that we can figure out if there are updates
-    # TODO: for diff, can probably do this more efficiently by comparing a hash of the before and after
-    score_dict = dict(orig_score_dict)
+    score_cache = ScoreCache(score_cache_filepath, rlp_hash, cache_mode)
 
     try:
-        yield score_dict
+        yield score_cache
     finally:
-        if orig_score_dict != score_dict:
-            # TODO: should save the cache as new scores are added
-            _LOGGER.info("Writing updated best score values to cache '%s'", score_cache_filepath)
-            with open(score_cache_filepath, "w") as f:
-                json.dump(
-                    {"rational_lineup_params_hash": rlp_hash, "scores": score_dict}, f, indent=2
-                )
+        score_cache.save()
 
         counts: dict[int, int] = defaultdict(int)
         game_counts: dict[int, list[int]] = defaultdict(list)
-        for score in score_dict.values():
+        for score in score_cache.data.values():
             idx = score.rational_lineup_settings_index + 1
             counts[idx] += 1
             game_counts[idx].append(score.games_count)
@@ -322,7 +382,7 @@ def _get_rational_lineup_gen_params(sport, contest_style):
 def slate_scoring(
     session,
     slate_id,
-    score_cache: None | dict[int, SlateScoreItem] = None,
+    score_cache: None | ScoreCache = None,
     screen_lineup_constraints_mode="fail",
 ):
     """
@@ -332,7 +392,7 @@ def slate_scoring(
     Function is used as a map function for a pandas series.
 
     pts_stats_names - the statistic names for the scores to use for players/teams
-    best_score_cache - cache of slate ids mapped to their score. this will be
+    score_cache - cache of slate ids mapped to their score. this will be
         searched and possibly updated to include the score for the requested slate
 
     returns - None if there is an error occurs, otherwise a tuple of

@@ -1011,7 +1011,7 @@ def _generate_dataset(
         # cache for top scores
         with score_cache_ctx(
             sport, style, slate_score_cache_mode, cache_dir=datapath
-        ) as score_dict:
+        ) as slate_score_cache:
             # bpl=best possible lineup ; slate_id -> (bpl-true-score, bpl-true-score - bpl-pred-score, lchv_count)
             slate_scores = {}
             for slate_id in (tqdm_iter := tqdm(slate_ids, desc="slates")):
@@ -1025,7 +1025,7 @@ def _generate_dataset(
                 ss = slate_scoring(
                     session,
                     slate_id,
-                    score_cache=score_dict,
+                    score_cache=slate_score_cache,
                     screen_lineup_constraints_mode=screen_lineup_constraints_mode,
                 )
                 if ss:
