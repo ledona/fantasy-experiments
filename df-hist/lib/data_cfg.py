@@ -8,8 +8,8 @@ _FANTASY_HOME = os.environ["FANTASY_HOME"]
 SPORT_CFGS = {
     "mlb": {
         "min_date": date(2019, 1, 1),
-        "max_date": date(2026, 5, 17),
-        "db_filename": os.path.join(_FANTASY_HOME, "mlb.hist.2008-2025.scored.db"),
+        "max_date": date(2026, 6, 17),
+        "db_filename": os.path.join(_FANTASY_HOME, "mlb.hist.2008-2026_partial.scored.db"),
         "cost_pos_drop": {"DH", "RP"},
         "cost_pos_rename": {"SP": "P"},
     },

@@ -3,12 +3,13 @@ import os
 import shlex
 from argparse import ArgumentParser
 from itertools import product
+from typing import cast
 
 from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCommentsDecoder, log
-from fantasy_py.betting import FiftyFifty, GeneralPrizePool
+from fantasy_py.betting import FiftyFifty, GeneralPrizePool, LineupContest
 from tqdm import tqdm
 
-from .eval_models import ModelTargetGroup, evaluate_models
+from .eval_models import ModelFeatures, ModelTarget, evaluate_models
 from .model import ExistingModelMode, Framework
 from .results import show_eval_results
 
@@ -21,15 +22,16 @@ _DEFAULT_MODEL_PATH = os.path.join(".", "models")
 def _multi_run(
     frameworks: list[Framework],
     model_cfg_filepath,
-    styles,
-    sports,
-    services,
-    contest_types,
-    models_to_test: set[ModelTargetGroup],
+    styles: list[DFSContestStyle],
+    sports: set[str],
+    services: set[str],
+    contest_types: list[LineupContest],
+    target_set: set[ModelTarget],
+    features_set: set[ModelFeatures],
     model_folder,
     mode: ExistingModelMode,
     eval_results_path: str,
-    data_dir: str | None,
+    data_dir: str,
 ):
     """
     generate multiple models for combinations of requested styles,
@@ -45,24 +47,25 @@ def _multi_run(
     if services is None:
         services = [None]
     progress_total = (
-        len(sports)
-        * len(styles)
-        * len(services)
-        * len(contest_types)
-        * len(frameworks)
-        * (len(models_to_test) if models_to_test else 6)
+        len(sports) * len(styles) * len(services) * len(contest_types) * len(frameworks)
     )
     all_failed_models = []
 
     pbar = tqdm(
-        product(sorted(sports), sorted(services), styles, contest_types, sorted(frameworks)),
+        product(
+            sorted(sports),
+            sorted(services),
+            sorted(styles),
+            sorted(contest_types, key=lambda ct: ct.TYPE_NAME),
+            sorted(frameworks),
+        ),
         total=progress_total,
         desc="modeling",
     )
     for sport, service, style, contest_type, framework in pbar:
         if framework not in model_cfgs:
             raise ValueError(
-                f"framework '{framework}' not defined in model " f"cfg file '{model_cfg_filepath}'"
+                f"framework '{framework}' not defined in model cfg file '{model_cfg_filepath}'"
             )
 
         framework_params = model_cfgs[framework] or {}
@@ -76,7 +79,8 @@ def _multi_run(
             pbar,
             model_folder=model_folder,
             eval_results_path=eval_results_path,
-            models_to_test=models_to_test,
+            model_features=features_set,
+            model_targets=target_set,
             service=service,
             mode=mode,
             data_folder=data_dir,
@@ -93,6 +97,7 @@ def _multi_run(
                 (contest_type if isinstance(contest_type, str) else contest_type.TYPE_NAME),
             )
             continue
+        assert new_eval_results
         models.update(new_models)
         eval_results += new_eval_results
 
@@ -126,10 +131,20 @@ def _process_cmd_line(cmd_line_str=None):
         default=[FiftyFifty.TYPE_NAME, GeneralPrizePool.TYPE_NAME],
     )
     parser.add_argument(
-        "--model_types",
+        "--model_targets",
+        "--targets",
+        help="The models/targets to fit and evaluate",
         nargs="+",
-        choices=ModelTargetGroup.__args__,
-        default=ModelTargetGroup.__args__,
+        choices=ModelTarget.__args__,
+        default=ModelTarget.__args__,
+    )
+    parser.add_argument(
+        "--model_features",
+        "--features",
+        help="The models/targets to fit and evaluate",
+        nargs="+",
+        choices=ModelFeatures.__args__,
+        default=ModelFeatures.__args__,
     )
     parser.add_argument(
         "--results_path",
@@ -177,7 +192,10 @@ def _process_cmd_line(cmd_line_str=None):
         parser.error(f"model destination path '{args.model_path}' does not exist")
 
     c_styles = [DFSContestStyle(style) for style in set(args.contest_styles)]
-    c_types = [CLSRegistry.get_class(CONTEST_DOMAIN, type_) for type_ in set(args.contest_types)]
+    c_types = [
+        cast(LineupContest, CLSRegistry.get_class(CONTEST_DOMAIN, type_))
+        for type_ in set(args.contest_types)
+    ]
 
     print(f"{args=}")
     eval_results, failed_models = _multi_run(
@@ -187,7 +205,8 @@ def _process_cmd_line(cmd_line_str=None):
         set(args.sports),
         set(args.services),
         c_types,
-        set(args.model_types),
+        set(args.model_targets),
+        set(args.model_features),
         args.model_path,
         args.existing_model_mode,
         args.results_path,

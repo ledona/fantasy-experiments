@@ -1,22 +1,12 @@
 import os
+from typing import Literal, cast
 
 import pandas as pd
-from fantasy_py import DataNotAvailableException, DFSContestStyle, log
+from fantasy_py import DataNotAvailableException, DFSContestStyle, UnexpectedValueError, log
 from fantasy_py.betting import Contest
 from sklearn.model_selection import train_test_split
 
 _LOGGER = log.get_logger(__name__)
-
-_COLS_TO_IGNORE = {
-    "date",
-    "style",
-    "type",
-    "link",
-    "entries",
-    "slate_id",
-    "top_score",
-    "last_winning_score",
-}
 
 
 def load_csv(
@@ -54,7 +44,7 @@ def load_csv(
 
     df = pd.concat(dfs)
     nan_slate_rows = len(df.query("slate_id.isnull()"))
-    nan_best_score_rows = len(df.query("`best-possible-score`.isnull()"))
+    nan_best_score_rows = len(df.query("top_possible_lineup_score.isnull()"))
     if nan_slate_rows > 0 or nan_best_score_rows > 0:
         orig_rows = len(df)
         df = df.dropna()
@@ -74,44 +64,155 @@ def load_csv(
             len(df),
         )
 
+    if len(df) == 0:
+        raise DataNotAvailableException("After filtering no data was left. see log for details")
     return df
+
+
+_DESCRIPTIVE_COLS = {
+    "date",
+    "style",
+    "type",
+    "link",
+    "slate_id",
+}
+
+
+ModelFeatures = Literal["all", "legacy", "202606"]
+"""
+feature set to use for models
+legacy = pre-202606 model features
+202606 = upgraded feature set
+all = all available features (i.e. legacy + 202606)
+"""
+
+
+def test_for_expected_cols(
+    inf_df: pd.DataFrame,
+    sport,
+    style: DFSContestStyle,
+    unexpected_mode: Literal["drop", "fail"] = "fail",
+    features: ModelFeatures = "all",
+    include_descriptive_cols=True,
+):
+    """
+    test for and reorder the columns
+    unexpected_mode: fail=raise an exception, drop=drop unexpected cols and return a new df
+    include_descriptive_cols: if true include things like date, slate_id, etc. False returns
+        a dataframe just with features and target variables
+    """
+    df = inf_df
+
+    # start with the targets
+    expected_cols = [
+        "top_winning_score",
+        "last_winning_score",
+        "top_possible_lineup_score",
+        "top_rational_lineup_score",
+        "top_possible_minus_rational",
+        "low_cost_high_value_player_count",
+    ]
+
+    if include_descriptive_cols:
+        expected_cols = [*_DESCRIPTIVE_COLS, expected_cols]
+
+    if style == DFSContestStyle.CLASSIC:
+        # everything gets this
+        expected_cols.append("team_count")
+        if features in ("all", "legacy"):
+            # old features
+            expected_cols += [
+                "total_score",
+                "team_med",
+                "team-70.0th_pctl",
+                "top3-total",
+                "top_players_scoring_diff_n",
+                "top_players_scoring_diff_pctl",
+            ]
+    elif style == DFSContestStyle.SHOWDOWN:
+        if features in ("all", "202606"):
+            # new features
+            expected_cols += [
+                "contest_entries",
+                "game-total_score",  # same as total score, added because total score is not needed in new classic
+                "game-margin_of_victor",
+            ]
+    else:
+        raise NotImplementedError(f"Unhandled {style=}")
+
+    if features in ("all", "202606"):
+        # new sport specific features
+        if sport == "mlb":
+            expected_cols += ["high-team-score"]
+            if style == DFSContestStyle.SHOWDOWN:
+                expected_cols += ["winning-team-WH-allowed", "losing-team-WH-allowed"]
+        elif sport == "nfl":
+            if style == DFSContestStyle.SHOWDOWN:
+                expected_cols.append("td-to-yardage")
+            expected_cols.append("top-possible-lineup-DEF+K-score%")
+        elif sport == "nhl":
+            if style == DFSContestStyle.CLASSIC:
+                expected_cols.append("3-player-line-goals%")
+            elif style == DFSContestStyle.SHOWDOWN:
+                # goalie stats
+                expected_cols += ["winning-team-saves", "losing-team-saves"]
+        elif sport == "nba":
+            expected_cols += ["low_cost_high_use"]
+        else:
+            raise NotImplementedError(f"unhandled {sport=}")
+
+    positional_cols = [
+        col for col in df.columns if col.endswith("|70.0th-pctl-dfs") or col.endswith("|med-dfs")
+    ]
+
+    if features in ("all", "legacy"):
+        expected_cols += positional_cols
+
+    fail_msgs = []
+
+    missing_cols = set(expected_cols).difference(df.columns)
+    unexpected_cols = df.columns.difference(expected_cols)
+
+    if len(missing_cols) > 0:
+        fail_msgs.append(f"missing-cols(n={len(missing_cols)}) = {missing_cols}")
+    if len(unexpected_cols) > 0:
+        if unexpected_mode == "drop":
+            if not fail_msgs:
+                df = df.drop(columns=unexpected_cols)
+        else:
+            fail_msgs.append(f"unexpected-cols(n={len(unexpected_cols)}) = {unexpected_cols}")
+
+    if fail_msgs:
+        raise UnexpectedValueError(
+            f"For {sport=} style={style.value} {features=} column validation failed! "
+            + " ".join(fail_msgs)
+        )
+
+    return df[expected_cols]
 
 
 def generate_train_test(
     df: pd.DataFrame,
+    sport,
+    style: DFSContestStyle,
+    features: ModelFeatures,
     train_size: float = 0.25,
     random_state: None | int = None,
-    model_cols: None | set[str] = None,
     service_as_feature: bool = False,
-) -> None | tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, pd.Series, pd.Series]:
+):
     """
     create regression train test data
     model_cols - if none then use all available columns
     return (X-train, X-test, y-top-train, y-top-test, y-last-win-train, y-last-win-test)
     """
-    x_cols = []
-    assert (
-        (model_cols is None)
-        or (isinstance(model_cols, set) and model_cols <= set(df.columns))
-        or (isinstance(model_cols, str) and model_cols in set(df.columns))
-    ), "Requested model columns not a subset of available data columns"
-
-    for col in df.columns:
-        if col in _COLS_TO_IGNORE:
-            continue
-        assert (
-            "|" in col
-            or col.startswith("team")
-            or col in ["service", "best-possible-score", "mean-hist-pred-diff"]
-        ), f"Unexpected data column named '{col}'"
-
-        if (model_cols is None) or col in model_cols:
-            x_cols.append(col)
+    df = test_for_expected_cols(
+        df, sport, style, unexpected_mode="drop", features=features, include_descriptive_cols=False
+    )
 
     len_pre_na_drop = len(df)
     if not service_as_feature and "service" in df:
         df = df.drop(columns="service")
-    df = df[df["top_score"].notna()]
+    df = df[df["top_winning_score"].notna()]
     df = df[df["last_winning_score"].notna()]
     if len(df) < len_pre_na_drop:
         _LOGGER.info(
@@ -122,13 +223,16 @@ def generate_train_test(
     if len(df) < 2:
         return None
 
-    X = df[x_cols]
-    y_top = df["top_score"]
+    X = df.drop(columns=["top_winning_score", "last_winning_score"])
+    y_top = df["top_winning_score"]
     y_last_win = df["last_winning_score"]
 
     try:
-        sample_data = train_test_split(
-            X, y_top, y_last_win, random_state=random_state, train_size=train_size
+        sample_data = cast(
+            tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, pd.Series, pd.Series],
+            train_test_split(
+                X, y_top, y_last_win, random_state=random_state, train_size=train_size
+            ),
         )
     except ValueError as ex:
         _LOGGER.info("generate_train_test_split:: Error generating train test split", exc_info=ex)

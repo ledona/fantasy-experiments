@@ -20,6 +20,7 @@ from fantasy_py.betting import Contest, FiftyFifty, GeneralPrizePool
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
+from ..modeling.generate_train_test import test_for_expected_cols
 from .slate_scoring import (
     _LOW_PLAYER_COST_PCTL,
     SlateScoreCacheMode,
@@ -809,110 +810,6 @@ def _create_inference_df(
     return df
 
 
-_SHARED_EXPECTED_COLS = [
-    # slate descriptives
-    "date",
-    "style",
-    "type",
-    "link",
-    "slate_id",
-    # target variables
-    "top_winning_score",
-    "last_winning_score",
-    # old&new features
-    "top_possible_lineup_score",
-    # old features
-    "total_score",
-    # new featuers
-    "top_rational_lineup_score",
-    "top_possible_minus_rational",
-    "low_cost_high_value_player_count",
-    # unknown
-    "top_players_scoring_diff_n",
-    "top_players_scoring_diff_pctl",
-]
-
-
-def _test_for_expected_cols(sport, style: DFSContestStyle, inf_df: pd.DataFrame):
-    if style == DFSContestStyle.CLASSIC:
-        expected_cols = [
-            # old&new features
-            "team_count",
-            # old features
-            "team_med",
-            "team-70.0th_pctl",
-            "top3-total",
-        ]
-    elif style == DFSContestStyle.SHOWDOWN:
-        expected_cols = [
-            # new features
-            "contest_entries",
-            "game-total_score",  # same as total score, added because total score is not needed in new classic
-            "game-margin_of_victor",
-        ]
-    else:
-        raise NotImplementedError()
-
-    if sport == "mlb":
-        expected_cols += [
-            # new features
-            "high-team-score",
-        ]
-        if style == DFSContestStyle.SHOWDOWN:
-            # new features
-            expected_cols += [
-                "winning-team-WH-allowed",
-                "losing-team-WH-allowed",
-            ]
-    elif sport == "nfl":
-        if style == DFSContestStyle.SHOWDOWN:
-            expected_cols.append("td-to-yardage")
-        expected_cols.append("top-possible-lineup-DEF+K-score%")
-    elif sport == "nhl":
-        # new features
-        if style == DFSContestStyle.CLASSIC:
-            expected_cols.append("3-player-line-goals%")
-        elif style == DFSContestStyle.SHOWDOWN:
-            # goalie stats
-            expected_cols += [
-                "winning-team-saves",
-                "losing-team-saves",
-            ]
-    elif sport == "nba":
-        expected_cols += [
-            # new features
-            "low_cost_high_use",
-        ]
-    else:
-        raise NotImplementedError()
-
-    expected_cols += _SHARED_EXPECTED_COLS
-
-    # test all cols except for positional scoring
-    cols_in_df = {
-        col
-        for col in inf_df.columns
-        if not (col.endswith("|70.0th-pctl-dfs") or col.endswith("|med-dfs"))
-    }
-    if len(cols_in_df) == len(inf_df.columns):
-        fail_msgs = ["(old) position dfs scoring is missing"]
-    else:
-        fail_msgs = []
-
-    sym_diff = cols_in_df.symmetric_difference(expected_cols)
-    if len(sym_diff) > 0:
-        if unexpected_cols := sorted(sym_diff.difference(expected_cols)):
-            fail_msgs.append(f"unexpected-cols(n={len(unexpected_cols)}) = {unexpected_cols}")
-        if missing_cols := sorted(sym_diff.difference(inf_df.columns)):
-            fail_msgs.append(f"missing-cols(n={len(missing_cols)}) = {missing_cols}")
-
-    if fail_msgs:
-        raise UnexpectedValueError(
-            f"For {sport=} style={style.value} inf_df columns don't match expectations. "
-            + " ".join(fail_msgs)
-        )
-
-
 def _generate_dataset(
     cfg,
     sport,
@@ -1035,7 +932,8 @@ def _generate_dataset(
         style, teams_contest_df, team_score_df, player_scores_df, slate_scores
     )
 
-    _test_for_expected_cols(sport, style, inf_df)
+    # test that inf_df has all features and fail if it does not
+    inf_df = test_for_expected_cols(inf_df, sport, style, unexpected_mode="fail", features="all")
 
     filepath = os.path.join(
         datapath, f"{sport}-{service_name}-{style.name}-{contest_type.TYPE_NAME}.csv"

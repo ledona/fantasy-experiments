@@ -95,8 +95,11 @@
             "exclude_for_cost": ["<", "2000"]
         },
         {
-            // Star Allocation: Force the lineup to contain at least 2 of the top 80th ppg percentile players
             "ppg_pctl_player_pool": [2, 60],
+            "exclude_for_cost": ["<", "2000"]
+        },
+        {
+            "ppg_pctl_player_pool": [2, 40],
             "exclude_for_cost": ["<", "2000"]
         }
     ],

@@ -304,6 +304,7 @@ def _score_lineup(
     label: str,
     gen_lineup_params: GenLineupsParams,
     verbose: bool,
+    raise_known_exceptions: bool,
 ):
     """
     calculate the best possible lineup score for a historic slate
@@ -348,7 +349,9 @@ def _score_lineup(
             slate_id,
             ex,
         )
-        raise
+        if raise_known_exceptions:
+            raise
+        return None
     except Exception as ex:
         _LOGGER.error(
             "%s: Unhandled error generating lineup for service_abbr='%s' sport='%s' slate '%s' (id=%i) on %s.",
@@ -481,6 +484,7 @@ def slate_scoring(
         "top-lineup",
         top_lineup_params,
         True,
+        False,
     )
     if lineup_score_info is None:
         return None
@@ -526,6 +530,7 @@ def slate_scoring(
                 "rational-lineup",
                 brl_gl_params,
                 try_number == len(gen_lineup_params_list),
+                True,
             )
             if best_rational_lineup_info is None:
                 raise UnexpectedValueError(
