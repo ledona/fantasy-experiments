@@ -3,8 +3,9 @@
     "dummy": null,
     "reg_chain": null,
     "flaml": {
-        # in seconds
-        "time_budget": 600,
-        "early_stop": true
+        # in seconds. best model is typically found in under 10 secs
+        "time_budget": 200,
+        "early_stop": true,
+        "estimator_list": ["lgbm", "xgboost", "rf", "extra_tree"]
     }
 }

@@ -10,8 +10,8 @@ _LOGGER = log.get_logger(__name__)
 
 def _log_eval_results(eval_results: list[dict], name: str, csv_folder):
     """
-    write all evaluation results to csv file in the temp folder and return the dataframe
-    also write file(s) that describe the final model(s)
+    Write all evaluation results to csv file in the output folder 
+    and return the dataframe.
     """
     if len(eval_results) == 0:
         _LOGGER.warning("No evaluation results to save")
@@ -19,21 +19,17 @@ def _log_eval_results(eval_results: list[dict], name: str, csv_folder):
 
     df = pd.DataFrame(eval_results)
 
-    eval_cols = [
-        "Sport",
-        "Service",
-        "Type",
-        "Style",
-        "Target",
-    ]
+    eval_cols = ["Sport", "Service", "Type", "Style", "Target", "Features", "Framework", "Date"]
 
     for eval_stat in ["R2", "RMSE", "MAE"]:
         eval_cols += [col for col in df if cast(str, col).startswith(eval_stat)]
 
-    eval_cols += ["Framework", "Date", "Params"]
+    eval_cols.append("Params")
 
-    df = df[eval_cols].sort_values(["Sport", "Service", "Type", "Style", "Target", "Framework"])
     df.Service = df.Service.fillna("multi")
+    df = df[eval_cols].sort_values(
+        ["Sport", "Service", "Type", "Style", "Target", "Features", "Framework", "Date"]
+    )
     if not os.path.isdir(csv_folder):
         os.mkdir(csv_folder)
     results_filepath = os.path.join(csv_folder, name + ".csv")

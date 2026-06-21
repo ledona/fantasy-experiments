@@ -9,12 +9,11 @@ from .model import ExistingModelMode, FitError, Framework, create_model
 
 _LOGGER = log.get_logger(__name__)
 
-ModelTarget = Literal["top", "lws", "lws+top"]
+ModelTarget = Literal["top", "lws", "top+lws"]
 """
-models targets for fitting/evaluation :
-'top' - All available input data predicting the top score
-'lws' - All available input data predicting last winning score
-'lws+top' - All available input data predicting both lws and top score in 1 shot
+top - top winning score
+lws - last winning score
+top+lws - single model that predicts for both top and last winning score in 1 shot
 """
 
 
@@ -24,7 +23,6 @@ def evaluate_models(
     contest_type,
     framework: Framework,
     model_params: dict,
-    model_type_pbar: tqdm,
     data_folder="data",
     eval_results_path: str | None = None,
     model_features: set[ModelFeatures] | None = None,
@@ -99,7 +97,6 @@ def evaluate_models(
                 features,
                 (len(model_data[0]) if model_data else 0),
             )
-            model_type_pbar.update(len(final_model_targets))
 
             failures += [
                 (error_desc_formatter(target, features), {"cause": "Insufficient data"})
@@ -109,49 +106,38 @@ def evaluate_models(
 
         (X_train, X_test, y_top_train, y_top_test, y_last_win_train, y_last_win_test) = model_data
 
-        raise NotImplementedError()
+        for target in (
+            target_pbar := tqdm(
+                final_model_targets, desc="Targets", disable=len(final_model_targets) == 1
+            )
+        ):
+            target_pbar.set_postfix_str(target)
+            if (framework == "reg_chain" and target != "top+lws") or (
+                framework == "flaml" and target == "top+lws"
+            ):
+                _LOGGER.warning(
+                    "Skipping model_target=%s. framework=%s does not support it",
+                    target,
+                    framework,
+                )
+                continue
 
-        for model_target_group in final_model_targets:
-            if model_target_group == "top":
-                if framework == "reg_chain":
-                    _LOGGER.warning(
-                        "Skipping model_target_group=%s. framework=%s is does not support it",
-                        model_target_group,
-                        framework,
-                    )
-                    continue
-                target = "top-score"
+            if target == "top":
                 y_train = y_top_train
                 y_test = y_top_test
-            elif model_target_group == "lws":
-                if framework == "reg_chain":
-                    _LOGGER.warning(
-                        "Skipping model_target_group=%s. framework=%s is does not support it",
-                        model_target_group,
-                        framework,
-                    )
-                    continue
-                target = "last-win-score"
+            elif target == "lws":
                 y_train = y_last_win_train
                 y_test = y_last_win_test
-            elif model_target_group == "lws+top":
-                if framework != "reg_chain":
-                    _LOGGER.warning(
-                        "Skipping model_target_group=%s. framework=%s is does not support it",
-                        model_target_group,
-                        framework,
-                    )
-                    continue
-                target = "top+lw-score"
-                y_train = np.column_stack((y_last_win_train, y_top_train))
-                y_test = np.column_stack((y_last_win_test, y_top_test))
+            elif target == "top+lws":
+                # make sure this is (top, last-winning)
+                y_train = np.column_stack((y_top_train, y_last_win_train))
+                y_test = np.column_stack((y_top_test, y_last_win_test))
             else:
-                raise NotImplementedError(f"don't know how to train {model_target_group=}")
+                raise NotImplementedError(f"don't know how to train {target=}")
 
-            model_desc = f"{model_desc_pre}-{target}-{framework}"
+            model_desc = f"{model_desc_pre}-t:{target}-f:{features}"
 
             _LOGGER.info("training model=%s params=%s", model_desc, model_params)
-            model_type_pbar.set_postfix_str(model_desc)
 
             try:
                 cam_result = create_model(
@@ -169,19 +155,21 @@ def evaluate_models(
             except FitError as ex:
                 _LOGGER.warning(
                     "Skipping model_target_group=%s. framework=%s due to fitting error. ex=%s",
-                    model_target_group,
+                    target,
                     framework,
                     ex,
                 )
                 continue
 
             models[model_desc] = cam_result["model"]
-            model_type_pbar.update()
 
-            finalized_results = cam_result["eval_result"].copy()
-            finalized_results["Target"] = target
-            finalized_results["Params"] = model_params.copy()
-            finalized_results.update(shared_results_dict)
+            finalized_results = {
+                **shared_results_dict,
+                **cam_result["eval_result"],
+                "Target": target,
+                "Features": features,
+                "Params": model_params.copy(),
+            }
 
             eval_results.append(finalized_results)
 

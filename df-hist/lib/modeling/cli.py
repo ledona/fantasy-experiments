@@ -15,7 +15,6 @@ from .results import show_eval_results
 
 _LOGGER = log.get_logger(__name__)
 _DEFAULT_CFG_PATH = os.path.join(".", "model_cfg.json")
-_DEFAULT_RESULTS_PATH = os.path.join(".", "eval_results")
 _DEFAULT_MODEL_PATH = os.path.join(".", "models")
 
 
@@ -37,7 +36,13 @@ def _multi_run(
     generate multiple models for combinations of requested styles,
     sports, services and contest_types
     """
-    _LOGGER.info("starting multirun for %s-%s-%s-%s", sports, services, styles, contest_types)
+    _LOGGER.info(
+        "starting multirun for sports=%s services=%s styles=%s contest_types=%s",
+        sports,
+        services,
+        styles,
+        contest_types,
+    )
 
     with open(model_cfg_filepath, "r") as f_:
         model_cfgs = json.load(f_, cls=JSONWithCommentsDecoder)
@@ -63,6 +68,8 @@ def _multi_run(
         desc="modeling",
     )
     for sport, service, style, contest_type, framework in pbar:
+        desc = f"{sport}-{service}-{contest_type.TYPE_NAME}-{framework}"
+        pbar.set_postfix_str(desc)
         if framework not in model_cfgs:
             raise ValueError(
                 f"framework '{framework}' not defined in model cfg file '{model_cfg_filepath}'"
@@ -76,7 +83,6 @@ def _multi_run(
             contest_type,
             framework,
             framework_params,
-            pbar,
             model_folder=model_folder,
             eval_results_path=eval_results_path,
             model_features=features_set,
@@ -87,22 +93,19 @@ def _multi_run(
         )
         if failed_models:
             all_failed_models += failed_models
-        if new_models is None:
-            _LOGGER.warning(
-                "No models generated for %s-%s-%s-%s-%s",
-                framework,
-                sport,
-                service,
-                style.name,
-                (contest_type if isinstance(contest_type, str) else contest_type.TYPE_NAME),
-            )
+        if not new_models:
+            _LOGGER.warning("No models generated for %s", desc)
             continue
-        assert new_eval_results
         models.update(new_models)
+        assert new_eval_results
         eval_results += new_eval_results
 
-    _LOGGER.info(
-        "finished multirun of %s-%s-%s-%s-%s", frameworks, sports, services, styles, contest_types
+    _LOGGER.success(
+        "finished multirun for sports=%s services=%s styles=%s contest_types=%s",
+        sports,
+        services,
+        styles,
+        contest_types,
     )
     return models, eval_results, all_failed_models
 
@@ -148,13 +151,12 @@ def _process_cmd_line(cmd_line_str=None):
     )
     parser.add_argument(
         "--results_path",
-        default=_DEFAULT_RESULTS_PATH,
-        help=f"path where evaluation results will be written to. default={_DEFAULT_RESULTS_PATH}",
+        help="path where evaluation results will be written. default is the {model_path}/eval-results",
     )
     parser.add_argument(
         "--model_path",
         default=_DEFAULT_MODEL_PATH,
-        help=f"path where models will be written to. default='{_DEFAULT_MODEL_PATH}'",
+        help=f"path where models will be written. default='{_DEFAULT_MODEL_PATH}'",
     )
     parser.add_argument("--data_dir", "--data_path", help="default is ./data", default="data")
     parser.add_argument(
@@ -184,7 +186,7 @@ def _process_cmd_line(cmd_line_str=None):
 
     if args.data_dir is not None and not os.path.isdir(args.data_dir):
         parser.error(f"data directory '{args.data_dir}' is not a folder")
-    if not os.path.isdir(args.results_path):
+    if args.results_path and not os.path.isdir(args.results_path):
         parser.error(f"results path folder '{args.results_path}' does not exist")
     if not os.path.isfile(args.model_cfg_file):
         parser.error(f"model cfg file '{args.model_cfg_file}' does not exist")
@@ -198,6 +200,7 @@ def _process_cmd_line(cmd_line_str=None):
     ]
 
     print(f"{args=}")
+    results_path = args.results_path or os.path.join(args.model_path, "eval-results")
     eval_results, failed_models = _multi_run(
         args.frameworks,
         args.model_cfg_file,
@@ -209,11 +212,11 @@ def _process_cmd_line(cmd_line_str=None):
         set(args.model_features),
         args.model_path,
         args.existing_model_mode,
-        args.results_path,
+        results_path,
         args.data_dir,
     )[1:]
 
-    show_eval_results(eval_results, failed_models, args.results_path)
+    show_eval_results(eval_results, failed_models, results_path)
 
 
 if __name__ == "__main__":

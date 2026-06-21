@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 from ..modeling.generate_train_test import test_for_expected_cols
 from .slate_scoring import (
-    _LOW_PLAYER_COST_PCTL,
+    LOW_PLAYER_COST_PCTL,
     SlateScoreCacheMode,
     SlateScoreItem,
     get_stat_names,
@@ -248,10 +248,14 @@ def _create_team_score_df(
                 session, slate_to_games, ["p_hits", "p_bb"]
             )
             wh_dict = {
-                "winning-team-WH-allowed": mlb_showdown_stats_df["winning-team-p_bb"]
-                + mlb_showdown_stats_df["winning-team-p_hits"],
-                "losing-team-WH-allowed": mlb_showdown_stats_df["losing-team-p_bb"]
-                + mlb_showdown_stats_df["losing-team-p_hits"],
+                "winning-team-WH-allowed": (
+                    mlb_showdown_stats_df["winning-team-p_bb"]
+                    + mlb_showdown_stats_df["winning-team-p_hits"]
+                ),
+                "losing-team-WH-allowed": (
+                    mlb_showdown_stats_df["losing-team-p_bb"]
+                    + mlb_showdown_stats_df["losing-team-p_hits"]
+                ),
             }
             mlb_showdown_stats_df = mlb_showdown_stats_df.assign(**wh_dict).drop(
                 columns=[
@@ -684,8 +688,9 @@ def _get_nhl_3player_line_goal_pct(session, slate_to_games: dict) -> pd.Series:
         line_groups["line_goals"], line_groups["line_assists"] / 2
     )
     inferred_goals = line_groups.groupby("slate_id")["inferred_line_goals"].sum()
-
-    return (inferred_goals / total_goals).rename("3-player-line-goals%")
+    lgp = (inferred_goals / total_goals).rename("3-player-line-goals%")
+    assert len(slate_to_games) == len(lgp)
+    return lgp
 
 
 def _get_nba_low_cost_high_use(session, slate_to_games: dict) -> pd.Series:
@@ -713,10 +718,15 @@ def _get_nba_low_cost_high_use(session, slate_to_games: dict) -> pd.Series:
     time_df = pd.read_sql_query(time_sql, conn)
     merged = cost_df.merge(time_df, on=["slate_id", "player_id"], how="inner")
     cost_threshold = merged.groupby("slate_id")["cost"].transform(
-        lambda x: np.percentile(x, _LOW_PLAYER_COST_PCTL * 100)
+        lambda x: np.percentile(x, LOW_PLAYER_COST_PCTL * 100)
     )
-    qualifying = merged[(merged["cost"] < cost_threshold) & (merged["seconds_played"] >= 1500)]
-    return qualifying.groupby("slate_id").size().rename("low_cost_high_use")
+    qualified_players_df = merged[
+        (merged["cost"] < cost_threshold) & (merged["seconds_played"] >= 1500)
+    ]
+    lchu = qualified_players_df.groupby("slate_id").size().rename("low_cost_high_use")
+    for slate_id in set(slate_to_games.keys()).difference(lchu.index):
+        lchu[slate_id] = 0
+    return lchu
 
 
 def _get_player_scores(session, cfg, sport, style, slate_to_games, top_percentile, df_stat_names):
@@ -726,6 +736,8 @@ def _get_player_scores(session, cfg, sport, style, slate_to_games, top_percentil
       each position for the requested slate(s), sport and service
     """
     _LOGGER.info("calculating player scores for %d slates", len(slate_to_games))
+
+    # TODO: exploded scores is only needed for legacy. if the new feature set is better then drop exploded score retrieval
     db_exploded_pos_df = _get_exploded_pos_df(
         session,
         sport,
@@ -745,13 +757,17 @@ def _get_player_scores(session, cfg, sport, style, slate_to_games, top_percentil
         columns="position",
         values=["med-dfs", f"{top_percentile * 100}th-pctl-dfs"],
     )
+    player_scores_df.columns = player_scores_df.columns.map(
+        lambda names: (names[1] + "|" + names[0]) if names[1] else names[0]
+    )
 
     if sport == "nhl" and style == DFSContestStyle.CLASSIC:
-        player_scores_df["3-player-line-goals%"] = _get_nhl_3player_line_goal_pct(
-            session, slate_to_games
-        )
+        three_player_line_goal_pctl = _get_nhl_3player_line_goal_pct(session, slate_to_games)
+        player_scores_df = player_scores_df.join(three_player_line_goal_pctl)
     elif sport == "nba":
-        player_scores_df["low_cost_high_use"] = _get_nba_low_cost_high_use(session, slate_to_games)
+        lchu = _get_nba_low_cost_high_use(session, slate_to_games)
+        player_scores_df = player_scores_df.join(lchu)
+
     return player_scores_df
 
 
@@ -773,9 +789,6 @@ def _create_inference_df(
         "than the found slates (slate scoring will fail on opening day due to no season to date data)"
     )
 
-    player_scores_df.columns = player_scores_df.columns.map(
-        lambda names: (names[1] + "|" + names[0]) if names[1] else names[0]
-    )
     slate_scores_df = pd.DataFrame(
         list(slate_scores.values()),
         index=list(slate_scores.keys()),

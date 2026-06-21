@@ -114,7 +114,7 @@ def test_for_expected_cols(
     ]
 
     if include_descriptive_cols:
-        expected_cols = [*_DESCRIPTIVE_COLS, expected_cols]
+        expected_cols = [*_DESCRIPTIVE_COLS, *expected_cols]
 
     if style == DFSContestStyle.CLASSIC:
         # everything gets this
@@ -123,13 +123,20 @@ def test_for_expected_cols(
             # old features
             expected_cols += [
                 "total_score",
+                "top_players_scoring_diff_n",
+                "top_players_scoring_diff_pctl",
                 "team_med",
                 "team-70.0th_pctl",
                 "top3-total",
+            ]
+    elif style == DFSContestStyle.SHOWDOWN:
+        if features in ("all", "legacy"):
+            expected_cols += [
+                "total_score",
                 "top_players_scoring_diff_n",
                 "top_players_scoring_diff_pctl",
             ]
-    elif style == DFSContestStyle.SHOWDOWN:
+
         if features in ("all", "202606"):
             # new features
             expected_cols += [

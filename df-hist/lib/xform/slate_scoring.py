@@ -59,7 +59,7 @@ def get_stat_names(sport, service_abbr: Literal["dk", "fd", "y"], as_str=False) 
     return stats
 
 
-_LOW_PLAYER_COST_PCTL = 0.25
+LOW_PLAYER_COST_PCTL = 0.25
 """used to identify low cost players in a slate"""
 
 _LOW_COST_HIGH_VALUE_SCORE_PCTL = 0.9
@@ -121,7 +121,7 @@ def _slate_overperformances(slate_id: int, service, fca: FantasyCostAggregate, s
 
     # dataframe with cost and score thresholds for each slate
     min_score = np.percentile(cost_and_score_df.fpts, _LOW_COST_HIGH_VALUE_SCORE_PCTL * 100)
-    max_cost = np.percentile(cost_and_score_df.cost, _LOW_PLAYER_COST_PCTL * 100)
+    max_cost = np.percentile(cost_and_score_df.cost, LOW_PLAYER_COST_PCTL * 100)
 
     low_cost_high_val_rows = cost_and_score_df[
         (cost_and_score_df.fpts > min_score) & (cost_and_score_df.cost < max_cost)

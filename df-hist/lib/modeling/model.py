@@ -2,7 +2,6 @@ import os
 from math import sqrt
 from typing import Literal
 
-from tabulate import tabulate
 import joblib
 import numpy as np
 import pandas as pd
@@ -15,14 +14,20 @@ from flaml import AutoML as FlamlAutoML
 from sklearn.dummy import DummyRegressor
 from sklearn.multioutput import RegressorChain
 from sklearn.tree import DecisionTreeRegressor
+from tabulate import tabulate
 
 _LOGGER = log.get_logger(__name__)
 
 Framework = Literal["dummy", "reg_chain", "flaml"]
-"""ml framework"""
+"""
+ml framework/method
 
-ModelTarget = Literal["top-score", "last-win-score", "top+lw-score"]
-"""possible model targets"""
+dummy - regressor based on a dummy model
+reg_chain - regression chain using tree regressors, first a regressor for top winning\
+    score, then use its output as a feature in a regressor for the low winning score.\
+    Only applicable to lws+top
+flaml - automl flaml model
+"""
 
 ExistingModelMode = Literal["reuse", "overwrite", "fail"]
 """action to take if a model file already exists"""
@@ -89,6 +94,7 @@ def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_p
 
         if show_results:
             print(f"""
+
 **** Error Report for {desc} ****
 {result}
 
@@ -116,6 +122,8 @@ def _fit_model(
         modeler = DummyRegressor(**(model_params or {}))
     elif framework == "reg_chain":
         base_estimator = DecisionTreeRegressor(**(model_params or {}))
+        # Since the order is 0, 1 and reg chain should be top-score -> lowest score
+        # make sure that the target vector is (top-score, low-score)
         modeler = RegressorChain(base_estimator=base_estimator, order=[0, 1])
     elif framework == "flaml":
         modeler = FlamlAutoML(**(model_params or {}))
@@ -123,6 +131,12 @@ def _fit_model(
         raise NotImplementedError(f"framework '{framework}' not supported")
 
     try:
+        modeler.fit(X_train, y_train, **fit_params)
+    except AttributeError as ex:
+        if framework != "flaml" or str(ex) != "'DummyProcess' object has no attribute 'terminate'":
+            raise
+        _LOGGER.warning("retriable fitting failure with flaml model, lets try this it again...")
+        modeler = FlamlAutoML(**(model_params or {}))
         modeler.fit(X_train, y_train, **fit_params)
     except ValueError as ex:
         if "n_quantiles" in str(ex) and len(X_train) <= 10:

@@ -175,12 +175,12 @@
             "cwd": "${workspaceFolder}/df-hist",
             "args": [
                 "--mode", "reuse", 
-                "nfl", // "mlb", "nhl", "nba", //"lol",
+                "nfl", "mlb", "nhl", "nba", //"lol",
                 "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.06",
                 "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2026.06",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/processed-data",
-                "--framework", "dummy", // "reg_chain", "flaml",
-                "--target", "lws", "top", "lws+top",
+                "--framework", "dummy", "flaml", "reg_chain",
+                "--target", "lws", "top", "top+lws",
                 "--features", "202606", "legacy", "all"
             ]
         },
