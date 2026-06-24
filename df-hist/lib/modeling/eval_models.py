@@ -5,16 +5,40 @@ from fantasy_py import DataNotAvailableException, DFSContestStyle, log, now
 from tqdm import tqdm
 
 from .generate_train_test import ModelFeatures, generate_train_test, load_csv
-from .model import ExistingModelMode, FitError, Framework, create_model
+from .model import ExistingModelMode, FitError, Framework, ModelTarget, create_model
 
 _LOGGER = log.get_logger(__name__)
 
-ModelTarget = Literal["top", "lws", "top+lws"]
-"""
-top - top winning score
-lws - last winning score
-top+lws - single model that predicts for both top and last winning score in 1 shot
-"""
+
+def _get_target_values(
+    target: ModelTarget,
+    y_top_train: np.typing.ArrayLike,
+    y_top_test: np.typing.ArrayLike,
+    y_last_win_train: np.typing.ArrayLike,
+    y_last_win_test: np.typing.ArrayLike,
+):
+    """returns (training-data, test/eval-data)"""
+    if target == "top":
+        return y_top_train, y_top_test
+    if target == "top_log":
+        return np.log1p(y_top_train), np.log1p(y_top_test)
+
+    if target == "lws":
+        return y_last_win_train, y_last_win_test
+    if target == "lws_log":
+        return np.log1p(y_last_win_train), np.log1p(y_last_win_test)
+
+    if target == "top+lws":
+        return np.column_stack((y_top_train, y_last_win_train)), np.column_stack(
+            (y_top_test, y_last_win_test)
+        )
+
+    if target == "top+lws_log":
+        train_data = np.column_stack((np.log1p(y_top_train), np.log1p(y_last_win_train)))
+        test_data = np.column_stack((np.log1p(y_top_test), np.log1p(y_last_win_test)))
+        return train_data, test_data
+
+    raise NotImplementedError(f"don't know how to train {target=}")
 
 
 def evaluate_models(
@@ -64,9 +88,7 @@ def evaluate_models(
         df = load_csv(sport, service, style, contest_type, data_folder=data_folder)
     except DataNotAvailableException as ex:
         _LOGGER.error(
-            "Data file(s) required for modeling not found. Skipping %s",
-            model_desc_pre,
-            exc_info=ex,
+            "Data required for fitting %s not returned. Skipping...", model_desc_pre, exc_info=ex
         )
         failures = [
             (error_desc_formatter(target, features), {"cause": "No data file found"})
@@ -87,6 +109,7 @@ def evaluate_models(
             sport,
             style,
             features,
+            drop_na_rows=(framework.startswith("regchain") or "ridge" in framework),
             random_state=model_params.get("random_state", 0),
             service_as_feature=(service is None),
         )
@@ -112,8 +135,8 @@ def evaluate_models(
             )
         ):
             target_pbar.set_postfix_str(target)
-            if (framework == "reg_chain" and target != "top+lws") or (
-                framework == "flaml" and target == "top+lws"
+            if (framework.startswith("regchain") and not target.startswith("top+lws")) or (
+                framework in ("ridge", "flaml") and target.startswith("top+lws")
             ):
                 _LOGGER.warning(
                     "Skipping model_target=%s. framework=%s does not support it",
@@ -122,19 +145,9 @@ def evaluate_models(
                 )
                 continue
 
-            if target == "top":
-                y_train = y_top_train
-                y_test = y_top_test
-            elif target == "lws":
-                y_train = y_last_win_train
-                y_test = y_last_win_test
-            elif target == "top+lws":
-                # make sure this is (top, last-winning)
-                y_train = np.column_stack((y_top_train, y_last_win_train))
-                y_test = np.column_stack((y_top_test, y_last_win_test))
-            else:
-                raise NotImplementedError(f"don't know how to train {target=}")
-
+            y_train, y_test = _get_target_values(
+                target, y_top_train, y_top_test, y_last_win_train, y_last_win_test
+            )
             model_desc = f"{model_desc_pre}-t:{target}-f:{features}"
 
             _LOGGER.info("training model=%s params=%s", model_desc, model_params)
@@ -147,7 +160,8 @@ def evaluate_models(
                     y_train,
                     X_test,
                     y_test,
-                    framework=framework,
+                    target,
+                    framework,
                     mode=mode,
                     eval_results_path=eval_results_path,
                     **model_params,

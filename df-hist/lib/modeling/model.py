@@ -1,6 +1,6 @@
 import os
 from math import sqrt
-from typing import Literal
+from typing import Literal, cast
 
 import joblib
 import numpy as np
@@ -12,28 +12,41 @@ from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
 )
 from flaml import AutoML as FlamlAutoML
 from sklearn.dummy import DummyRegressor
+from sklearn.linear_model import Ridge
 from sklearn.multioutput import RegressorChain
 from sklearn.tree import DecisionTreeRegressor
 from tabulate import tabulate
 
 _LOGGER = log.get_logger(__name__)
 
-Framework = Literal["dummy", "reg_chain", "flaml"]
+Framework = Literal["dummy", "flaml", "ridge", "regchain_tree", "regchain_ridge"]
 """
 ml framework/method
 
 dummy - regressor based on a dummy model
-reg_chain - regression chain using tree regressors, first a regressor for top winning\
+regchain_tree - regression chain using tree regressors, first a regressor for top winning\
     score, then use its output as a feature in a regressor for the low winning score.\
     Only applicable to lws+top
+regchain_ridge - same as regchain_tree but uses a ridge regressor
 flaml - automl flaml model
+ridge - ridge regressor
+"""
+
+ModelTarget = Literal["top", "lws", "top+lws", "top_log", "lws_log", "top+lws_log"]
+"""
+top - top winning score
+lws - last winning score
+top+lws - single model that predicts for both top and last winning score in 1 shot
+..._log - same as previous but the log of the target score will be the target
 """
 
 ExistingModelMode = Literal["reuse", "overwrite", "fail"]
 """action to take if a model file already exists"""
 
 
-def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_path) -> dict:
+def _error_report(
+    model, target: ModelTarget, X_test, y_test, desc: str, show_results, eval_results_path
+) -> dict:
     """
     display the error report for the model, also return a dict with the scores
     """
@@ -47,50 +60,76 @@ def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_p
 
     result = {"R2": r2, "RMSE": rmse, "MAE": mae}
 
-    if isinstance(y_test, np.ndarray) and y_test.shape[1] == 2:
-        truth_min_max = pd.DataFrame(y_test, columns=["true.min-win", "true.max-win"])
-        pred_min_max = pd.DataFrame(predictions, columns=["pred.min-win", "pred.max-win"])
-        for min_max in ["min", "max"]:
-            truth = truth_min_max[f"true.{min_max}-win"]
-            pred = pred_min_max[f"pred.{min_max}-win"]
-            result[f"R2.{min_max}"] = round(sklearn.metrics.r2_score(truth, pred), 4)
-            result[f"RSME.{min_max}"] = round(
+    if target.startswith("top+lws"):
+        assert isinstance(y_test, np.ndarray) and y_test.shape[1] == 2
+        truth_top_lws = pd.DataFrame(y_test, columns=["true.top", "true.lws"])
+        pred_top_lws = pd.DataFrame(predictions, columns=["pred.top", "pred.lws"])
+        for top_lws in ["top", "lws"]:
+            truth = truth_top_lws[f"true.{top_lws}"]
+            pred = pred_top_lws[f"pred.{top_lws}"]
+            result[f"R2.{top_lws}"] = round(sklearn.metrics.r2_score(truth, pred), 4)
+            result[f"RSME.{top_lws}"] = round(
                 sqrt(sklearn.metrics.mean_squared_error(truth, pred)), 4
             )
-            result[f"MAE.{min_max}"] = round(
+            result[f"MAE.{top_lws}"] = round(
                 sqrt(sklearn.metrics.mean_absolute_error(truth, pred)), 4
             )
+    elif target.startswith("lws"):
+        result.update({"R2.lws": r2, "RMSE.lws": rmse, "MAE.lws": mae})
+    elif target.startswith("top"):
+        result.update({"R2.top": r2, "RMSE.top": rmse, "MAE.top": mae})
+    else:
+        raise NotImplementedError()
 
     if show_results or eval_results_path:
         assert isinstance(predictions, (pd.Series, np.ndarray))
         assert isinstance(y_test, (pd.Series, np.ndarray))
 
         if isinstance(y_test, np.ndarray) and y_test.shape[1] == 2:
-            plot_data = pd.concat([truth_min_max, pred_min_max], axis=1).assign(
+            if target.endswith("_log"):
+                truth_top_lws_score_df = cast(pd.DataFrame, np.expm1(truth_top_lws))
+                pred_top_lws_score_df = cast(pd.DataFrame, np.expm1(pred_top_lws))
+                y_test_score = np.expm1(y_test)
+                predictions_score = np.expm1(predictions)
+            else:
+                truth_top_lws_score_df = truth_top_lws
+                pred_top_lws_score_df = pred_top_lws
+                y_test_score = y_test
+                predictions_score = predictions
+
+            plot_data_df = pd.concat(
+                [truth_top_lws_score_df, pred_top_lws_score_df], axis=1
+            ).assign(
                 **{
-                    "error.min-max": np.linalg.norm(y_test - predictions, axis=1),
-                    "error.min": truth_min_max["true.min-win"] - pred_min_max["pred.min-win"],
-                    "error.max": truth_min_max["true.max-win"] - pred_min_max["pred.max-win"],
-                    "true.score-diff": truth_min_max.diff(axis=1)["true.max-win"],
-                    "pred.score-diff": pred_min_max.diff(axis=1)["pred.max-win"],
+                    "error.top-lws": np.linalg.norm(y_test_score - predictions_score, axis=1),
+                    "error.top": truth_top_lws_score_df["true.top"]
+                    - pred_top_lws_score_df["pred.top"],
+                    "error.lws": truth_top_lws_score_df["true.lws"]
+                    - pred_top_lws_score_df["pred.lws"],
+                    # difference between the true top and lws
+                    "true.score-diff": truth_top_lws_score_df.diff(axis=1)["true.lws"],
+                    # difference between the predicted top and lws
+                    "pred.score-diff": pred_top_lws_score_df.diff(axis=1)["pred.lws"],
                 }
             )
-            plot_data["error.score-diff"] = (
-                plot_data["true.score-diff"] - plot_data["pred.score-diff"]
+            plot_data_df["error.score-diff"] = (
+                plot_data_df["true.score-diff"] - plot_data_df["pred.score-diff"]
             )
         else:
             truth = pd.Series(y_test) if isinstance(y_test, np.ndarray) else y_test
             truth = truth.reset_index(drop=True)
             pred = pd.Series(predictions) if isinstance(predictions, np.ndarray) else predictions
             pred = pred.reset_index(drop=True)
-            plot_data = pd.concat([truth, pred], axis=1)
-            plot_data.columns = ["truth", "prediction"]
-            plot_data["error"] = plot_data.prediction - plot_data.truth
+            plot_data_df = pd.concat([truth, pred], axis=1)
+            if target.endswith("_log"):
+                plot_data_df = cast(pd.DataFrame, np.expm1(plot_data_df))
+            plot_data_df.columns = ["truth", "prediction"]
+            plot_data_df["error"] = plot_data_df.prediction - plot_data_df.truth
 
         if eval_results_path:
             predictions_filename = os.path.join(eval_results_path, desc + ".prediction.csv")
             with open(predictions_filename, "w") as f_:
-                plot_data.to_csv(f_, index=False)
+                plot_data_df.to_csv(f_, index=False)
 
         if show_results:
             print(f"""
@@ -98,7 +137,7 @@ def _error_report(model, X_test, y_test, desc: str, show_results, eval_results_p
 **** Error Report for {desc} ****
 {result}
 
-{tabulate(plot_data, showindex=False, headers="keys")}
+{tabulate(plot_data_df, showindex=False, headers="keys")}
 """)
 
     return result
@@ -112,62 +151,54 @@ def _fit_model(
     model_desc,
     X_train,
     y_train,
-    framework,
+    framework: Framework,
     random_state,
     model_params,
     model_filepath,
 ):
-    fit_params = {}
     if framework == "dummy":
         modeler = DummyRegressor(**(model_params or {}))
-    elif framework == "reg_chain":
-        base_estimator = DecisionTreeRegressor(**(model_params or {}))
+    elif framework.startswith("regchain"):
+        if framework == "regchain_tree":
+            base_estimator = DecisionTreeRegressor(
+                random_state=random_state, **(model_params or {})
+            )
+        elif framework == "regchain_ridge":
+            base_estimator = Ridge(random_state=random_state, **(model_params or {}))
+        else:
+            raise NotImplementedError()
         # Since the order is 0, 1 and reg chain should be top-score -> lowest score
         # make sure that the target vector is (top-score, low-score)
-        modeler = RegressorChain(base_estimator=base_estimator, order=[0, 1])
+        modeler = RegressorChain(base_estimator, order=[0, 1])
+    elif framework == "ridge":
+        modeler = Ridge(random_state=random_state, **(model_params or {}))
     elif framework == "flaml":
         modeler = FlamlAutoML(**(model_params or {}))
     else:
         raise NotImplementedError(f"framework '{framework}' not supported")
 
     try:
-        modeler.fit(X_train, y_train, **fit_params)
-    except AttributeError as ex:
-        if framework != "flaml" or str(ex) != "'DummyProcess' object has no attribute 'terminate'":
+        modeler.fit(X_train, y_train)
+        retry = False
+    except (AttributeError, RuntimeError) as ex:
+        if framework != "flaml" or str(ex) not in (
+            "'DummyProcess' object has no attribute 'terminate'",
+            "can't start new thread",
+        ):
             raise
         _LOGGER.warning("retriable fitting failure with flaml model, lets try this it again...")
-        modeler = FlamlAutoML(**(model_params or {}))
-        modeler.fit(X_train, y_train, **fit_params)
-    except ValueError as ex:
-        if "n_quantiles" in str(ex) and len(X_train) <= 10:
-            raise FitError(
-                "n_quantiles related data failure due to insufficient training data "
-                ">10 training samples are required. number of training samples "
-                f"available was {len(X_train)}"
-            ) from ex
+        retry = True
 
-    try:
-        feature_names_from_win_score_model(modeler)
-    except DataNotAvailableException:
-        if modeler.steps[0][0].startswith("zero"):
-            _LOGGER.info(
-                "For '%s' adding 'fantasy_features_names' attribute to the "
-                "estimator that does not implement feature_names_in_",
-                model_desc,
-            )
-        else:
-            _LOGGER.error(
-                "Failed to retrieve feature names from model '%s'. "
-                "Adding a 'fantasy_features_names' attribute to the estimator. "
-                "Attempt to fix this by explicitly identifying the estimator as "
-                "not implementing feature_name_in_ or by by figuring out how to "
-                "get features from the estimator type",
-                model_desc,
-            )
-        modeler.fantasy_feature_names = X_train.columns
+    if retry:
+        modeler = FlamlAutoML(**(model_params or {}))
+        modeler.fit(X_train, y_train)
+
+    # verify that feature names are defined in the model
+    feature_names_from_win_score_model(modeler)
+
     _LOGGER.info("writing model to pickled file '%s'", model_filepath)
     joblib.dump(modeler, model_filepath)
-    return modeler, fit_params
+    return modeler
 
 
 def create_model(
@@ -177,8 +208,9 @@ def create_model(
     y_train,
     X_test,
     y_test,
+    target: ModelTarget,
+    framework: Framework,
     random_state=1,
-    framework: Framework = "reg_chain",
     mode: ExistingModelMode = "fail",
     eval_results_path=None,
     **model_params,
@@ -190,7 +222,6 @@ def create_model(
     X_test, y_test - if not None then score
     model_desc - model description used for filename and logging
     model_params - used when creating the model object
-
     returns - dict containing model, fit_params and evaluation results
     """
     model_filepath = os.path.join(model_dir, model_desc + ".pkl")
@@ -201,9 +232,8 @@ def create_model(
     if file_exists and mode == "reuse":
         _LOGGER.info("Reusing model at '%s'", model_filepath)
         model = joblib.load(model_filepath)
-        fit_params = None
     else:
-        model, fit_params = _fit_model(
+        model = _fit_model(
             model_desc,
             X_train,
             y_train,
@@ -213,6 +243,8 @@ def create_model(
             model_filepath,
         )
 
-    eval_results = _error_report(model, X_test, y_test, model_desc, True, eval_results_path)
+    eval_results = _error_report(
+        model, target, X_test, y_test, model_desc, True, eval_results_path
+    )
 
-    return {"model": model, "fit_params": fit_params, "eval_result": eval_results}
+    return {"model": model, "eval_result": eval_results}

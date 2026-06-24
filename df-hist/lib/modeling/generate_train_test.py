@@ -47,7 +47,7 @@ def load_csv(
     nan_best_score_rows = len(df.query("top_possible_lineup_score.isnull()"))
     if nan_slate_rows > 0 or nan_best_score_rows > 0:
         orig_rows = len(df)
-        df = df.dropna()
+        df = df.dropna(subset=["slate_id", "top_possible_lineup_score"])
         _LOGGER.info(
             "Dropped %i rows. nan_slate_rows=%i nan_best_score_rows=%i. Remaining cases "
             "after drop = %i",
@@ -195,7 +195,16 @@ def test_for_expected_cols(
             + " ".join(fail_msgs)
         )
 
-    return df[expected_cols]
+    clean_df = df[expected_cols]
+
+    if clean_df.isna().all().any():
+        na_cols = list(clean_df.columns[clean_df.isna().all()])
+        raise UnexpectedValueError(
+            f"For {sport=} style={style.value} {features=} column validation failed! "
+            f"Following columns are all na: {na_cols}"
+        )
+
+    return clean_df
 
 
 def generate_train_test(
@@ -203,13 +212,16 @@ def generate_train_test(
     sport,
     style: DFSContestStyle,
     features: ModelFeatures,
-    train_size: float = 0.25,
+    train_size: float = 0.75,
     random_state: None | int = None,
     service_as_feature: bool = False,
+    drop_na_rows=False,
 ):
     """
     create regression train test data
     model_cols - if none then use all available columns
+    drop_na_rows - default behavior is to only drop rows where top/lws score is not available, when true if any
+        columns is NA a row will be dropped
     return (X-train, X-test, y-top-train, y-top-test, y-last-win-train, y-last-win-test)
     """
     df = test_for_expected_cols(
@@ -219,30 +231,29 @@ def generate_train_test(
     len_pre_na_drop = len(df)
     if not service_as_feature and "service" in df:
         df = df.drop(columns="service")
-    df = df[df["top_winning_score"].notna()]
-    df = df[df["last_winning_score"].notna()]
+    na_cols_to_test = None if drop_na_rows else ["top_winning_score", "last_winning_score"]
+    df = df.dropna(subset=na_cols_to_test)
     if len(df) < len_pre_na_drop:
         _LOGGER.info(
-            "Dropped %i rows of %i due to NaNs in top_score or last_winning_score",
+            "Dropped %i of %i rows due to NaNs in %s",
             len_pre_na_drop - len(df),
             len_pre_na_drop,
+            "any column" if na_cols_to_test is None else f"cols: {na_cols_to_test}",
         )
     if len(df) < 2:
         return None
 
     X = df.drop(columns=["top_winning_score", "last_winning_score"])
     y_top = df["top_winning_score"]
-    y_last_win = df["last_winning_score"]
+    y_lws = df["last_winning_score"]
 
     try:
-        sample_data = cast(
+        X_train, X_test, y_train_top, y_test_top, y_train_lws, y_test_lws = cast(
             tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, pd.Series, pd.Series],
-            train_test_split(
-                X, y_top, y_last_win, random_state=random_state, train_size=train_size
-            ),
+            train_test_split(X, y_top, y_lws, random_state=random_state, train_size=train_size),
         )
     except ValueError as ex:
         _LOGGER.info("generate_train_test_split:: Error generating train test split", exc_info=ex)
         return None
 
-    return sample_data
+    return X_train, X_test, y_train_top, y_test_top, y_train_lws, y_test_lws

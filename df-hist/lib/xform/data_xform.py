@@ -228,8 +228,8 @@ def _create_team_score_df(
             cols.append("high-team-score")
         team_score_df = (
             db_team_score_df[cols]
-            .set_index("slate_id")
             .assign(**{"game-total_score": db_team_score_df.total_score})
+            .set_index("slate_id")
         )
 
         if sport == "nhl":

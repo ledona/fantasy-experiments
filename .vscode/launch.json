@@ -176,12 +176,13 @@
             "args": [
                 "--mode", "reuse", 
                 "nfl", "mlb", "nhl", "nba", //"lol",
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.06",
-                "--results_path", "/fantasy-isync/fantasy-dfs-hist/eval_results/2026.06",
+                // "--styles", "showdown", "classic",
+                // "--contest_type", "GPP", "FIFTY_FIFTY",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.06-2",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/processed-data",
-                "--framework", "dummy", "flaml", "reg_chain",
-                "--target", "lws", "top", "top+lws",
-                "--features", "202606", "legacy", "all"
+                "--framework", "dummy", "flaml", "regchain_ridge", "ridge", "regchain_tree",
+                "--target", "lws", "top", "top+lws", "lws_log", "top_log", "top+lws_log",
+                // "--features", "202606", "legacy", "all"
             ]
         },
         {

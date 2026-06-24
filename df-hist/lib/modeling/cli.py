@@ -9,8 +9,8 @@ from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCom
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool, LineupContest
 from tqdm import tqdm
 
-from .eval_models import ModelFeatures, ModelTarget, evaluate_models
-from .model import ExistingModelMode, Framework
+from .eval_models import ModelFeatures, evaluate_models
+from .model import ExistingModelMode, Framework, ModelTarget
 from .results import show_eval_results
 
 _LOGGER = log.get_logger(__name__)
@@ -65,10 +65,11 @@ def _multi_run(
             sorted(frameworks),
         ),
         total=progress_total,
+        disable=progress_total == 1,
         desc="modeling",
     )
     for sport, service, style, contest_type, framework in pbar:
-        desc = f"{sport}-{service}-{contest_type.TYPE_NAME}-{framework}"
+        desc = f"{sport}-{service}-{contest_type.TYPE_NAME}-{style.value}-{framework}"
         pbar.set_postfix_str(desc)
         if framework not in model_cfgs:
             raise ValueError(
@@ -123,8 +124,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--contest_styles",
         "--styles",
         nargs="+",
-        choices=[DFSContestStyle.CLASSIC, DFSContestStyle.SHOWDOWN],
-        default=[DFSContestStyle.CLASSIC, DFSContestStyle.SHOWDOWN],
+        choices=[DFSContestStyle.CLASSIC.value, DFSContestStyle.SHOWDOWN.value],
+        default=[DFSContestStyle.CLASSIC.value, DFSContestStyle.SHOWDOWN.value],
     )
     parser.add_argument(
         "--contest_types",
@@ -169,7 +170,7 @@ def _process_cmd_line(cmd_line_str=None):
         help="The type of ml framework/algorithm to use",
         choices=Framework.__args__,
         nargs="+",
-        default=["reg_chain"],
+        default=["regchain_tree"],
     )
     parser.add_argument(
         "--existing_model_mode",
@@ -186,8 +187,15 @@ def _process_cmd_line(cmd_line_str=None):
 
     if args.data_dir is not None and not os.path.isdir(args.data_dir):
         parser.error(f"data directory '{args.data_dir}' is not a folder")
-    if args.results_path and not os.path.isdir(args.results_path):
-        parser.error(f"results path folder '{args.results_path}' does not exist")
+    results_path = args.results_path or os.path.join(args.model_path, "eval-results")
+
+    if not os.path.isdir(results_path):
+        if os.path.exists(results_path):
+            parser.error(f"results path directory '{results_path}' is not a folder")
+        if args.results_path:
+            parser.error(f"results path folder '{args.results_path}' does not exist")
+        # results path is using the default, so lets just create the dir
+        os.mkdir(results_path)
     if not os.path.isfile(args.model_cfg_file):
         parser.error(f"model cfg file '{args.model_cfg_file}' does not exist")
     if not os.path.isdir(args.model_path):
@@ -200,7 +208,6 @@ def _process_cmd_line(cmd_line_str=None):
     ]
 
     print(f"{args=}")
-    results_path = args.results_path or os.path.join(args.model_path, "eval-results")
     eval_results, failed_models = _multi_run(
         args.frameworks,
         args.model_cfg_file,

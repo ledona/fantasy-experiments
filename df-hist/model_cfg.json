@@ -1,11 +1,14 @@
 # following are used a kwargs for the instanciation of fitter class of the framework
 {
     "dummy": null,
-    "reg_chain": null,
+    "regchain_tree": null,
+    "regchain_ridge": null,
+    "ridge": null,
     "flaml": {
         # in seconds. best model is typically found in under 10 secs
-        "time_budget": 200,
+        "time_budget": 60,
         "early_stop": true,
-        "estimator_list": ["lgbm", "xgboost", "rf", "extra_tree"]
+        "estimator_list": ["lgbm", "xgboost", "rf", "extra_tree"],
+        "metric": "mae"
     }
 }
