@@ -1,6 +1,6 @@
 import pytest
 
-from ..pt_model.train_test import _infer_extra_stat_name_type
+from ..lib.pt_model.train_test import _infer_extra_stat_name_type
 
 
 @pytest.mark.parametrize(

@@ -1,21 +1,33 @@
 import os
 from math import sqrt
-from typing import Literal, cast
+from typing import Literal
 
 import joblib
 import numpy as np
 import pandas as pd
 import sklearn
-from fantasy_py import DataNotAvailableException, FantasyException, log
+from fantasy_py import (
+    CONTEST_DOMAIN,
+    FANTASY_SERVICE_DOMAIN,
+    SPORT_DB_MANAGER_DOMAIN,
+    CLSRegistry,
+    DFSContestStyle,
+    FantasyException,
+    UnexpectedValueError,
+    log,
+)
 from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
     feature_names_from_win_score_model,
 )
+from fantasy_py.betting import LineupContest
 from flaml import AutoML as FlamlAutoML
 from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import Ridge
 from sklearn.multioutput import RegressorChain
 from sklearn.tree import DecisionTreeRegressor
 from tabulate import tabulate
+
+from .generate_train_test import ModelFeatures, TrainTestData
 
 _LOGGER = log.get_logger(__name__)
 
@@ -44,16 +56,152 @@ ExistingModelMode = Literal["reuse", "overwrite", "fail"]
 """action to take if a model file already exists"""
 
 
+def model_filenamer(
+    prefix: str | None = None,
+    sport: None | str = None,
+    service: str | None = None,
+    style: None | DFSContestStyle | str = None,
+    contest_type: None | LineupContest | str = None,
+    framework: Framework | None = None,
+    target: None | ModelTarget = None,
+    features: ModelFeatures | None = None,
+):
+    """
+    Generate enough of the filename as can be created with the params
+    If prefix is defined then parse it to infer filename name parts
+    Fail if a valid filename or prefix cannot be created from the parameters.
+    """
+    name_parts_dict = {
+        "sport": sport,
+        "service": service,
+        "style_name": style if style is None or isinstance(style, str) else style.name,
+        "contest_type_name": (
+            contest_type
+            if contest_type is None or isinstance(contest_type, str)
+            else contest_type.TYPE_NAME
+        ),
+        "framework": framework,
+        "target": target,
+        "features": features,
+    }
+
+    if prefix:
+        if sport:
+            raise UnexpectedValueError(
+                "Prefix parse failure! prefix and sport should not both be defined"
+            )
+        if "." in prefix:
+            raise UnexpectedValueError("Prefix parse failure! Prefix should not have a '.'")
+
+        parts = prefix.split("-")
+        filenamer_parts = [
+            "sport",
+            "service",
+            "style_name",
+            "contest_type_name",
+            "framework",
+            "target",
+            "features",
+        ]
+
+        if len(parts) > len(filenamer_parts):
+            raise UnexpectedValueError("Prefix parse failure! Prefix has too many parts")
+
+        for prefix_part, prefix_value in zip(filenamer_parts[: len(parts)], parts):
+            if kwarg_value := name_parts_dict[prefix_part]:
+                raise UnexpectedValueError(
+                    f"Prefix parse failure! {prefix_part} is defined in both prefix and kwarg. {prefix_value=} {kwarg_value=}"
+                )
+            name_parts_dict[prefix_part] = prefix_value
+
+    # make sure that there are no holes/undefined-parts-in-the-middle and also make sure that every part value is valid
+    first_undefined_part = None
+    parts = []
+    for part, value in name_parts_dict.items():
+        if not value:
+            if not first_undefined_part:
+                first_undefined_part = part
+            continue
+
+        if first_undefined_part:
+            raise UnexpectedValueError(
+                "Cannot create a model filename because filename parts are defined "
+                f"after undefined part {first_undefined_part}"
+            )
+
+        if part == "sport":
+            if value not in CLSRegistry.get_names(SPORT_DB_MANAGER_DOMAIN):
+                raise UnexpectedValueError(f"Model filename create error. sport={value} is invalid")
+        elif part == "service":
+            if value not in CLSRegistry.get_names(FANTASY_SERVICE_DOMAIN):
+                raise UnexpectedValueError(
+                    f"Model filename create error. service={value} is invalid"
+                )
+        elif part == "style_name":
+            if value not in DFSContestStyle.__members__:
+                raise UnexpectedValueError(
+                    f"Model filename create error. style_name={value} is invalid"
+                )
+        elif part == "contest_type_name":
+            if value not in CLSRegistry.get_names(CONTEST_DOMAIN):
+                raise UnexpectedValueError(
+                    f"Model filename create error. contest_type_name={value} is invalid"
+                )
+        elif part == "framework":
+            if value not in Framework.__args__:
+                raise UnexpectedValueError(
+                    f"Model filename create error. framework={value} is invalid"
+                )
+        elif part == "target":
+            if value not in ModelTarget.__args__:
+                raise UnexpectedValueError(
+                    f"Model filename create error. target={value} is invalid"
+                )
+            value = "t:" + value
+        elif part == "features":
+            if value not in ModelFeatures.__args__:
+                raise UnexpectedValueError(
+                    f"Model filename create error. features={value} is invalid"
+                )
+            value = "f:" + value
+        else:
+            raise NotImplementedError(f"don't know how to validate {part=} {value=} ")
+        parts.append(value)
+
+    # we should be able to create a valid full name or prefix
+    if not parts:
+        raise UnexpectedValueError(
+            "Model filename create error. Provided arguments did not generate a name"
+        )
+    name = "-".join(parts)
+    return name
+
+
 def _error_report(
-    model, target: ModelTarget, X_test, y_test, desc: str, show_results, eval_results_path
+    model,
+    target: ModelTarget,
+    X_test,
+    y_test_fit_data,
+    slate_ids,
+    desc: str,
+    show_results,
+    eval_results_path,
 ) -> dict:
     """
     display the error report for the model, also return a dict with the scores
     """
-    predictions = model.predict(X_test)
+    predictions_raw = model.predict(X_test)
+
+    if target.endswith("_log"):
+        predictions = np.expm1(predictions_raw)
+        y_test = np.expm1(y_test_fit_data)
+    else:
+        predictions = predictions_raw
+        y_test = y_test_fit_data
 
     if isinstance(predictions, pd.DataFrame):
         predictions = predictions[predictions.columns[0]]
+
     r2 = round(sklearn.metrics.r2_score(y_test, predictions), 4)
     rmse = round(sqrt(sklearn.metrics.mean_squared_error(y_test, predictions)), 4)
     mae = round(sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)), 4)
@@ -68,7 +216,7 @@ def _error_report(
             truth = truth_top_lws[f"true.{top_lws}"]
             pred = pred_top_lws[f"pred.{top_lws}"]
             result[f"R2.{top_lws}"] = round(sklearn.metrics.r2_score(truth, pred), 4)
-            result[f"RSME.{top_lws}"] = round(
+            result[f"RMSE.{top_lws}"] = round(
                 sqrt(sklearn.metrics.mean_squared_error(truth, pred)), 4
             )
             result[f"MAE.{top_lws}"] = round(
@@ -86,30 +234,15 @@ def _error_report(
         assert isinstance(y_test, (pd.Series, np.ndarray))
 
         if isinstance(y_test, np.ndarray) and y_test.shape[1] == 2:
-            if target.endswith("_log"):
-                truth_top_lws_score_df = cast(pd.DataFrame, np.expm1(truth_top_lws))
-                pred_top_lws_score_df = cast(pd.DataFrame, np.expm1(pred_top_lws))
-                y_test_score = np.expm1(y_test)
-                predictions_score = np.expm1(predictions)
-            else:
-                truth_top_lws_score_df = truth_top_lws
-                pred_top_lws_score_df = pred_top_lws
-                y_test_score = y_test
-                predictions_score = predictions
-
-            plot_data_df = pd.concat(
-                [truth_top_lws_score_df, pred_top_lws_score_df], axis=1
-            ).assign(
+            plot_data_df = pd.concat([truth_top_lws, pred_top_lws], axis=1).assign(
                 **{
-                    "error.top-lws": np.linalg.norm(y_test_score - predictions_score, axis=1),
-                    "error.top": truth_top_lws_score_df["true.top"]
-                    - pred_top_lws_score_df["pred.top"],
-                    "error.lws": truth_top_lws_score_df["true.lws"]
-                    - pred_top_lws_score_df["pred.lws"],
+                    "error.top-lws": np.linalg.norm(y_test - predictions, axis=1),
+                    "error.top": truth_top_lws["true.top"] - pred_top_lws["pred.top"],
+                    "error.lws": truth_top_lws["true.lws"] - pred_top_lws["pred.lws"],
                     # difference between the true top and lws
-                    "true.score-diff": truth_top_lws_score_df.diff(axis=1)["true.lws"],
+                    "true.score-diff": truth_top_lws.diff(axis=1)["true.lws"],
                     # difference between the predicted top and lws
-                    "pred.score-diff": pred_top_lws_score_df.diff(axis=1)["pred.lws"],
+                    "pred.score-diff": pred_top_lws.diff(axis=1)["pred.lws"],
                 }
             )
             plot_data_df["error.score-diff"] = (
@@ -121,11 +254,10 @@ def _error_report(
             pred = pd.Series(predictions) if isinstance(predictions, np.ndarray) else predictions
             pred = pred.reset_index(drop=True)
             plot_data_df = pd.concat([truth, pred], axis=1)
-            if target.endswith("_log"):
-                plot_data_df = cast(pd.DataFrame, np.expm1(plot_data_df))
             plot_data_df.columns = ["truth", "prediction"]
             plot_data_df["error"] = plot_data_df.prediction - plot_data_df.truth
 
+        plot_data_df.insert(0, "slate_id", slate_ids.reset_index(drop=True))
         if eval_results_path:
             predictions_filename = os.path.join(eval_results_path, desc + ".prediction.csv")
             with open(predictions_filename, "w") as f_:
@@ -148,7 +280,6 @@ class FitError(FantasyException):
 
 
 def _fit_model(
-    model_desc,
     X_train,
     y_train,
     framework: Framework,
@@ -204,9 +335,8 @@ def _fit_model(
 def create_model(
     model_desc: str,
     model_dir: str,
-    X_train,
+    tt_data: TrainTestData,
     y_train,
-    X_test,
     y_test,
     target: ModelTarget,
     framework: Framework,
@@ -234,17 +364,18 @@ def create_model(
         model = joblib.load(model_filepath)
     else:
         model = _fit_model(
-            model_desc,
-            X_train,
-            y_train,
-            framework,
-            random_state,
-            model_params,
-            model_filepath,
+            tt_data.X_train, y_train, framework, random_state, model_params, model_filepath
         )
 
     eval_results = _error_report(
-        model, target, X_test, y_test, model_desc, True, eval_results_path
+        model,
+        target,
+        tt_data.X_test,
+        y_test,
+        tt_data.test_slate_ids,
+        model_desc,
+        True,
+        eval_results_path,
     )
 
     return {"model": model, "eval_result": eval_results}

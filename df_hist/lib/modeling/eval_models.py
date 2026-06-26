@@ -1,41 +1,40 @@
-from typing import Literal
-
 import numpy as np
 from fantasy_py import DataNotAvailableException, DFSContestStyle, log, now
 from tqdm import tqdm
 
-from .generate_train_test import ModelFeatures, generate_train_test, load_csv
-from .model import ExistingModelMode, FitError, Framework, ModelTarget, create_model
+from .generate_train_test import ModelFeatures, TrainTestData, generate_train_test, load_csv
+from .model import (
+    ExistingModelMode,
+    FitError,
+    Framework,
+    ModelTarget,
+    create_model,
+    model_filenamer,
+)
 
 _LOGGER = log.get_logger(__name__)
 
 
-def _get_target_values(
-    target: ModelTarget,
-    y_top_train: np.typing.ArrayLike,
-    y_top_test: np.typing.ArrayLike,
-    y_last_win_train: np.typing.ArrayLike,
-    y_last_win_test: np.typing.ArrayLike,
-):
+def _get_target_values(target: ModelTarget, tt_data: TrainTestData):
     """returns (training-data, test/eval-data)"""
     if target == "top":
-        return y_top_train, y_top_test
+        return tt_data.y_train_top, tt_data.y_test_top
     if target == "top_log":
-        return np.log1p(y_top_train), np.log1p(y_top_test)
+        return np.log1p(tt_data.y_train_top), np.log1p(tt_data.y_test_top)
 
     if target == "lws":
-        return y_last_win_train, y_last_win_test
+        return tt_data.y_train_lws, tt_data.y_test_lws
     if target == "lws_log":
-        return np.log1p(y_last_win_train), np.log1p(y_last_win_test)
+        return np.log1p(tt_data.y_train_lws), np.log1p(tt_data.y_test_lws)
 
     if target == "top+lws":
-        return np.column_stack((y_top_train, y_last_win_train)), np.column_stack(
-            (y_top_test, y_last_win_test)
+        return np.column_stack((tt_data.y_train_top, tt_data.y_train_lws)), np.column_stack(
+            (tt_data.y_test_top, tt_data.y_test_lws)
         )
 
     if target == "top+lws_log":
-        train_data = np.column_stack((np.log1p(y_top_train), np.log1p(y_last_win_train)))
-        test_data = np.column_stack((np.log1p(y_top_test), np.log1p(y_last_win_test)))
+        train_data = np.column_stack((np.log1p(tt_data.y_train_top), np.log1p(tt_data.y_train_lws)))
+        test_data = np.column_stack((np.log1p(tt_data.y_test_top), np.log1p(tt_data.y_test_lws)))
         return train_data, test_data
 
     raise NotImplementedError(f"don't know how to train {target=}")
@@ -52,7 +51,7 @@ def evaluate_models(
     model_features: set[ModelFeatures] | None = None,
     model_targets: set[ModelTarget] | None = None,
     model_folder="models",
-    service=None,
+    service: str | None = None,
     mode: ExistingModelMode = "fail",
 ):
     """
@@ -64,7 +63,7 @@ def evaluate_models(
 
     returns tuple of (models, evaluation results, failed models)
     """
-    service_name = service or "multi"
+    assert service
     models = {}
     eval_results = []
     shared_results_dict = {
@@ -78,7 +77,9 @@ def evaluate_models(
     final_model_targets: set[ModelTarget] = (
         set(ModelTarget.__args__) if model_targets is None else model_targets
     )
-    model_desc_pre = "-".join([sport, service_name, style.name, contest_type.TYPE_NAME, framework])
+    model_desc_pre = model_filenamer(
+        sport=sport, service=service, style=style, contest_type=contest_type, framework=framework
+    )
     final_model_feature_sets = model_features or ModelFeatures.__args__
 
     def error_desc_formatter(targ, feats):
@@ -91,7 +92,10 @@ def evaluate_models(
             "Data required for fitting %s not returned. Skipping...", model_desc_pre, exc_info=ex
         )
         failures = [
-            (error_desc_formatter(target, features), {"cause": "No data file found"})
+            (
+                model_filenamer(prefix=model_desc_pre, target=target, features=features),
+                {"cause": "No data file found"},
+            )
             for target in final_model_targets
             for features in final_model_feature_sets
         ]
@@ -104,21 +108,20 @@ def evaluate_models(
         )
     ):
         features_pbar.set_postfix_str(features)
-        model_data = generate_train_test(
+        tt_data = generate_train_test(
             df,
             sport,
             style,
             features,
             drop_na_rows=(framework.startswith("regchain") or "ridge" in framework),
             random_state=model_params.get("random_state", 0),
-            service_as_feature=(service is None),
         )
-        if model_data is None or len(model_data[0]) < 5:
+        if tt_data is None or len(tt_data.X_train) < 5:
             _LOGGER.error(
                 "Not enough training data available for %s features:%s! Only found %i training cases. Skipping...",
                 model_desc_pre,
                 features,
-                (len(model_data[0]) if model_data else 0),
+                (len(tt_data.X_train) if tt_data else 0),
             )
 
             failures += [
@@ -126,8 +129,6 @@ def evaluate_models(
                 for target in final_model_targets
             ]
             continue
-
-        (X_train, X_test, y_top_train, y_top_test, y_last_win_train, y_last_win_test) = model_data
 
         for target in (
             target_pbar := tqdm(
@@ -145,10 +146,8 @@ def evaluate_models(
                 )
                 continue
 
-            y_train, y_test = _get_target_values(
-                target, y_top_train, y_top_test, y_last_win_train, y_last_win_test
-            )
-            model_desc = f"{model_desc_pre}-t:{target}-f:{features}"
+            y_train, y_test = _get_target_values(target, tt_data)
+            model_desc = model_filenamer(prefix=model_desc_pre, target=target, features=features)
 
             _LOGGER.info("training model=%s params=%s", model_desc, model_params)
 
@@ -156,9 +155,8 @@ def evaluate_models(
                 cam_result = create_model(
                     model_desc,
                     model_folder,
-                    X_train,
+                    tt_data,
                     y_train,
-                    X_test,
                     y_test,
                     target,
                     framework,

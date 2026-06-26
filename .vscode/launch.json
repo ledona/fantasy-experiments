@@ -112,7 +112,7 @@
             "request": "launch",
             "module": "lib.retrieve.retrieve_hist",
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/df-hist",
+            "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 // "yahoo",
                 "draftkings", 
@@ -134,7 +134,7 @@
             "request": "launch",
             "module": "lib.retrieve.retrieve_hist",
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/df-hist",
+            "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 // "yahoo",
                 "draftkings", 
@@ -154,7 +154,7 @@
             "request": "launch",
             "module": "lib.xform.cli",
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/df-hist",
+            "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/processed-data/xform-cache",
                 "--services", "draftkings",
@@ -172,7 +172,7 @@
             "request": "launch",
             "module": "lib.modeling.cli",
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/df-hist",
+            "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 "--mode", "reuse", 
                 "nfl", "mlb", "nhl", "nba", //"lol",
@@ -181,8 +181,19 @@
                 "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.06-2",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/processed-data",
                 "--framework", "dummy", "flaml", "regchain_ridge", "ridge", "regchain_tree",
-                "--target", "lws", "top", "top+lws", "lws_log", "top_log", "top+lws_log",
+                "--target", "lws_log", "top_log", "lws", "top", "top+lws", "top+lws_log",
                 // "--features", "202606", "legacy", "all"
+            ]
+        },
+        {
+            "name": "df-hist model-eval-xform",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.modeling.eval_xform",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/df_hist",
+            "args": [
+                "/fantasy-isync/fantasy-dfs-hist/models/2026.06-2/eval-results/all_eval_results-20260626:221353.csv",
             ]
         },
         {

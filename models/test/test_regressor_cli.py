@@ -24,12 +24,12 @@ from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
-from ..pt_model import TRAINING_PARAM_DEFAULTS, TrainingConfiguration, _TrainingParamsDict
-from ..pt_model.cfg import _NO_DEFAULT, _all_algo_params
-from ..regressor import _expand_models, main
+from ..lib.pt_model import TRAINING_PARAM_DEFAULTS, TrainingConfiguration, _TrainingParamsDict
+from ..lib.pt_model.cfg import _NO_DEFAULT, _all_algo_params
+from ..lib.regressor import _expand_models, main
 
 if TYPE_CHECKING:
-    from ..pt_model import AlgorithmType
+    from ..lib.pt_model import AlgorithmType
 
 
 _VALIDATION_SEASON = 2023
@@ -383,7 +383,7 @@ def _create_expected_model_dict(
 
 def _fake_metrics(mocker):
     """mock the performance calculations"""
-    mock_sklearn = mocker.patch("lib.pt_model.train_test.sklearn")
+    mock_sklearn = mocker.patch("models.lib.pt_model.train_test.sklearn")
     mock_sklearn.model_selection.train_test_split = sklearn.model_selection.train_test_split
     expected_r2 = round(random.random(), 3)
     expected_mae = round(random.random(), 3)
@@ -410,7 +410,7 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_availabl
         f"--dest_dir {tmpdir} {_TEST_DEF_FILE_FILEPATH} {model_name}"
     )
 
-    mock_pd = mocker.patch("lib.pt_model.train_test.pd")
+    mock_pd = mocker.patch("models.lib.pt_model.train_test.pd")
     loaded_data_df = pd.DataFrame(
         {
             "pos": [position],
@@ -439,7 +439,7 @@ def test_model_gen(tmpdir, mocker: MockFixture, limit: int | None, cuda_availabl
         }
     )
 
-    mock_torch_cuda = mocker.patch("lib.pt_model.wrapper.torch.cuda")
+    mock_torch_cuda = mocker.patch("models.lib.pt_model.wrapper.torch.cuda")
     mock_torch_cuda.is_available.return_value = cuda_available
     mock_torch_cuda.get_device_properties.return_value = "cuda-device-info"
 
@@ -592,8 +592,8 @@ def _train_prep(
     if algo == "nn":
         if prev_algo != "nn":
             mock_save_func = mocker.MagicMock(name="fake-torch.save", autospec=True)
-            mocker.patch("lib.pt_model.nn.torch.save", mock_save_func)
-            mock_regressor = mocker.patch("lib.pt_model.nn.NNRegressor", autospec=True)
+            mocker.patch("models.lib.pt_model.nn.torch.save", mock_save_func)
+            mock_regressor = mocker.patch("models.lib.pt_model.nn.NNRegressor", autospec=True)
             mock_fitted = mock_regressor.return_value.to.return_value.fit.return_value
             mock_fitted.epochs_trained = 5
     elif algo == "autogluon":
@@ -604,7 +604,7 @@ def _train_prep(
 
         if prev_algo != "autogluon":
             mock_regressor = mocker.patch(
-                "lib.pt_model.autogluon.TabularPredictor", spec=TabularPredictor
+                "models.lib.pt_model.autogluon.TabularPredictor", spec=TabularPredictor
             )
             mock_regressor.return_value.path = "path-to-autogluon-artifacts"
             mock_save_func = mock_regressor.return_value.clone_for_deployment
@@ -612,8 +612,8 @@ def _train_prep(
             mock_regressor.return_value.model_info.return_value = {"info": "all-da-info"}
     elif algo == "dummy":
         if prev_algo != "dummy":
-            mock_save_func = mocker.patch("lib.pt_model.dummy.joblib").dump
-            mock_regressor = mocker.patch("lib.pt_model.dummy.DummyRegressor", autospec=True)
+            mock_save_func = mocker.patch("models.lib.pt_model.dummy.joblib").dump
+            mock_regressor = mocker.patch("models.lib.pt_model.dummy.DummyRegressor", autospec=True)
     elif algo == "flaml":
         if cli_params["disable_gpu"]:
             cli_params["disable_gpu"] = ""
@@ -621,9 +621,9 @@ def _train_prep(
             del cli_params["disable_gpu"]
 
         if prev_algo != "flaml":
-            mock_save_func = mocker.patch("lib.pt_model.flaml.joblib").dump
+            mock_save_func = mocker.patch("models.lib.pt_model.flaml.joblib").dump
             mock_regressor = mocker.patch(
-                "lib.pt_model.flaml.AutoML", name="fake-AutoML", autospec=True
+                "models.lib.pt_model.flaml.AutoML", name="fake-AutoML", autospec=True
             )
             mock_regressor.return_value = mocker.MagicMock(
                 name="flaml-regressor-inst", best_estimator="est", best_config={}, best_loss=0.1
@@ -729,10 +729,12 @@ def test_train_retrain_params(
         fake_training_features_df,
         None,
     ]
-    mocker.patch("lib.pt_model.cfg.load_data", return_value=(fake_raw_df, fake_tt_data, None))
+    mocker.patch(
+        "models.lib.pt_model.cfg.load_data", return_value=(fake_raw_df, fake_tt_data, None)
+    )
 
     # mocks to skip artifact dumping stuff
-    mock_tt_os = mocker.patch("lib.pt_model.train_test.os")
+    mock_tt_os = mocker.patch("models.lib.pt_model.train_test.os")
     mock_tt_os.path.join = os.path.join
     mock_tt_os.path.isfile.return_value = False
 

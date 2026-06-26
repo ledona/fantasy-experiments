@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from .eval_models import ModelFeatures, evaluate_models
 from .model import ExistingModelMode, Framework, ModelTarget
-from .results import show_eval_results
+from .results import record_results
 
 _LOGGER = log.get_logger(__name__)
 _DEFAULT_CFG_PATH = os.path.join(".", "model_cfg.json")
@@ -152,7 +152,7 @@ def _process_cmd_line(cmd_line_str=None):
     )
     parser.add_argument(
         "--results_path",
-        help="path where evaluation results will be written. default is the {model_path}/eval-results",
+        help="path where evaluation results will be written. default is {model_path}/eval-results",
     )
     parser.add_argument(
         "--model_path",
@@ -223,7 +223,7 @@ def _process_cmd_line(cmd_line_str=None):
         args.data_dir,
     )[1:]
 
-    show_eval_results(eval_results, failed_models, results_path)
+    record_results(eval_results, failed_models, results_path)
 
 
 if __name__ == "__main__":
