@@ -1,16 +1,10 @@
 import numpy as np
 from fantasy_py import DataNotAvailableException, DFSContestStyle, log, now
+from fantasy_py.analysis.backtest.daily_fantasy import ModelFeatures, ModelTarget, model_filenamer
 from tqdm import tqdm
 
-from .generate_train_test import ModelFeatures, TrainTestData, generate_train_test, load_csv
-from .model import (
-    ExistingModelMode,
-    FitError,
-    Framework,
-    ModelTarget,
-    create_model,
-    model_filenamer,
-)
+from .generate_train_test import TrainTestData, generate_train_test, load_csv
+from .model import ExistingModelMode, FitError, Framework, create_model
 
 _LOGGER = log.get_logger(__name__)
 

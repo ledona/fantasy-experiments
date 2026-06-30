@@ -6,20 +6,11 @@ import joblib
 import numpy as np
 import pandas as pd
 import sklearn
-from fantasy_py import (
-    CONTEST_DOMAIN,
-    FANTASY_SERVICE_DOMAIN,
-    SPORT_DB_MANAGER_DOMAIN,
-    CLSRegistry,
-    DFSContestStyle,
-    FantasyException,
-    UnexpectedValueError,
-    log,
-)
+from fantasy_py import FantasyException, log
 from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
+    ModelTarget,
     feature_names_from_win_score_model,
 )
-from fantasy_py.betting import LineupContest
 from flaml import AutoML as FlamlAutoML
 from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import Ridge
@@ -27,7 +18,7 @@ from sklearn.multioutput import RegressorChain
 from sklearn.tree import DecisionTreeRegressor
 from tabulate import tabulate
 
-from .generate_train_test import ModelFeatures, TrainTestData
+from .generate_train_test import TrainTestData
 
 _LOGGER = log.get_logger(__name__)
 
@@ -44,137 +35,9 @@ flaml - automl flaml model
 ridge - ridge regressor
 """
 
-ModelTarget = Literal["top", "lws", "top+lws", "top_log", "lws_log", "top+lws_log"]
-"""
-top - top winning score
-lws - last winning score
-top+lws - single model that predicts for both top and last winning score in 1 shot
-..._log - same as previous but the log of the target score will be the target
-"""
 
 ExistingModelMode = Literal["reuse", "overwrite", "fail"]
 """action to take if a model file already exists"""
-
-
-def model_filenamer(
-    prefix: str | None = None,
-    sport: None | str = None,
-    service: str | None = None,
-    style: None | DFSContestStyle | str = None,
-    contest_type: None | LineupContest | str = None,
-    framework: Framework | None = None,
-    target: None | ModelTarget = None,
-    features: ModelFeatures | None = None,
-):
-    """
-    Generate enough of the filename as can be created with the params
-    If prefix is defined then parse it to infer filename name parts
-    Fail if a valid filename or prefix cannot be created from the parameters.
-    """
-    name_parts_dict = {
-        "sport": sport,
-        "service": service,
-        "style_name": style if style is None or isinstance(style, str) else style.name,
-        "contest_type_name": (
-            contest_type
-            if contest_type is None or isinstance(contest_type, str)
-            else contest_type.TYPE_NAME
-        ),
-        "framework": framework,
-        "target": target,
-        "features": features,
-    }
-
-    if prefix:
-        if sport:
-            raise UnexpectedValueError(
-                "Prefix parse failure! prefix and sport should not both be defined"
-            )
-        if "." in prefix:
-            raise UnexpectedValueError("Prefix parse failure! Prefix should not have a '.'")
-
-        parts = prefix.split("-")
-        filenamer_parts = [
-            "sport",
-            "service",
-            "style_name",
-            "contest_type_name",
-            "framework",
-            "target",
-            "features",
-        ]
-
-        if len(parts) > len(filenamer_parts):
-            raise UnexpectedValueError("Prefix parse failure! Prefix has too many parts")
-
-        for prefix_part, prefix_value in zip(filenamer_parts[: len(parts)], parts):
-            if kwarg_value := name_parts_dict[prefix_part]:
-                raise UnexpectedValueError(
-                    f"Prefix parse failure! {prefix_part} is defined in both prefix and kwarg. {prefix_value=} {kwarg_value=}"
-                )
-            name_parts_dict[prefix_part] = prefix_value
-
-    # make sure that there are no holes/undefined-parts-in-the-middle and also make sure that every part value is valid
-    first_undefined_part = None
-    parts = []
-    for part, value in name_parts_dict.items():
-        if not value:
-            if not first_undefined_part:
-                first_undefined_part = part
-            continue
-
-        if first_undefined_part:
-            raise UnexpectedValueError(
-                "Cannot create a model filename because filename parts are defined "
-                f"after undefined part {first_undefined_part}"
-            )
-
-        if part == "sport":
-            if value not in CLSRegistry.get_names(SPORT_DB_MANAGER_DOMAIN):
-                raise UnexpectedValueError(f"Model filename create error. sport={value} is invalid")
-        elif part == "service":
-            if value not in CLSRegistry.get_names(FANTASY_SERVICE_DOMAIN):
-                raise UnexpectedValueError(
-                    f"Model filename create error. service={value} is invalid"
-                )
-        elif part == "style_name":
-            if value not in DFSContestStyle.__members__:
-                raise UnexpectedValueError(
-                    f"Model filename create error. style_name={value} is invalid"
-                )
-        elif part == "contest_type_name":
-            if value not in CLSRegistry.get_names(CONTEST_DOMAIN):
-                raise UnexpectedValueError(
-                    f"Model filename create error. contest_type_name={value} is invalid"
-                )
-        elif part == "framework":
-            if value not in Framework.__args__:
-                raise UnexpectedValueError(
-                    f"Model filename create error. framework={value} is invalid"
-                )
-        elif part == "target":
-            if value not in ModelTarget.__args__:
-                raise UnexpectedValueError(
-                    f"Model filename create error. target={value} is invalid"
-                )
-            value = "t:" + value
-        elif part == "features":
-            if value not in ModelFeatures.__args__:
-                raise UnexpectedValueError(
-                    f"Model filename create error. features={value} is invalid"
-                )
-            value = "f:" + value
-        else:
-            raise NotImplementedError(f"don't know how to validate {part=} {value=} ")
-        parts.append(value)
-
-    # we should be able to create a valid full name or prefix
-    if not parts:
-        raise UnexpectedValueError(
-            "Model filename create error. Provided arguments did not generate a name"
-        )
-    name = "-".join(parts)
-    return name
 
 
 def _error_report(

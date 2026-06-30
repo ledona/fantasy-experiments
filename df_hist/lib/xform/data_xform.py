@@ -16,15 +16,14 @@ from fantasy_py import (
     UnexpectedValueError,
     db,
 )
+from fantasy_py.analysis.backtest.daily_fantasy import SlateScoreItem, test_for_expected_features
 from fantasy_py.betting import Contest, FiftyFifty, GeneralPrizePool
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from ..modeling.generate_train_test import test_for_expected_cols
 from .slate_scoring import (
     LOW_PLAYER_COST_PCTL,
     SlateScoreCacheMode,
-    SlateScoreItem,
     get_stat_names,
     score_cache_ctx,
     slate_scoring,
@@ -946,7 +945,7 @@ def _generate_dataset(
     )
 
     # test that inf_df has all features and fail if it does not
-    inf_df = test_for_expected_cols(inf_df, sport, style, unexpected_mode="fail", features="all")
+    inf_df = test_for_expected_features(inf_df, sport, style, unexpected_mode="fail", features="all")
 
     filepath = os.path.join(
         datapath, f"{sport}-{service_name}-{style.name}-{contest_type.TYPE_NAME}.csv"

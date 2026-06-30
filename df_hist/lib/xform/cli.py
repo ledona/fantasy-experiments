@@ -64,7 +64,7 @@ def _process_cmd_line(cmd_line_str=None):
     parser.add_argument(
         "--data_path",
         default=_DEFAULT_OUTPUT_DATA_DIR,
-        help=f"Directory where data will be written.default='{_DEFAULT_OUTPUT_DATA_DIR}'",
+        help=f"Directory where data will be written. default='{_DEFAULT_OUTPUT_DATA_DIR}'",
     )
 
     parser.add_argument(

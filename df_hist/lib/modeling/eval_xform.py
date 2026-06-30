@@ -6,15 +6,15 @@ in a way that is easier to review than the original eval results AND
 if such that it can easily by used/reused to identify the model pairs
 that should be used when backtesting"""
 
+import glob
 import os
 import shlex
 from argparse import ArgumentParser
 
 import pandas as pd
+from fantasy_py.analysis.backtest.daily_fantasy import model_filenamer
 from tabulate import tabulate
 from tqdm import tqdm
-
-from .model import model_filenamer
 
 
 def _xo_rate(row: pd.Series, pred_dir_path: str):
@@ -148,6 +148,9 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
     return sorted_df
 
 
+_EVAL_RESULT_FILENAME_SEARCH_PATTERN = "all_eval_results-????????:??????.csv"
+
+
 def _main(cmd_line_str=None):
     parser = ArgumentParser(
         description="Daily Fantasy winning score model evaluation results transformer. "
@@ -158,19 +161,34 @@ def _main(cmd_line_str=None):
     )
     parser.add_argument(
         "eval_result_csv_filepath",
-        help="Path to modeling evaluation results file. "
-        "Test prediction result files (used to calculate crossover errors rate) will "
-        "be searched for in the same directory.",
+        help="Path to modeling evaluation results file. If this is a directory "
+        f"then '{_EVAL_RESULT_FILENAME_SEARCH_PATTERN}' will be searched for. "
+        "If only one file is found it will be used. Test prediction result files "
+        "(used to calculate crossover errors rate) will be searched for in the same directory.",
     )
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
-    in_df = pd.read_csv(args.eval_result_csv_filepath)
-    pred_dir = os.path.dirname(args.eval_result_csv_filepath)
+    if os.path.isfile(args.eval_result_csv_filepath):
+        filepath = args.eval_result_csv_filepath
+    elif os.path.isdir(args.eval_result_csv_filepath):
+        glob_pattern = os.path.join(
+            args.eval_result_csv_filepath, _EVAL_RESULT_FILENAME_SEARCH_PATTERN
+        )
+        matched_files = glob.glob(glob_pattern) 
+        if len(matched_files) != 1:
+            parser.error(
+                f"Failed to find a single file in '{args.eval_result_csv_filepath}' "
+                f"that matched the eval results search pattern. found {len(matched_files)}."
+            )
+        filepath = matched_files[0]
+
+    in_df = pd.read_csv(filepath)
+    pred_dir = os.path.dirname(filepath)
     xformed_df = _transform(in_df, pred_dir)
 
-    xformed_output_filename = os.path.basename(args.eval_result_csv_filepath)
+    xformed_output_filename = os.path.basename(filepath)
     if xformed_output_filename.endswith(".csv"):
         xformed_output_filename = xformed_output_filename[:-4]
     xformed_output_filepath = os.path.join(

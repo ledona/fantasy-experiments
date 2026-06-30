@@ -7,7 +7,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from functools import cache
 from numbers import Number
-from typing import Literal, NamedTuple, cast
+from typing import Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -20,6 +20,7 @@ from fantasy_py import (
     db,
     log,
 )
+from fantasy_py.analysis.backtest.daily_fantasy import SlateScoreItem
 from fantasy_py.lineup import (
     FantasyCostAggregate,
     FantasyService,
@@ -128,28 +129,6 @@ def _slate_overperformances(slate_id: int, service, fca: FantasyCostAggregate, s
     ]
 
     return len(low_cost_high_val_rows)
-
-
-class SlateScoreItem(NamedTuple):
-    """scores for the slate"""
-
-    top_possible_lineup_score: float
-    """actual fantasy points scored by the best possible lineup"""
-    top_rational_lineup_score: float
-    """actual fantasy points scored by the lineup built using rational 
-    lineup constuction strategies optimized with historic scoring"""
-    rational_lineup_settings_index: int
-    """the index of the rational_lineup_settings used to generate the rational lineup"""
-    low_cost_high_value_player_count: int
-    """number of low cost players that significantly overperformed"""
-    top_players_scoring_diff_n: float
-    """mean diff between true and predicted scores of top n predicted players"""
-    top_players_scoring_diff_pctl: float
-    """mean diff between true and predicted scores of top percentile predicted players"""
-    addl_scoring: dict | None
-    """additional sport/style related scoring information for this slate"""
-    games_count: int
-    """how many games were in the slate"""
 
 
 class ScoreCache:

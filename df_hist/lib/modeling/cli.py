@@ -7,10 +7,11 @@ from typing import cast
 
 from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCommentsDecoder, log
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool, LineupContest
+from fantasy_py.analysis.backtest.daily_fantasy import ModelFeatures, ModelTarget
 from tqdm import tqdm
 
-from .eval_models import ModelFeatures, evaluate_models
-from .model import ExistingModelMode, Framework, ModelTarget
+from .eval_models import evaluate_models
+from .model import ExistingModelMode, Framework
 from .results import record_results
 
 _LOGGER = log.get_logger(__name__)
