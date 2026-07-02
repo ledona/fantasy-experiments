@@ -7,13 +7,13 @@ import pandas as pd
 from dateutil.parser import parse as du_parse
 from fantasy_py import CONTEST_DOMAIN, CacheSettings, CLSRegistry, DFSContestStyle, log
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
+from fantasy_py.analysis.backtest.daily_fantasy import BT_TOP_PERCENTILE
 from tqdm import tqdm
 
 from ..data_cfg import SPORT_CFGS
 from .data_xform import xform
 from .slate_scoring import SlateScoreCacheMode
 
-_DEFAULT_TOP_PERCENTILE = 0.7
 _DEFAULT_DATA_PARENT_DIR = "/fantasy-isync/fantasy-dfs-hist"
 _DEFAULT_INPUT_DATA_DIR = os.path.join(_DEFAULT_DATA_PARENT_DIR, "betting")
 _DEFAULT_OUTPUT_DATA_DIR = os.path.join(_DEFAULT_DATA_PARENT_DIR, "processed-data")
@@ -27,8 +27,9 @@ def _process_cmd_line(cmd_line_str=None):
 
     parser.add_argument(
         "--top_percentile",
-        help="players/teams above this percentile are considered top performers",
-        default=_DEFAULT_TOP_PERCENTILE,
+        help="players/teams above this percentile are considered top performers. "
+        "The default is used as the default in other operations so do not change this casually",
+        default=BT_TOP_PERCENTILE,
     )
 
     parser.add_argument(
@@ -107,7 +108,9 @@ def _process_cmd_line(cmd_line_str=None):
     CacheSettings.update(args)
 
     dfs: dict[tuple, pd.DataFrame] = {}
-    for sport in (tqdm_progress := tqdm(sorted(set(args.sports)), desc="sport", disable=len(args.sports) == 1)):
+    for sport in (
+        tqdm_progress := tqdm(sorted(set(args.sports)), desc="sport", disable=len(args.sports) == 1)
+    ):
         tqdm_progress.set_postfix_str(sport)
         dfs.update(
             xform(

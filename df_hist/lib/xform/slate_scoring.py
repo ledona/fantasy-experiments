@@ -20,7 +20,7 @@ from fantasy_py import (
     db,
     log,
 )
-from fantasy_py.analysis.backtest.daily_fantasy import SlateScoreItem
+from fantasy_py.analysis.backtest.daily_fantasy import BT_LOW_PLAYER_COST_PCTL, SlateScoreItem
 from fantasy_py.lineup import (
     FantasyCostAggregate,
     FantasyService,
@@ -40,28 +40,6 @@ _LOGGER = log.get_logger(__name__)
 
 SlateScoreCacheMode = Literal["default", "overwrite", "missing"]
 
-
-def get_stat_names(sport, service_abbr: Literal["dk", "fd", "y"], as_str=False) -> str | list[str]:
-    """
-    returns stat names for the requested sport and service as either a comma seperated string that
-    can be used in an sql query, or as a list of strings
-    """
-    stats: str | list[str]
-
-    if sport == "nfl":
-        stats = [f"{service_abbr}_score_off", f"{service_abbr}_score_def"]
-    elif sport == "lol":
-        stats = [f"{service_abbr}_match_score"]
-    else:
-        stats = [f"{service_abbr}_score"]
-
-    if as_str:
-        stats = "'" + "','".join(stats) + "'"
-    return stats
-
-
-LOW_PLAYER_COST_PCTL = 0.25
-"""used to identify low cost players in a slate"""
 
 _LOW_COST_HIGH_VALUE_SCORE_PCTL = 0.9
 """used to identify high scoring players"""
@@ -122,7 +100,7 @@ def _slate_overperformances(slate_id: int, service, fca: FantasyCostAggregate, s
 
     # dataframe with cost and score thresholds for each slate
     min_score = np.percentile(cost_and_score_df.fpts, _LOW_COST_HIGH_VALUE_SCORE_PCTL * 100)
-    max_cost = np.percentile(cost_and_score_df.cost, LOW_PLAYER_COST_PCTL * 100)
+    max_cost = np.percentile(cost_and_score_df.cost, BT_LOW_PLAYER_COST_PCTL * 100)
 
     low_cost_high_val_rows = cost_and_score_df[
         (cost_and_score_df.fpts > min_score) & (cost_and_score_df.cost < max_cost)

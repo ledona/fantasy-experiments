@@ -1,7 +1,6 @@
 import os
 from datetime import date
 
-
 _FANTASY_HOME = os.environ["FANTASY_HOME"]
 
 
@@ -10,8 +9,6 @@ SPORT_CFGS = {
         "min_date": date(2019, 1, 1),
         "max_date": date(2026, 6, 17),
         "db_filename": os.path.join(_FANTASY_HOME, "mlb.hist.2008-2026_partial.scored.db"),
-        "cost_pos_drop": {"DH", "RP"},
-        "cost_pos_rename": {"SP": "P"},
     },
     "nfl": {
         "min_date": date(2020, 1, 12),  # no NFL dfs slates before this date
@@ -31,7 +28,6 @@ SPORT_CFGS = {
         },
         "max_date": date(2026, 6, 15),
         "db_filename": os.path.join(_FANTASY_HOME, "nhl.hist.20072008-20252026.scored.db"),
-        "cost_pos_rename": {"LW": "W", "RW": "W"},
     },
     "lol": {
         "db_filename": os.path.join(_FANTASY_HOME, "lol.hist.2014-2024.scored.db"),
