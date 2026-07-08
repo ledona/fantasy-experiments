@@ -8,11 +8,18 @@ that should be used when backtesting"""
 
 import glob
 import os
+import pathlib
 import shlex
 from argparse import ArgumentParser
+from itertools import chain
+from typing import cast
 
 import pandas as pd
-from fantasy_py.analysis.backtest.daily_fantasy import model_filenamer
+from fantasy_py import log
+from fantasy_py.analysis.backtest.daily_fantasy import (
+    WINSCORE_MODEL_RESULTS_SUBDIR,
+    model_filenamer,
+)
 from tabulate import tabulate
 from tqdm import tqdm
 
@@ -157,32 +164,52 @@ def _main(cmd_line_str=None):
         "Load the evaluation result csv file generated during daily fantasy winning score "
         "model training. Produce a new tabular report organized by model pairs that can "
         "be used together, along with performance metrics for the pairs sorted in descending "
-        "order by performance."
+        "order by performance.",
+        usage="If this is a directory as the argument then"
+        f"'{_EVAL_RESULT_FILENAME_SEARCH_PATTERN}' will be searched for in the directory and "
+        f"in the subdirectory '{WINSCORE_MODEL_RESULTS_SUBDIR}' if the subdirectory exists. "
+        "The most recent matching file will be used. Test prediction result files "
+        "(used to calculate crossover errors rate) will be searched for in the same directory "
+        "that the file is located in.",
     )
     parser.add_argument(
         "eval_result_csv_filepath",
-        help="Path to modeling evaluation results file. If this is a directory "
-        f"then '{_EVAL_RESULT_FILENAME_SEARCH_PATTERN}' will be searched for. "
-        "If only one file is found it will be used. Test prediction result files "
-        "(used to calculate crossover errors rate) will be searched for in the same directory.",
+        help="Path to modeling evaluation results file or directory to search",
+        type=pathlib.Path,
     )
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
     args = parser.parse_args(arg_strings)
 
-    if os.path.isfile(args.eval_result_csv_filepath):
+    arg_as_path = cast(pathlib.Path, args.eval_result_csv_filepath)
+    if not arg_as_path.exists():
+        parser.error(f"'{arg_as_path}' does not exist!")
+
+    if arg_as_path.is_file():
         filepath = args.eval_result_csv_filepath
-    elif os.path.isdir(args.eval_result_csv_filepath):
-        glob_pattern = os.path.join(
-            args.eval_result_csv_filepath, _EVAL_RESULT_FILENAME_SEARCH_PATTERN
-        )
-        matched_files = glob.glob(glob_pattern) 
-        if len(matched_files) != 1:
-            parser.error(
-                f"Failed to find a single file in '{args.eval_result_csv_filepath}' "
-                f"that matched the eval results search pattern. found {len(matched_files)}."
-            )
-        filepath = matched_files[0]
+    else:
+        assert arg_as_path.is_dir()
+        paths_to_search = [
+            arg_as_path / _EVAL_RESULT_FILENAME_SEARCH_PATTERN,
+            arg_as_path / WINSCORE_MODEL_RESULTS_SUBDIR / _EVAL_RESULT_FILENAME_SEARCH_PATTERN,
+        ]
+        matched_files = chain(*[glob.glob(str(pattern)) for pattern in paths_to_search])
+        sorted_matches = sorted(matched_files, reverse=True, key=os.path.basename)
+        if len(sorted_matches) == 0:
+            parser.error(f"No winscore evaluation results found. Searched in: {paths_to_search}")
+
+        filepath = sorted_matches[0]
+        if len(sorted_matches) > 1:
+            print(f"""
+{log.BOLD_RED}{len(sorted_matches)} matches found for search in searches:
+{"\n".join(map(str, paths_to_search))}
+
+The most recent will be transformed. Matches found:
+*** {filepath} ***
+{"\n".join(sorted_matches[1:])}{log.COLOR_RESET}
+""")
+        else:
+            print(f"Transforming eval results at '{filepath}'")
 
     in_df = pd.read_csv(filepath)
     pred_dir = os.path.dirname(filepath)

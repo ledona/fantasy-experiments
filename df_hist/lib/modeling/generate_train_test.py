@@ -3,7 +3,7 @@ from typing import NamedTuple
 
 import pandas as pd
 from fantasy_py import DataNotAvailableException, DFSContestStyle, log
-from fantasy_py.analysis.backtest.daily_fantasy import ModelFeatures, test_for_expected_features
+from fantasy_py.analysis.backtest.daily_fantasy import ModelFeatures, get_expected_bt_data_cols
 from fantasy_py.betting import Contest
 from sklearn.model_selection import train_test_split
 
@@ -99,18 +99,13 @@ def generate_train_test(
         columns is NA a row will be dropped
     return (X-train, X-test, y-top-train, y-top-test, y-last-win-train, y-last-win-test)
     """
-    df = test_for_expected_features(
-        input_df,
-        sport,
-        style,
-        unexpected_mode="drop",
-        features=features,
-        include_desc_features=False,
-    ).assign(slate_id=input_df.slate_id)
+    expected_cols = get_expected_bt_data_cols(
+        sport, style, features, False, True, set(input_df.columns)
+    )
+    df = input_df[expected_cols].assign(slate_id=input_df.slate_id)
+    assert "service" not in df
 
     len_pre_na_drop = len(df)
-    if "service" in df:
-        df = df.drop(columns="service")
     na_cols_to_test = None if drop_na_rows else ["top_winning_score", "last_winning_score"]
     df = df.dropna(subset=na_cols_to_test)
     if len(df) < len_pre_na_drop:

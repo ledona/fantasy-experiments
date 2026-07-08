@@ -157,13 +157,14 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
-                "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/processed-data/xform-cache",
-                "--data_path", "/tmp/fantasy-test",
+                "--input_data_path", "/fantasy-isync/fantasy-dfs-hist/betting",
+                "--output_data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
+                "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/xformed-data/cache",
                 "--services", "draftkings",
-                "--style", "classic",
+                // "--style", "classic",
                 // "--style", "showdown",
-                "--type", "GPP",
-                "--dates", "20200810", "20200811",
+                // "--type", "GPP",
+                // "--dates", "20241001", "20241101",
                 "--sports", "nfl", "nhl", "nba", "mlb",
                 "--cache_mode", "enable",
             ]
@@ -180,10 +181,9 @@
                 "nfl", "mlb", "nhl", "nba", //"lol",
                 // "--styles", "showdown", "classic",
                 // "--contest_type", "GPP", "FIFTY_FIFTY",
-                "--model_path", "/tmp/fantasy-test",
-                // "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.06-2",
-                "--data_path", "/fantasy-isync/fantasy-dfs-hist/processed-data",
-                "--framework", "dummy", // "flaml", "regchain_ridge", "ridge", "regchain_tree",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.07",
+                "--data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
+                "--framework", "dummy", "flaml", "regchain_ridge", "ridge", "regchain_tree",
                 "--target", "lws_log", "top_log", "lws", "top", "top+lws", "top+lws_log",
                 // "--features", "202606", "legacy", "all"
             ]
@@ -196,8 +196,8 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
-                // "/fantasy-isync/fantasy-dfs-hist/models/2026.06-2/eval-results/all_eval_results-20260626:221353.csv",
-                "/tmp/fantasy-test/eval-results",
+                // "/fantasy-isync/fantasy-dfs-hist/models/2026.06-2",
+                "/tmp/fantasy-test",
             ]
         },
         {

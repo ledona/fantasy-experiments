@@ -7,7 +7,11 @@ from typing import cast
 
 from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCommentsDecoder, log
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool, LineupContest
-from fantasy_py.analysis.backtest.daily_fantasy import ModelFeatures, ModelTarget
+from fantasy_py.analysis.backtest.daily_fantasy import (
+    ModelFeatures,
+    ModelTarget,
+    WINSCORE_MODEL_RESULTS_SUBDIR,
+)
 from tqdm import tqdm
 
 from .eval_models import evaluate_models
@@ -152,13 +156,13 @@ def _process_cmd_line(cmd_line_str=None):
         default=ModelFeatures.__args__,
     )
     parser.add_argument(
-        "--results_path",
-        help="path where evaluation results will be written. default is {model_path}/eval-results",
-    )
-    parser.add_argument(
         "--model_path",
         default=_DEFAULT_MODEL_PATH,
         help=f"path where models will be written. default='{_DEFAULT_MODEL_PATH}'",
+    )
+    parser.add_argument(
+        "--results_path",
+        help="path where evaluation results will be written. default='{model_path}/{WINSCORE_MODEL_RESULTS_SUBDIR}'",
     )
     parser.add_argument("--data_dir", "--data_path", help="default is ./data", default="data")
     parser.add_argument(
@@ -188,7 +192,7 @@ def _process_cmd_line(cmd_line_str=None):
 
     if args.data_dir is not None and not os.path.isdir(args.data_dir):
         parser.error(f"data directory '{args.data_dir}' is not a folder")
-    results_path = args.results_path or os.path.join(args.model_path, "eval-results")
+    results_path = args.results_path or os.path.join(args.model_path, WINSCORE_MODEL_RESULTS_SUBDIR)
 
     if not os.path.isdir(results_path):
         if os.path.exists(results_path):

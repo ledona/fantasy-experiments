@@ -15,10 +15,9 @@ from fantasy_py import (
     log,
 )
 from fantasy_py.analysis.backtest.daily_fantasy import (
-    SlateScoreItem,
+    bt_merge_winscore_features,
     bt_winscore_player_input_data,
     bt_winscore_team_input_data,
-    test_for_expected_features,
 )
 from fantasy_py.betting import Contest, FiftyFifty, GeneralPrizePool
 from sqlalchemy.orm import Session
@@ -256,9 +255,9 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
         )
 
     draft_df["service"] = draft_df.contest.map(lambda contest: contest.split("-", 1)[0])
-    draft_df.team_abbr = draft_df.team_abbr.str.upper()
+    draft_df["team_abbr"] = draft_df.team_abbr.str.upper()
     if sport in _ABBR_REMAPPERS:
-        draft_df.team_abbr = draft_df.apply(
+        draft_df["team_abbr"] = draft_df.apply(
             partial(_ABBR_REMAPPERS[sport], service),
             axis=1,
         )
@@ -379,58 +378,6 @@ def _get_slate_id(contest_row: pd.Series, slate_db_df: pd.DataFrame) -> pd.Serie
     return slates.iloc[0][cols]
 
 
-def _create_inference_df(
-    style: DFSContestStyle,
-    teams_contest_df: pd.DataFrame,
-    team_score_df: pd.DataFrame,
-    player_scores_df: pd.DataFrame,
-    slate_scores: dict[int, SlateScoreItem],
-) -> pd.DataFrame:
-    """
-    join contest, slate id, team score, player position scores, slate_scores
-    """
-    assert (
-        len(teams_contest_df) >= len(team_score_df) == len(player_scores_df) >= len(slate_scores)
-    ), (
-        "expecting more team_contest rows (one for every known dfs contest entry) "
-        "than team/player score data (one for every slate?) which should be more "
-        "than the found slates (slate scoring will fail on opening day due to no season to date data)"
-    )
-
-    slate_scores_df = pd.DataFrame(
-        list(slate_scores.values()),
-        index=list(slate_scores.keys()),
-        columns=SlateScoreItem._fields,
-    )
-    slate_scores_df = slate_scores_df.assign(
-        top_possible_minus_rational=(
-            slate_scores_df.top_possible_lineup_score - slate_scores_df.top_rational_lineup_score
-        )
-    )
-    if slate_scores_df.addl_scoring.notna().any():
-        addl_df = pd.DataFrame(
-            [ss.addl_scoring for ss in slate_scores.values()], index=list(slate_scores.keys())
-        )
-        slate_scores_df = pd.concat([slate_scores_df, addl_df], axis=1)
-    slate_scores_df = slate_scores_df.drop(
-        columns=["addl_scoring", "rational_lineup_settings_index", "games_count"]
-    )
-    contest_cols = ["date", "style", "type", "top_score", "last_winning_score", "link", "slate_id"]
-    if style == DFSContestStyle.SHOWDOWN:
-        teams_contest_df = teams_contest_df.rename(columns={"entries": "contest_entries"})
-        contest_cols.append("contest_entries")
-    elif style == DFSContestStyle.CLASSIC:
-        contest_cols.append("team_count")
-    df = (
-        teams_contest_df[contest_cols]
-        .rename(columns={"top_score": "top_winning_score"})
-        .join(slate_scores_df, on="slate_id")
-        .join(team_score_df, on="slate_id")
-        .join(player_scores_df, on="slate_id")
-    )
-    return df
-
-
 def _generate_dataset(
     cfg,
     service_name,
@@ -539,11 +486,9 @@ def _generate_dataset(
             bt_service_name=service_name,
         )
 
-        # cache for top scores
         with score_cache_ctx(
             db_obj.db_manager.ABBR, style, slate_score_cache_mode, cache_dir=datapath
         ) as slate_score_cache:
-            # bpl=best possible lineup ; slate_id -> (bpl-true-score, bpl-true-score - bpl-pred-score, lchv_count)
             slate_scores = {}
             for slate_id in (tqdm_iter := tqdm(slate_ids, desc="slates")):
                 slate_date_str = (
@@ -562,15 +507,26 @@ def _generate_dataset(
                 if ss:
                     slate_scores[int(slate_id)] = ss
 
-    inf_df = _create_inference_df(
-        style, teams_contest_df, team_score_df, player_scores_df, slate_scores
+    # expect that DF will include target and descriptive data
+    df = bt_merge_winscore_features(
+        db_obj.db_manager.ABBR,
+        style,
+        "all",
+        teams_contest_df,
+        team_score_df,
+        player_scores_df,
+        slate_scores,
+        True,
     )
 
-    # test that inf_df has all features and fail if it does not
-    inf_df = test_for_expected_features(
-        inf_df, db_obj.db_manager.ABBR, style, unexpected_mode="fail", features="all"
+    # add the target vars back in
+    winning_score_data = (
+        teams_contest_df[["slate_id", "top_score", "last_winning_score"]]
+        .rename(columns={"top_score": "top_winning_score"})
+        .set_index("slate_id", drop=True)
     )
 
+    inf_df = df.join(winning_score_data, on="slate_id")
     filepath = os.path.join(
         datapath,
         f"{db_obj.db_manager.ABBR}-{service_name}-{style.name}-{contest_type.TYPE_NAME}.csv",

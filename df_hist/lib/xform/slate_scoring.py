@@ -5,31 +5,26 @@ import os
 from argparse import Namespace
 from collections import defaultdict
 from contextlib import contextmanager
-from functools import cache
-from numbers import Number
 from typing import Literal, cast
 
-import numpy as np
-import pandas as pd
 from fantasy_py import (
     FANTASY_SERVICE_DOMAIN,
     CLSRegistry,
     DataNotAvailableException,
-    JSONWithCommentsDecoder,
     UnexpectedValueError,
     db,
     log,
 )
-from fantasy_py.analysis.backtest.daily_fantasy import BT_LOW_PLAYER_COST_PCTL, SlateScoreItem
-from fantasy_py.lineup import (
-    FantasyCostAggregate,
-    FantasyService,
-    GenLineupsParams,
-    Lineup,
-    LineupGenerationFailure,
-    gen_lineups,
+from fantasy_py.analysis.backtest.daily_fantasy import (
+    SlateScoreItem,
+    bt_addl_slate_data,
+    bt_score_lineup,
+    bt_slate_overperformances,
+    bt_top_players_scoring_diff,
+    get_best_rational_lineup,
+    get_rational_lineup_gen_params,
 )
-from fantasy_py.lineup.constraint import UnsupportedStackingError
+from fantasy_py.lineup import FantasyService, GenLineupsParams
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import SportDBManager
 from ledona import constant_hasher
@@ -39,74 +34,6 @@ _LOGGER = log.get_logger(__name__)
 
 
 SlateScoreCacheMode = Literal["default", "overwrite", "missing"]
-
-
-_LOW_COST_HIGH_VALUE_SCORE_PCTL = 0.9
-"""used to identify high scoring players"""
-
-_TOP_PLAYERS_COUNT = {"classic": 15, "showdown": 2}
-_TOP_PLAYERS_PCTL = 0.4
-
-
-def _top_players_scoring_diff(score_data, contest_style) -> tuple[float, float]:
-    """
-    returns diff between actual and predicted scores for the top players where top
-    players is defined as (top by percentile, and count)
-    """
-    top_players_sorted_by_pred = pd.merge(
-        score_data["historic"].rename(columns={"fpts": "hist-fpts"}),
-        score_data["predicted"].rename(columns={"fpts": "pred-fpts"}),
-        on=["game_id", "team_id", "player_id"],
-        how="inner",
-    ).sort_values("pred-fpts", ascending=False)
-
-    top_players_by_pctl = top_players_sorted_by_pred.head(
-        int(len(score_data["predicted"]) * _TOP_PLAYERS_PCTL)
-    )
-    diff_for_pctl = float(
-        top_players_by_pctl["hist-fpts"].mean() - top_players_by_pctl["pred-fpts"].mean()
-    )
-
-    top_n_players = top_players_sorted_by_pred.head(_TOP_PLAYERS_COUNT[contest_style])
-    diff_for_n = float(top_n_players["hist-fpts"].mean() - top_n_players["pred-fpts"].mean())
-
-    return diff_for_pctl, diff_for_n
-
-
-def _slate_overperformances(slate_id: int, service, fca: FantasyCostAggregate, score_data):
-    """return count of low cost players that overperformed in the slate"""
-
-    def cost_func(row):
-        if not pd.isna(row.player_id):
-            pt_dict = fca.get_mi_player(int(row.player_id))
-        else:
-            pt_dict = fca.get_mi_team(int(row.team_id))
-        if not pt_dict or "cost" not in pt_dict:
-            return None
-        if isinstance(cost_val := pt_dict["cost"], Number):
-            return cost_val
-        if service not in cost_val:
-            return None
-        if isinstance(service_cost := cost_val[service], Number):
-            return service_cost
-        if cost := service_cost.get(str(slate_id)):
-            return cost
-
-        raise NotImplementedError("don't know what else to try to get cost")
-
-    cost_and_score_df = score_data["historic"].assign(
-        cost=score_data["historic"].apply(cost_func, axis=1)
-    )
-
-    # dataframe with cost and score thresholds for each slate
-    min_score = np.percentile(cost_and_score_df.fpts, _LOW_COST_HIGH_VALUE_SCORE_PCTL * 100)
-    max_cost = np.percentile(cost_and_score_df.cost, BT_LOW_PLAYER_COST_PCTL * 100)
-
-    low_cost_high_val_rows = cost_and_score_df[
-        (cost_and_score_df.fpts > min_score) & (cost_and_score_df.cost < max_cost)
-    ]
-
-    return len(low_cost_high_val_rows)
 
 
 class ScoreCache:
@@ -215,7 +142,7 @@ def score_cache_ctx(sport: str, contest_style, cache_mode: SlateScoreCacheMode, 
     score_cache_filename = f"{sport}-{contest_style.value}-slate.score.json"
     score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
 
-    rational_lineup_params = _get_rational_lineup_gen_params(sport, contest_style.value)
+    rational_lineup_params = get_rational_lineup_gen_params(sport, contest_style.value)
     rlp_hash = constant_hasher(rational_lineup_params)
 
     score_cache = ScoreCache(score_cache_filepath, rlp_hash, cache_mode)
@@ -246,97 +173,6 @@ params\tcount\tgames
 
 """)
         _LOGGER.info("Exiting best_score_cache")
-
-
-def _score_lineup(
-    db_obj,
-    fca,
-    solver,
-    service_cls: type[FantasyService],
-    slate_name,
-    slate_id,
-    slate_info,
-    game_date,
-    screen_lineup_constraints_mode,
-    label: str,
-    gen_lineup_params: GenLineupsParams,
-    verbose: bool,
-    raise_known_exceptions: bool,
-):
-    """
-    calculate the best possible lineup score for a historic slate
-
-    returns (historic lineup fpts total, hist and pred player scores) or None if lineup this slate should be skipped
-    """
-    model_names = service_cls.DEFAULT_MODEL_NAMES.get(db_obj.db_manager.ABBR)
-    assert model_names
-    epoch = db_obj.db_manager.epoch_for_date(game_date)
-    if epoch.game_number == 1:
-        _LOGGER.warning(
-            "Skipping lineup generation for %s slate %s (id=%d) because it is on the first date of the season",
-            game_date,
-            slate_name,
-            slate_id,
-        )
-        return None
-
-    try:
-        lineups, score_data = gen_lineups(
-            db_obj,
-            fca,
-            model_names,
-            solver,
-            service_cls,
-            gen_lineup_params,
-            slate=slate_name,
-            slate_info=slate_info,
-            slate_epoch=epoch,
-            screen_lineup_constraints_mode=screen_lineup_constraints_mode,
-            scores_to_include=["predicted"],
-            verbose=verbose,
-        )
-    except (DataNotAvailableException, LineupGenerationFailure) as ex:
-        _LOGGER.warning(
-            "%s: Lineup generation failed for %s-%s-%s slate '%s' (id=%i): %s",
-            label,
-            db_obj.db_manager.ABBR,
-            service_cls.ABBR,
-            game_date,
-            slate_name,
-            slate_id,
-            ex,
-        )
-        if raise_known_exceptions:
-            raise
-        return None
-    except Exception as ex:
-        _LOGGER.error(
-            "%s: Unhandled error generating lineup for service_abbr='%s' sport='%s' slate '%s' (id=%i) on %s.",
-            label,
-            service_cls.ABBR,
-            db_obj.db_manager.ABBR,
-            slate_name,
-            slate_id,
-            game_date,
-            exc_info=ex,
-        )
-        raise
-
-    return cast(Lineup, lineups[0]), score_data
-
-
-@cache
-def _get_rational_lineup_gen_params(sport, contest_style):
-    rational_params_filepath = os.path.join(
-        os.path.dirname(__file__), "rational_lineup_params.json"
-    )
-    with open(rational_params_filepath, "r") as f_:
-        all_rat_params = check_type(
-            json.load(f_, cls=JSONWithCommentsDecoder), dict[str, list[dict]]
-        )
-    if rat_params_list := all_rat_params.get(f"{sport}-{contest_style}"):
-        return rat_params_list
-    raise ValueError(f"No rational lineup gen params defined for {sport=} {contest_style=}")
 
 
 def slate_scoring(
@@ -428,15 +264,13 @@ def slate_scoring(
 
     top_lineup_params = GenLineupsParams(score_data_type="historic", n_lineups=1)
 
-    lineup_score_info = _score_lineup(
-        session.info["db_obj"],
+    lineup_score_info = bt_score_lineup(
+        session,
         fca,
         top_lineup_solver,
         service_cls,
         slate_name,
-        slate_id,
         starters.slates[slate_name],
-        game_date,
         screen_lineup_constraints_mode,
         "top-lineup",
         top_lineup_params,
@@ -447,91 +281,33 @@ def slate_scoring(
         return None
 
     top_lineup, scoring_data = lineup_score_info
-    top_lineup_score = float(top_lineup.historic_fpts)
+    top_lineup_score = check_type(top_lineup.historic_fpts, float)
     contest_style = str(slate.style)
-    if session.info["fantasy.db_manager"].ABBR == "nfl":
-        k_dst_pts = 0
-        for kid in top_lineup.knap_ids:
-            if kid.p_or_t.is_team or "K" in fca.get_mi_player(kid.id_)["positions"]:
-                k_dst_pts += top_lineup.get_fpts(
-                    "historic",
-                    player_id=(kid.id_ if kid.is_player else None),
-                    team_id=(kid.id_ if kid.is_team else None),
-                )
-        addl_scoring = {"top-possible-lineup-DEF+K-score%": k_dst_pts / top_lineup_score}
-    else:
-        addl_scoring = None
 
-    gen_lineup_params_list = _get_rational_lineup_gen_params(db_manager.ABBR, contest_style)
-    for try_number, brl_gl_params in enumerate(gen_lineup_params_list, 1):
-        brl_gl_params = GenLineupsParams(score_data_type="historic", n_lineups=1, **brl_gl_params)
-        solver = MixedIntegerKnapsackSolver(
-            contest_constraints.knapsack_constraints,
-            contest_constraints.budget,
-            totals_func=contest_constraints.totals_func,
-            fill_all_positions=contest_constraints.fill_all_positions,
-            **brl_gl_params.solver_kwargs,
-        )
+    # bt_get_slate_score_item(
+    #     top_lineup,
+    #     score_data,
+    #     slate_info,
+    #     bt_service: BacktestServiceDF,
+    #     fca
+    # )
 
-        try:
-            best_rational_lineup_info = _score_lineup(
-                session.info["db_obj"],
-                fca,
-                solver,
-                service_cls,
-                slate_name,
-                slate_id,
-                starters.slates[slate_name],
-                game_date,
-                screen_lineup_constraints_mode,
-                "rational-lineup",
-                brl_gl_params,
-                try_number == len(gen_lineup_params_list),
-                True,
-            )
-            if best_rational_lineup_info is None:
-                raise UnexpectedValueError(
-                    "_score_lineup for best rational lineups should not return None"
-                )
-            break
-        except (DataNotAvailableException, LineupGenerationFailure, UnsupportedStackingError) as ex:
-            _LOGGER.warning(
-                "failure on attempt #%d for rational lineup generation of %s %s '%s' %s :: %s",
-                try_number,
-                db_manager.ABBR,
-                game_date,
-                slate_name,
-                contest_style,
-                ex,
-            )
-            continue
-        except Exception as ex:
-            _LOGGER.critical(
-                "Unhandled exception raised when on lineup generation attempt #%d for  %s %s '%s' %s :: %s",
-                try_number,
-                db_manager.ABBR,
-                game_date,
-                slate_name,
-                contest_style,
-                ex,
-            )
-            raise
-    else:
-        raise NotImplementedError(
-            f"Failed to generate a rational lineup for {db_manager.ABBR} {contest_style=} {game_date=} {slate_name=}, {len(starters.games)} games. "
-            "Additional, less restrictive, rational lineup generation params are needed."
-        )
+    addl_scoring = bt_addl_slate_data(fca, top_lineup)
 
-    top_pctl_players_diff, top_n_players_diff = _top_players_scoring_diff(
+    br_tries, br_lineup_pts = get_best_rational_lineup(
+        session, fca, slate_name, slate_info, service_cls, contest_constraints
+    )
+
+    top_pctl_players_diff, top_n_players_diff = bt_top_players_scoring_diff(
         scoring_data, contest_style
     )
 
-    lchv_count = _slate_overperformances(slate_id, service, fca, scoring_data)
+    lchv_count = bt_slate_overperformances(slate_id, service, fca, scoring_data)
 
     scoring = SlateScoreItem(
         top_possible_lineup_score=top_lineup_score,
-        top_rational_lineup_score=float(best_rational_lineup_info[0].historic_fpts),
-        rational_lineup_settings_index=try_number - 1,
+        top_rational_lineup_score=br_lineup_pts,
+        rational_lineup_settings_index=br_tries - 1,
         low_cost_high_value_player_count=lchv_count,
         top_players_scoring_diff_n=top_n_players_diff,
         top_players_scoring_diff_pctl=top_pctl_players_diff,

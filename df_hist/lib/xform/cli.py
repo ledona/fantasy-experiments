@@ -64,6 +64,7 @@ def _process_cmd_line(cmd_line_str=None):
 
     parser.add_argument(
         "--data_path",
+        "--output_data_path",
         default=_DEFAULT_OUTPUT_DATA_DIR,
         help=f"Directory where data will be written. default='{_DEFAULT_OUTPUT_DATA_DIR}'",
     )
@@ -78,6 +79,7 @@ def _process_cmd_line(cmd_line_str=None):
     )
     parser.add_argument(
         "--contest_data_path",
+        "--input_data_path",
         default=_DEFAULT_INPUT_DATA_DIR,
         help=f"Directory containing contest data. default='{_DEFAULT_INPUT_DATA_DIR}'",
     )
