@@ -227,17 +227,11 @@ def slate_scoring(
     )
 
     # get the starters
-    starters_by_id = db_manager.get_starters(
-        service, games_date=game_date, db_obj=session.info["db_obj"], slate=slate_id
+    starters = db_manager.get_starters(
+        service, games_date=game_date, db_obj=session.info["db_obj"], slate=slate_name
     )
-    if starters_by_id is None:
-        raise DataNotAvailableException(f"Failed to retrieve starters for {game_date=} {slate_id=}")
-    starters = starters_by_id.filter_by_slate(slate_name)
     if starters is None or starters.slates is None:
-        raise UnexpectedValueError(
-            f"{slate_name=} not in starters. Starters slates "
-            f"are {starters_by_id.slates.keys() if starters_by_id.slates else None}"
-        )
+        raise DataNotAvailableException(f"Failed to retrieve starters for {game_date=} {slate_id=} {slate_name=}")
     slate_info = starters.slates[slate_name]
 
     service_cls = cast(type[FantasyService], CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service))
@@ -283,14 +277,6 @@ def slate_scoring(
     top_lineup, scoring_data = lineup_score_info
     top_lineup_score = check_type(top_lineup.historic_fpts, float)
     contest_style = str(slate.style)
-
-    # bt_get_slate_score_item(
-    #     top_lineup,
-    #     score_data,
-    #     slate_info,
-    #     bt_service: BacktestServiceDF,
-    #     fca
-    # )
 
     addl_scoring = bt_addl_slate_data(fca, top_lineup)
 

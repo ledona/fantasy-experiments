@@ -178,14 +178,14 @@
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 "--mode", "reuse", 
-                "nfl", "mlb", "nhl", "nba", //"lol",
-                // "--styles", "showdown", "classic",
-                // "--contest_type", "GPP", "FIFTY_FIFTY",
                 "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.07",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
+                "nfl", "mlb", "nhl", "nba", //"lol",
+                "--styles", "showdown", "classic",
+                "--contest_type", "GPP", "FIFTY_FIFTY",
                 "--framework", "dummy", "flaml", "regchain_ridge", "ridge", "regchain_tree",
                 "--target", "lws_log", "top_log", "lws", "top", "top+lws", "top+lws_log",
-                // "--features", "202606", "legacy", "all"
+                "--features", "202606", "legacy", "all"
             ]
         },
         {

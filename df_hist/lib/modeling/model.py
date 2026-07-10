@@ -184,6 +184,7 @@ def _fit_model(
         retry = True
 
     if retry:
+        assert framework == "flaml"
         modeler = FlamlAutoML(**(model_params or {}))
         modeler.fit(X_train, y_train)
 
