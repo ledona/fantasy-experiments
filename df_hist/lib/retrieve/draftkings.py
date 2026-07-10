@@ -16,6 +16,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from .service_data_retriever import (
     DataPermanentlyUnavailable,
+    DFFileNotFoundError,
+    DFValueError,
     NavigationAvailableError,
     ServiceDataRetriever,
 )
@@ -28,7 +30,7 @@ _X_PATH_QUERIES = {
 }
 
 
-class _MinWinScoreNotFoundError(ValueError):
+class _MinWinScoreNotFoundError(DFValueError):
     pass
 
 
@@ -64,7 +66,7 @@ class Draftkings(ServiceDataRetriever):
         history_filenames = glob.glob(glob_pattern)
 
         if len(history_filenames) == 0:
-            raise FileNotFoundError(f"No history files found for '{glob_pattern}'")
+            raise DFFileNotFoundError(f"No history files found for '{glob_pattern}'")
         history_filename = sorted(history_filenames)[-1]
         _LOGGER.info("Loading history data from '%s'", history_filename)
         entries_df = pd.read_csv(history_filename)
@@ -116,7 +118,7 @@ class Draftkings(ServiceDataRetriever):
             ):
                 # lineup was not submitted in time
                 return None
-            raise ValueError("Failed to parse entry lineup. Missing tbody")
+            raise DFValueError("Failed to parse entry lineup. Missing tbody")
 
         col_names = [ele.text for ele in soup.table.thead.tr.find_all("th")]
         try:
@@ -304,7 +306,7 @@ class Draftkings(ServiceDataRetriever):
             if len(top_entry_table_rows) > 0:
                 break
         else:
-            raise ValueError("Unable to identify which xpath queries to use")
+            raise DFValueError("Unable to identify which xpath queries to use")
 
         lineups_data: list[str] = []
 
@@ -337,7 +339,7 @@ class Draftkings(ServiceDataRetriever):
             )
         else:
             if (top_rank := top_entry_table_rows[0].text.split("\n", 1)[0]) != "1":
-                raise ValueError("Unable to find the winning entry", top_rank)
+                raise DFValueError("Unable to find the winning entry", top_rank)
 
         winning_score = float(top_entry_table_rows[0].text.rsplit("\n", 1)[-1].replace(",", ""))
 

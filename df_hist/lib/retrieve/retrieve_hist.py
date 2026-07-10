@@ -6,12 +6,15 @@ from datetime import timedelta
 
 import pandas as pd
 from dateutil.parser import parse as du_parse
+from selenium.common.exceptions import TimeoutException
 from tqdm import tqdm
 
 from . import log
 from .service_data_retriever import (
     EXPECTED_HISTORIC_ENTRIES_DF_COLS,
     DataUnavailable,
+    DFRetriableFailure,
+    DFValueError,
     NavigationAvailableError,
     ServiceDataRetCacheMode,
     ServiceDataRetriever,
@@ -58,7 +61,7 @@ def retrieve_history(
             for i, line in enumerate(sef.readlines(), 1):
                 entry = line.strip().split(":")
                 if len(entry) != 3:
-                    raise ValueError(
+                    raise DFValueError(
                         f"Failed to load entries from '{skip_entry_filepath}'. {len(entry)} values found on line {i}."
                     )
                 sport, date_str, title = entry
@@ -67,13 +70,13 @@ def retrieve_history(
                 if title[-1] == "'":
                     title = title[:-1]
                 if sport not in _ACCEPTED_SPORTS:
-                    raise ValueError(
+                    raise DFValueError(
                         f"Failed to load entries from '{skip_entry_filepath}'. on line {i}, {sport=} is not valid"
                     )
                 try:
                     date_ = du_parse(date_str).date()
                 except Exception as ex:
-                    raise ValueError(
+                    raise DFValueError(
                         f"Failed to load entries from '{skip_entry_filepath}'. on line {i}, failed to parse {date_str=}"
                     ) from ex
 
@@ -119,7 +122,7 @@ def retrieve_history(
             entry_count -= removed_entries
     _LOGGER.info("%i entries to process", entry_count)
     if entry_count == 0:
-        raise ValueError("No entries to process!")
+        raise DFValueError("No entries to process!")
 
     with tqdm(total=entry_count, desc="entries") as pbar:
         pbar.set_postfix(cache=0, web=0)
@@ -259,6 +262,15 @@ def process_cmd_line(cmd_line_str=None):
         default=3,
         help="Only processes this number of entries retrieved from internet. Default is 3",
     )
+    parser.add_argument(
+        "--fail_restarts",
+        type=int,
+        default=0,
+        help="Unhandled failures can occur due to web latency, "
+        "errors during scraping, etc... Use this to set a number "
+        "of times to retry due to unhandled failure.",
+    )
+
     parser.add_argument("service", choices=("fanduel", "draftkings", "yahoo"))
 
     arg_strings = shlex.split(cmd_line_str) if cmd_line_str is not None else None
@@ -273,22 +285,45 @@ def process_cmd_line(cmd_line_str=None):
     end_date = (
         (du_parse(args.end_date) + timedelta(days=1)).date() if args.end_date is not None else None
     )
-    service_obj, entry_count = retrieve_history(
-        args.service,
-        args.history_file_dir,
-        sports=args.sports,
-        start_date=start_date,
-        end_date=end_date,
-        browser_debug_port=args.chrome_debug_port,
-        browser_debug_address=args.chrome_debug_address,
-        profile_path=args.chrome_profile_path,
-        cache_path=args.cache_path,
-        cache_mode=args.cache_mode,
-        cache_only=args.cache_only,
-        interactive=args.interactive,
-        web_limit=args.web_limit,
-        skip_entry_filepath=args.skip_entry_filepath,
-    )
+    retries = 0
+    while True:
+        try:
+            service_obj, entry_count = retrieve_history(
+                args.service,
+                args.history_file_dir,
+                sports=args.sports,
+                start_date=start_date,
+                end_date=end_date,
+                browser_debug_port=args.chrome_debug_port,
+                browser_debug_address=args.chrome_debug_address,
+                profile_path=args.chrome_profile_path,
+                cache_path=args.cache_path,
+                cache_mode=args.cache_mode,
+                cache_only=args.cache_only,
+                interactive=args.interactive,
+                web_limit=args.web_limit,
+                skip_entry_filepath=args.skip_entry_filepath,
+            )
+            break
+        except (TimeoutException, DFRetriableFailure) as ex:
+            # All other errors may lead to a retry
+            if retries < args.fail_restarts:
+                _LOGGER.warning(
+                    "Retrieval failure on try %s! Starting retry %d / %d",
+                    retries,
+                    retries + 1,
+                    args.fail_restarts,
+                )
+                retries += 1
+                continue
+
+            # too many failures
+            if args.fail_restarts > 0:
+                _LOGGER.critical(
+                    "Failed %d times which exhausts the alloted retries. Exiting due to error!",
+                    retries,
+                )
+            raise
 
     if len(service_obj.processed_contests) == 0:
         _LOGGER.warning("Nothing was processed!")

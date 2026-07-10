@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from .service_data_retriever import ServiceDataRetriever
+from .service_data_retriever import DFFileNotFoundError, DFValueError, ServiceDataRetriever
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class Yahoo(ServiceDataRetriever):
         history_filenames = glob.glob(glob_pattern)
 
         if len(history_filenames) == 0:
-            raise FileNotFoundError(f"No history files found for '{glob_pattern}'")
+            raise DFFileNotFoundError(f"No history files found for '{glob_pattern}'")
 
         retrieval_date_filenames = defaultdict(list)
         for filename in history_filenames:
@@ -217,7 +217,7 @@ class Yahoo(ServiceDataRetriever):
                     last_winner_row = row
                     break
             else:
-                raise ValueError("Failed to find a rank higher than the last winning placement")
+                raise DFValueError("Failed to find a rank higher than the last winning placement")
 
         last_winner_score = float(last_winner_row.find_elements("tagName", "td")[2].text)
         if "highlight" in last_winner_row.get_attribute("class"):

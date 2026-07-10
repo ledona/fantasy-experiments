@@ -84,15 +84,27 @@ EXPECTED_CONTEST_DATA_KEYS = {
 }
 
 
-# the return type for get_data. tuple(data, retrieved from, cache filename)
 GetDataResult = tuple[dict | list | pd.DataFrame, str, Literal["cache", "web"], None | str]
+"""the return type for get_data. tuple(data, retrieved from, cache filename)"""
 
 
-class WebLimitReached(Exception):
+class DFRetriableFailure(Exception):
+    """errors that can lead to retrieval retry should inherit this"""
+
+
+class DFHistRetrievalError(Exception):
+    """base class for retrieval errors"""
+
+
+class DFValueError(DFHistRetrievalError, DFRetriableFailure):
+    """raised for an unexpected value"""
+
+
+class WebLimitReached(DFHistRetrievalError):
     """raised when the web retrieval limit is reached and data must be retrieved from the web"""
 
 
-class DataUnavailable(Exception):
+class DataUnavailable(DFHistRetrievalError):
     """raised when the requested data is unavailable for a known reason"""
 
 
@@ -105,11 +117,15 @@ class DataPermanentlyUnavailable(DataUnavailable):
     that the requested data will be available in the future"""
 
 
-class NavigationAvailableError(Exception):
+class NavigationAvailableError(DFHistRetrievalError, DFRetriableFailure):
     """
     raised if there was an error trying to navigate during data retrieval. this
     is used for temporary errors that can be retried
     """
+
+
+class DFFileNotFoundError(DFHistRetrievalError):
+    """a required file was not found"""
 
 
 class ServiceDataRetriever(ABC):
@@ -546,9 +562,9 @@ class ServiceDataRetriever(ABC):
                         with open_(filepath, "r") as f_:
                             return f_.read().decode("cp1252"), "cache", filepath
 
-                    raise ValueError(f"Don't know how to load '{filepath}' from cache")
+                    raise DFValueError(f"Don't know how to load '{filepath}' from cache")
         elif self.cache_only:
-            raise ValueError("cache_only enabled without a cache_path")
+            raise DFValueError("cache_only enabled without a cache_path")
 
         if self.cache_only:
             raise DataUnavailableInCache(filename, [cache_filepath, gz_cache_filepath])
@@ -575,7 +591,7 @@ class ServiceDataRetriever(ABC):
                 with gzip.open(gz_cache_filepath, "wt") as f_:
                     f_.write(text)
             else:
-                raise ValueError(f"Don't know how to write '{data_type}' to cache")
+                raise DFValueError(f"Don't know how to write '{data_type}' to cache")
 
         return data, "web", gz_cache_filepath
 
@@ -595,7 +611,7 @@ def get_service_data_retriever(
     module = import_module("." + service, "lib.retrieve")
     class_ = getattr(module, service.capitalize())
     if cache_path is not None and not os.path.isdir(cache_path):
-        raise FileNotFoundError(f"cache path '{cache_path}' does not exist!")
+        raise DFFileNotFoundError(f"cache path '{cache_path}' does not exist!")
     return class_(
         browser_address=browser_address,
         browser_debug_port=browser_debug_port,

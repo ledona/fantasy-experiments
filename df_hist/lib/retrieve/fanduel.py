@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from .service_data_retriever import ServiceDataRetriever
+from .service_data_retriever import DFFileNotFoundError, ServiceDataRetriever
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class Fanduel(ServiceDataRetriever):
         history_filenames = glob.glob(glob_pattern)
 
         if len(history_filenames) == 0:
-            raise FileNotFoundError(f"No history files found for '{glob_pattern}'")
+            raise DFFileNotFoundError(f"No history files found for '{glob_pattern}'")
 
         # find the most recent date
         retrieval_date_filenames = defaultdict(list)
