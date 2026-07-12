@@ -6,7 +6,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import sklearn
-from fantasy_py import FantasyException, log
+from fantasy_py import FantasyException, UnexpectedValueError, log
 from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
     ModelTarget,
     feature_names_from_win_score_model,
@@ -53,6 +53,18 @@ def _error_report(
     """
     display the error report for the model, also return a dict with the scores
     """
+    if (X_test.columns != feature_names_from_win_score_model(model)).any():
+        # find first index of mismatch
+        for i, (col, expected_feature) in enumerate(
+            zip(X_test.columns, feature_names_from_win_score_model(model))
+        ):
+            if col == expected_feature:
+                continue
+            raise UnexpectedValueError(
+                f"Invalid input data for model. Columns don't match. First mismatch is col={i + 1}. {expected_feature=} input_col='{col}'"
+            )
+        else:
+            raise NotImplementedError("should not get here")
     predictions_raw = model.predict(X_test)
 
     if target.endswith("_log"):

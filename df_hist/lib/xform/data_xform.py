@@ -197,11 +197,11 @@ _EXPECTED_CONTEST_COLS = {
 }
 
 
-def _get_contest_df(
+def _get_orig_contest_df(
     service_name, sport, style, contest_type: Contest, min_date, max_date, contest_data_path
 ) -> pd.DataFrame:
     """
-    create a dataframe from the contest dataset
+    create a dataframe from the contest dataset from the original data source
     """
     contest_csv_path = os.path.join(contest_data_path, service_name + ".contest.csv")
     contest_df = pd.read_csv(contest_csv_path, parse_dates=["date"]).query(
@@ -269,7 +269,7 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
     return draft_df
 
 
-def _create_teams_contest_df(contest_df, draft_df, service, sport):
+def _create_contest_df(contest_df, draft_df, service, sport):
     """group contests together and create team sets used in each contest"""
     service_cls = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service)
     abbr_remaps = service_cls.TEAM_ABBR_ALIASES.get(sport)
@@ -405,7 +405,7 @@ def _generate_dataset(
     """
     # get dfs contests from scraped dataset
     db_obj = db.get_db_obj(cfg["db_filename"], readonly=True)
-    contest_df = _get_contest_df(
+    orig_contest_df = _get_orig_contest_df(
         service_name,
         db_obj.db_manager.ABBR,
         style,
@@ -414,20 +414,18 @@ def _generate_dataset(
         max_date,
         contest_data_path,
     )
-    if len(contest_df) == 0:
+    if len(orig_contest_df) == 0:
         raise DataNotAvailableException(f"No contest data found for {min_date=} {max_date=}")
 
-    if contest_df is not None and max_count is not None:
-        contest_df = contest_df.head(max_count)
+    if orig_contest_df is not None and max_count is not None:
+        orig_contest_df = orig_contest_df.head(max_count)
 
     draft_df = _get_draft_df(
         service_name, db_obj.db_manager.ABBR, style, min_date, max_date, contest_data_path
     )
 
-    teams_contest_df = _create_teams_contest_df(
-        contest_df, draft_df, service_name, db_obj.db_manager.ABBR
-    )
-    assert len(teams_contest_df) > 0
+    contest_df = _create_contest_df(orig_contest_df, draft_df, service_name, db_obj.db_manager.ABBR)
+    assert len(contest_df) > 0
 
     with db_obj.session_scoped() as session:
         slate_db_df = _get_slate_df(session, service_name, style, min_date, max_date)
@@ -435,23 +433,32 @@ def _generate_dataset(
         # note that some slates will not be found due to mismatches in games found in
         # cost files and the games in the the downloaded contest results, and other slates
         # may appear multiple times if multiple contests were entered (hence the drop_duplicates call
-        team_count_and_slate_id_df = teams_contest_df.apply(
+        team_count_and_slate_id_df = contest_df.apply(
             _get_slate_id, axis=1, args=(slate_db_df,)
-        ).assign(date=teams_contest_df["date"])
+        ).assign(date=contest_df["date"])
         teams_contest_new_cols = {"slate_id": team_count_and_slate_id_df.slate_id}
         if "team_count" in team_count_and_slate_id_df:
             teams_contest_new_cols["team_count"] = team_count_and_slate_id_df.team_count
-        teams_contest_df = teams_contest_df.assign(**teams_contest_new_cols)
+        contest_df = contest_df.assign(**teams_contest_new_cols)
 
         if team_count_and_slate_id_df.slate_id.isna().any():
             defined_slates_df = team_count_and_slate_id_df.dropna(subset="slate_id")
             _LOGGER.warning(
-                "Slate scoring features for %d of %s slates will be skipped because slate could not be matched in DB",
-                len(teams_contest_df) - len(defined_slates_df),
-                len(teams_contest_df),
+                "%d of %s slate score features skipped for %s %s %s %s %s - %s due to slate not matched in DB",
+                len(contest_df) - len(defined_slates_df),
+                len(contest_df),
+                service_name,
+                db_obj.db_manager.ABBR,
+                style,
+                contest_type.TYPE_NAME,
+                min_date,
+                max_date,
             )
-            if len(teams_contest_df) - len(defined_slates_df) == 0:
-                raise DataNotAvailableException("No slates ids found (based on teams contest df)")
+            if len(defined_slates_df) == 0:
+                raise DataNotAvailableException(
+                    "No slates ids found (based on teams contest df) for "
+                    f"{service_name} {db_obj.db_manager.ABBR} {style} {contest_type.TYPE_NAME} {min_date} - {max_date}"
+                )
         else:
             defined_slates_df = team_count_and_slate_id_df
 
@@ -475,14 +482,16 @@ def _generate_dataset(
         }
 
         team_score_df = bt_winscore_team_input_data(
-            session, slate_to_games, top_percentile, style, db_obj.db_manager.ABBR
+            session, slate_to_games, top_percentile, "all", style, db_obj.db_manager.ABBR
         )
 
         player_scores_df = bt_winscore_player_input_data(
             session,
-            style,
             slate_to_games,
             top_percentile,
+            "all",
+            style,
+            db_obj.db_manager.ABBR,
             bt_service_name=service_name,
         )
 
@@ -512,7 +521,7 @@ def _generate_dataset(
         db_obj.db_manager.ABBR,
         style,
         "all",
-        teams_contest_df,
+        contest_df,
         team_score_df,
         player_scores_df,
         slate_scores,
@@ -521,7 +530,7 @@ def _generate_dataset(
 
     # add the target vars back in
     winning_score_data = (
-        teams_contest_df[["slate_id", "top_score", "last_winning_score"]]
+        contest_df[["slate_id", "top_score", "last_winning_score"]]
         .rename(columns={"top_score": "top_winning_score"})
         .set_index("slate_id", drop=True)
     )
@@ -592,11 +601,7 @@ def xform(
             ):
                 contest_type_iter.set_postfix_str(contest_type.TYPE_NAME)
                 _LOGGER.info(
-                    "Processing sport=%s service=%s style=%s contest-type=%s",
-                    sport,
-                    service,
-                    style,
-                    contest_type.TYPE_NAME,
+                    "Processing %s %s %s %s", sport, service, style, contest_type.TYPE_NAME
                 )
                 slcm = (
                     "warn" if (sport, service) in _WARN_ON_SCREEN_LINEUP_CONSTRAINTS_ERR else "fail"
@@ -616,8 +621,7 @@ def xform(
                         datapath=data_path,
                     )
                     _LOGGER.info(
-                        "Finished processing sport=%s service=%s style=%s contest-type=%s. "
-                        "%i rows in dataset",
+                        "Finished processing %s %s %s %s. %i rows in dataset",
                         sport,
                         service,
                         style,
@@ -626,7 +630,7 @@ def xform(
                     )
                 except DataNotAvailableException as ex:
                     _LOGGER.error(
-                        "Error processing sport=%s service=%s style=%s contest-type=%s",
+                        "Error processing %s %s %s %s. No data retrieved for xform.",
                         sport,
                         service,
                         style,
@@ -634,5 +638,5 @@ def xform(
                         exc_info=ex,
                     )
 
-    _LOGGER.info("Finished with sport %s", sport)
+    _LOGGER.info("Finished with %s", sport)
     return dfs

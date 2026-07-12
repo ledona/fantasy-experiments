@@ -164,6 +164,7 @@
                 // "--style", "classic",
                 // "--style", "showdown",
                 // "--type", "GPP",
+                // "--type", "FIFTY_FIFTY",
                 // "--dates", "20241001", "20241101",
                 "--sports", "nfl", "nhl", "nba", "mlb",
                 "--cache_mode", "enable",
@@ -183,7 +184,7 @@
                 "nfl", "mlb", "nhl", "nba", //"lol",
                 "--styles", "showdown", "classic",
                 "--contest_type", "GPP", "FIFTY_FIFTY",
-                "--framework", "dummy", "flaml", "regchain_ridge", "ridge", "regchain_tree",
+                "--framework", "dummy", "regchain_ridge", "ridge", "regchain_tree", // "flaml",
                 "--target", "lws_log", "top_log", "lws", "top", "top+lws", "top+lws_log",
                 "--features", "202606", "legacy", "all"
             ]
@@ -196,8 +197,8 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
-                // "/fantasy-isync/fantasy-dfs-hist/models/2026.06-2",
-                "/tmp/fantasy-test",
+                "/fantasy-isync/fantasy-dfs-hist/models/2026.07",
+                // "/tmp/fantasy-test",
             ]
         },
         {

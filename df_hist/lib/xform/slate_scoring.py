@@ -5,6 +5,7 @@ import os
 from argparse import Namespace
 from collections import defaultdict
 from contextlib import contextmanager
+from dataclasses import astuple
 from typing import Literal, cast
 
 from fantasy_py import (
@@ -78,11 +79,11 @@ class ScoreCache:
             )
             return
 
-        for slate_id, score in cache_data["scores"].items():
-            if cache_mode == "missing" and score is None:
+        for slate_id, score_data in cache_data["scores"].items():
+            if cache_mode == "missing" and score_data is None:
                 continue
             try:
-                self.data[int(slate_id)] = SlateScoreItem(*score)
+                self.data[int(slate_id)] = SlateScoreItem(*score_data)
             except TypeError:
                 _LOGGER.error(
                     "Parsing error while loading slate score cache from '%s'. Cache will be rebuilt",
@@ -118,9 +119,10 @@ class ScoreCache:
         if not self._unsaved_updates > 0:
             return
 
+        data = {slate_id: astuple(ssi) for slate_id, ssi in self.data.items()}
         with open(self.score_cache_filepath, "w") as f:
             json.dump(
-                {"rational_lineup_params_hash": self._rlp_hash, "scores": self.data},
+                {"rational_lineup_params_hash": self._rlp_hash, "scores": data},
                 f,
                 indent=2,
             )
@@ -231,7 +233,9 @@ def slate_scoring(
         service, games_date=game_date, db_obj=session.info["db_obj"], slate=slate_name
     )
     if starters is None or starters.slates is None:
-        raise DataNotAvailableException(f"Failed to retrieve starters for {game_date=} {slate_id=} {slate_name=}")
+        raise DataNotAvailableException(
+            f"Failed to retrieve starters for {game_date=} {slate_id=} {slate_name=}"
+        )
     slate_info = starters.slates[slate_name]
 
     service_cls = cast(type[FantasyService], CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service))
@@ -278,7 +282,7 @@ def slate_scoring(
     top_lineup_score = check_type(top_lineup.historic_fpts, float)
     contest_style = str(slate.style)
 
-    addl_scoring = bt_addl_slate_data(fca, top_lineup)
+    addl_scoring = bt_addl_slate_data(fca, top_lineup, "all")
 
     br_tries, br_lineup_pts = get_best_rational_lineup(
         session, fca, slate_name, slate_info, service_cls, contest_constraints
