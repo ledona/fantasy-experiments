@@ -273,7 +273,6 @@ def slate_scoring(
         "top-lineup",
         top_lineup_params,
         True,
-        False,
     )
     if lineup_score_info is None:
         return None
