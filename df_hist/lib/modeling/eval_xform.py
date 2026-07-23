@@ -17,8 +17,8 @@ from typing import cast
 import pandas as pd
 from fantasy_py import log
 from fantasy_py.analysis.backtest.daily_fantasy import (
-    ModelTarget,
     WINSCORE_MODEL_RESULTS_SUBDIR,
+    ModelTarget,
     model_filenamer,
 )
 from tabulate import tabulate
@@ -28,7 +28,7 @@ from tqdm import tqdm
 def _xo_rate(row: pd.Series, pred_dir_path: str):
     """pandas apply function for calculating crossover rate"""
     lws_top_preds_df: pd.DataFrame
-    target_post = "_log" if row.log else ""
+    target_post = ("_log" if row.log else "") + ("_orr" if row.orr else "")
 
     if "regchain" in row.Framework:
         pred_filename = (
@@ -85,6 +85,7 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
         "Framework",
         "Features",
         "log",
+        "orr",
         "R2",
         "R2.top",
         "R2.lws",
@@ -101,13 +102,15 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
 
     paired = df[paired_mask].copy()
     paired["log"] = target_series[paired_mask].map(lambda t: t.is_log)
+    paired["orr"] = target_series[paired_mask].map(lambda t: t.is_optrat_residual)
     paired_out = paired[out_cols]
 
     indiv = df[~paired_mask].copy()
     indiv["log"] = target_series[~paired_mask].map(lambda t: t.is_log)
+    indiv["orr"] = target_series[~paired_mask].map(lambda t: t.is_optrat_residual)
     indiv["is_top"] = target_series[~paired_mask].map(lambda t: t.is_top)
 
-    idx_cols = group_cols + ["log"]
+    idx_cols = group_cols + ["log", "orr"]
     top_df = indiv[indiv["is_top"]].set_index(idx_cols)
     lws_df = indiv[~indiv["is_top"]].set_index(idx_cols)
 
@@ -119,7 +122,7 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
             continue
         top_model_info = top_df.loc[idx]
         lws_model_info = lws_df.loc[idx]
-        sport, service, type_, style, framework, features, log = idx
+        sport, service, type_, style, framework, features, log, orr = idx
         r2_top, r2_lws = float(top_model_info["R2"]), float(lws_model_info["R2"])
         rmse_top, rmse_lws = float(top_model_info["RMSE"]), float(lws_model_info["RMSE"])
         mae_top, mae_lws = float(top_model_info["MAE"]), float(lws_model_info["MAE"])
@@ -132,6 +135,7 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
                 "Framework": framework,
                 "Features": features,
                 "log": log,
+                "orr": orr,
                 "R2": (r2_top + r2_lws) / 2,
                 "R2.top": r2_top,
                 "R2.lws": r2_lws,

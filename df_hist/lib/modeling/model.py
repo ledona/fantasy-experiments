@@ -63,16 +63,29 @@ def _error_report(
             raise UnexpectedValueError(
                 f"Invalid input data for model. Columns don't match. First mismatch is col={i + 1}. {expected_feature=} input_col='{col}'"
             )
-        else:
-            raise NotImplementedError("should not get here")
+        raise NotImplementedError("should not get here")
     predictions_raw = model.predict(X_test)
 
     if target.is_log:
-        predictions = np.expm1(predictions_raw)
-        y_test = np.expm1(y_test_fit_data)
+        predictions = np.sign(predictions_raw) * np.expm1(np.abs(predictions_raw))
+        y_test = np.sign(y_test_fit_data) * np.expm1(np.abs(y_test_fit_data))
     else:
         predictions = predictions_raw
         y_test = y_test_fit_data
+
+    if target.is_optrat_residual:
+        rational = X_test["top_rational_lineup_score"].values
+        if target.is_combined:
+            predictions = np.column_stack(
+                [rational + predictions[:, 0], rational - predictions[:, 1]]
+            )
+            y_test = np.column_stack([rational + y_test[:, 0], rational - y_test[:, 1]])
+        elif target.is_top:
+            predictions = rational + predictions
+            y_test = rational + y_test
+        else:
+            predictions = rational - predictions
+            y_test = rational - y_test
 
     if isinstance(predictions, pd.DataFrame):
         predictions = predictions[predictions.columns[0]]

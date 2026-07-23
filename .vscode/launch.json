@@ -185,8 +185,8 @@
                 "--styles", "showdown", "classic",
                 "--contest_type", "GPP", "FIFTY_FIFTY",
                 "--framework", "dummy", "regchain_ridge", "ridge", "regchain_tree", // "flaml",
-                "--target", "lws_log", "top_log", "lws", "top", "top+lws", "top+lws_log",
-                "--features", "202606", "legacy", "all"
+                // "--target", "lws_log", "top_log", "lws", "top", "top+lws", "top+lws_log",
+                // "--features", "202606", "legacy", "all"
             ]
         },
         {

@@ -2,16 +2,17 @@ import json
 import os
 import shlex
 from argparse import ArgumentParser
+from collections.abc import Collection
 from itertools import product
 from typing import cast
 
 from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCommentsDecoder, log
-from fantasy_py.betting import FiftyFifty, GeneralPrizePool, LineupContest
 from fantasy_py.analysis.backtest.daily_fantasy import (
+    WINSCORE_MODEL_RESULTS_SUBDIR,
     ModelFeatures,
     ModelTarget,
-    WINSCORE_MODEL_RESULTS_SUBDIR,
 )
+from fantasy_py.betting import FiftyFifty, GeneralPrizePool, LineupContest
 from tqdm import tqdm
 
 from .eval_models import evaluate_models
@@ -27,11 +28,11 @@ def _multi_run(
     frameworks: list[Framework],
     model_cfg_filepath,
     styles: list[DFSContestStyle],
-    sports: set[str],
-    services: set[str],
+    sports: Collection[str],
+    services: Collection[str],
     contest_types: list[LineupContest],
-    target_set: set[ModelTarget],
-    features_set: set[ModelFeatures],
+    targets: Collection[ModelTarget],
+    features: Collection[ModelFeatures],
     model_folder,
     mode: ExistingModelMode,
     eval_results_path: str,
@@ -91,8 +92,8 @@ def _multi_run(
             framework_params,
             model_folder=model_folder,
             eval_results_path=eval_results_path,
-            model_features=features_set,
-            model_targets=target_set,
+            model_features=features,
+            model_targets=targets,
             service=service,
             mode=mode,
             data_folder=data_dir,
@@ -214,9 +215,9 @@ def _process_cmd_line(cmd_line_str=None):
 
     print(f"{args=}")
     targets = (
-        set(ModelTarget.all_instances())
+        ModelTarget.all_instances()
         if args.model_targets is None
-        else {ModelTarget.from_value(t) for t in args.model_targets}
+        else [ModelTarget.from_value(t) for t in args.model_targets]
     )
     eval_results, failed_models = _multi_run(
         args.frameworks,
@@ -230,7 +231,7 @@ def _process_cmd_line(cmd_line_str=None):
         args.model_path,
         args.existing_model_mode,
         results_path,
-        args.data_dir,
+        str(args.data_dir),
     )[1:]
 
     record_results(eval_results, failed_models, results_path)
