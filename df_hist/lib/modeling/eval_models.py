@@ -11,27 +11,19 @@ _LOGGER = log.get_logger(__name__)
 
 def _get_target_values(target: ModelTarget, tt_data: TrainTestData):
     """returns (training-data, test/eval-data)"""
-    if target == "top":
-        return tt_data.y_train_top, tt_data.y_test_top
-    if target == "top_log":
-        return np.log1p(tt_data.y_train_top), np.log1p(tt_data.y_test_top)
+    if target.is_combined:
+        y_train = np.column_stack((tt_data.y_train_top, tt_data.y_train_lws))
+        y_test = np.column_stack((tt_data.y_test_top, tt_data.y_test_lws))
+    elif target.is_top:
+        y_train, y_test = tt_data.y_train_top, tt_data.y_test_top
+    elif target.is_lws:
+        y_train, y_test = tt_data.y_train_lws, tt_data.y_test_lws
+    else:
+        raise NotImplementedError(f"don't know how to get base values for {target=}")
 
-    if target == "lws":
-        return tt_data.y_train_lws, tt_data.y_test_lws
-    if target == "lws_log":
-        return np.log1p(tt_data.y_train_lws), np.log1p(tt_data.y_test_lws)
-
-    if target == "top+lws":
-        return np.column_stack((tt_data.y_train_top, tt_data.y_train_lws)), np.column_stack(
-            (tt_data.y_test_top, tt_data.y_test_lws)
-        )
-
-    if target == "top+lws_log":
-        train_data = np.column_stack((np.log1p(tt_data.y_train_top), np.log1p(tt_data.y_train_lws)))
-        test_data = np.column_stack((np.log1p(tt_data.y_test_top), np.log1p(tt_data.y_test_lws)))
-        return train_data, test_data
-
-    raise NotImplementedError(f"don't know how to train {target=}")
+    if target.is_log:
+        return np.log1p(y_train), np.log1p(y_test)
+    return y_train, y_test
 
 
 def evaluate_models(
@@ -69,7 +61,7 @@ def evaluate_models(
         "Date": now().strftime("%Y%m%d"),
     }
     final_model_targets: set[ModelTarget] = (
-        set(ModelTarget.__args__) if model_targets is None else model_targets
+        set(ModelTarget.all_instances()) if model_targets is None else model_targets
     )
     model_desc_pre = model_filenamer(
         sport=sport, service=service, style=style, contest_type=contest_type, framework=framework
@@ -129,9 +121,9 @@ def evaluate_models(
                 final_model_targets, desc="Targets", disable=len(final_model_targets) == 1
             )
         ):
-            target_pbar.set_postfix_str(target)
-            if (framework.startswith("regchain") and not target.startswith("top+lws")) or (
-                framework in ("ridge", "flaml") and target.startswith("top+lws")
+            target_pbar.set_postfix_str(str(target))
+            if (framework.startswith("regchain") and not target.is_combined) or (
+                framework in ("ridge", "flaml") and target.is_combined
             ):
                 _LOGGER.warning(
                     "Skipping model_target=%s. framework=%s does not support it",
@@ -172,7 +164,7 @@ def evaluate_models(
             finalized_results = {
                 **shared_results_dict,
                 **cam_result["eval_result"],
-                "Target": target,
+                "Target": str(target),
                 "Features": features,
                 "Params": model_params.copy(),
             }

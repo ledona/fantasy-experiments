@@ -144,8 +144,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--targets",
         help="The models/targets to fit and evaluate",
         nargs="+",
-        choices=ModelTarget.__args__,
-        default=ModelTarget.__args__,
+        choices=ModelTarget.all_values(),
+        default=None,
     )
     parser.add_argument(
         "--model_features",
@@ -213,6 +213,11 @@ def _process_cmd_line(cmd_line_str=None):
     ]
 
     print(f"{args=}")
+    targets = (
+        set(ModelTarget.all_instances())
+        if args.model_targets is None
+        else {ModelTarget.from_value(t) for t in args.model_targets}
+    )
     eval_results, failed_models = _multi_run(
         args.frameworks,
         args.model_cfg_file,
@@ -220,7 +225,7 @@ def _process_cmd_line(cmd_line_str=None):
         set(args.sports),
         set(args.services),
         c_types,
-        set(args.model_targets),
+        targets,
         set(args.model_features),
         args.model_path,
         args.existing_model_mode,

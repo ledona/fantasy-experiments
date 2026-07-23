@@ -17,6 +17,7 @@ from typing import cast
 import pandas as pd
 from fantasy_py import log
 from fantasy_py.analysis.backtest.daily_fantasy import (
+    ModelTarget,
     WINSCORE_MODEL_RESULTS_SUBDIR,
     model_filenamer,
 )
@@ -37,7 +38,7 @@ def _xo_rate(row: pd.Series, pred_dir_path: str):
                 style=row.Style,
                 contest_type=row.Type,
                 framework=row.Framework,
-                target="top+lws" + target_post,
+                target=ModelTarget.from_value(f"top+lws{target_post}"),
                 features=row.Features,
             )
             + ".prediction.csv"
@@ -45,7 +46,7 @@ def _xo_rate(row: pd.Series, pred_dir_path: str):
         lws_top_preds_df = pd.read_csv(os.path.join(pred_dir_path, pred_filename))
     else:
         preds = {}
-        for target in ["top", "lws"]:
+        for key in ["top", "lws"]:
             pred_filename = (
                 model_filenamer(
                     sport=row.Sport,
@@ -53,13 +54,13 @@ def _xo_rate(row: pd.Series, pred_dir_path: str):
                     style=row.Style,
                     contest_type=row.Type,
                     framework=row.Framework,
-                    target=target + target_post,
+                    target=ModelTarget.from_value(f"{key}{target_post}"),
                     features=row.Features,
                 )
                 + ".prediction.csv"
             )
             df = pd.read_csv(os.path.join(pred_dir_path, pred_filename))
-            preds["pred." + target] = df.prediction
+            preds["pred." + key] = df.prediction
 
         lws_top_preds_df = pd.DataFrame(preds)
 
@@ -95,15 +96,16 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
         "MAE.lws",
     ]
 
-    paired_mask = df["Target"].str.contains("+", regex=False)
+    target_series = df["Target"].map(ModelTarget.from_value)
+    paired_mask = target_series.map(lambda t: t.is_combined)
 
     paired = df[paired_mask].copy()
-    paired["log"] = paired["Target"].str.endswith("_log")
+    paired["log"] = target_series[paired_mask].map(lambda t: t.is_log)
     paired_out = paired[out_cols]
 
     indiv = df[~paired_mask].copy()
-    indiv["log"] = indiv["Target"].str.endswith("_log")
-    indiv["is_top"] = indiv["Target"].str.startswith("top")
+    indiv["log"] = target_series[~paired_mask].map(lambda t: t.is_log)
+    indiv["is_top"] = target_series[~paired_mask].map(lambda t: t.is_top)
 
     idx_cols = group_cols + ["log"]
     top_df = indiv[indiv["is_top"]].set_index(idx_cols)

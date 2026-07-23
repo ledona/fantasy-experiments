@@ -67,7 +67,7 @@ def _error_report(
             raise NotImplementedError("should not get here")
     predictions_raw = model.predict(X_test)
 
-    if target.endswith("_log"):
+    if target.is_log:
         predictions = np.expm1(predictions_raw)
         y_test = np.expm1(y_test_fit_data)
     else:
@@ -83,7 +83,7 @@ def _error_report(
 
     result = {"R2": r2, "RMSE": rmse, "MAE": mae}
 
-    if target.startswith("top+lws"):
+    if target.is_combined:
         assert isinstance(y_test, np.ndarray) and y_test.shape[1] == 2
         truth_top_lws = pd.DataFrame(y_test, columns=["true.top", "true.lws"])
         pred_top_lws = pd.DataFrame(predictions, columns=["pred.top", "pred.lws"])
@@ -97,9 +97,9 @@ def _error_report(
             result[f"MAE.{top_lws}"] = round(
                 sqrt(sklearn.metrics.mean_absolute_error(truth, pred)), 4
             )
-    elif target.startswith("lws"):
+    elif target.is_lws:
         result.update({"R2.lws": r2, "RMSE.lws": rmse, "MAE.lws": mae})
-    elif target.startswith("top"):
+    elif target.is_top:
         result.update({"R2.top": r2, "RMSE.top": rmse, "MAE.top": mae})
     else:
         raise NotImplementedError()
