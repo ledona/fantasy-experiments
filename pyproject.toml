@@ -569,6 +569,7 @@ disallow_incomplete_defs = false
 disallow_untyped_calls = false
 # follow_imports = "silent"
 
-
-[tool.black]
+[tool.ruff]
 line-length = 100
+[tool.ruff.lint]
+ignore = ["EXE002"]
