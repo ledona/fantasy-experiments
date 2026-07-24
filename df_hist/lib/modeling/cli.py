@@ -22,6 +22,7 @@ from .results import record_results
 _LOGGER = log.get_logger(__name__)
 _DEFAULT_CFG_PATH = os.path.join(".", "model_cfg.json")
 _DEFAULT_MODEL_PATH = os.path.join(".", "models")
+_DEFAULT_FRAMEWORKS = ["dummy"]
 
 
 def _multi_run(
@@ -173,10 +174,10 @@ def _process_cmd_line(cmd_line_str=None):
     )
     parser.add_argument(
         "--frameworks",
-        help="The type of ml framework/algorithm to use",
+        help=f"The type of ml framework/algorithm to use. Default={_DEFAULT_FRAMEWORKS}",
         choices=Framework.__args__,
         nargs="+",
-        default=["regchain_tree"],
+        default=_DEFAULT_FRAMEWORKS,
     )
     parser.add_argument(
         "--existing_model_mode",

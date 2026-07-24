@@ -144,11 +144,11 @@ def evaluate_models(
             )
         ):
             target_pbar.set_postfix_str(str(target))
-            if (framework.startswith("regchain") and not target.is_combined) or (
-                framework in ("ridge", "flaml") and target.is_combined
-            ):
-                _LOGGER.warning(
-                    "Skipping model_target=%s. framework=%s does not support it",
+
+            # regchain and target.is_combined have to both be true or both be false, otherwise skip
+            if framework.startswith("regchain") != target.is_combined:
+                _LOGGER.info(
+                    "Skipping model_target=%s framework=%s. this combination is not supported",
                     target,
                     framework,
                 )

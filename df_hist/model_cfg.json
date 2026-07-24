@@ -1,9 +1,11 @@
-# following are used a kwargs for the instanciation of fitter class of the framework
+# The following are kwargs for the instanciation of regressor class of the framework
 {
     "dummy": null,
+    "ridge": null,
+    "qreg": null,
+    "qgbr": null,
     "regchain_tree": null,
     "regchain_ridge": null,
-    "ridge": null,
     "flaml": {
         # in seconds. best model is typically found in under 10 secs
         "time_budget": 60,

@@ -19,13 +19,12 @@ def _log_eval_results(eval_results: list[dict], dt_str: str, csv_folder):
 
     eval_cols = ["Sport", "Service", "Type", "Style", "Target", "Features", "Framework", "Date"]
 
-    for eval_stat in ["R2", "RMSE", "MAE"]:
+    for eval_stat in ["pinball", "R2", "RMSE", "MAE"]:
         eval_cols += [col for col in df if cast(str, col).startswith(eval_stat)]
 
     eval_cols.append("Params")
 
     assert not df.Service.isna().any(), "all service values should be defined"
-    # df.Service = df.Service.fillna("multi")
     df = df[eval_cols].sort_values(
         ["Sport", "Service", "Type", "Style", "Target", "Features", "Framework", "Date"]
     )

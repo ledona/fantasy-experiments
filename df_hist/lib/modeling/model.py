@@ -13,7 +13,8 @@ from fantasy_py.analysis.backtest.daily_fantasy.winning_score_range import (
 )
 from flaml import AutoML as FlamlAutoML
 from sklearn.dummy import DummyRegressor
-from sklearn.linear_model import Ridge
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.linear_model import QuantileRegressor, Ridge
 from sklearn.multioutput import RegressorChain
 from sklearn.tree import DecisionTreeRegressor
 from tabulate import tabulate
@@ -22,17 +23,22 @@ from .generate_train_test import TrainTestData
 
 _LOGGER = log.get_logger(__name__)
 
-Framework = Literal["dummy", "flaml", "ridge", "regchain_tree", "regchain_ridge"]
+# quantiles to use for quantile regression models
+_QUANTILE_TOP = 0.98
+_QUANTILE_LWS = 0.8
+
+Framework = Literal["dummy", "flaml", "ridge", "qreg", "qgbr", "regchain_tree", "regchain_ridge"]
 """
-ml framework/method
+ml framework
 
 dummy - regressor based on a dummy model
-regchain_tree - regression chain using tree regressors, first a regressor for top winning\
-    score, then use its output as a feature in a regressor for the low winning score.\
-    Only applicable to lws+top
-regchain_ridge - same as regchain_tree but uses a ridge regressor
 flaml - automl flaml model
 ridge - ridge regressor
+qreg - quantile regressor
+qgbr - gradient boosted tree regressor w/quantile loss
+regchain_[tree|ridge] - regression chain using decision tree and other regressors,
+    first a regressor for top winning score, then use its output as a feature for training
+    the low winning score. Only applicable to lws+top
 """
 
 
@@ -93,11 +99,32 @@ def _error_report(
     r2 = round(sklearn.metrics.r2_score(y_test, predictions), 4)
     rmse = round(sqrt(sklearn.metrics.mean_squared_error(y_test, predictions)), 4)
     mae = round(sqrt(sklearn.metrics.mean_absolute_error(y_test, predictions)), 4)
+    if target.is_top:
+        pinball = round(
+            sklearn.metrics.mean_pinball_loss(y_test, predictions, alpha=_QUANTILE_TOP), 4
+        )
+    elif target.is_lws:
+        pinball = round(
+            sklearn.metrics.mean_pinball_loss(y_test, predictions, alpha=_QUANTILE_LWS), 4
+        )
+    elif target.is_combined:
+        pinball_losses = {
+            "top": sklearn.metrics.mean_pinball_loss(
+                y_test[:, 0], predictions[:, 0], alpha=_QUANTILE_TOP
+            ),
+            "lws": sklearn.metrics.mean_pinball_loss(
+                y_test[:, 1], predictions[:, 1], alpha=_QUANTILE_LWS
+            ),
+        }
+        pinball = round((pinball_losses["top"] + pinball_losses["lws"]) / 2, 4)
+    else:
+        raise NotImplementedError()
 
-    result = {"R2": r2, "RMSE": rmse, "MAE": mae}
+    result = {"R2": r2, "RMSE": rmse, "MAE": mae, "pinball": pinball}
 
     if target.is_combined:
         assert isinstance(y_test, np.ndarray) and y_test.shape[1] == 2
+        assert pinball_losses
         truth_top_lws = pd.DataFrame(y_test, columns=["true.top", "true.lws"])
         pred_top_lws = pd.DataFrame(predictions, columns=["pred.top", "pred.lws"])
         for top_lws in ["top", "lws"]:
@@ -110,10 +137,11 @@ def _error_report(
             result[f"MAE.{top_lws}"] = round(
                 sqrt(sklearn.metrics.mean_absolute_error(truth, pred)), 4
             )
+            result[f"pinball.{top_lws}"] = pinball_losses[top_lws]
     elif target.is_lws:
-        result.update({"R2.lws": r2, "RMSE.lws": rmse, "MAE.lws": mae})
+        result.update({"R2.lws": r2, "RMSE.lws": rmse, "MAE.lws": mae, "pinball.lws": pinball})
     elif target.is_top:
-        result.update({"R2.top": r2, "RMSE.top": rmse, "MAE.top": mae})
+        result.update({"R2.top": r2, "RMSE.top": rmse, "MAE.top": mae, "pinball.top": pinball})
     else:
         raise NotImplementedError()
 
@@ -172,27 +200,46 @@ def _fit_model(
     y_train,
     framework: Framework,
     random_state,
-    model_params,
-    model_filepath,
+    target: ModelTarget,
+    model_params: dict,
+    model_filepath: str,
 ):
+    if model_params is None:
+        model_params = {}
     if framework == "dummy":
-        modeler = DummyRegressor(**(model_params or {}))
+        modeler = DummyRegressor(**model_params)
     elif framework.startswith("regchain"):
         if framework == "regchain_tree":
-            base_estimator = DecisionTreeRegressor(
-                random_state=random_state, **(model_params or {})
-            )
+            base_estimator = DecisionTreeRegressor(random_state=random_state, **model_params)
         elif framework == "regchain_ridge":
-            base_estimator = Ridge(random_state=random_state, **(model_params or {}))
+            base_estimator = Ridge(random_state=random_state, **model_params)
         else:
             raise NotImplementedError()
         # Since the order is 0, 1 and reg chain should be top-score -> lowest score
         # make sure that the target vector is (top-score, low-score)
         modeler = RegressorChain(base_estimator, order=[0, 1])
     elif framework == "ridge":
-        modeler = Ridge(random_state=random_state, **(model_params or {}))
+        modeler = Ridge(random_state=random_state, **model_params)
     elif framework == "flaml":
-        modeler = FlamlAutoML(**(model_params or {}))
+        modeler = FlamlAutoML(**model_params)
+    elif framework == "qgbr":
+        if target.is_combined:
+            raise UnexpectedValueError(f"quantile not defined for {target=}")
+        quantile = _QUANTILE_TOP if target.is_top else _QUANTILE_LWS
+        modeler = GradientBoostingRegressor(loss="quantile", alpha=quantile, **model_params)
+        if X_train.isna().any().any():
+            na_rows = X_train.isna().any(axis=1)
+            X_train = X_train[~na_rows]
+            y_train = y_train[~na_rows]
+    elif framework == "qreg":
+        if target.is_combined:
+            raise UnexpectedValueError(f"quantile not defined for {target=}")
+        quantile = _QUANTILE_TOP if target.is_top else _QUANTILE_LWS
+        modeler = QuantileRegressor(quantile=quantile, **model_params)
+        if X_train.isna().any().any():
+            na_rows = X_train.isna().any(axis=1)
+            X_train = X_train[~na_rows]
+            y_train = y_train[~na_rows]
     else:
         raise NotImplementedError(f"framework '{framework}' not supported")
 
@@ -253,7 +300,7 @@ def create_model(
         model = joblib.load(model_filepath)
     else:
         model = _fit_model(
-            tt_data.X_train, y_train, framework, random_state, model_params, model_filepath
+            tt_data.X_train, y_train, framework, random_state, target, model_params, model_filepath
         )
 
     eval_results = _error_report(

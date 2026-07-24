@@ -86,15 +86,18 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
         "Features",
         "log",
         "orr",
+        "pinball",
+        "pinball.top",
+        "pinball.lws",
+        "MAE",
+        "MAE.top",
+        "MAE.lws",
         "R2",
         "R2.top",
         "R2.lws",
         "RMSE",
         "RMSE.top",
         "RMSE.lws",
-        "MAE",
-        "MAE.top",
-        "MAE.lws",
     ]
 
     target_series = df["Target"].map(ModelTarget.from_value)
@@ -123,9 +126,12 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
         top_model_info = top_df.loc[idx]
         lws_model_info = lws_df.loc[idx]
         sport, service, type_, style, framework, features, log, orr = idx
+
         r2_top, r2_lws = float(top_model_info["R2"]), float(lws_model_info["R2"])
         rmse_top, rmse_lws = float(top_model_info["RMSE"]), float(lws_model_info["RMSE"])
         mae_top, mae_lws = float(top_model_info["MAE"]), float(lws_model_info["MAE"])
+        pb_top, pb_lws = float(top_model_info["pinball"]), float(lws_model_info["pinball"])
+
         rows.append(
             {
                 "Sport": sport,
@@ -136,15 +142,18 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
                 "Features": features,
                 "log": log,
                 "orr": orr,
+                "pinball": (pb_top + pb_lws) / 2,
+                "pinball.top": pb_top,
+                "pinball.lws": pb_lws,
+                "MAE": (mae_top + mae_lws) / 2,
+                "MAE.top": mae_top,
+                "MAE.lws": mae_lws,
                 "R2": (r2_top + r2_lws) / 2,
                 "R2.top": r2_top,
                 "R2.lws": r2_lws,
                 "RMSE": (rmse_top + rmse_lws) / 2,
                 "RMSE.top": rmse_top,
                 "RMSE.lws": rmse_lws,
-                "MAE": (mae_top + mae_lws) / 2,
-                "MAE.top": mae_top,
-                "MAE.lws": mae_lws,
             }
         )
 
@@ -155,8 +164,8 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
     crossover_rate = model_pair_df.progress_apply(_xo_rate, axis=1, args=(pred_dir,))
     model_pair_w_xover_df = model_pair_df.assign(crossover_rate=crossover_rate)
     sorted_df = model_pair_w_xover_df.sort_values(
-        by=["Sport", "Service", "Type", "Style", "crossover_rate", "MAE", "MAE.lws"],
-        ascending=[True, True, True, True, True, True, True],
+        by=["Sport", "Service", "Type", "Style", "crossover_rate", "pinball", "pinball.lws"],
+        ascending=True,
     )
     return sorted_df
 
