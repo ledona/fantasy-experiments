@@ -283,9 +283,11 @@ def slate_scoring(
 
     addl_scoring = bt_addl_slate_data(fca, top_lineup, "all")
 
-    br_tries, br_lineup_pts = get_best_rational_lineup(
+    br_tries, br_lineup = get_best_rational_lineup(
         session, fca, slate_name, slate_info, service_cls, contest_constraints
     )
+    br_lineup_pts = br_lineup.historic_fpts
+    assert br_lineup_pts is not None
 
     top_pctl_players_diff, top_n_players_diff = bt_top_players_scoring_diff(
         scoring_data, contest_style
