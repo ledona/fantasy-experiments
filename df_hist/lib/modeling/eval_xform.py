@@ -1,7 +1,7 @@
 """
 Load model eval result csv file, reorganize the data by pairing
 complementary (pairable) top and lws models along with the pair's
-performance metrics, save the model top+lws model pair evaluation results
+performance metrics, save the model top and lws model pair evaluation results
 in a way that is easier to review than the original eval results AND
 if such that it can easily by used/reused to identify the model pairs
 that should be used when backtesting"""
@@ -38,7 +38,7 @@ def _xo_rate(row: pd.Series, pred_dir_path: str):
                 style=row.Style,
                 contest_type=row.Type,
                 framework=row.Framework,
-                target=ModelTarget.from_value(f"top+lws{target_post}"),
+                target=ModelTarget.from_value(row.combined_target),
                 features=row.Features,
             )
             + ".prediction.csv"
@@ -75,6 +75,7 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
     predicts for both min-cash and top score. Add cross over error rate and sort by
     combined MAE (mean)
     """
+    assert not df.empty
 
     group_cols = ["Sport", "Service", "Type", "Style", "Framework", "Features"]
     out_cols = [
@@ -86,6 +87,7 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
         "Features",
         "log",
         "orr",
+        "combined_target",
         "pinball",
         "pinball.top",
         "pinball.lws",
@@ -101,64 +103,79 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
     ]
 
     target_series = df["Target"].map(ModelTarget.from_value)
-    paired_mask = target_series.map(lambda t: t.is_combined)
 
-    paired = df[paired_mask].copy()
-    paired["log"] = target_series[paired_mask].map(lambda t: t.is_log)
-    paired["orr"] = target_series[paired_mask].map(lambda t: t.is_optrat_residual)
-    paired_out = paired[out_cols]
+    # get the chained/combined models
+    combined_mask = target_series.map(lambda t: t.is_combined_raw or t.is_combined_top_lws_diff)
+    combined_df = df[combined_mask].copy()
 
-    indiv = df[~paired_mask].copy()
-    indiv["log"] = target_series[~paired_mask].map(lambda t: t.is_log)
-    indiv["orr"] = target_series[~paired_mask].map(lambda t: t.is_optrat_residual)
-    indiv["is_top"] = target_series[~paired_mask].map(lambda t: t.is_top)
+    if combined_df.empty:
+        combined_df = None
+    else:
+        combined_log = target_series[combined_mask].map(lambda t: t.is_log)
+        combined_orr = target_series[combined_mask].map(lambda t: t.is_optrat_residual)
+        combined_df = combined_df.assign(log=combined_log, orr=combined_orr).rename(
+            columns={"Target": "combined_target"}
+        )[out_cols]
 
-    idx_cols = group_cols + ["log", "orr"]
-    top_df = indiv[indiv["is_top"]].set_index(idx_cols)
-    lws_df = indiv[~indiv["is_top"]].set_index(idx_cols)
+    indiv = df[~combined_mask].copy()
+    if indiv.empty:
+        model_pair_df = combined_df
+    else:
+        # handle the dual model prediction pairs
+        indiv["log"] = target_series[~combined_mask].map(lambda t: t.is_log)
+        indiv["orr"] = target_series[~combined_mask].map(lambda t: t.is_optrat_residual)
+        indiv["is_top"] = target_series[~combined_mask].map(lambda t: t.is_top)
 
-    already_paired = set(map(tuple, paired[idx_cols].values.tolist()))
+        idx_cols = group_cols + ["log", "orr"]
+        top_df = indiv[indiv["is_top"]].set_index(idx_cols)
+        lws_df = indiv[~indiv["is_top"]].set_index(idx_cols)
 
-    rows = []
-    for idx in top_df.index.intersection(lws_df.index):
-        if idx in already_paired:
-            continue
-        top_model_info = top_df.loc[idx]
-        lws_model_info = lws_df.loc[idx]
-        sport, service, type_, style, framework, features, log, orr = idx
-
-        r2_top, r2_lws = float(top_model_info["R2"]), float(lws_model_info["R2"])
-        rmse_top, rmse_lws = float(top_model_info["RMSE"]), float(lws_model_info["RMSE"])
-        mae_top, mae_lws = float(top_model_info["MAE"]), float(lws_model_info["MAE"])
-        pb_top, pb_lws = float(top_model_info["pinball"]), float(lws_model_info["pinball"])
-
-        rows.append(
-            {
-                "Sport": sport,
-                "Service": service,
-                "Type": type_,
-                "Style": style,
-                "Framework": framework,
-                "Features": features,
-                "log": log,
-                "orr": orr,
-                "pinball": (pb_top + pb_lws) / 2,
-                "pinball.top": pb_top,
-                "pinball.lws": pb_lws,
-                "MAE": (mae_top + mae_lws) / 2,
-                "MAE.top": mae_top,
-                "MAE.lws": mae_lws,
-                "R2": (r2_top + r2_lws) / 2,
-                "R2.top": r2_top,
-                "R2.lws": r2_lws,
-                "RMSE": (rmse_top + rmse_lws) / 2,
-                "RMSE.top": rmse_top,
-                "RMSE.lws": rmse_lws,
-            }
+        already_combined = (
+            set(map(tuple, combined_df[idx_cols].values.tolist()))
+            if combined_df is not None
+            else set()
         )
 
-    indiv_out = pd.DataFrame(rows, columns=out_cols) if rows else pd.DataFrame(columns=out_cols)
-    model_pair_df = pd.concat([paired_out, indiv_out], ignore_index=True)
+        rows = []
+        for idx in top_df.index.intersection(lws_df.index):
+            if idx in already_combined:
+                continue
+            top_model_info = top_df.loc[idx]
+            lws_model_info = lws_df.loc[idx]
+            sport, service, type_, style, framework, features, log, orr = idx
+
+            r2_top, r2_lws = float(top_model_info["R2"]), float(lws_model_info["R2"])
+            rmse_top, rmse_lws = float(top_model_info["RMSE"]), float(lws_model_info["RMSE"])
+            mae_top, mae_lws = float(top_model_info["MAE"]), float(lws_model_info["MAE"])
+            pb_top, pb_lws = float(top_model_info["pinball"]), float(lws_model_info["pinball"])
+
+            rows.append(
+                {
+                    "Sport": sport,
+                    "Service": service,
+                    "Type": type_,
+                    "Style": style,
+                    "Framework": framework,
+                    "Features": features,
+                    "log": log,
+                    "orr": orr,
+                    "pinball": (pb_top + pb_lws) / 2,
+                    "pinball.top": pb_top,
+                    "pinball.lws": pb_lws,
+                    "MAE": (mae_top + mae_lws) / 2,
+                    "MAE.top": mae_top,
+                    "MAE.lws": mae_lws,
+                    "R2": (r2_top + r2_lws) / 2,
+                    "R2.top": r2_top,
+                    "R2.lws": r2_lws,
+                    "RMSE": (rmse_top + rmse_lws) / 2,
+                    "RMSE.top": rmse_top,
+                    "RMSE.lws": rmse_lws,
+                }
+            )
+
+        indiv_df = pd.DataFrame(rows, columns=out_cols) if rows else pd.DataFrame(columns=out_cols)
+        model_pair_df = pd.concat([combined_df, indiv_df], ignore_index=True)
 
     tqdm.pandas(desc="adding xover-rate")
     crossover_rate = model_pair_df.progress_apply(_xo_rate, axis=1, args=(pred_dir,))

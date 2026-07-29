@@ -24,8 +24,8 @@ from .generate_train_test import TrainTestData
 _LOGGER = log.get_logger(__name__)
 
 # quantiles to use for quantile regression models
-_QUANTILE_TOP = 0.98
-_QUANTILE_LWS = 0.8
+_QUANTILE_TOP = 0.9
+_QUANTILE_LWS = 0.7
 
 Framework = Literal["dummy", "flaml", "ridge", "qreg", "qgbr", "regchain_tree", "regchain_ridge"]
 """
@@ -79,19 +79,29 @@ def _error_report(
         predictions = predictions_raw
         y_test = y_test_fit_data
 
+    # at this point y_test is scaled to score units
+
     if target.is_optrat_residual:
         rational = X_test["top_rational_lineup_score"].values
-        if target.is_combined:
+        if target.is_combined_raw:
             predictions = np.column_stack(
                 [rational + predictions[:, 0], rational - predictions[:, 1]]
             )
             y_test = np.column_stack([rational + y_test[:, 0], rational - y_test[:, 1]])
+        elif target.is_combined_top_lws_diff:
+            raise NotImplementedError()
         elif target.is_top:
             predictions = rational + predictions
             y_test = rational + y_test
-        else:
+        elif target.is_lws:
             predictions = rational - predictions
             y_test = rational - y_test
+        else:
+            raise NotImplementedError()
+
+    if target.is_combined_top_lws_diff:
+        y_test[:, 1] = y_test[:, 0] - y_test[:, 1]
+        predictions[:, 1] = predictions[:, 0] - predictions[:, 1]
 
     if isinstance(predictions, pd.DataFrame):
         predictions = predictions[predictions.columns[0]]
@@ -107,7 +117,7 @@ def _error_report(
         pinball = round(
             sklearn.metrics.mean_pinball_loss(y_test, predictions, alpha=_QUANTILE_LWS), 4
         )
-    elif target.is_combined:
+    elif target.is_combined_raw or target.is_combined_top_lws_diff:
         pinball_losses = {
             "top": sklearn.metrics.mean_pinball_loss(
                 y_test[:, 0], predictions[:, 0], alpha=_QUANTILE_TOP
@@ -122,7 +132,7 @@ def _error_report(
 
     result = {"R2": r2, "RMSE": rmse, "MAE": mae, "pinball": pinball}
 
-    if target.is_combined:
+    if target.is_combined_top_lws_diff or target.is_combined_raw:
         assert isinstance(y_test, np.ndarray) and y_test.shape[1] == 2
         assert pinball_losses
         truth_top_lws = pd.DataFrame(y_test, columns=["true.top", "true.lws"])
@@ -209,6 +219,8 @@ def _fit_model(
     if framework == "dummy":
         modeler = DummyRegressor(**model_params)
     elif framework.startswith("regchain"):
+        if not (target.is_combined_raw or target.is_combined_top_lws_diff):
+            raise UnexpectedValueError(f"regchain cannot be used for {target=}")
         if framework == "regchain_tree":
             base_estimator = DecisionTreeRegressor(random_state=random_state, **model_params)
         elif framework == "regchain_ridge":
@@ -223,25 +235,22 @@ def _fit_model(
     elif framework == "flaml":
         modeler = FlamlAutoML(**model_params)
     elif framework == "qgbr":
-        if target.is_combined:
+        if not (target.is_top or target.is_lws):
             raise UnexpectedValueError(f"quantile not defined for {target=}")
         quantile = _QUANTILE_TOP if target.is_top else _QUANTILE_LWS
         modeler = GradientBoostingRegressor(loss="quantile", alpha=quantile, **model_params)
-        if X_train.isna().any().any():
-            na_rows = X_train.isna().any(axis=1)
-            X_train = X_train[~na_rows]
-            y_train = y_train[~na_rows]
     elif framework == "qreg":
-        if target.is_combined:
+        if not (target.is_top or target.is_lws):
             raise UnexpectedValueError(f"quantile not defined for {target=}")
         quantile = _QUANTILE_TOP if target.is_top else _QUANTILE_LWS
         modeler = QuantileRegressor(quantile=quantile, **model_params)
-        if X_train.isna().any().any():
-            na_rows = X_train.isna().any(axis=1)
-            X_train = X_train[~na_rows]
-            y_train = y_train[~na_rows]
     else:
         raise NotImplementedError(f"framework '{framework}' not supported")
+
+    if ("qreg" in framework or "qgbr" in framework) and X_train.isna().any().any():
+        na_rows = X_train.isna().any(axis=1)
+        X_train = X_train[~na_rows]
+        y_train = y_train[~na_rows]
 
     try:
         modeler.fit(X_train, y_train)

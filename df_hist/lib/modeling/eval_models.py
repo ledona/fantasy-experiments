@@ -13,7 +13,7 @@ _LOGGER = log.get_logger(__name__)
 
 def _get_target_values(target: ModelTarget, tt_data: TrainTestData):
     """returns (training-data, test/eval-data)"""
-    if target.is_combined:
+    if target.is_combined_raw:
         if target.is_optrat_residual:
             top_orr_train = tt_data.y_train_top - tt_data.X_train.top_rational_lineup_score
             lws_orr_train = tt_data.X_train.top_rational_lineup_score - tt_data.y_train_lws
@@ -24,6 +24,11 @@ def _get_target_values(target: ModelTarget, tt_data: TrainTestData):
         else:
             y_train = np.column_stack((tt_data.y_train_top, tt_data.y_train_lws))
             y_test = np.column_stack((tt_data.y_test_top, tt_data.y_test_lws))
+    elif target.is_combined_top_lws_diff:
+        if target.is_optrat_residual:
+            raise NotImplementedError("optimal rational minus residual not supported with top and diff target")
+        y_train = np.column_stack((tt_data.y_train_top, tt_data.y_train_top - tt_data.y_train_lws))
+        y_test = np.column_stack((tt_data.y_test_top, tt_data.y_test_top - tt_data.y_test_lws))
     elif target.is_top:
         y_train, y_test = tt_data.y_train_top, tt_data.y_test_top
         if target.is_optrat_residual:
@@ -146,7 +151,9 @@ def evaluate_models(
             target_pbar.set_postfix_str(str(target))
 
             # regchain and target.is_combined have to both be true or both be false, otherwise skip
-            if framework.startswith("regchain") != target.is_combined:
+            if framework.startswith("regchain") != (
+                target.is_combined_top_lws_diff or target.is_combined_raw
+            ):
                 _LOGGER.info(
                     "Skipping model_target=%s framework=%s. this combination is not supported",
                     target,
