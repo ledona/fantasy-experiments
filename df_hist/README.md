@@ -43,6 +43,9 @@ First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_.
 
 If data retrieval (the previous section) was not last run on all data (no constraints on date, sport, etc) then run it again now with no constraints to ensure that all betting data is ready for transformation.
 
+If slate scoring data needs to be recalculated (e.g. rational lineup param changes or other slate scoring pipeline updates,
+remove ```*slate.score.json``` from the xform output directory
+
 The following example uses _data_xform_ to create datasets for all sports using defaults for all settings.
 Default settings will read betting data from _/fantasy-isync/fantasy-dfs-hist/betting_ and write training data to _/fantasy-isync/fantasy-dfs-hist/data_.
 ```

@@ -295,6 +295,14 @@ def slate_scoring(
 
     lchv_count = bt_slate_overperformances(slate_id, service, fca, scoring_data)
 
+    if top_lineup_score < br_lineup_pts:
+        if round(top_lineup_score, 1) < round(br_lineup_pts, 1):
+            raise UnexpectedValueError(
+                f"for slate {slate_name} ({slate_id}) on {game_date}, "
+                f"{top_lineup_score=} is less than best-rational-lineup-score={br_lineup_pts}"
+            )
+        top_lineup_score = br_lineup_pts
+
     scoring = SlateScoreItem(
         top_possible_lineup_score=top_lineup_score,
         top_rational_lineup_score=br_lineup_pts,

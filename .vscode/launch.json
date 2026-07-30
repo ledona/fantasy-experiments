@@ -158,6 +158,7 @@
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 "--input_data_path", "/fantasy-isync/fantasy-dfs-hist/betting",
+                // to rebuild the xformed data using cached data and recalculated slate scoring remove *slate.score.json from the output directory
                 "--output_data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
                 "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/xformed-data/cache",
                 "--services", "draftkings",

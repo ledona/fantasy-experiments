@@ -121,7 +121,7 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
     if indiv.empty:
         model_pair_df = combined_df
     else:
-        # handle the dual model prediction pairs
+        # handle the dual model prediction pairs (i.e. seperate top and lws models that constitute the pair)
         indiv["log"] = target_series[~combined_mask].map(lambda t: t.is_log)
         indiv["orr"] = target_series[~combined_mask].map(lambda t: t.is_optrat_residual)
         indiv["is_top"] = target_series[~combined_mask].map(lambda t: t.is_top)
@@ -247,9 +247,7 @@ The most recent will be transformed. Matches found:
     pred_dir = os.path.dirname(filepath)
     xformed_df = _transform(in_df, pred_dir)
 
-    xformed_output_filename = os.path.basename(filepath)
-    if xformed_output_filename.endswith(".csv"):
-        xformed_output_filename = xformed_output_filename[:-4]
+    xformed_output_filename = os.path.basename(filepath).removesuffix(".csv")
     xformed_output_filepath = os.path.join(
         pred_dir, xformed_output_filename + ".xformed-lws-top.csv"
     )
