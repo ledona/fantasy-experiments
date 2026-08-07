@@ -105,7 +105,7 @@ def _transform(df: pd.DataFrame, pred_dir: str) -> pd.DataFrame:
     target_series = df["Target"].map(ModelTarget.from_value)
 
     # get the chained/combined models
-    combined_mask = target_series.map(lambda t: t.is_combined_raw or t.is_combined_top_lws_diff)
+    combined_mask = target_series.map(lambda t: t.is_combined)
     combined_df = df[combined_mask].copy()
 
     if combined_df.empty:

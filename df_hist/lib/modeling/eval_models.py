@@ -26,7 +26,9 @@ def _get_target_values(target: ModelTarget, tt_data: TrainTestData):
             y_test = np.column_stack((tt_data.y_test_top, tt_data.y_test_lws))
     elif target.is_combined_top_lws_diff:
         if target.is_optrat_residual:
-            raise NotImplementedError("optimal rational minus residual not supported with top and diff target")
+            raise NotImplementedError(
+                "optimal rational minus residual not supported with top and diff target"
+            )
         y_train = np.column_stack((tt_data.y_train_top, tt_data.y_train_top - tt_data.y_train_lws))
         y_test = np.column_stack((tt_data.y_test_top, tt_data.y_test_top - tt_data.y_test_lws))
     elif target.is_top:
@@ -151,9 +153,7 @@ def evaluate_models(
             target_pbar.set_postfix_str(str(target))
 
             # regchain and target.is_combined have to both be true or both be false, otherwise skip
-            if framework.startswith("regchain") != (
-                target.is_combined_top_lws_diff or target.is_combined_raw
-            ):
+            if framework.startswith("regchain") != target.is_combined:
                 _LOGGER.info(
                     "Skipping model_target=%s framework=%s. this combination is not supported",
                     target,

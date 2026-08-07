@@ -117,7 +117,7 @@ def _error_report(
         pinball = round(
             sklearn.metrics.mean_pinball_loss(y_test, predictions, alpha=_QUANTILE_LWS), 4
         )
-    elif target.is_combined_raw or target.is_combined_top_lws_diff:
+    elif target.is_combined:
         pinball_losses = {
             "top": sklearn.metrics.mean_pinball_loss(
                 y_test[:, 0], predictions[:, 0], alpha=_QUANTILE_TOP
@@ -132,7 +132,7 @@ def _error_report(
 
     result = {"R2": r2, "RMSE": rmse, "MAE": mae, "pinball": pinball}
 
-    if target.is_combined_top_lws_diff or target.is_combined_raw:
+    if target.is_combined:
         assert isinstance(y_test, np.ndarray) and y_test.shape[1] == 2
         assert pinball_losses
         truth_top_lws = pd.DataFrame(y_test, columns=["true.top", "true.lws"])
@@ -219,7 +219,7 @@ def _fit_model(
     if framework == "dummy":
         modeler = DummyRegressor(**model_params)
     elif framework.startswith("regchain"):
-        if not (target.is_combined_raw or target.is_combined_top_lws_diff):
+        if not target.is_combined:
             raise UnexpectedValueError(f"regchain cannot be used for {target=}")
         if framework == "regchain_tree":
             base_estimator = DecisionTreeRegressor(random_state=random_state, **model_params)
