@@ -1,11 +1,11 @@
 #!/bin/bash
 
-DB_FILE=${FANTASY_HOME}/nba.hist.20082009-20242025.scored.db
-DEST=/fantasy-isync/fantasy-modeling/2026.04-2/data
+DB_FILE=${FANTASY_HOME}/nba.hist.20082009-20252026.scored.db
+DEST=/fantasy-isync/fantasy-modeling/2026.08/data
 SHARED_X="is_home odds_ou_* odds_spread_* elo_mov thfa days_rest_team"
-SEASONS="20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024 20242025"
+SEASONS="20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024 20242025 20252026"
 # same number of tasks as seasons
-DASK_TASKS=10
+DASK_TASKS=11
 
 # player
 dumpdata.sc $DB_FILE --seasons $SEASONS --no_teams \

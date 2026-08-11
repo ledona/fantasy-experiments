@@ -114,6 +114,9 @@
                 "CF",
                 "OF"
             ],
+            "cols_to_drop": [
+                "extra:hitter_bases"
+            ],
             "models": {
                 "MLB-H-DK": {
                     "target": "calc:dk_score",

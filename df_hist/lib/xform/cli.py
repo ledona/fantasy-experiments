@@ -6,8 +6,8 @@ from functools import partial
 import pandas as pd
 from dateutil.parser import parse as du_parse
 from fantasy_py import CONTEST_DOMAIN, CacheSettings, CLSRegistry, DFSContestStyle, log
-from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from fantasy_py.analysis.backtest.daily_fantasy import BT_TOP_PERCENTILE
+from fantasy_py.betting import FiftyFifty, GeneralPrizePool
 from tqdm import tqdm
 
 from ..data_cfg import SPORT_CFGS

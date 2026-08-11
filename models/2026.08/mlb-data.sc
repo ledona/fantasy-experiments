@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DB_FILE=${FANTASY_HOME}/mlb.hist.2008-2025.scored.db
-DEST=/fantasy-isync/fantasy-modeling/2026.04-2/data
+DB_FILE=${FANTASY_HOME}/mlb.hist.2008-2026_partial.scored.db
+DEST=/fantasy-isync/fantasy-modeling/2026.08/data
 SHARED_CURRENT_X="odds_ou_* odds_spread_odds venue weather_* elo_mov indoors is_home elevation thfa pf"
 SEASONS="2016 2017 2018 2019 2020 2021 2022 2023 2024 2025"
 # same number of tasks as seasons

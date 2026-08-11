@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DB_FILE=${FANTASY_HOME}/nfl.hist.2009-2025.scored.db
-DEST=/fantasy-isync/fantasy-modeling/2026.04-2/data
+DEST=/fantasy-isync/fantasy-modeling/2026.08/data
 SEASONS="2015 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025"
 TEAM_STATS="op_pts op_turnovers op_yds pen* pts turnovers yds"
 OWN_TEAM_STATS="$TEAM_STATS passing_yds rushing_yds"
