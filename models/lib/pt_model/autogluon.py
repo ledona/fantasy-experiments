@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+from typing import ClassVar
 
 import pandas as pd
 import torch
@@ -12,7 +13,7 @@ from .wrapper import PTEstimatorWrapper
 class AutoGluonWrapper(PTEstimatorWrapper):
     """wrapper around autogluon, simplifies instantiation, fitting and saving the model"""
 
-    VERSIONS_FOR_DEPS = [
+    VERSIONS_FOR_DEPS: ClassVar = [
         "sklearn",
         "autogluon.tabular",
         "lightgbm",

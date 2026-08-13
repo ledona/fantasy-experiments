@@ -74,47 +74,30 @@ Update the model training json files.
 #### Model Creation
 Create the models using the cli in lib. Each model will likely output 2 files, a model definition file and a model artifact (the actual model saved as a pickle). 
 
-##### Create Test Models
+##### Test the whole shebang
 To start it is good to create test models to ensure that the model definition files work with the inference training data and are free of basic bugs.
-```
-# Create Test Models
-
-cd /fantasy-experiments/models
-# replace {SPORT-ABBR} with a sport abbreviation matching a model training filename
-
-# dummy algorithm models
-python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
-  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo dummy
-
-# nn test models
-python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
-  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo nn --max_epochs 3
-
-# autogluon
-python -m lib.regressor train --data_dir {DATA_DIR} --dest_dir {DEST_MODEL_DIR} --exists reuse \
-  {MODEL_DIR}/{SPORT-ABBR}.json "*" --algo autogluon --max_time 2 --ag:preset medium
-```
+To do this use ```test-train-to-inf.sh``` from the main fantasy project
 
 ##### lib.regressor usage
 If models are created successfully either go ahead and create real models or do more testing by using model_manager.py to import the models for use in inference. To train models for real see the following examples of how to use lib.regressor.
 
 ```
-# list models defined in a model definition file
+# list valid model names
 python -m lib.regressor train {MODEL_DIR}/{SPORT}.json
 
-# view model create params for a model
-python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} {MODEL_DIR}/{SPORT}.json {MODEL_NAME} --info
+# list all matching models and their create params. MODEL_NAME is optional, default is all models
+python -m lib.regressor train {MODEL_DIR}/{SPORT}.json [MODEL_NAME] --info
 
 # create model using defaults
 python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
-  [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json {MODEL_NAME}
+  [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json [MODEL_NAME]
 
 # create multiple models
 python -m lib.regressor train --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--algo MODEL_TYPE] [--slack] {MODEL_DIR}/{SPORT}.json \
-  ({MODEL_NAME_W_WILDCARDS} | [--models {MODEL_NAME} {MODEL_NAME} ...])
+  [MODEL_NAME_W_WILDCARDS | --models {MODEL_NAME} {MODEL_NAME} ...]
 
-# create a model based on an existing model 
+# create a model based on an existing model
 python -m lib.regressor retrain --data_dir {PATH_TO_DIR_W_DATA_FILES} --dest_dir {DEST_MODEL_DIR} \
   [--orig_cfg_file {MODEL_DIR}/{SPORT}.json] [--slack] {EXISTING_MODEL_FILEPATH}
 

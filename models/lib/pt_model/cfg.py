@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 import json
 import os
 from functools import cache
 from pprint import pprint
-from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict, cast
+from typing import Literal, NotRequired, TypedDict, cast
 
 import pandas as pd
 from fantasy_py import (
@@ -18,6 +16,7 @@ from fantasy_py import (
     log,
 )
 from fantasy_py.inference import PTPredictModel, guess_sport_from_path
+from fantasy_py.sport import SportDBManager
 from ledona import process_timer
 from typeguard import TypeCheckError, check_type
 
@@ -30,10 +29,6 @@ from .train_test import (
     model_and_test,
     parse_fail_threshold,
 )
-
-if TYPE_CHECKING:
-    from fantasy_py.sport import SportDBManager
-
 
 _LOGGER = log.get_logger(__name__)
 
@@ -87,11 +82,7 @@ regressor to use its default.
 @cache
 def _all_algo_params():
     """return a set of all valid param names across all algorithms"""
-    return {
-        param
-        for algo_defaults in TRAINING_PARAM_DEFAULTS.values()
-        for param in algo_defaults.keys()
-    }
+    return {param for algo_defaults in TRAINING_PARAM_DEFAULTS.values() for param in algo_defaults}
 
 
 def _fail_threshold_to_str_list(value: float | dict[str | None, float]) -> list[str]:
@@ -173,7 +164,11 @@ def _finalize_regressor_params(
     """
     defaults = TRAINING_PARAM_DEFAULTS[algo]
     regressor_params: dict = {}
-    getter = getattr if not isinstance(cli_params, dict) else (lambda _d, _k, _default: _d.get(_k, _default))
+    getter = (
+        getattr
+        if not isinstance(cli_params, dict)
+        else (lambda _d, _k, _default: _d.get(_k, _default))
+    )
 
     if (
         "random_state" in defaults
@@ -186,14 +181,20 @@ def _finalize_regressor_params(
         if (cli_value := getter(cli_params, param_name, None)) is not None:
             regressor_params[param_name] = cli_value
             continue
-        if (cfg_file_model_value := model_params["train_params"].get(param_name)) is not None:
+        if (
+            model_params["train_params"]
+            and (cfg_file_model_value := model_params["train_params"].get(param_name)) is not None
+        ):
             regressor_params[param_name] = cfg_file_model_value
             continue
         if (default_value := defaults[param_name]) != _NO_DEFAULT:
             regressor_params[param_name] = default_value
             continue
 
-    if len(ignored_params := model_params["train_params"].keys() - defaults.keys()):
+    train_params_keys = (
+        model_params["train_params"].keys() if model_params["train_params"] else set()
+    )
+    if len(ignored_params := train_params_keys - defaults.keys()):
         _LOGGER.warning(
             "Ignoring following %i parameters not used by '%s' models: %s",
             len(ignored_params),
@@ -592,8 +593,9 @@ class TrainingConfiguration:
 
         if limit is not None:
             print(f"with a training data limit of {limit}")
+        pos_remap = params.get("pos_remap")
         raw_to_inf_pos_remap = (
-            self._inference_pos_remap(params["pos_remap"]) if params.get("pos_remap") else None
+            self._inference_pos_remap(pos_remap) if pos_remap is not None else None
         )
 
         try:

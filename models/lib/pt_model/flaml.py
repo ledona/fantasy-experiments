@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import joblib
 import pandas as pd
 from fantasy_py import log
@@ -10,7 +12,7 @@ from .wrapper import PTEstimatorWrapper
 class FlamlWrapper(PTEstimatorWrapper):
     """wrapper around flaml AutoML for regression"""
 
-    VERSIONS_FOR_DEPS = ["flaml", "sklearn"]
+    VERSIONS_FOR_DEPS: ClassVar = ["flaml", "sklearn"]
 
     def __init__(
         self,

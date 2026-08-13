@@ -3,6 +3,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import shlex
 import sys
 import traceback
@@ -85,15 +86,22 @@ def _combine_feature_na_fail_pct(
 
 def _expand_models(tdf: TrainingConfiguration, args: argparse.Namespace):
     """figure out which models match the model requests"""
-    if args.model is not None and args.models is not None:
-        args.parser.error(
-            "Either both or neither of the positional model arg and optional --models args were specified. Pick one"
-        )
-    model_filters = [args.model] if args.model else args.models
-    if args.dest_filename:
-        if len(model_filters) > 1 or "*" in model_filters[0]:
+    if args.model:
+        if args.models is not None:
             args.parser.error(
-                "If a model destination filename is given multiple models cannot be requested for training"
+                "Either both or neither of the positional model arg and optional --models args were specified. Pick one"
+            )
+        model_filters = [args.model]
+    elif args.models:
+        model_filters = args.models
+    else:
+        print(f"valid models are {sorted(tdf.model_names)}")
+        return
+
+    if args.dest_filename:
+        if model_filters is None or len(model_filters) > 1 or "*" in model_filters[0]:
+            args.parser.error(
+                "If a model destination filename is given, a single model must be requested for training"
             )
         if args.exclude_model_file:
             args.parser.error("--exclude_model_file cannot be used with --dest_filename")
@@ -280,6 +288,8 @@ def _handle_train(args: argparse.Namespace):
     if args.train_op == "train":
         tdf = TrainingConfiguration(filepath=args.cfg_file, algorithm=args.algorithm)
         model_names = _expand_models(tdf, args)
+        if model_names is None:
+            return
         assert not (len(model_names) > 1 and args.dest_filename)
         original_model = None
     else:
@@ -354,7 +364,9 @@ def _add_train_parser(sub_parsers):
                 "in multiple models being trained.",
             )
             train_parser.add_argument(
-                "--models", nargs="+", help="Models to train. Wildcard '*' is supported"
+                "--models",
+                nargs="+",
+                help="Models to train. Wildcard '*' is supported. Default is all models",
             )
             train_parser.add_argument(
                 "--exclude_model_file",
@@ -568,6 +580,8 @@ def _model_catalog_func(args):
     else:
         model_files = glob.glob(os.path.join(args.root, "*.model"))
 
+    if len(model_files) == 0:
+        raise FileNotFoundError(f"No models found at '{args.root}'")
     for model_filepath in tqdm.tqdm(model_files):
         if excluded_models is not None:
             exclude = False
@@ -641,8 +655,6 @@ def _model_catalog_func(args):
                 cat_data["notes"].append("ag:preset=" + desc_info["autogluon"]["preset"])
         data.append(cat_data)
 
-    if len(data) == 0:
-        raise FileNotFoundError(f"No models found at '{glob_pattern}'")
     df = pd.DataFrame(data).sort_values(by=["name", "dt"])
 
     prefix = (args.filename_prefix + ".") if args.filename_prefix else ""

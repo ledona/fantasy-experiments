@@ -16,15 +16,15 @@ from .train_test import (
 )
 
 __all__ = [
-    "TrainingConfiguration",
-    "AlgorithmType",
-    "load_data",
-    "PerformanceOperation",
-    "performance_calc",
-    "model_and_test",
-    "_TrainingParamsDict",
-    "TRAINING_PARAM_DEFAULTS",
     "DEFAULT_ALGORITHM",
+    "TRAINING_PARAM_DEFAULTS",
+    "AlgorithmType",
     "ModelFileFoundMode",
+    "PerformanceOperation",
+    "TrainingConfiguration",
+    "_TrainingParamsDict",
+    "load_data",
+    "model_and_test",
     "parse_fail_threshold",
+    "performance_calc",
 ]

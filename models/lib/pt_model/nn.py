@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import ClassVar
 
 import pandas as pd
 import torch
@@ -16,7 +17,7 @@ class NNNotYetFittedError(FantasyException):
 class NNWrapper(PTEstimatorWrapper):
     """wrapper to help train a NN, can consume and translate the args defined in cfg"""
 
-    VERSIONS_FOR_DEPS = ["torch"]
+    VERSIONS_FOR_DEPS: ClassVar = ["torch"]
 
     def __init__(
         self,
@@ -54,7 +55,7 @@ class NNWrapper(PTEstimatorWrapper):
         nn_params = {nn_param_name(param): value for param, value in model_params.items()}
 
         if resume_filepath is not None:
-            model, best_model_info, optimizer_state = NNRegressor.load_checkpoint(
+            model, best_model_info, optimizer_state, _ = NNRegressor.load_checkpoint(
                 resume_filepath, input_size, **nn_params
             )
 

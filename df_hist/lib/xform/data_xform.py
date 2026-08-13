@@ -1,8 +1,9 @@
 import os
 import re
+from collections.abc import Callable
 from datetime import date, timedelta
 from functools import partial
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pandas as pd
 from fantasy_py import (

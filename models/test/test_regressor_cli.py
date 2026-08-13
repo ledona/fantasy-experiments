@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import argparse
 import json
 import os
@@ -9,7 +7,7 @@ import tarfile
 from contextlib import ExitStack
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import ClassVar, cast
 from unittest.mock import Mock
 
 import joblib
@@ -24,13 +22,14 @@ from ledona import deep_compare_dicts
 from pytest_mock import MockFixture
 from sklearn.dummy import DummyRegressor
 
-from ..lib.pt_model import TRAINING_PARAM_DEFAULTS, TrainingConfiguration, _TrainingParamsDict
+from ..lib.pt_model import (
+    TRAINING_PARAM_DEFAULTS,
+    AlgorithmType,
+    TrainingConfiguration,
+    _TrainingParamsDict,
+)
 from ..lib.pt_model.cfg import _NO_DEFAULT, _all_algo_params
 from ..lib.regressor import _expand_models, main
-
-if TYPE_CHECKING:
-    from ..lib.pt_model import AlgorithmType
-
 
 _VALIDATION_SEASON = 2023
 """validation season, must match the model training definition"""
@@ -169,7 +168,7 @@ class TestParamCascade:
     _ALGO = "algo"
     """name of algorithm used by algo specific params test"""
 
-    _TEST_CASES = {
+    _TEST_CASES: ClassVar = {
         "only-globals": ({"a": 1, "b": 2}, {}, {}, False, {"a": 1, "b": 2}),
         "only-globals-w-algo": ({"a": 1, "b": 2}, {}, {}, False, {"a": 1, "b": 2}),
         "only-group": ({}, {"a": 1, "b": 2}, {}, False, {"a": 1, "b": 2}),

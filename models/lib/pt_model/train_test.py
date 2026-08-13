@@ -123,7 +123,7 @@ def _load_data_local(
                 "or try a different the validation season."
             )
         df_raw = df_raw.query("season in @seasons_to_load")
-    elif filename.endswith(".parquet") or filename.endswith(".pq"):
+    elif filename.endswith((".parquet", ".pq")):
         df_raw = pd.read_parquet(filename, filters=[("season", "in", seasons_to_load)])
     else:
         raise NotImplementedError(
@@ -148,7 +148,7 @@ def _load_data_local(
                 raise UnexpectedValueError(
                     f"Position remapping is not complete. It does not include a mapping for {unmapped_pos}"
                 )
-            df_raw.pos = df_raw.pos.map(lambda pos: pos_remap[pos])
+            df_raw = df_raw.assign(pos=df_raw.pos.map(lambda pos: pos_remap[pos]))
     elif include_position is True:
         raise UnexpectedValueError(
             "Column 'pos' not found in data, 'include_position' must be None!"
@@ -1052,7 +1052,7 @@ def _reuse_model_helper(
             # if the basename lengths don't match then this can't be an old version of the same model
             continue
 
-        model_dt = du_parser.parse(filepath.split(".")[-2])
+        model_dt = du_parser.parse(filepath.split(".")[-2].replace(":", " "))
         if (most_recent_model is None) or (most_recent_model[0] < model_dt):
             most_recent_model = (model_dt, filepath)
 

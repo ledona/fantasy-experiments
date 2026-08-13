@@ -3,8 +3,8 @@ import platform
 import sys
 from abc import ABC, abstractmethod
 
-import psutil
 import pandas as pd
+import psutil
 import torch
 from fantasy_py import log, now
 
@@ -80,7 +80,6 @@ class PTEstimatorWrapper(ABC):
 
     def __exit__(self, *_):
         """context manager exit, if cleanup is required then override"""
-        pass
 
     @property
     def sample_weight_support(self):

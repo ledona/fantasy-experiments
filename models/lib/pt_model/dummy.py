@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import joblib
 import pandas as pd
 from fantasy_py import log
@@ -7,7 +9,7 @@ from .wrapper import PTEstimatorWrapper
 
 
 class DummyWrapper(PTEstimatorWrapper):
-    VERSIONS_FOR_DEPS = ["sklearn"]
+    VERSIONS_FOR_DEPS: ClassVar = ["sklearn"]
 
     def __init__(self, params):
         self._regressor = DummyRegressor(strategy=params.get("dmy:strategy"))

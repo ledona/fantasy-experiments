@@ -109,9 +109,10 @@ def performance_calc(
         data_filepath = params["data_filename"]
         if data_dir is not None:
             data_filepath = os.path.join(data_dir, data_filepath)
-        raw_to_inf_pos_remap = (
-            self._inference_pos_remap(params["pos_remap"]) if "pos_remap" in params else None
-        )
+        if pos_remap := params.get("pos_remap"):
+            raw_to_inf_pos_remap = cfg._inference_pos_remap(pos_remap)
+        else:
+            raw_to_inf_pos_remap = None
 
         tt_data = load_data(
             data_filepath,
@@ -119,11 +120,11 @@ def performance_calc(
             params["validation_season"],
             params["training_seasons"],
             params["seed"],
-            include_position=params["include_pos"],
+            include_position=params.get("include_pos"),
             col_drop_filters=params["cols_to_drop"],
             filtering_query=params.get("filtering_query"),
             skip_data_reports=True,
-            pos_remap=raw_to_inf_pos_remap
+            pos_remap=raw_to_inf_pos_remap,
         )[1]
 
         y_train = tt_data[1]
