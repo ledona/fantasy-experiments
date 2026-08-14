@@ -1,9 +1,9 @@
 {
     "sport": "nhl",
     "global_default": {
-        "description": "*flaml* and updates to odds-ou,odds-spread,impute",
+        "description": "odds contamination fix + new season",
         "seed": 1,
-        "validation_season": 20242025,
+        "validation_season": 20252026,
         "recent_games": 5,
         "training_data_decay": {
             "decay_rate": 0.45,
@@ -19,8 +19,9 @@
             20202021,
             20212022,
             20222023, 
-            20232024
-            // 20242025 validation
+            20232024,
+            20242025
+            // 20252026 validation
         ],
         "missing_data_fail_threshold": ["0.25", "0.9#extra:odds_spread_odds"],
         "missing_data_warn_threshold": 0.085,

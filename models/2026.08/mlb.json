@@ -1,7 +1,7 @@
 {
     "sport": "mlb",
     "global_default": {
-        "description": "*flaml* and updates to odds-ou,odds-spread,impute",
+        "description": "odds contamination fix + hitter bases dropped",
         "seed": 1,
         "validation_season": 2025,
         "recent_games": 5,
