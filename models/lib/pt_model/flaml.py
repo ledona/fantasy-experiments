@@ -22,6 +22,7 @@ class FlamlWrapper(PTEstimatorWrapper):
         concurrent_trials: int | None = None,
         sample_weight: str | None = None,
         early_stop=True,
+        max_iter: int | None = None,
     ):
         """
         time_budget: max training time in seconds
@@ -34,6 +35,8 @@ class FlamlWrapper(PTEstimatorWrapper):
         fit_kwargs: dict = {"task": "regression"}
         if time_budget is not None:
             fit_kwargs["time_budget"] = time_budget
+        if max_iter is not None:
+            fit_kwargs["max_iter"] = max_iter
         if n_jobs is not None:
             fit_kwargs["n_jobs"] = n_jobs
         if use_gpu:

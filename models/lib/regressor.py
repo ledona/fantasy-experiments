@@ -1,15 +1,13 @@
 #! /venv/bin/python
 import argparse
+import fnmatch
 import glob
 import json
 import os
-import re
 import shlex
 import sys
 import traceback
-from collections import defaultdict
 from datetime import UTC
-from fnmatch import fnmatch
 
 import pandas as pd
 import tqdm
@@ -159,7 +157,7 @@ def _expand_models(tdf: TrainingConfiguration, args: argparse.Namespace):
         # matches is set of tuple[model-name, infix]
         matches: set[tuple[str, str | None]] = set()
         for model_name in tdf.model_names:
-            if not fnmatch(model_name, model_filter):
+            if not fnmatch.fnmatch(model_name, model_filter):
                 continue
             infix = tdf.get_infix(tdf.algorithm, tdf.get_params(model_name), args)
             matches.add((model_name, infix))
@@ -551,6 +549,12 @@ def _add_train_parser(sub_parsers):
             help="number of concurrent flaml trials (requires Ray)",
             default=argparse.SUPPRESS,
         )
+        train_parser.add_argument(
+            "--flaml:max_iter",
+            type=int,
+            help="maximum training iterations",
+            default=argparse.SUPPRESS,
+        )
 
         # AUTOGLUON PARAMS
         train_parser.add_argument(
@@ -569,34 +573,48 @@ def _add_train_parser(sub_parsers):
 def _model_catalog_func(args):
     """parser func that creates/updates the model catalog"""
     data = []
-    excluded_models: dict[str, list[str]] | None = defaultdict(list) if args.exclude_r else None
-
+    model_files: set[str]
     if args.recursive:
-        model_files = []
+        model_files = set()
         for dirpath, dirnames, filenames in os.walk(args.root):
             # skip autogluon dirs
             dirnames[:] = [d for d in dirnames if not d.endswith(".ag")]
-            model_files.extend(os.path.join(dirpath, f) for f in filenames if f.endswith(".model"))
+            model_files |= {os.path.join(dirpath, f) for f in filenames if f.endswith(".model")}
     else:
-        model_files = glob.glob(os.path.join(args.root, "*.model"))
+        model_files = set(glob.glob(os.path.join(args.root, "*.model")))
 
     if len(model_files) == 0:
         raise FileNotFoundError(f"No models found at '{args.root}'")
-    for model_filepath in tqdm.tqdm(model_files):
-        if excluded_models is not None:
-            exclude = False
-            for x_r in args.exclude_r:
-                if re.match(".*" + x_r + ".*", model_filepath):
-                    exclude = True
-                    excluded_models[x_r].append(model_filepath)
-                    _LOGGER.info(
-                        "Skipping '%s' because it matches exclude pattern '%s'",
-                        model_filepath,
-                        x_r,
-                    )
-                    break
-            if exclude:
-                continue
+
+    if args.exclude_patterns:
+        all_exclusions: list[str] = []
+        for pattern in args.exclude_patterns:
+            matches: list[str] = fnmatch.filter(model_files, f"*{pattern}*")
+            if len(matches) == 0:
+                raise InvalidArgumentsException(
+                    f"exclusion pattern '{pattern}' did not match any model files"
+                )
+            _LOGGER.info("exclusion patterh '%s' matched %i files: %s", pattern, len(matches), matches)
+            all_exclusions += matches
+        sorted_model_files = sorted(model_files.difference(all_exclusions))
+    elif args.include_patterns:
+        filtered_model_files: set[str] = set()
+        for pattern in args.include_patterns:
+            matches: list[str] = fnmatch.filter(model_files, f"*{pattern}*")
+            if len(matches) == 0:
+                raise InvalidArgumentsException(
+                    f"inclusion pattern '{pattern}' did not match any model files"
+                )
+            _LOGGER.info("inclusion pattern '%s' matched %i files: %s", pattern, len(matches), matches)
+            filtered_model_files.update(matches)
+        sorted_model_files = sorted(filtered_model_files)
+    else:
+        sorted_model_files = sorted(model_files)
+
+    if len(sorted_model_files) == 0:
+        raise FileNotFoundError("Nothing left to process after filtering")
+
+    for model_filepath in tqdm.tqdm(sorted_model_files):
         _LOGGER.info("parsing '%s'", model_filepath)
         with open(model_filepath, "r") as f_:
             model_data = json.load(f_)
@@ -674,22 +692,6 @@ def _model_catalog_func(args):
         best_models_filename = None
         best_models_df = None
 
-    if excluded_models is not None:
-        if len(excluded_models) == 0:
-            _LOGGER.warning("Exclude patterns did not match any models! Exiting")
-        else:
-            _LOGGER.info(
-                "Exclude patterns excluded %i models",
-                sum(map(len, excluded_models.values())),
-            )
-            for x_r in args.exclude_r:
-                if (num_excluded := len(excluded_models[x_r])) == 0:
-                    _LOGGER.warning("  '%s' did not exclude any model files", x_r)
-                    continue
-                _LOGGER.info("  '%s' excluded %i model files", x_r, num_excluded)
-                for model_path in excluded_models[x_r]:
-                    _LOGGER.info("  '%s' excluded '%s'", x_r, model_path)
-
     with pd.option_context(
         "display.max_rows",
         None,
@@ -712,7 +714,7 @@ def _model_catalog_func(args):
         _LOGGER.info("Best models written to '%s'", best_models_filename)
 
 
-def _add_model_catalog_parser(sub_parsers):
+def _add_model_catalog_parser(sub_parsers: argparse._SubParsersAction):
     parser = sub_parsers.add_parser("catalog", help="Update model catalog")
     parser.set_defaults(func=_model_catalog_func, parser=parser)
     parser.add_argument(
@@ -733,11 +735,16 @@ def _add_model_catalog_parser(sub_parsers):
         default=False,
         action="store_true",
     )
-    parser.add_argument(
-        "--exclude_r",
-        "--ignore",
+    inc_ex_args = parser.add_mutually_exclusive_group()
+    inc_ex_args.add_argument(
+        "--include_patterns",
         nargs="+",
-        help="Exclude model file paths that match these regular expressions",
+        help="Include model file paths that match these patterns",
+    )
+    inc_ex_args.add_argument(
+        "--exclude_patterns",
+        nargs="+",
+        help="Exclude model file paths that match these patterns",
     )
     parser.add_argument(
         "--not_recursive",

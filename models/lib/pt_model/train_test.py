@@ -701,6 +701,7 @@ def _instantiate_regressor(
             n_jobs=model_params.get("n_jobs"),
             use_gpu=not model_params["disable_gpu"],
             concurrent_trials=model_params.get("concurrent_trials"),
+            max_iter=model_params.get("flaml:max_iter"),
             sample_weight=(
                 _TRAINING_DATA_DECAY_SAMPLE_WEIGHT_COL if training_sample_weights else None
             ),

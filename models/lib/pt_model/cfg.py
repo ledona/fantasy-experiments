@@ -39,7 +39,7 @@ used for training param default value when the regressor's default should be use
 This results in no kwarg being set for the regressor init param
 """
 
-
+# TODO: the wiring for these parameters from config files or command-line through to fitting is clunky, it should be more automagic
 TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | object]] = {
     "autogluon": {
         "max_time_mins": _NO_DEFAULT,
@@ -62,6 +62,7 @@ TRAINING_PARAM_DEFAULTS: dict[AlgorithmType, dict[str, str | int | float | objec
     "dummy": ({"dmy:strategy": "mean"}),
     "flaml": {
         "max_time_mins": _NO_DEFAULT,
+        "flaml:max_iter": _NO_DEFAULT,
         "n_jobs": _NO_DEFAULT,
         "disable_gpu": False,
         "flaml:concurrent_trials": _NO_DEFAULT,

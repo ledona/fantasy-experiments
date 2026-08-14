@@ -28,7 +28,9 @@
             "nn.early_stop": 20,
             "epochs_max": 500,
             "early_stop": 3,
-            "max_time_mins": 360
+            "max_time_mins": 360,
+            "flaml:max_iter": 50,
+            "flaml.max_time_mins": 30
         }
     },
     "model_groups": [

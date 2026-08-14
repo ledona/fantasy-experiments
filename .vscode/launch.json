@@ -33,7 +33,7 @@
             "args": [
                 // "train", "2026.08/mlb.json", "MLB-P-DK",
                 // "train", "2026.08/nhl.json", "NHL-skater*", 
-                "train", "2026.08/nfl.json", // "NFL-team-*", // "*", 
+                "train", "2026.08/nfl.json", "NFL-team-win", // "*", 
                 // "train", "2026.08/nhl.json", "*", 
                 // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
                 // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
@@ -51,10 +51,11 @@
                 // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
                 // "--description", "testing",
 
-                "--algo", "dummy", 
+                // "--algo", "dummy", 
 
-                // "--algo", "flaml",
-                // "--max_train_mins", "1",
+                "--algo", "flaml",
+                "--max_train_mins", "1",
+                // "--flaml:max_iter", "20",
                 // "--disable_gpu"
 
                 // "--algo", "autogluon",
@@ -86,8 +87,9 @@
             "args": [
                 "catalog",
                 "--best",
-                "--root", "/fantasy-isync/fantasy-modeling/2026.05",
-                // "--exclude", ".*tpot.*"
+                "--root", "/fantasy-isync/fantasy-modeling/2026.08",
+                "--include", "flaml"
+                // "--exclude", "MLB"
             ]
         },
         {
