@@ -163,11 +163,19 @@ cd /fantasy-experiments/models
 ./cloud_train.sc --exclude-remote-models mlb.json "MLB-H-*" --exists reuse --algo <model-algo> --slack <model algo params>
 ```
 Note that the model config file will be retrieved from S3 if it was not previously retrieved, and previously fitted models that exist in the S3 models directory will be written to a text file that will be used to exclude the existing modes from training (--exclude-remote-models).
-3. To copy/sync model results from S3 use aws cli.
+3. To copy/sync model results from S3 use aws cli. Typical values for the following examples are _S3_PROFILE_ = cloudflare
 ```
-# list files in the fantasy bucket
-aws s3 ls s3://ledona-fantasy [--profile $S3_PROFILE] [--endpoint-url $S3_ENDPOINT_URL]
+# typical cloudflare values for the following are
+# S3_PROFILE=cloudflare
+# S3_ENDPOINT_URL=http://{CLOUDFLARE-ACCT-ID}.r2.cloudflarestorage.com
+# S3_bucket=s3://ledona-fantasy
 
-# copy from local to s3 (note that the cloud monitor does this automatically)
+# list files in the the s3 bucket
+aws s3 ls $S3_BUCKET [--profile $S3_PROFILE] [--endpoint-url $S3_ENDPOINT_URL]
+
+# sync down models from s3
+aws s3 sync --profile $S3_PROFILE/models --endpoint-url $S3_ENDPOINT_URL $S3_BUCKET $LOCAL_DEST
+
+# copy from s3/models to local tmp folder
 aws s3 cp $S3_BUCKET/models /tmp/models [--exclude "*" --include "MLB*"] [--dryrun] [--profile $S3_PROFILE] [--endpoint-url $S3_ENDPOINT_URL]
 ```
