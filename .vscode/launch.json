@@ -182,7 +182,7 @@
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 "--mode", "reuse", 
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.07",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.08",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
                 "nfl", "mlb", "nhl", "nba", //"lol",
                 "--styles", "showdown", "classic",
@@ -201,7 +201,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
-                "/fantasy-isync/fantasy-dfs-hist/models/2026.07",
+                "/fantasy-isync/fantasy-dfs-hist/models/2026.08",
                 // "/tmp/fantasy-test",
             ]
         },
