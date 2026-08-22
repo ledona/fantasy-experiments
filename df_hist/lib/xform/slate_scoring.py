@@ -12,6 +12,7 @@ from fantasy_py import (
     FANTASY_SERVICE_DOMAIN,
     CLSRegistry,
     DataNotAvailableException,
+    DFSContestStyle,
     UnexpectedValueError,
     db,
     log,
@@ -137,14 +138,16 @@ class ScoreCache:
 
 
 @contextmanager
-def score_cache_ctx(sport: str, contest_style, cache_mode: SlateScoreCacheMode, cache_dir="."):
+def score_cache_ctx(
+    sport: str, contest_style: DFSContestStyle, cache_mode: SlateScoreCacheMode, cache_dir="."
+):
     """context manager for caching lineup scoring results"""
     if not os.path.isdir(cache_dir):
         raise FileNotFoundError(f"Cache directory '{cache_dir}' does not exist")
     score_cache_filename = f"{sport}-{contest_style.value}-slate.score.json"
     score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
 
-    rational_lineup_params = get_rational_lineup_gen_params(sport, contest_style.value)
+    rational_lineup_params = get_rational_lineup_gen_params(sport, contest_style)
     rlp_hash = constant_hasher(rational_lineup_params)
 
     score_cache = ScoreCache(score_cache_filepath, rlp_hash, cache_mode)
