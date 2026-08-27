@@ -213,14 +213,14 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/stat-analysis",
             "args": [
-                // "/fantasy/mlb.hist.2008-2025.scored.db",
+                "/fantasy/mlb.hist.2008-2026_partial.scored.db",
                 // "/fantasy/nfl.hist.2009-2025.scored.db",
-                "/fantasy/nba.hist.20082009-20242025.scored.db",
-                // "/fantasy/nhl.hist.20082009-20242025.scored.db",
-                // "pf",
-                "thfa",
+                // "/fantasy/nba.hist.20082009-20252026.scored.db",
+                // "/fantasy/nhl.hist.20072008-20252026.scored.db",
+                "pf",
+                // "thfa",
                 // "--min_season", "20222023",
-                // "--max_season", "20242025",
+                "--max_season", "2025",
 
                 // "--parquet", // "/fantasy-archive/mlb/park_factor-2026.parquet",
                 "--csv", // "/fantasy-archive/mlb/park_factor.2008-2026.csv"

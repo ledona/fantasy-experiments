@@ -212,7 +212,7 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
     )
 
     return full_venue_df[
-        ["venue", "season", "score", "home_team_id", "home_team_abbr", "home_team_name"]
+        ["venue", "season", "score", "home_team_abbr", "home_team_name"]
     ]
 
 
