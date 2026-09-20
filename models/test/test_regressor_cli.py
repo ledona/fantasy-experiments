@@ -15,7 +15,13 @@ import pandas as pd
 import pytest
 import sklearn
 from autogluon.tabular import TabularPredictor
-from fantasy_py import FeatureType, InvalidArgumentsException, PlayerOrTeam, dt_to_filename_str
+from fantasy_py import (
+    FeatureType,
+    InvalidArgumentsException,
+    PlayerOrTeam,
+    dt_to_filename_str,
+    literal_type_strs,
+)
 from fantasy_py.inference import ModelNotFound, PTPredictModel
 from freezegun import freeze_time
 from ledona import deep_compare_dicts
@@ -315,7 +321,7 @@ def _create_expected_model_dict(
     if isinstance(target, str):
         target = target.split(":")
         assert len(target) == 2
-    features: dict[str, list | None] = {fname: None for fname in FeatureType.__args__}
+    features: dict[str, list | None] = {fname: None for fname in literal_type_strs(FeatureType)}
     features["stat"] = [feature_stat]
     expected_training_data_def.update(
         {

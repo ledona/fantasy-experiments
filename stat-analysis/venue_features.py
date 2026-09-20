@@ -7,7 +7,7 @@ import os
 from typing import Literal
 
 import pandas as pd
-from fantasy_py import db, log
+from fantasy_py import db, literal_type_strs, log
 from fantasy_py.calculation import elo
 from fantasy_py.sport.extra_stats import VenueAdvantageFeature, expected_elo_mov
 from sqlalchemy import func, select
@@ -29,7 +29,7 @@ def _create_cli_parser():
     parser.add_argument("DB_FILE", help="The database file")
     parser.add_argument(
         "feature",
-        choices=VenueAdvantageFeature.__args__,
+        choices=literal_type_strs(VenueAdvantageFeature),
         help="What feature to generate data for. pf=park-factor thfa=true-home-field-adventage. "
         "See VenueFeatures.md for details",
     )
@@ -211,9 +211,7 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
         full_venue_df[f"v_lag{i}"].fillna(0) * weight for i, weight in enumerate(_WEIGHTS, 1)
     )
 
-    return full_venue_df[
-        ["venue", "season", "score", "home_team_abbr", "home_team_name"]
-    ]
+    return full_venue_df[["venue", "season", "score", "home_team_abbr", "home_team_name"]]
 
 
 def _park_factor(db_obj, min_season: None | int, max_season: None | int):

@@ -6,6 +6,7 @@ from datetime import timedelta
 
 import pandas as pd
 from dateutil.parser import parse as du_parse
+from fantasy_py import literal_type_strs
 from selenium.common.exceptions import TimeoutException
 from tqdm import tqdm
 
@@ -213,7 +214,7 @@ def process_cmd_line(cmd_line_str=None):
     )
 
     mut_ex_group = parser.add_mutually_exclusive_group()
-    mut_ex_group.add_argument("--cache-mode", choices=ServiceDataRetCacheMode.__args__)
+    mut_ex_group.add_argument("--cache-mode", choices=literal_type_strs(ServiceDataRetCacheMode))
     mut_ex_group.add_argument("--cache-only", action="store_true", default=False)
 
     mut_ex_group = parser.add_mutually_exclusive_group()

@@ -6,7 +6,14 @@ from collections.abc import Collection
 from itertools import product
 from typing import cast
 
-from fantasy_py import CONTEST_DOMAIN, CLSRegistry, DFSContestStyle, JSONWithCommentsDecoder, log
+from fantasy_py import (
+    CONTEST_DOMAIN,
+    CLSRegistry,
+    DFSContestStyle,
+    JSONWithCommentsDecoder,
+    literal_type_strs,
+    log,
+)
 from fantasy_py.analysis.backtest.daily_fantasy import (
     WINSCORE_MODEL_RESULTS_SUBDIR,
     ModelFeatures,
@@ -154,8 +161,8 @@ def _process_cmd_line(cmd_line_str=None):
         "--features",
         help="The models/targets to fit and evaluate",
         nargs="+",
-        choices=ModelFeatures.__args__,
-        default=ModelFeatures.__args__,
+        choices=literal_type_strs(ModelFeatures),
+        default=literal_type_strs(ModelFeatures),
     )
     parser.add_argument(
         "--model_path",
@@ -175,14 +182,14 @@ def _process_cmd_line(cmd_line_str=None):
     parser.add_argument(
         "--frameworks",
         help=f"The type of ml framework/algorithm to use. Default={_DEFAULT_FRAMEWORKS}",
-        choices=Framework.__args__,
+        choices=literal_type_strs(Framework),
         nargs="+",
         default=_DEFAULT_FRAMEWORKS,
     )
     parser.add_argument(
         "--existing_model_mode",
         "--mode",
-        choices=ExistingModelMode.__args__,
+        choices=literal_type_strs(ExistingModelMode),
         default="fail",
         help="What to do if a model already exists. reuse=evaluate the model; "
         "overwrite=retrain the model; fail=fail with file already exists",

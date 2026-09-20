@@ -1,7 +1,7 @@
 from collections.abc import Collection
 
 import numpy as np
-from fantasy_py import DataNotAvailableException, DFSContestStyle, log, now
+from fantasy_py import DataNotAvailableException, DFSContestStyle, literal_type_strs, log, now
 from fantasy_py.analysis.backtest.daily_fantasy import ModelFeatures, ModelTarget, model_filenamer
 from tqdm import tqdm
 
@@ -95,7 +95,7 @@ def evaluate_models(
     model_desc_pre = model_filenamer(
         sport=sport, service=service, style=style, contest_type=contest_type, framework=framework
     )
-    final_model_feature_sets = sorted(model_features or ModelFeatures.__args__)
+    final_model_feature_sets = sorted(model_features or literal_type_strs(ModelFeatures))
 
     def error_desc_formatter(targ, feats):
         return model_desc_pre + f"-{targ}-{feats}"

@@ -13,6 +13,7 @@ from fantasy_py import (
     JSONWithCommentsDecoder,
     PlayerOrTeam,
     UnexpectedValueError,
+    literal_type_strs,
     log,
 )
 from fantasy_py.inference import PTPredictModel, guess_sport_from_path
@@ -570,7 +571,7 @@ class TrainingConfiguration:
             ),
         )
         if len(target_tuple) != 2 or (
-            target_tuple[0] not in FeatureType.__args__ and target_tuple[0] != "extra"
+            target_tuple[0] not in literal_type_strs(FeatureType) and target_tuple[0] != "extra"
         ):
             raise UnexpectedValueError(f"Invalid model target: {target_tuple}")
 

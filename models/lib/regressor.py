@@ -13,7 +13,13 @@ import pandas as pd
 import tqdm
 from autogluon.tabular.configs.presets_configs import tabular_presets_alias as autogluon_presets
 from dateutil import parser as du_parser
-from fantasy_py import InvalidArgumentsException, UnexpectedValueError, dt_to_filename_str, log
+from fantasy_py import (
+    InvalidArgumentsException,
+    UnexpectedValueError,
+    dt_to_filename_str,
+    literal_type_strs,
+    log,
+)
 from fantasy_py.inference import ModelNotFound, PTPredictModel
 from ledona import slack
 
@@ -399,7 +405,7 @@ def _add_train_parser(sub_parsers):
         )
         train_parser.add_argument(
             "--exists_mode",
-            choices=ModelFileFoundMode.__args__,
+            choices=literal_type_strs(ModelFileFoundMode),
             default="create-w-ts",
             help="What to do about existing model files. default=create-w-ts",
         )
@@ -412,7 +418,7 @@ def _add_train_parser(sub_parsers):
         train_parser.add_argument(
             "--algorithm",
             help=f"Algorithm for model selection/training. default='{DEFAULT_ALGORITHM}'",
-            choices=AlgorithmType.__args__,
+            choices=literal_type_strs(AlgorithmType),
         )
 
         train_parser.add_argument(
@@ -594,7 +600,9 @@ def _model_catalog_func(args):
                 raise InvalidArgumentsException(
                     f"exclusion pattern '{pattern}' did not match any model files"
                 )
-            _LOGGER.info("exclusion patterh '%s' matched %i files: %s", pattern, len(matches), matches)
+            _LOGGER.info(
+                "exclusion patterh '%s' matched %i files: %s", pattern, len(matches), matches
+            )
             all_exclusions += matches
         sorted_model_files = sorted(model_files.difference(all_exclusions))
     elif args.include_patterns:
@@ -605,7 +613,9 @@ def _model_catalog_func(args):
                 raise InvalidArgumentsException(
                     f"inclusion pattern '{pattern}' did not match any model files"
                 )
-            _LOGGER.info("inclusion pattern '%s' matched %i files: %s", pattern, len(matches), matches)
+            _LOGGER.info(
+                "inclusion pattern '%s' matched %i files: %s", pattern, len(matches), matches
+            )
             filtered_model_files.update(matches)
         sorted_model_files = sorted(filtered_model_files)
     else:
@@ -802,7 +812,7 @@ def _add_performance_parser(sub_parsers):
     parser.add_argument(
         "--performance_op",
         "--operation",
-        choices=PerformanceOperation.__args__,
+        choices=literal_type_strs(PerformanceOperation),
         default="test",
         help="calc=calculate and print new metrics; "
         "update=update model files with new metrics; "
