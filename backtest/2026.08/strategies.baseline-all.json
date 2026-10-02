@@ -1,0 +1,62 @@
+{
+    "name": "baseline",
+    "params": {
+        "max_wager_per_bet": null,
+        "max_wager_pct_per_epoch": 0.1,
+        "max_bets_per_epoch": 1
+    },
+    "strategies": [
+        {
+            "filepath": "config/strategy/df-classic-gpp.json",
+            "name": "df-classic-gpp-basic"
+        },
+        {
+            "filepath": "config/strategy/df-classic-5050.json",
+            "name": "df-classic-5050-basic"
+        },
+        {
+            "filepath": "config/strategy/df-showdown-gpp.json",
+            "name": "df-showdown-gpp-basic"
+        },
+        {
+            "filepath": "config/strategy/df-showdown-5050.json",
+            "name": "df-showdown-5050-basic"
+        },
+        {
+            "filepath": "config/strategy/moneyline.json",
+            "name": "ml-simple",
+            "kelly_wagering": false,
+            "bet_select": "simple"
+        },
+        {
+            "filepath": "config/strategy/moneyline.json",
+            "name": "ml-kelly",
+            "bet_select": "kelly",
+            "kelly_wagering": true
+        },
+        {
+            "filepath": "config/strategy/overunder.json",
+            "name": "ou-simple",
+            "kelly_wagering": false,
+            "bet_select": "simple"
+        },
+        {
+            "filepath": "config/strategy/overunder.json",
+            "name": "ou-kelly",
+            "bet_select": "kelly",
+            "kelly_wagering": true
+        },
+        {
+            "filepath": "config/strategy/spread.json",
+            "name": "spread-simple",
+            "kelly_wagering": false,
+            "bet_select": "simple"
+        },
+        {
+            "filepath": "config/strategy/spread.json",
+            "name": "spread-kelly",
+            "bet_select": "kelly",
+            "kelly_wagering": true
+        }
+    ]
+}

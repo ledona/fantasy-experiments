@@ -1,0 +1,158 @@
+{
+    "name": "df-classic-misc",
+    "params": {
+        "max_wager_per_bet": null,
+        "max_wager_pct_per_epoch": 0.1,
+        "max_bets_per_epoch": 1,
+        "max_bets_per_contest": 1
+    },
+    "filepath": "config/strategy/df-classic-gpp.json",
+    "strategies": [
+        {
+            "name": "baseline (empty)"
+        },
+        {
+            "name": "drop-inactive-players-2",
+            "gen_lineups_params": {
+                "exclude_for_time_off": 2
+            }
+        },
+        {
+            "name": "drop-inactive-players-4",
+            "gen_lineups_params": {
+                "exclude_for_time_off": 4
+            }
+        },
+        {
+            "name": "drop-low-predict-score-team-players:mlb",
+            "sport_filter": [
+                "mlb"
+            ],
+            "gen_lineups_params": {
+                "exclude_on_predicted_team_pctl": {
+                    "C,1B,2B,3B,SS,LF,CF,RF,OF": 45
+                }
+            }
+        },
+        {
+            "name": "drop-low-predict-score-team-players:nba",
+            "sport_filter": [
+                "nba"
+            ],
+            "gen_lineups_params": {
+                "exclude_on_predicted_team_pctl": {
+                    "": 45
+                }
+            }
+        },
+        {
+            "name": "drop-low-predict-score-team-players:nhl",
+            "sport_filter": [
+                "nhl"
+            ],
+            "gen_lineups_params": {
+                "exclude_on_predicted_team_pctl": {
+                    "W,C": 45
+                }
+            }
+        },
+        {
+            "name": "drop-low-predict-score-team-players:nfl",
+            "sport_filter": [
+                "nfl"
+            ],
+            "gen_lineups_params": {
+                "exclude_on_predicted_team_pctl": {
+                    "QB,RB,WR,TE": 45
+                }
+            }
+        },
+        {
+            "name": "avoid-tired-teams:nba|nhl",
+            "sport_filter": [
+                "nba",
+                "nhl"
+            ],
+            "gen_lineups_params": {
+                "exclude_teams_for_consec_epochs_played": 2
+            }
+        },
+        {
+            "name": "avoid-tired-teams:mlb",
+            "sport_filter": [
+                "mlb"
+            ],
+            "gen_lineups_params": {
+                "exclude_teams_for_consec_epochs_played": 7
+            }
+        },
+        {
+            "name": "top-player-pivot:mlb-P",
+            "sport_filter": [
+                "mlb"
+            ],
+            "multi_lineup_req_top_predicted_player": "P"
+        },
+        {
+            "name": "top-player-pivot:mlb-H",
+            "sport_filter": [
+                "mlb"
+            ],
+            "multi_lineup_req_top_predicted_player": "C,1B,2B,3B,SS,LF,CF,RF,OF"
+        },
+        {
+            "name": "top-player-pivot:nfl-QB",
+            "sport_filter": [
+                "nfl"
+            ],
+            "multi_lineup_req_top_predicted_player": "QB"
+        },
+        {
+            "name": "top-player-pivot:nfl-RB",
+            "sport_filter": [
+                "nfl"
+            ],
+            "multi_lineup_req_top_predicted_player": "RB"
+        },
+        {
+            "name": "top-player-pivot:nfl-WRTE",
+            "sport_filter": [
+                "nfl"
+            ],
+            "multi_lineup_req_top_predicted_player": "WR,TE"
+        },
+        {
+            "name": "top-player-pivot:nba",
+            "sport_filter": [
+                "nba"
+            ],
+            "multi_lineup_req_top_predicted_player": true
+        },
+        {
+            "name": "top-player-pivot:nhl-G",
+            "sport_filter": ["nhl"],
+            "multi_lineup_req_top_predicted_player": "G"
+        },
+        {
+            "name": "top-player-pivot:nhl-WC",
+            "sport_filter": ["nhl"],
+            "multi_lineup_req_top_predicted_player": "W,C"
+        },
+        {
+            "name": "exclude-players-against-top-team-vs-pos",
+            "gen_lineups_params": {
+                "exclude_player_for_opp_team_vs_pos_pctl": {
+                    "": 80
+                }
+            }
+        },
+        {
+            "name": "group-budget-cap:mlb-P-priortity",
+            "sport_filter": "mlb",
+            "dfs_service": "draftkings",
+            "gen_lineups_params": {
+                "require_top_predicted_players": ["P", 2]
+            }
+        }
+    ]
+}

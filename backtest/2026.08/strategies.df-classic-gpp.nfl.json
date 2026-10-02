@@ -1,0 +1,95 @@
+{
+    "name": "df-classic-nfl",
+    "params": {
+        "max_wager_per_bet": null,
+        "max_wager_pct_per_epoch": 0.1,
+        "max_bets_per_epoch": 1,
+        "max_bets_per_contest": 1,
+        "sport_filter": ["nfl"]
+    },
+    "filepath": "config/strategy/df-classic-gpp.json",
+    "strategies": [
+        {
+            "name": "baseline"
+        },
+        {
+            "name": "typical-params",
+            "gen_lineups_params": {
+                "stacks": [2, 2],
+                "stackable_teams_predicted_pctl": 90,
+                "stackable_players_ppg_pctl": 50,
+                "exclude_below_ppg_pctl": {"QB": 80},
+                "exclude_for_cost": "<2500"
+            }
+        },
+        {
+            "name": "good-QB-vs-bad-defense",
+            "gen_lineups_params": {
+                "exclude_below_ppg_pctl": {"QB": 60},
+                "exclude_player_vs_team_predicted_pctl": {"QB": 25}
+            }
+        },
+        {
+            "name": "never-vs-NYG",
+            "gen_lineups_params": {
+                "exclude_teams_opposing": ["NYG"]
+            }
+        },
+        {
+            "name": "dk-cheap-QB",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "pos_cost_caps": {"QB": 7000}
+            }
+        },
+        {
+            "name": "dk-prioritize-QB",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "require_top_predicted_players": "QB"
+            }
+        },
+        {
+            "name": "dk-cheap-WRTE.i",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "pos_cost_caps": {"WR": 6500, "TE": 5500}
+            }
+        },
+        {
+            "name": "dk-cheap-WRTE.g",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"WR,TE": 20000}
+            }
+        },
+        {
+            "name": "dk-prioritize-WRTE",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "require_top_predicted_players": ["WR,TE", 2]
+            }
+        },
+        {
+            "name": "dk-cheap-RB.i",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "pos_cost_caps": {"RB": 6500}
+            }
+        },
+        {
+            "name": "dk-cheap-RB.g",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"RB": 12000}
+            }
+        },
+        {
+            "name": "dk-prioritize-RB",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "require_top_predicted_players": ["RB", 2]
+            }
+        }
+    ]
+}

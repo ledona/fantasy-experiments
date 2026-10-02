@@ -1,0 +1,155 @@
+{
+    "name": "df-classic-mlb",
+    "params": {
+        "max_wager_per_bet": null,
+        "max_wager_pct_per_epoch": 0.1,
+        "max_bets_per_epoch": 1,
+        "max_bets_per_contest": 1,
+        "sport_filter": ["mlb"]
+    },
+    "filepath": "config/strategy/df-classic-gpp.json",
+    "strategies": [
+        {
+            "name": "baseline"
+        },
+        {
+            "name": "current-recommended",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_predicted_pctl": 75,
+                "stackable_players_ppg_pctl": 50,
+                "exclude_below_ppg_pctl": {"P": 70},
+                "exclude_below_games_played": 2
+            }
+        },
+        {
+            "name": "current-recommended:floor",
+            "score_data_type": "floor",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_predicted_pctl": 75,
+                "stackable_players_ppg_pctl": 50,
+                "exclude_below_ppg_pctl": {"P": 70},
+                "exclude_below_games_played": 2
+            }
+
+        },
+        {
+            "name": "current-recommended:ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_predicted_pctl": 75,
+                "stackable_players_ppg_pctl": 50,
+                "exclude_below_ppg_pctl": {"P": 70},
+                "exclude_below_games_played": 2
+            }
+        },
+        {
+            "name": "good-P-vs-bad-offense",
+            "gen_lineups_params": {
+                "exclude_below_ppg_pctl": {"P": 60},
+                "exclude_player_vs_team_predicted_pctl": {"P": 25}
+            }
+        },
+        {
+            "name": "batting-order-stack-2x3",
+            "gen_lineups_params": {
+                "constraints": [
+                    ["mlb_bo_stack", {"stack_size": 3, "stacks": 2}]
+                ]
+            }
+        },
+        {
+            "name": "batting-order-stack-1,4",
+            "gen_lineups_params": {
+                "constraints": [
+                    ["mlb_bo_stack", {"stack_size": 4, "stacks": 1}]
+                ]
+            }
+        },
+        {
+            "name": "batting-order-stack-1,5",
+            "gen_lineups_params": {
+                "constraints": [
+                    ["mlb_bo_stack", {"stack_size": 5, "stacks": 1}]
+                ]
+            }
+        },
+        {
+            "name": "never-opposed-NYM",
+            "gen_lineups_params": {
+                "exclude_teams_opposing": ["NYM"]
+            }
+        },
+        {
+            "name": "vs-P-5",
+            "gen_lineups_params": {
+                "stacks": [5],
+                "stackable_teams_against_pos_ppg_pctl": ["P", 20]
+            }
+        },
+        {
+            "name": "vs-P-4",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_teams_against_pos_ppg_pctl": ["P", 20]
+            }
+        },
+        {
+            "name": "vs-P-43",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_against_pos_ppg_pctl": ["P", 30]
+            }
+        },
+        {
+            "name": "prioritize-P",
+            "gen_lineups_params": {
+                "require_top_predicted_players": ["P", 2]
+            }
+        },
+        {
+            "name": "pitcher-budget:<18.5k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"P": 18500}
+            }
+        },
+        {
+            "name": "pitcher-budget:<17k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"P": 17000}
+            }
+        },
+        {
+            "name": "pitcher-budget:>=17k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"P": ">=17000"}
+            }
+        },
+        {
+            "name": "pitcher-budget:>=18k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"P": ">=18000"}
+            }
+        },
+        {
+            "name": "pitcher-budget:>=19k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"P": ">=19000"}
+            }
+        },
+        {
+            "name": "pitcher-budget:>=20k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"P": ">=20000"}
+            }
+        }
+    ]
+}

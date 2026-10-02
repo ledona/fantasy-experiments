@@ -1,0 +1,25 @@
+{
+    "name": "df-classic-nba",
+    "params": {
+        "max_wager_per_bet": null,
+        "max_wager_pct_per_epoch": 0.1,
+        "max_bets_per_epoch": 1,
+        "max_bets_per_contest": 1,
+        "sport_filter": ["nba"]
+    },
+    "filepath": "config/strategy/df-classic-gpp.json",
+    "strategies": [
+        {
+            "name": "baseline"
+        },
+        {
+            "name": "typical-params",
+            "gen_lineups_params": {
+                "stacks": [3, 3],
+                "stackable_teams_predicted_pctl": 75,
+                "exclude_below_ppg_pctl": 25,
+                "exclude_for_cost": "<=3000"
+            }
+        }
+    ]
+}
