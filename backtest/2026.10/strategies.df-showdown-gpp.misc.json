@@ -1,0 +1,424 @@
+{
+    "name": "df-showdown-misc",
+    "params": {
+        "max_wager_per_bet": null,
+        "max_wager_pct_per_epoch": 0.1,
+        "max_bets_per_epoch": 1,
+        "max_bets_per_contest": 1,
+        "max_slates_to_try": null
+    },
+    "filepath": "config/strategy/df-showdown-gpp.json",
+    "strategies": [
+        {
+            "name": "baseline"
+        },
+        {
+            "name": "baseline-ceiling",
+            "score_data_type": "ceiling"
+        },
+        {
+            "name": "baseline-floor",
+            "score_data_type": "floor"
+        },
+        {
+            "name": "rank-betting:static",
+            "rank_betting": "static"
+        },
+        {
+            "name": "rank-betting:static:ceiling",
+            "score_data_type": "ceiling",
+            "rank_betting": "static"
+        },
+        {
+            "name": "rank-betting:prob",
+            "rank_betting": "static"
+        },
+        {
+            "name": "rank-betting:prob:ceiling",
+            "score_data_type": "ceiling",
+            "rank_betting": "prob"
+        },
+        // max cpt budget
+        {
+            "name": "cpt-budget:<8.5k",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<8500"}
+            }
+        },
+        {
+            "name": "cpt-budget:<9k",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<9000"}
+            }
+        },
+        {
+            "name": "cpt-budget:<9k.ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<9000"}
+            }
+        },
+        {
+            "name": "cpt-budget:<9.5k",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<9500"}
+            }
+        },
+        {
+            "name": "cpt-budget:<9.5k.ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<9500"}
+            }
+        },
+        {
+            "name": "cpt-budget:<10k",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<10000"}
+            }
+        },
+        {
+            "name": "cpt-budget:<10.5k",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<10500"}
+            }
+        },
+        {
+            "name": "cpt-budget:<11k",
+            "sport_filter": "!nba",
+            "gen_lineups_params": {
+                "slot_budget": {"CPT": "<11000"}
+            }
+        },
+        // minimum budget
+        {
+            "name": "budget-min:46k",
+            "sport_filter": "!nhl,!nfl",
+            "gen_lineups_params": {"min_budget": 46000}
+        },
+        {
+            "name": "budget-min:47.5k",
+            "gen_lineups_params": {"min_budget": 47500}
+        },
+        {
+            "name": "budget-min:47.5k:ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {"min_budget": 47500}
+        },
+        {
+            "name": "budget-min:49k",
+            "gen_lineups_params": {"min_budget": 49000}
+        },
+        {
+            "name": "budget-min:49k:ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {"min_budget": 49000}
+        },
+        {
+            "name": "full-budget:50k",
+            "gen_lineups_params": {"min_budget": 50000}
+        },
+        {
+            "name": "full-budget:50k:ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {"min_budget": 50000}
+        },
+        {
+            "name": "mlb-all-off-filter",
+            "sport_filter": "mlb",
+            "players_in_pos_filter": ["both", ["P"], "=0"]
+        },
+        {
+            "name": "mlb-all-off-gen",
+            "sport_filter": "mlb",
+            "players_in_pos_lineup_gen": ["both", ["P"], "=0"]
+        },
+        {
+            "name": "mlb-all-off-high-score-filter",
+            "sport_filter": "mlb",
+            "players_in_pos_filter": ["both", ["P"], "=0"],
+            "score_cond": ["both", ">=5"]
+        },
+        {
+            "name": "mlb-all-off-high-score-gen",
+            "sport_filter": "mlb",
+            "players_in_pos_lineup_gen": ["both", ["P"], "=0"],
+            "score_cond": ["both", ">=5"]
+        },
+        {
+            "name": "mlb-1P",
+            "sport_filter": "mlb",
+            "players_in_pos_filter": [["max", ["P"], "=1"], ["min", ["H"], "<3"]],
+            "score_cond": ["min", "<4"]
+        },
+        {
+            "name": "mlb-1P-CPT",
+            "sport_filter": "mlb",
+            "gen_lineups_params": {
+                "slot_pos_pools": [["CPT", ["P"]]]
+            },
+            "players_in_pos_filter": [["max", ["P"], "=1"], ["min", ["H"], "<3"]],
+            "score_cond": ["min", "<4"]
+        },
+        {
+            "name": "mlb-2P-low-score-filter",
+            "sport_filter": "mlb",
+            "players_in_pos_filter": [["both", ["P"], "=2"]],
+            "score_cond": ["both", "<4.25"]
+        },
+        {
+            "name": "mlb-2P-low-score-gen",
+            "sport_filter": "mlb",
+            "players_in_pos_lineup_gen": ["both", ["P"], "=2"],
+            "score_cond": ["both", "<4.25"]
+        },
+        {
+            "name": "mlb-exclude-P-from-CPT",
+            "sport_filter": "mlb",
+            "gen_lineups_params": {
+                "slot_pos_exclusions": [["CPT", ["P"]]]
+            }
+        },
+        {
+            "name": "mlb-prefer-fav-filter",
+            "sport_filter": "mlb",
+            "players_in_pos_filter": [["max", ["P"], "=1"], ["max", ["H"], ">=4"]],
+            "score_cond": ["diff", ">=1"]
+        },
+        {
+            "name": "mlb-prefer-fav-gen",
+            "sport_filter": "mlb",
+            "players_in_pos_lineup_gen": [["max", ["P"], "=1"], ["max", ["H"], ">=4"]],
+            "score_cond": ["diff", ">=1"]
+        },
+        {
+            "name": "mlb-opp_hitter_cap",
+            "sport_filter": "mlb",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "slot_pos_opp_team_cap": [["CPT", "P", 2]]
+            }
+        },
+        {
+            "name": "nba-prefer-fav.1",
+            "sport_filter": ["nba"],
+            "players_in_pos_lineup_gen": ["max", ["G", "F", "C"], ">=4"],
+            "score_cond": [["max", ">115"], ["diff", ">=7"]],
+            "gen_lineups_params": {
+                "exclude_for_cost": "<2000"
+            }
+        },
+        {
+            "name": "nba-prefer-fav.2",
+            "sport_filter": ["nba"],
+            "players_in_pos_lineup_gen": ["max", ["G", "F", "C"], ">=4"],
+            "score_cond": [["max", ">115"], ["diff", ">=7"]]
+        },
+        {
+            "name": "nba-prefer-fav.3",
+            "sport_filter": ["nba"],
+            "players_in_pos_lineup_gen": ["max", ["G", "F", "C"], ">=5"],
+            "score_cond": [["max", ">=115"], ["diff", ">=10"]],
+            "gen_lineups_params": {
+                "exclude_for_cost": "<2000"
+            }
+        },
+        {
+            "name": "nba-prefer-fav.4",
+            "sport_filter": ["nba"],
+            "players_in_pos_lineup_gen": ["max", ["G", "F", "C"], ">=5"],
+            "score_cond": [["max", ">=115"], ["diff", ">=10"]]
+        },
+        {
+            "name": "nba-prefer-fav.5",
+            "sport_filter": ["nba"],
+            "players_in_pos_lineup_gen": ["max", ["G", "F", "C"], ">=4"],
+            "score_cond": [["max", ">115"], ["diff", ">=10"]]
+        },
+        {
+            "name": "nhl-typical-w-cost",
+            "sport_filter": ["nhl"],
+            "gen_lineups_params": {
+                "exclude_for_cost": "<=2000"
+            }
+        },
+        {
+            "name": "nhl-all-offense",
+            "sport_filter": ["nhl"],
+            "players_in_pos_filter": [["both", ["G"], "=0"]]
+        },
+        {
+            "name": "nhl-all-offense-high-score",
+            "description": "place the bet if predicting high scores for both teams and natural lineup has both goalies",
+            "sport_filter": ["nhl"],
+            "players_in_pos_filter": [["both", ["G"], "=0"]],
+            "score_cond": ["both", ">=2.9"]
+        },
+        {
+            "name": "nhl-2G-low-score",
+            "description": "place the bet if predicting low scores for both teams and natural lineup has both goalies",
+            "sport_filter": ["nhl"],
+            "players_in_pos_filter": [["both", ["G"], "=1"]],
+            "score_cond": ["both", "<2.9"]
+        },
+        {
+            "name": "nhl-1G-CPT-filter",
+            "sport_filter": ["nhl"],
+            "gen_lineups_params": {
+                "slot_pos_pools": [["CPT", ["G"]]]
+            },
+            "players_in_pos_filter": [
+                ["max", ["G"], "=1"], 
+                ["min", ["W", "C", "D"], "<3"]
+            ],
+            "score_cond": ["min", "<3"]
+        },
+        {
+            "name": "nhl-1G-filter",
+            "sport_filter": ["nhl"],
+            "players_in_pos_filter": [
+                ["max", ["G"], "=1"], 
+                ["min", ["W", "C", "D"], "<3"]
+            ],
+            "score_cond": ["min", "<3"]
+        },
+        {
+            "name": "nhl-1G-CPT-gen",
+            "sport_filter": ["nhl"],
+            "gen_lineups_params": {
+                "slot_pos_pools": [["CPT", ["G"]]]
+            },
+            "players_in_pos_lineup_gen": [
+                ["max", ["G"], "=1"], 
+                ["min", ["W", "C", "D"], "<3"]
+            ],
+            "score_cond": ["min", "<3"]
+        },
+        {
+            "name": "nhl-1G-gen",
+            "sport_filter": ["nhl"],
+            "players_in_pos_lineup_gen": [
+                ["max", ["G"], "=1"], 
+                ["min", ["W", "C", "D"], "<3"]
+            ],
+            "score_cond": ["min", "<3"]
+        },
+        {
+            "name": "nhl-prefer-fav-filter",
+            "description": "Pick unforced lineups favoring heavily favored teams",
+            "sport_filter": ["nhl"],
+            "players_in_pos_filter": [
+                ["max", ["W", "C", "D"], ">=4"]
+            ],
+            "score_cond": ["diff", ">.6"]
+        },
+        {
+            "name": "nhl-prefer-fav-gen",
+            "description": "Generate lineups favoring heavily favored teams",
+            "sport_filter": ["nhl"],
+            "players_in_pos_filter": [
+                ["max", ["W", "C", "D"], ">=4"]
+            ],
+            "score_cond": ["diff", ">.6"]
+        },
+        {
+            "name": "nhl-exclude-G-from-CPT",
+            "sport_filter": ["nhl"],
+            "gen_lineups_params": {
+                "slot_pos_exclusions": [["CPT", ["G"]]]
+            }
+        },
+        {
+            "name": "nhl-opp_skater_cap",
+            "sport_filter": ["nhl"],
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "slot_pos_opp_team_cap": [["CPT", "G", 2]]
+            }
+        },
+        {
+            "name": "nfl-prefer-fav.1",
+            "sport_filter": ["nfl"],
+            "players_in_pos_filter": [
+                ["max", ["QB"], "=1"], 
+                ["max", ["WR", "TE", "RB"], ">=3"]
+            ],
+            "score_cond": ["diff", ">6"]
+        },
+        {
+            "name": "nfl-prefer-fav.1:ceiling",
+            "sport_filter": "nfl",
+            "score_data_type": "ceiling",
+            "players_in_pos_filter": [
+                ["max", ["QB"], "=1"], 
+                ["max", ["WR", "TE", "RB"], ">=3"]
+            ],
+            "score_cond": ["diff", ">6"]
+        },
+        {
+            "name": "nfl-prefer-fav.2",
+            "sport_filter": "nfl",
+            "players_in_pos_filter": [
+                ["max", ["QB"], "=1"], 
+                ["max", ["WR", "TE", "RB"], ">=3"],
+                ["min", ["QB"], "=0"]
+            ],
+            "score_cond": ["diff", ">6"]
+        },
+        {
+            "name": "nfl-prefer-fav.2:ceiling",
+            "sport_filter": "nfl",
+            "score_data_type": "ceiling",
+            "players_in_pos_filter": [
+                ["max", ["QB"], "=1"], 
+                ["max", ["WR", "TE", "RB"], ">=3"],
+                ["min", ["QB"], "=0"]
+            ],
+            "score_cond": ["diff", ">6"]
+        },
+        {
+            "name": "nfl-prefer-fav.3",
+            "sport_filter": "nfl",
+            "players_in_pos_filter": [
+                ["max", ["QB"], "=1"], 
+                ["max", ["WR", "TE", "RB"], ">=3"]
+            ],
+            "score_cond": ["diff", ">5"]
+        },
+        {
+            "name": "nfl-cost-exclude<1k",
+            "sport_filter": "nfl",
+            "gen_lineups_params": {
+                "exclude_for_cost": "<1000"
+            }
+        },
+        {
+            "name": "nfl-cost-exclude<2k",
+            "sport_filter": "nfl",
+            "gen_lineups_params": {
+                "exclude_for_cost": "<2000"
+            }
+        },
+        {
+            "name": "nfl-2QB-high-score",
+            "sport_filter": ["nfl"],
+            "players_in_pos_filter": [["both", ["team.D"], "=0"], ["both", ["QB"], "=2"]],
+            "score_cond": [["max", ">24"], ["min", "<19"]]
+        },
+        {
+            "name": "nfl-1QB-high-score",
+            "sport_filter": ["nfl"],
+            "players_in_pos_filter": [["max", ["QB"], "=1"]],
+            "score_cond": ["max", ">24"]
+        },
+        {
+            "name": "nfl-1QB-high-score-CPT",
+            "sport_filter": ["nfl"],
+            "gen_lineups_params": {
+                "slot_pos_pools": [["CPT", ["QB"]]]
+            },
+            "players_in_pos_filter": [["max", ["QB"], "=1"]],
+            "score_cond": ["max", ">24"]
+        }
+    ]
+}

@@ -1,0 +1,278 @@
+{
+    "name": "df-classic-nhl",
+    "params": {
+        "max_wager_per_bet": null,
+        "max_wager_pct_per_epoch": 0.1,
+        "max_bets_per_epoch": 1,
+        "max_bets_per_contest": 1,
+        "sport_filter": "nhl"
+    },
+    "filepath": "config/strategy/df-classic-gpp.json",
+    "strategies": [
+        {
+            "name": "baseline"
+        },
+        {
+            "name": "current-recommended",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_predicted_pctl": 80,
+                "stackable_players_ppg_pctl": 55,
+                "exclude_below_ppg_pctl": {"G": 80},
+                "exclude_for_cost": "<4000"
+            }
+        },
+        {
+            "name": "current-recommended:floor",
+            "score_data_type": "floor",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_predicted_pctl": 80,
+                "stackable_players_ppg_pctl": 55,
+                "exclude_below_ppg_pctl": {"G": 80},
+                "exclude_for_cost": "<4000"
+            }
+        },
+        {
+            "name": "current-recommended:ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_predicted_pctl": 80,
+                "stackable_players_ppg_pctl": 55,
+                "exclude_below_ppg_pctl": {"G": 80},
+                "exclude_for_cost": "<4000"
+            }
+        },
+        {
+            "name": "good-G-vs-bad-offense",
+            "gen_lineups_params": {
+                "exclude_below_ppg_pctl": {"G": 60},
+                "exclude_player_vs_team_predicted_pctl": {"G": 25}
+            }
+        },
+        {
+            "name": "dk-goalie:<7k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"G": "<7000"}
+            }
+        },
+        {
+            "name": "dk-goalie:<7.5k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"G": "<7500"}
+            }
+        },
+        {
+            "name": "dk-goalie:<8k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"G": "<8000"}
+            }
+        },
+        {
+            "name": "dk-goalie:<8.5k",
+            "service_filter": ["draftkings"],
+            "gen_lineups_params": {
+                "group_cost_budget": {"G": "<8500"}
+            }
+        },
+        {
+            "name": "vs-G-5.10",
+            "gen_lineups_params": {
+                "stacks": [5],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 10]
+            }
+        },
+        {
+            "name": "vs-G-5.20",
+            "gen_lineups_params": {
+                "stacks": [5],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-5.20.ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {
+                "stacks": [5],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-5.30",
+            "gen_lineups_params": {
+                "stacks": [5],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 30]
+            }
+        },
+        {
+            "name": "vs-G-5.40",
+            "gen_lineups_params": {
+                "stacks": [5],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 40]
+            }
+        },
+        {
+            "name": "vs-G-4.10",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 10]
+            }
+        },
+        {
+            "name": "vs-G-4.20",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-4.20.ceiling",
+            "score_data_type": "ceiling",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-4.20:10",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_players_ppg_pctl": 10,
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-4.20:25",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_players_ppg_pctl": 25,
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-4.20:40",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_players_ppg_pctl": 40,
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-4.30",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 30]
+            }
+        },
+        {
+            "name": "vs-G-4.40",
+            "gen_lineups_params": {
+                "stacks": [4],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 40]
+            }
+        },
+        {
+            "name": "vs-G-43.20",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20]
+            }
+        },
+        {
+            "name": "vs-G-43.10:45",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 10],
+                "stackable_players_ppg_pctl": 45
+            }
+        },
+        {
+            "name": "vs-G-43.20:45",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 20],
+                "stackable_players_ppg_pctl": 45
+            }
+        },
+        {
+            "name": "vs-G-43.30:45",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 30],
+                "stackable_players_ppg_pctl": 45
+            }
+        },
+        {
+            "name": "vs-G-43.40:45",
+            "gen_lineups_params": {
+                "stacks": [4, 3],
+                "stackable_teams_against_pos_ppg_pctl": ["G", 40],
+                "stackable_players_ppg_pctl": 45
+            }
+        },
+        {
+            "name": "prioritize-G",
+            "gen_lineups_params": {
+                "require_top_predicted_players": "G"
+            }
+        },
+        {
+            "name": "S-budget:>=17k",
+            "dfs_service": "draftkings",
+            "gen_lineups_params": {
+                "group_cost_budget": {"W,C": ">=17000"}
+            }
+        },
+        {
+            "name": "S-budget:>=15k",
+            "dfs_service": "draftkings",
+            "gen_lineups_params": {
+                "group_cost_budget": {"W,C": ">=15000"}
+            }
+        },
+        {
+            "name": "S-budget:>=13k",
+            "dfs_service": "draftkings",
+            "gen_lineups_params": {
+                "group_cost_budget": {"W,C": ">=13000"}
+            }
+        },
+        {
+            "name": "stack-vs-crappy-5:nhl",
+            "sport_filter": "nhl",
+            "gen_lineups_params": {
+                "stackable_teams_against_pos_ppg_pctl": ["W,C,D", 75],
+                "stacks": [5]
+            }
+        },
+        {
+            "name": "stack-vs-crappy-5:nhl.ceiling",
+            "score_data_type": "ceiling",
+            "sport_filter": "nhl",
+            "gen_lineups_params": {
+                "stackable_teams_against_pos_ppg_pctl": ["W,C,D", 75],
+                "stacks": [5]
+            }
+        },
+        {
+            "name": "stack-vs-crappy-43.75:nhl",
+            "sport_filter": "nhl",
+            "gen_lineups_params": {
+                "stackable_teams_against_pos_ppg_pctl": ["W,C,D", 75],
+                "stacks": [4, 3]
+            }
+        },
+        {
+            "name": "stack-vs-crappy-43.60:nhl",
+            "sport_filter": "nhl",
+            "gen_lineups_params": {
+                "stackable_teams_against_pos_ppg_pctl": ["W,C,D", 60],
+                "stacks": [4, 3]
+            }
+        }
+    ]
+}
