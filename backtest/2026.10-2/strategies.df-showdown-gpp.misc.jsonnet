@@ -2,16 +2,25 @@ local utils = import 'utils.libsonnet';
 {
   name: 'df-showdown-misc',
   params: {
-    service_filter: ['draftkings'],
+    service_filter: 'draftkings',
     max_wager_per_bet: null,
     max_wager_pct_per_epoch: 0.1,
-    // try to bet 3x per epoch, once per slate
+    // default is to try for 3x bets per epoch
     max_bets_per_epoch: 3,
     max_bets_per_contest: 1,
     max_slates_to_try: null,
   },
+  starting_bankroll: 1000,
+  allow_negative_bankroll: true,
   filepath: 'config/strategy/df-showdown-gpp.json',
   strategies: [
+    {
+      name: 'baseline' + utils.score_type_post(score_type),
+      score_data_type: score_type,
+      max_bets_per_epoch: null,
+    }
+    for score_type in ['predicted', 'ceiling']
+  ] + [
     {
       name: 'nhl-exclude-G-from-CPT',
       sport_filter: ['nhl'],
@@ -58,13 +67,7 @@ local utils = import 'utils.libsonnet';
     },
   ] + [
     {
-      name: 'baseline' + utils.score_type_post(score_type),
-      score_data_type: score_type,
-    }
-    for score_type in ['predicted', 'floor', 'ceiling']
-  ] + [
-    {
-      name: 'rank-betting:prob%s' + utils.score_type_post(score_type),
+      name: 'rank-betting:prob%s' % utils.score_type_post(score_type),
       score_data_type: score_type,
       rank_betting: 'prob',
     }
