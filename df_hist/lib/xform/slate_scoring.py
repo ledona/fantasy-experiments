@@ -147,7 +147,7 @@ def score_cache_ctx(
 ):
     """context manager for caching lineup scoring results"""
     if not os.path.isdir(cache_dir):
-        raise FileNotFoundError(f"Cache directory '{cache_dir}' does not exist")
+        raise FileNotFoundError(f"Score cache directory '{cache_dir}' does not exist")
     score_cache_filename = f"{sport}-{contest_style.value}-slate.score.json"
     score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
 
@@ -175,7 +175,7 @@ def score_cache_ctx(
         )
         print(f"""
 
-*** Rational Lineup Settings Usage {sport=} contest_style={contest_style.value} ***
+*** Rational Lineup Settings Usage {sport=} service='{service_name}' contest_style={contest_style.value} ***
 params\tcount\tgames
 {rls_report}
 **************************************

@@ -12,9 +12,8 @@ models do the following.
 Use _retrieve_hist_ to retrieve contest data from dfs websites. __This is not done from
 within the docker container__, instead it is run in the native local environment to facilitate selenium orchestration. The following instructions assume this is run on Windows
 
-1. Make sure that the following windows environment variables are set:
+1. Make sure that the following windows environment variables are set (use `echo $env:VARIABLE`)
    - FANTASY_IDRIVE_HOME : windows path to the IDRIVE cloud fantasy dir
-   - PATH : make sure that python is in the path
 2. Create a venv to run the retrieval in by running the following command on the commandline in the local environment (again, not in the container).
 ```
 uv venv venv-retrieve-hist
@@ -22,7 +21,7 @@ python -m venv venv-retrieve-hist
 .\venv-retrieve-hist\Scripts\activate
 uv pip install pandas selenium beautifulsoup4 tqdm
 ```
-3. Start chrome with a debugging port. On windows run the following from powershell AFTER CHANGING USER-DATA-DIR.
+3. Start chrome with a debugging port. On windows run the following from powershell
 ```
 Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" -ArgumentList @("--remote-debugging-port=9222", "--user-data-dir=$env:USERPROFILE\working\fantasy-experiments\df_hist\chrome-user-data")
 ```
@@ -57,7 +56,7 @@ Review/update _model_cfg.json_ then run the following. Models will be written to
 _eval\_results_ .
 ```
 python -m lib.modeling.cli nfl nba \
-   --model_path /fantasy-isync/fantasy-dfs-hist/models/2024.04 \
+   --model_path /fantasy-isync/fantasy-dfs-hist/models/2026.10 \
    --results_path /fantasy-isync/fantasy-dfs-hist/eval_results
    --data_path /fantasy-isync/fantasy-dfs-hist/data
    --framework regchain_tree

@@ -131,19 +131,18 @@ def _infer_contest_style(service, row) -> DFSContestStyle:
             return DFSContestStyle.SHOWDOWN
         return DFSContestStyle.CLASSIC
 
-    if service == "yahoo":
-        if (
-            " Cup " in row.title
-            or " to 1st]" in row.title
-            or " 50/50" in row.title
-            or "QuickMatch vs " in row.title
-            or "H2H vs " in row.title
-            or "-Team" in row.title
-            or "Freeroll" in row.title  # N-team contests are classic
-            or "Quadruple Up" in row.title
-            or "Guaranteed" in row.title
-        ):
-            return DFSContestStyle.CLASSIC
+    if service == "yahoo" and (
+        " Cup " in row.title
+        or " to 1st]" in row.title
+        or " 50/50" in row.title
+        or "QuickMatch vs " in row.title
+        or "H2H vs " in row.title
+        or "-Team" in row.title
+        or "Freeroll" in row.title  # N-team contests are classic
+        or "Quadruple Up" in row.title
+        or "Guaranteed" in row.title
+    ):
+        return DFSContestStyle.CLASSIC
 
     raise NotImplementedError(f"Could not infer contest style for {service=} {row.title=}")
 
@@ -273,12 +272,11 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
 def _create_contest_df(contest_df, draft_df, service, sport):
     """group contests together and create team sets used in each contest"""
     service_cls = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service)
-    abbr_remaps = service_cls.TEAM_ABBR_ALIASES.get(sport)
 
     # add team/lineup draft data
     contest_draft_df = pd.merge(contest_df, draft_df, on="contest_id")
-    contest_draft_df["team_abbr"] = contest_draft_df.team_abbr.map(
-        lambda abbr: (abbr_remaps.get(abbr) or abbr) if abbr_remaps else abbr
+    contest_draft_df["team_abbr"] = contest_draft_df.apply(
+        (lambda row: service_cls.get_team_abbr(row.team_abbr, sport, row.date.date())), axis=1
     )
 
     def _common_title(title_series: pd.Series) -> str:
@@ -367,9 +365,10 @@ def _get_slate_id(contest_row: pd.Series, slate_db_df: pd.DataFrame) -> pd.Serie
     slates_found = len(slates)
     if slates_found == 0:
         _LOGGER.warning(
-            "get_slate_id::No slates found for %s that matches teams %s.",
-            contest_row.date,
-            contest_row.teams,
+            "get_slate_id::No slates found for %s that matches teams (n=%d): %s",
+            contest_row.date.date(),
+            len(contest_row.teams),
+            ",".join(sorted(contest_row.teams)),
         )
         return _NO_SLATE_ID_FOUND
 
@@ -480,6 +479,7 @@ def _generate_dataset(
             for slate in session.query(db.DailyFantasySlate).where(
                 db.DailyFantasySlate.id.in_(slate_ids)
             )
+            if len(slate.games) > 0
         }
 
         team_score_df = bt_winscore_team_input_data(
@@ -531,12 +531,12 @@ def _generate_dataset(
 
     # add the target vars back in
     winning_score_data = (
-        contest_df[["slate_id", "top_score", "last_winning_score"]]
+        contest_df[["contest_id", "top_score", "last_winning_score"]]
         .rename(columns={"top_score": "top_winning_score"})
-        .set_index("slate_id", drop=True)
+        .set_index("contest_id", drop=True)
     )
 
-    inf_df = df.join(winning_score_data, on="slate_id")
+    inf_df = df.join(winning_score_data, on="contest_id")
     filepath = os.path.join(
         datapath,
         f"{db_obj.db_manager.ABBR}-{service_name}-{style.name}-{contest_type.TYPE_NAME}.csv",

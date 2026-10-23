@@ -75,6 +75,7 @@
                 "--input_data_path", "/fantasy-isync/fantasy-dfs-hist/betting",
                 // to rebuild the xformed data using cached data and recalculated slate scoring remove *slate.score.json from the output directory
                 "--output_data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
+                // "--output_data_path", "/fantasy/test-fantasy-dfs-hist-xformed-data",
                 "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/xformed-data/cache",
                 "--services", "draftkings",
                 // "--style", "classic",
@@ -95,7 +96,7 @@
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 "--mode", "reuse", 
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.08",
+                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.10",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
                 "nfl", "mlb", "nhl", "nba", //"lol",
                 "--styles", "showdown", "classic",
