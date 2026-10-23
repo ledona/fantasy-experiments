@@ -139,7 +139,7 @@ class ScoreCache:
 
 @contextmanager
 def score_cache_ctx(
-    sport: str, contest_style: DFSContestStyle, cache_mode: SlateScoreCacheMode, cache_dir="."
+    sport: str, contest_style: DFSContestStyle, cache_mode: SlateScoreCacheMode, service_name, cache_dir="."
 ):
     """context manager for caching lineup scoring results"""
     if not os.path.isdir(cache_dir):
@@ -147,7 +147,7 @@ def score_cache_ctx(
     score_cache_filename = f"{sport}-{contest_style.value}-slate.score.json"
     score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
 
-    rational_lineup_params = get_rational_lineup_gen_params(sport, contest_style)
+    rational_lineup_params = get_rational_lineup_gen_params(sport, contest_style, service_name)
     rlp_hash = constant_hasher(rational_lineup_params)
 
     score_cache = ScoreCache(score_cache_filepath, rlp_hash, cache_mode)
@@ -171,7 +171,7 @@ def score_cache_ctx(
         )
         print(f"""
 
-*** Rational Lineup Settings Usage {sport=} contest_style={contest_style.value} ***
+*** Rational Lineup Settings Usage {sport=} service='{service_name}' contest_style={contest_style.value} ***
 params\tcount\tgames
 {rls_report}
 **************************************

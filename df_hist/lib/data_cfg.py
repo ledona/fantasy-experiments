@@ -7,12 +7,12 @@ _FANTASY_HOME = os.environ["FANTASY_HOME"]
 SPORT_CFGS = {
     "mlb": {
         "min_date": date(2019, 1, 1),
-        "max_date": date(2026, 6, 17),
+        "max_date": date(2026, 10, 21),
         "db_filename": os.path.join(_FANTASY_HOME, "mlb.hist.2008-2026_partial.scored.db"),
     },
     "nfl": {
         "min_date": date(2020, 1, 12),  # no NFL dfs slates before this date
-        "max_date": date(2026, 5, 17),
+        "max_date": date(2026, 10, 21),
         "db_filename": os.path.join(_FANTASY_HOME, "nfl.hist.2009-2025.scored.db"),
     },
     "nba": {
@@ -26,7 +26,7 @@ SPORT_CFGS = {
             "fanduel": date(2019, 8, 1),  # fd missing positional data prior to 2019 season
             None: date(2017, 8, 1),
         },
-        "max_date": date(2026, 6, 15),
+        "max_date": date(2026, 10, 21),
         "db_filename": os.path.join(_FANTASY_HOME, "nhl.hist.20072008-20252026.scored.db"),
     },
     "lol": {
