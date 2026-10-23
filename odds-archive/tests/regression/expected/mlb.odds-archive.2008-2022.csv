@@ -1,0 +1,16 @@
+date,season,away-team,away-abbr,home-team,home-abbr,away-moneyline,home-moneyline,overunder,over-odds,under-odds,spread
+2008-08-07,2008,Washington,WAS,Colorado,COL,,,9.5,,,-1.5
+2008-08-07,2008,Washington,WAS,Colorado,COL,,,10.0,,,-1.5
+2008-09-14,2008,Chi Cubs,CHC,Houston,HOU,,,9.0,,,1.5
+2009-08-28,2009,Chi Sox,CHW,NY Yankees,NYY,188.0,-206.0,9.0,,,
+2009-09-01,2009,Toronto,TOR,Texas,TEX,136.0,-144.0,9.5,,,-1.5
+2009-09-01,2009,Toronto,TOR,Texas,TEX,156.0,-164.0,10.0,,,-1.5
+2010-04-04,2010,NYY,NYY,BOS,BOS,-103.0,-117.0,9.0,-105.0,-115.0,-1.5
+2010-04-05,2010,COL,COL,MIL,MIL,-105.0,-105.0,7.5,105.0,-125.0,1.5
+2010-06-30,2010,CIN,CIN,CUB,CHC,112.0,-132.0,8.0,-105.0,-115.0,-1.5
+2010-11-01,2010,SFO,SF,TEX,TEX,150.0,-170.0,6.5,-105.0,-115.0,-1.5
+2019-03-20,2019,SEA,SEA,OAK,OAK,120.0,-130.0,8.5,-120.0,100.0,-1.5
+2019-04-13,2019,PIT,PIT,WAS,WAS,109.0,-119.0,9.0,100.0,-120.0,-1.5
+2019-10-30,2019,WAS,WAS,HOU,HOU,128.0,-138.0,7.5,-105.0,-115.0,-1.5
+2022-04-07,2022,Milwaukee,MIL,Chi Cubs,CHC,-175.0,155.0,9.0,,,1.5
+2022-04-08,2022,Boston,BOS,NY Yankees,NYY,155.0,-170.0,8.0,,,-1.5
