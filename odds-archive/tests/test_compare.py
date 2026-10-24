@@ -36,6 +36,15 @@ def test_match_ignores_dtype_and_spread_sign():
     assert compare(new_df, ref_df).is_match
 
 
+def test_missing_ref_column_not_compared():
+    new_df = to_archive_frame([_game(_D1, **{"home-spread-odds": -110.0})])
+    ref_df = to_archive_frame([_game(_D1)]).drop(columns=["away-spread-odds", "home-spread-odds"])
+    comparison = compare(new_df, ref_df)
+    assert comparison.missing_ref_cols == ["away-spread-odds", "home-spread-odds"]
+    assert len(comparison.diffs_df) == 0
+    assert not comparison.is_match
+
+
 def test_differences():
     new_df = to_archive_frame([_game(_D1), _game(_D1, overunder=9.0), _game(_D2)])
     ref_df = to_archive_frame([_game(_D1, **{"home-moneyline": -140.0}), _game(_D1, overunder=9.5)])

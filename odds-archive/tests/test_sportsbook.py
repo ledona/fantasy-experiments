@@ -4,7 +4,7 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from odds_archive.sources import SourceContext
+from odds_archive.sources import SourceContext, sportsbook
 from odds_archive.sources.sportsbook import SportsbookSource, resolve_dates
 from odds_archive.teams import TeamAbbrs
 
@@ -90,12 +90,41 @@ def test_mlb(tmp_path, calendar_factory):
     assert (game.season, game["away-abbr"], game["home-abbr"]) == (2015, "STL", "CHC")
     assert (game["away-moneyline"], game["home-moneyline"]) == (-102, -108)
     assert (game.overunder, game["over-odds"], game["under-odds"]) == (7.5, -115, -105)
-    assert game.spread == -1.5
+    assert (game.spread, game["away-spread-odds"], game["home-spread-odds"]) == (-1.5, -220, 190)
 
     no_ou_game = df.iloc[1]
     assert pd.isna(no_ou_game.overunder)
     assert no_ou_game["over-odds"] is None and no_ou_game["under-odds"] is None
     assert (no_ou_game["home-moneyline"], no_ou_game.spread) == (-148, -1.5)
+
+
+def test_mlb_run_line_used_over_moneyline(tmp_path, calendar_factory):
+    """the run line underdog can be the moneyline favorite"""
+    csv = _MLB_CSV.replace("-102,1.5,-220", "-102,-1.5,150").replace("-108,-1.5,190", "-108,1.5,-170")
+    calendar = calendar_factory({2015: (date(2015, 4, 1), date(2015, 11, 5))})
+    df, _ = _load(tmp_path, "mlb", calendar, {"mlb-odds-2015.xlsx - Sheet1.csv": csv})
+    game = df.iloc[0]
+    assert (game.spread, game["away-spread-odds"], game["home-spread-odds"]) == (1.5, 150, -170)
+
+
+def test_mlb_run_line_not_opposite_is_null(tmp_path, calendar_factory):
+    csv = _MLB_CSV.replace("-108,-1.5,190", "-108,1.5,190")
+    calendar = calendar_factory({2015: (date(2015, 4, 1), date(2015, 11, 5))})
+    df, _ = _load(tmp_path, "mlb", calendar, {"mlb-odds-2015.xlsx - Sheet1.csv": csv})
+    game = df.iloc[0]
+    assert pd.isna(game.spread)
+    assert game["away-spread-odds"] is None and game["home-spread-odds"] is None
+
+
+def test_mlb_no_run_line(tmp_path, calendar_factory):
+    """files without a run line derive the spread from the moneyline and have no spread odds"""
+    lines = [line.split(",") for line in _MLB_CSV.splitlines()]
+    csv = "\n".join(",".join(cols[:17] + cols[19:]) for cols in lines) + "\n"
+    calendar = calendar_factory({2010: (date(2010, 4, 1), date(2010, 11, 5))})
+    df, _ = _load(tmp_path, "mlb", calendar, {"mlb-odds-2010.xlsx - Sheet1.csv": csv})
+    game = df.iloc[0]
+    assert (game.spread, game.overunder, game["over-odds"]) == (-1.5, 7.5, -115)
+    assert game["away-spread-odds"] is None and game["home-spread-odds"] is None
 
 
 def test_nhl(tmp_path, calendar_factory):
@@ -126,6 +155,33 @@ def test_nhl_spread_from_moneyline(tmp_path, calendar_factory, away_ml, home_ml,
     df, _ = _load(tmp_path, "nhl", calendar, {"Sheet1.csv": csv})
     spread = df.spread.iloc[0]
     assert pd.isna(spread) if expected_spread is None else spread == expected_spread
+
+
+_NHL_PUCK_LINE_CSV = (
+    _NHL_CSV.replace("Close,OpenOU,CloseOU,,", "Close,PuckLine,OpenOU,CloseOU,,,")
+    .replace("-155,-123,", "-155,-123,1.5,-250,")
+    .replace("135,103,", "135,103,-1.5,210,")
+    .replace("-140,-150,", "-140,-150,-1.5,180,")
+    .replace("120,130,", "120,130,1.5,-210,")
+)
+
+
+def test_nhl_puck_line(tmp_path, calendar_factory):
+    """puck line is used over the moneyline favorite"""
+    calendar = calendar_factory({20072008: (date(2007, 9, 1), date(2008, 6, 30))})
+    df, _ = _load(tmp_path, "nhl", calendar, {"Sheet1.csv": _NHL_PUCK_LINE_CSV})
+    away_ml_fav, home_first = df.iloc[0], df.iloc[1]
+    assert (away_ml_fav.spread, away_ml_fav["away-spread-odds"], away_ml_fav["home-spread-odds"]) == (-1.5, -250, 210)
+    assert (away_ml_fav.overunder, away_ml_fav["over-odds"]) == (6, -105)
+    assert (home_first.spread, home_first["away-spread-odds"], home_first["home-spread-odds"]) == (-1.5, -210, 180)
+
+
+def test_excluded_game_skipped(tmp_path, calendar_factory, monkeypatch):
+    monkeypatch.setitem(sportsbook._EXCLUDED_GAMES, "nhl", {(date(2008, 1, 5), "LAK", "ANA")})
+    calendar = calendar_factory({20072008: (date(2007, 9, 1), date(2008, 6, 30))})
+    df, skipped = _load(tmp_path, "nhl", calendar, {"Sheet1.csv": _NHL_CSV})
+    assert skipped == {"known bad source game": 1}
+    assert list(df.index) == [date(2007, 9, 29)]
 
 
 @pytest.mark.parametrize(

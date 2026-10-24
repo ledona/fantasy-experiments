@@ -47,6 +47,8 @@ class NflverseSource(OddsSource):
                     "over-odds": game.over_odds,
                     "under-odds": game.under_odds,
                     "spread": -game.spread_line,
+                    "away-spread-odds": game.away_spread_odds,
+                    "home-spread-odds": game.home_spread_odds,
                 }
             )
         _LOGGER.info("'%s' games=%i", _FILENAME, len(game_rows))

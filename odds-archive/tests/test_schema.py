@@ -3,7 +3,6 @@ from datetime import date
 import numpy as np
 import pandas as pd
 import pytest
-
 from odds_archive.schema import COLUMNS, drop_no_odds, to_archive_frame, validate
 
 
@@ -68,8 +67,40 @@ def test_validate_nulls_only_invalid(col, bad_val):
     pd.testing.assert_frame_equal(validated_df.iloc[[0]], df.iloc[[0]])
 
 
+@pytest.mark.parametrize(
+    "overrides, expected_nulled",
+    [
+        ({"home-spread-odds": -50.0}, {"home-spread-odds": 1}),
+        ({"spread": 2.5}, {"spread": 1, "away-spread-odds": 1, "home-spread-odds": 1}),
+        ({"spread": np.nan}, {"away-spread-odds": 1, "home-spread-odds": 1}),
+        ({"over-odds": 50.0}, {"over-odds": 1}),
+        ({"overunder": 16.0}, {"overunder": 1, "over-odds": 1, "under-odds": 1}),
+    ],
+)
+def test_validate_line_odds(overrides, expected_nulled):
+    """invalid odds and odds for a null line are nulled"""
+    line_odds = {
+        "away-spread-odds": 150.0,
+        "home-spread-odds": -170.0,
+        "over-odds": -110.0,
+        "under-odds": -110.0,
+    }
+    df = to_archive_frame([_row(**line_odds), _row(**{**line_odds, **overrides})])
+    validated_df, nulled = validate(df, "nhl")
+    assert {col: count for col, count in nulled.items() if count > 0} == expected_nulled
+    for col in expected_nulled:
+        assert pd.isna(validated_df[col].iloc[1])
+    assert validated_df["away-spread-odds"].iloc[0] == 150.0
+    assert validated_df["home-spread-odds"].dtype == object
+
+
 def test_drop_no_odds():
-    no_odds = {"away-moneyline": np.nan, "home-moneyline": np.nan, "overunder": np.nan, "spread": np.nan}
+    no_odds = {
+        "away-moneyline": np.nan,
+        "home-moneyline": np.nan,
+        "overunder": np.nan,
+        "spread": np.nan,
+    }
     df = to_archive_frame([_row(), _row(**no_odds), _row(**{**no_odds, "spread": 1.5})])
     dropped_df, count = drop_no_odds(df)
     assert count == 1

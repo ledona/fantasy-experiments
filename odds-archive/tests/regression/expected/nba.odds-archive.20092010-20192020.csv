@@ -1,14 +1,14 @@
-date,season,away-team,away-abbr,home-team,home-abbr,away-moneyline,home-moneyline,overunder,over-odds,under-odds,spread
-2009-10-27,20092010,Boston,BOS,Cleveland,CLE,170.0,-200.0,183.5,,,-5.0
-2009-11-06,20092010,Atlanta,ATL,Charlotte,CHB,,120.0,180.5,,,2.5
-2009-11-11,20092010,Cleveland,CLE,Orlando,ORL,110.0,-130.0,190.5,,,0.0
-2010-01-01,20092010,New York,NYK,Atlanta,ATL,600.0,-800.0,205.5,,,-11.0
-2010-06-17,20092010,Boston,BOS,LA Lakers,LAL,230.0,-270.0,186.5,,,-6.5
-2013-10-29,20132014,Orlando,ORL,Indiana,IND,675.0,-1025.0,188.5,,,-12.0
-2013-11-26,20132014,Golden State,GSW,New Orleans,NOP,-110.0,-110.0,206.5,,,0.0
-2014-01-16,20132014,Brooklyn,BKN,Atlanta,ATL,100.0,-120.0,194.5,,,-1.0
-2014-06-15,20132014,Miami,MIA,San Antonio,SAS,180.0,-215.0,197.5,,,-5.5
-2019-10-22,20192020,New Orleans,NOP,Toronto,TOR,230.0,-280.0,229.5,,,-6.5
-2019-10-24,20192020,LA Clippers,LAC,Golden State,GSW,-110.0,-110.0,229.5,,,0.0
-2020-01-01,20192020,Orlando,ORL,Washington,WAS,-170.0,145.0,222.5,,,3.5
-2020-10-11,20192020,LA Lakers,LAL,Miami,MIA,-250.0,210.0,215.0,,,5.5
+date,season,away-team,away-abbr,home-team,home-abbr,away-moneyline,home-moneyline,overunder,over-odds,under-odds,spread,away-spread-odds,home-spread-odds
+2009-10-27,20092010,Boston,BOS,Cleveland,CLE,170.0,-200.0,183.5,,,-5.0,,
+2009-11-06,20092010,Atlanta,ATL,Charlotte,CHB,,120.0,180.5,,,2.5,,
+2009-11-11,20092010,Cleveland,CLE,Orlando,ORL,110.0,-130.0,190.5,,,0.0,,
+2010-01-01,20092010,New York,NYK,Atlanta,ATL,600.0,-800.0,205.5,,,-11.0,,
+2010-06-17,20092010,Boston,BOS,LA Lakers,LAL,230.0,-270.0,186.5,,,-6.5,,
+2013-10-29,20132014,Orlando,ORL,Indiana,IND,675.0,-1025.0,188.5,,,-12.0,,
+2013-11-26,20132014,Golden State,GSW,New Orleans,NOP,-110.0,-110.0,206.5,,,0.0,,
+2014-01-16,20132014,Brooklyn,BKN,Atlanta,ATL,100.0,-120.0,194.5,,,-1.0,,
+2014-06-15,20132014,Miami,MIA,San Antonio,SAS,180.0,-215.0,197.5,,,-5.5,,
+2019-10-22,20192020,New Orleans,NOP,Toronto,TOR,230.0,-280.0,229.5,,,-6.5,,
+2019-10-24,20192020,LA Clippers,LAC,Golden State,GSW,-110.0,-110.0,229.5,,,0.0,,
+2020-01-01,20192020,Orlando,ORL,Washington,WAS,-170.0,145.0,222.5,,,3.5,,
+2020-10-11,20192020,LA Lakers,LAL,Miami,MIA,-250.0,210.0,215.0,,,5.5,,

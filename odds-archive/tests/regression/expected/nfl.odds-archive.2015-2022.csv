@@ -1,13 +1,13 @@
-date,season,away-team,away-abbr,home-team,home-abbr,away-moneyline,home-moneyline,overunder,over-odds,under-odds,spread
-2015-09-10,2015,Pittsburgh,PIT,New England,NE,305.0,-350.0,51.0,-103.0,-107.0,-7.5
-2021-09-09,2021,Dallas,DAL,Tampa Bay,TB,375.0,-450.0,52.5,,,-10.0
-2021-09-12,2021,Green Bay,GB,New Orleans,NO,-185.0,165.0,49.0,,,3.5
-2021-10-17,2021,Miami,MIA,Jacksonville,JAC,-122.0,110.0,47.5,-105.0,-107.0,2.5
-2021-11-14,2021,Detroit,DET,Pittsburgh,PIT,303.0,-359.0,43.0,102.0,-114.0,-9.0
-2022-01-02,2021,Las Vegas,LV,Indianapolis,IND,320.0,-380.0,46.5,,,-10.0
-2022-01-30,2021,San Francisco,SF,LA Rams,LA,155.0,-180.0,45.5,-115.0,-105.0,-3.5
-2022-02-13,2021,LA Rams,LA,Cincinnati,CIN,-200.0,185.0,48.5,,,4.0
-2022-09-11,2022,Kansas City,KC,Arizona,ARI,-260.0,220.0,54.0,,,6.0
-2022-09-11,2022,Green Bay,GB,Minnesota,MIN,119.0,-132.0,46.5,,,-2.0
-2022-10-09,2022,NY Giants,NYG,Green Bay,GB,331.0,-397.0,42.0,-102.0,-110.0,-8.5
-2023-01-21,2022,NY Giants,NYG,Philadelphia,PHI,300.0,-375.0,47.5,,,-8.0
+date,season,away-team,away-abbr,home-team,home-abbr,away-moneyline,home-moneyline,overunder,over-odds,under-odds,spread,away-spread-odds,home-spread-odds
+2015-09-10,2015,Pittsburgh,PIT,New England,NE,305.0,-350.0,51.0,-103.0,-107.0,-7.5,-111.0,101.0
+2021-09-09,2021,Dallas,DAL,Tampa Bay,TB,375.0,-450.0,52.5,,,-10.0,,
+2021-09-12,2021,Green Bay,GB,New Orleans,NO,-185.0,165.0,49.0,,,3.5,,
+2021-10-17,2021,Miami,MIA,Jacksonville,JAC,-122.0,110.0,47.5,-105.0,-107.0,2.5,104.0,-115.0
+2021-11-14,2021,Detroit,DET,Pittsburgh,PIT,303.0,-359.0,43.0,102.0,-114.0,-9.0,-121.0,110.0
+2022-01-02,2021,Las Vegas,LV,Indianapolis,IND,320.0,-380.0,46.5,,,-10.0,,
+2022-01-30,2021,San Francisco,SF,LA Rams,LA,155.0,-180.0,45.5,-115.0,-105.0,-3.5,-110.0,-110.0
+2022-02-13,2021,LA Rams,LA,Cincinnati,CIN,-200.0,185.0,48.5,,,4.0,,
+2022-09-11,2022,Kansas City,KC,Arizona,ARI,-260.0,220.0,54.0,,,6.0,,
+2022-09-11,2022,Green Bay,GB,Minnesota,MIN,119.0,-132.0,46.5,,,-2.0,,
+2022-10-09,2022,NY Giants,NYG,Green Bay,GB,331.0,-397.0,42.0,-102.0,-110.0,-8.5,104.0,-115.0
+2023-01-21,2022,NY Giants,NYG,Philadelphia,PHI,300.0,-375.0,47.5,,,-8.0,,

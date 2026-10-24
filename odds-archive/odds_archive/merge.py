@@ -27,10 +27,9 @@ def combine(
     source_dfs: dict[str, pd.DataFrame], date_tolerance_days: int = 0
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    source_dfs: source name -> archive df, in priority order (highest first)
-    A lower priority game is dropped if a higher priority source has a game with the same
-    away/home teams within date_tolerance_days, so doubleheaders stay together.
-    returns (combined df sorted by date, dropped lower priority rows with a 'source' column)
+    source_dfs: source name -> archive df, highest priority first. A game is dropped if a
+    higher priority source has the same away/home within date_tolerance_days.
+    returns (combined df, dropped rows with a 'source' column)
     """
     claimed: _Claimed = defaultdict(set)
     kept_dfs = []

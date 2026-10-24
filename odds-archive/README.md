@@ -32,11 +32,12 @@ python -m odds_archive nfl --out-dir /tmp/odds --compare $FANTASY_DATA_ARCHIVE_D
 
 ## Output
 
-One row per game, indexed by `date`. Columns: `season, away-team, away-abbr, home-team, home-abbr, away-moneyline, home-moneyline, overunder, over-odds, under-odds, spread`.
+One row per game, indexed by `date`. Columns: `season, away-team, away-abbr, home-team, home-abbr, away-moneyline, home-moneyline, overunder, over-odds, under-odds, spread, away-spread-odds, home-spread-odds`.
 
 - Odds are American style.
-- `spread` is the home team's spread: negative means home is favored, 0 is pick'em.
-- `over-odds`/`under-odds` are None when not available.
+- `spread` is the home team's spread: negative means home is favored, 0 is pick'em. For mlb/nhl it is the ±1.5 run/puck line. Sportsbook takes it from the mlb run line (2014+) or nhl puck line (2014-15+) when the file has one, otherwise derives it from the moneyline favorite. betiq has it directly.
+- `over-odds`/`under-odds`/`away-spread-odds`/`home-spread-odds` are None when not available, and are nulled when their line (`overunder`/`spread`) is null. Spread odds come from nflverse and the sportsbook mlb run line / nhl puck line.
+- A few known bad source games are excluded (`_EXCLUDED_GAMES` in `sources/sportsbook.py`).
 - `away-team`/`home-team` are names in one style for all sources (e.g. `Kansas City`, `LA Rams`, `NY Yankees`), from `team_names.json`.
 
 ## How it works
@@ -52,9 +53,9 @@ One row per game, indexed by `date`. Columns: `season, away-team, away-abbr, hom
 
 | Name | Sports | Files |
 |---|---|---|
-| `sportsbook` | all | `*Sheet*.csv`, one season per file, two rows per game |
-| `betiq` | mlb, nfl | `{sport}-odds.betiq.tsv`, two rows per game |
-| `nflverse` | nfl | `nflverse-games.csv`, one row per game, seasons 2009-2025 used |
+| [`sportsbook`](https://www.sportsbookreviewsonline.com/scoresoddsarchives/) | all | `*Sheet*.csv`, one season per file, two rows per game |
+| [`betiq`](https://betiq.teamrankings.com/) | mlb, nfl | `{sport}-odds.betiq.tsv`, two rows per game |
+| [`nflverse`](https://github.com/nflverse) | nfl | `nflverse-games.csv`, one row per game, seasons 2009-2025 used |
 
 Default priority (highest first): nfl `nflverse, sportsbook, betiq`; mlb `sportsbook, betiq`; nba/nhl `sportsbook`.
 

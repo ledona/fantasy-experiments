@@ -497,7 +497,7 @@ def _generate_dataset(
         )
 
         with score_cache_ctx(
-            db_obj.db_manager.ABBR, style, slate_score_cache_mode, cache_dir=datapath
+            db_obj.db_manager.ABBR, style, slate_score_cache_mode, service_name, cache_dir=datapath
         ) as slate_score_cache:
             slate_scores = {}
             for slate_id in (tqdm_iter := tqdm(slate_ids, desc="slates")):

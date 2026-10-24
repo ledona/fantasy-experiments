@@ -51,6 +51,8 @@ def test_away_home(calendar):
             "over-odds": None,
             "under-odds": None,
             "spread": -3.0,
+            "away-spread-odds": None,
+            "home-spread-odds": None,
         }
     ]
 

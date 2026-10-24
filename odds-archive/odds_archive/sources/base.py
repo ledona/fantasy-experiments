@@ -23,10 +23,7 @@ class SourceContext:
 
 
 class OddsSource(ABC):
-    """
-    An odds data source. To add a source, subclass this, implement load and add the class
-    to SOURCES and SOURCE_PRIORITY in sources/__init__.py
-    """
+    """An odds data source, see 'Adding a source' in the README"""
 
     NAME: ClassVar[str]
     SPORTS: ClassVar[frozenset[str]]

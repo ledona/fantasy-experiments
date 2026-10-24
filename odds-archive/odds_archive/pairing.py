@@ -29,6 +29,8 @@ class GameLines(NamedTuple):
     overunder: float | None
     over_odds: float | None = None
     under_odds: float | None = None
+    away_spread_odds: float | None = None
+    home_spread_odds: float | None = None
 
 
 LinesFunc = Callable[[pd.DataFrame, int, int], GameLines]
@@ -94,6 +96,8 @@ def _game_row(
         "over-odds": lines.over_odds,
         "under-odds": lines.under_odds,
         "spread": lines.spread,
+        "away-spread-odds": lines.away_spread_odds,
+        "home-spread-odds": lines.home_spread_odds,
     }
     if len(row["away-abbr"]) > _MAX_ABBR_LEN or len(row["home-abbr"]) > _MAX_ABBR_LEN:
         raise ValueError(
@@ -113,10 +117,9 @@ def pair_games(
     required_cols: Sequence[str] = (),
 ) -> list[dict]:
     """
-    rows_df: consecutive pairs of rows, one pair per game, with columns 'date' (datetime.date),
-        'VH' (V|H|N), 'Team' and optionally 'Rot', plus source specific columns read by lines_func
-    required_cols: games with a NaN in any of these columns are skipped
-    skipped: incremented with the reason for each skipped game
+    rows_df: a consecutive row pair per game with 'date', 'VH' (V|H|N), 'Team', optional 'Rot'
+        and the columns lines_func reads
+    required_cols: games with a NaN in these are skipped
     returns game row dicts with keys 'date' + schema.COLUMNS
     """
     if len(rows_df) % 2 != 0:

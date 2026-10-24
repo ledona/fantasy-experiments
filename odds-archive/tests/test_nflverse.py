@@ -9,11 +9,11 @@ from odds_archive.sources.nflverse import NflverseSource
 from odds_archive.teams import TeamAbbrs
 
 _CSV = """\
-game_id,season,gameday,away_team,home_team,away_moneyline,home_moneyline,spread_line,total_line,under_odds,over_odds
-2008_01_KC_NE,2008,2008-09-07,KC,NE,,,-14,40,,
-2009_01_JAX_IND,2009,2009-09-13,JAX,IND,250,-300,7,43.5,-105,-115
-2009_02_GB_CIN,2009,2009-09-20,GB,CIN,-200,170,-4.5,42,-110,-110
-2026_01_KC_NE,2026,2026-09-10,KC,NE,-150,130,-3,45,-110,-110
+game_id,season,gameday,away_team,home_team,away_moneyline,home_moneyline,spread_line,away_spread_odds,home_spread_odds,total_line,under_odds,over_odds
+2008_01_KC_NE,2008,2008-09-07,KC,NE,,,-14,,,40,,
+2009_01_JAX_IND,2009,2009-09-13,JAX,IND,250,-300,7,-108,-112,43.5,-105,-115
+2009_02_GB_CIN,2009,2009-09-20,GB,CIN,-200,170,-4.5,,,42,-110,-110
+2026_01_KC_NE,2026,2026-09-10,KC,NE,-150,130,-3,-110,-110,45,-110,-110
 """
 
 
@@ -35,7 +35,9 @@ def test_nflverse(tmp_path, calendar_factory):
     assert (home_fav["away-moneyline"], home_fav["home-moneyline"]) == (250, -300)
     assert (home_fav.spread, home_fav.overunder) == (-7, 43.5)
     assert (home_fav["over-odds"], home_fav["under-odds"]) == (-115, -105)
+    assert (home_fav["away-spread-odds"], home_fav["home-spread-odds"]) == (-108, -112)
     assert away_fav.spread == 4.5
+    assert away_fav["away-spread-odds"] is None and away_fav["home-spread-odds"] is None
 
 
 def test_wrong_season_raises(tmp_path, calendar_factory):

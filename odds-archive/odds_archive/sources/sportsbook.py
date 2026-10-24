@@ -27,6 +27,20 @@ _YEAR_WRAP_MONTHS = 6
 """a month decrease larger than this between consecutive rows means the year rolled over"""
 _OU_COLS = ["OpenOU", "OpenOU Odds", "CloseOU", "CloseOU Odds"]
 """names for the last 4 columns of mlb/nhl files, source headers for these are unreliable"""
+_RUN_LINE_COLS = ["RunLine", "RunLine Odds"]
+"""names for the 2 columns after Close in files with a run line (mlb) or puck line (nhl)"""
+_RUN_LINE_NUM_COLS = {"mlb": 23, "nhl": 16}
+"""column count of files with a run/puck line"""
+_EXCLUDED_GAMES = {
+    "nhl": {
+        # 2014 cup final games 2-5 repeated at the end of the 2014-15 file
+        (date(2015, 6, 7), "NYR", "LAK"),
+        (date(2015, 6, 9), "LAK", "NYR"),
+        (date(2015, 6, 11), "LAK", "NYR"),
+        (date(2015, 6, 13), "NYR", "LAK"),
+    },
+}
+"""sport -> (date, away abbr, home abbr) of bad source games"""
 _NO_LINE = "NL"
 _PICK = "pk"
 
@@ -102,7 +116,7 @@ def _inspect_file(filepath: str, sport: str, calendar: SeasonCalendar) -> _FileI
 
 
 def _parse_odds(val) -> float | None:
-    if pd.isna(val):
+    if val == _NO_LINE or pd.isna(val):
         return None
     if isinstance(val, str):
         # a few source values have an 'a' prefix
@@ -118,13 +132,21 @@ def _parse_ou(val) -> float | None:
     return float(val)
 
 
+def _run_line(rows: pd.DataFrame, away_idx: int, home_idx: int) -> tuple[float | None, ...]:
+    """returns (home spread, away odds, home odds), all None if away/home lines are not opposite"""
+    run_line = [float(val) for val in rows.RunLine]
+    if run_line[away_idx] != -run_line[home_idx]:
+        return None, None, None
+    odds = rows["RunLine Odds"]
+    return run_line[home_idx], _parse_odds(odds.iloc[away_idx]), _parse_odds(odds.iloc[home_idx])
+
+
 def _mlb_nhl_lines(rows: pd.DataFrame, away_idx: int, home_idx: int) -> GameLines:
     """
-    moneyline is in Close, spread is 1.5 derived from the moneyline favorite,
-    null if a moneyline is invalid, and +1.5 (home not favored) if moneylines are equal
+    moneyline is in Close. spread is the run/puck line if the file has one, else 1.5 by
+    moneyline favorite (null for an invalid moneyline, +1.5 for a tie)
     """
     ml = [float(val) for val in rows.Close]
-    valid_ml = all(MONEYLINE_RANGE[0] <= abs(val) <= MONEYLINE_RANGE[1] for val in ml)
     if rows.CloseOU.nunique(dropna=False) != 1:
         raise ValueError(f"Expected both CloseOU values to match. {rows.CloseOU.to_list()=}")
     overunder = _parse_ou(rows.CloseOU.iloc[0])
@@ -134,7 +156,12 @@ def _mlb_nhl_lines(rows: pd.DataFrame, away_idx: int, home_idx: int) -> GameLine
         if overunder is None
         else (_parse_odds(rows["CloseOU Odds"].iloc[0]), _parse_odds(rows["CloseOU Odds"].iloc[1]))
     )
-    spread = None if not valid_ml else -1.5 if ml[home_idx] < ml[away_idx] else 1.5
+    if "RunLine" in rows:
+        spread, away_spread_odds, home_spread_odds = _run_line(rows, away_idx, home_idx)
+    else:
+        valid_ml = all(MONEYLINE_RANGE[0] <= abs(val) <= MONEYLINE_RANGE[1] for val in ml)
+        spread = None if not valid_ml else -1.5 if ml[home_idx] < ml[away_idx] else 1.5
+        away_spread_odds = home_spread_odds = None
     return GameLines(
         ml[away_idx],
         ml[home_idx],
@@ -142,6 +169,8 @@ def _mlb_nhl_lines(rows: pd.DataFrame, away_idx: int, home_idx: int) -> GameLine
         overunder,
         over_odds,
         under_odds,
+        away_spread_odds,
+        home_spread_odds,
     )
 
 
@@ -197,6 +226,13 @@ class SportsbookSource(OddsSource):
         rows_df = pd.read_csv(filepath, header=info.header_row)
         if ctx.sport in ("mlb", "nhl"):
             rows_df.columns = [*rows_df.columns[:-4], *_OU_COLS]
+        if ctx.sport in _RUN_LINE_NUM_COLS and len(rows_df.columns) == _RUN_LINE_NUM_COLS[ctx.sport]:
+            close_idx = rows_df.columns.get_loc("Close")
+            rows_df.columns = [
+                *rows_df.columns[: close_idx + 1],
+                *_RUN_LINE_COLS,
+                *rows_df.columns[close_idx + 3 :],
+            ]
         rows_df["date"] = resolve_dates(rows_df.Date.astype(int).to_list(), info.first_year)
 
         lines_func, required_cols = _LINES_FUNCS[ctx.sport]
@@ -204,6 +240,11 @@ class SportsbookSource(OddsSource):
             rows_df, lines_func, ctx.sport, ctx.calendar, ctx.teams, ctx.skipped, required_cols
         )
         file_df = to_archive_frame(game_rows)
+        keys = zip(file_df.index, file_df["away-abbr"], file_df["home-abbr"])
+        is_excluded = [key in _EXCLUDED_GAMES.get(ctx.sport, set()) for key in keys]
+        if any(is_excluded):
+            ctx.skipped["known bad source game"] += sum(is_excluded)
+            file_df = file_df[[not excluded for excluded in is_excluded]]
 
         if (wrong_season := file_df.season != info.season).any():
             raise ValueError(

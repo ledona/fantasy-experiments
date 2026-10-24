@@ -23,15 +23,22 @@ class Comparison:
     only_ref_df: pd.DataFrame
     diffs_df: pd.DataFrame
     """one row per differing value with columns 'column', 'new', 'ref'"""
+    missing_ref_cols: list[str]
+    """new archive columns not in the reference, these are not compared"""
 
     @property
     def is_match(self) -> bool:
-        return len(self.only_new_df) == len(self.only_ref_df) == len(self.diffs_df) == 0
+        return (
+            len(self.only_new_df) == len(self.only_ref_df) == len(self.diffs_df) == 0
+            and len(self.missing_ref_cols) == 0
+        )
 
     def log(self, max_rows: int = 20):
         if self.is_match:
             _LOGGER.success("archive matches reference")
             return
+        if len(self.missing_ref_cols) > 0:
+            _LOGGER.warning("columns not in reference, not compared: %s", self.missing_ref_cols)
         with pd.option_context("display.max_rows", max_rows, "display.width", 200):
             _LOGGER.warning("%i games only in new archive:\n%s", len(self.only_new_df), self.only_new_df)
             _LOGGER.warning("%i games only in reference:\n%s", len(self.only_ref_df), self.only_ref_df)
@@ -63,9 +70,12 @@ def compare(new_df: pd.DataFrame, ref_df: pd.DataFrame) -> Comparison:
     new_keyed_df = _keyed(new_df)
     ref_keyed_df = _keyed(ref_df)
     common = new_keyed_df.index.intersection(ref_keyed_df.index)
+    missing_ref_cols = [col for col in COLUMNS if col not in ref_df.columns]
 
     diff_dfs = []
     for col in [*_STR_COLS, *_NUMERIC_COLS]:
+        if col in missing_ref_cols:
+            continue
         new = new_keyed_df.loc[common, col]
         ref = ref_keyed_df.loc[common, col]
         differs = ~_equal(new, ref, col in _NUMERIC_COLS)
@@ -83,4 +93,5 @@ def compare(new_df: pd.DataFrame, ref_df: pd.DataFrame) -> Comparison:
         new_keyed_df.loc[new_keyed_df.index.difference(ref_keyed_df.index)],
         ref_keyed_df.loc[ref_keyed_df.index.difference(new_keyed_df.index)],
         diffs_df,
+        missing_ref_cols,
     )
