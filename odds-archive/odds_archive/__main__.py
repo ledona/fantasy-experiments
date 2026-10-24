@@ -12,7 +12,7 @@ import pandas as pd
 from fantasy_py import log
 
 from .compare import Comparison, compare
-from .merge import combine
+from .merge import DATE_TOLERANCE_DAYS, combine
 from .schema import SPORTS, drop_no_odds, validate
 from .seasons import SeasonCalendar, sport_calendar
 from .sources import SOURCE_PRIORITY, SOURCES, SourceContext
@@ -78,8 +78,8 @@ def build_archive(
             len(source_df), dict(ctx.skipped), nulled, sorted(source_df.season.unique().tolist())
         )
 
-    archive_df, report.conflicts_df = combine(source_dfs)
-    return archive_df, report
+    archive_df, report.conflicts_df = combine(source_dfs, DATE_TOLERANCE_DAYS[sport])
+    return teams.set_team_names(archive_df), report
 
 
 def archive_filename(archive_df: pd.DataFrame, sport: str, ext: str) -> str:
@@ -122,12 +122,20 @@ def _parse_args(argv: list[str] | None):
         "--input-dir",
         help="Source data directory. Default is $FANTASY_DATA_ARCHIVE_DIR/odds-archive/{SPORT}",
     )
-    parser.add_argument("--out-dir", help="Directory to write the archive file to")
+    parser.add_argument("--out-dir", "-o", help="Directory to write the archive file to")
     parser.add_argument("--format", choices=["parquet", "csv"], default="parquet")
-    parser.add_argument("--dry-run", action="store_true", help="Build the archive but don't write it")
-    parser.add_argument("--overwrite", action="store_true", help="Allow overwriting the output file")
-    parser.add_argument("--compare", metavar="REF_FILE", help="Reference archive parquet to compare to")
-    parser.add_argument("--diff-dir", help="Write all --compare differences as CSV files to this dir")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Build the archive but don't write it"
+    )
+    parser.add_argument(
+        "--overwrite", action="store_true", help="Allow overwriting the output file"
+    )
+    parser.add_argument(
+        "--compare", metavar="REF_FILE", help="Reference archive parquet to compare to"
+    )
+    parser.add_argument(
+        "--diff-dir", help="Write all --compare differences as CSV files to this dir"
+    )
     args = parser.parse_args(argv)
     if args.diff_dir is not None and args.compare is None:
         parser.error("--diff-dir requires --compare")

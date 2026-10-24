@@ -42,6 +42,16 @@ def test_higher_priority_wins():
     assert dropped_df.source.to_list() == ["low"]
 
 
+def test_date_tolerance():
+    high_df = to_archive_frame([_game(_D2, "NYY", "BOS", 110)])
+    low_df = to_archive_frame(
+        [_game(_D1, "NYY", "BOS", 120), _game(_D1, "BOS", "NYY", 125), _game(date(2020, 8, 6), "NYY", "BOS", 130)]
+    )
+    combined_df, dropped_df = combine({"high": high_df, "low": low_df}, date_tolerance_days=3)
+    assert sorted(combined_df["away-moneyline"].to_list()) == [110, 125, 130]
+    assert dropped_df["away-moneyline"].to_list() == [120]
+
+
 def test_doubleheader_kept_from_one_source():
     high_df = to_archive_frame([_game(_D1, "NYY", "BOS", 110), _game(_D1, "NYY", "BOS", 115)])
     low_df = to_archive_frame([_game(_D1, "NYY", "BOS", 120), _game(_D1, "NYY", "BOS", 125)])

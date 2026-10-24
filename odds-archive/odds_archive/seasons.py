@@ -13,7 +13,10 @@ class SeasonCalendar(Protocol):
     def epoch_for_game_number(self, season: int, game_number: int) -> GameScheduleEpoch: ...
 
 
+def sport_db_manager(sport: str) -> type[SportDBManager]:
+    return cast(type[SportDBManager], CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport))
+
+
 def sport_calendar(sport: str) -> SeasonCalendar:
     """the sport's db manager class, which provides epoch lookups without a database"""
-    db_manager = cast(type[SportDBManager], CLSRegistry.get_class(SPORT_DB_MANAGER_DOMAIN, sport))
-    return cast(SeasonCalendar, db_manager)
+    return cast(SeasonCalendar, sport_db_manager(sport))

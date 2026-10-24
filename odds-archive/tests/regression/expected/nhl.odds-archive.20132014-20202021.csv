@@ -1,11 +1,11 @@
 date,season,away-team,away-abbr,home-team,home-abbr,away-moneyline,home-moneyline,overunder,over-odds,under-odds,spread
 2013-10-01,20132014,Toronto,TOR,Montreal,MTL,115.0,-135.0,5.5,100.0,-120.0,-1.5
 2014-01-01,20132014,Toronto,TOR,Detroit,DET,114.0,-134.0,5.0,-127.0,107.0,-1.5
-2014-06-13,20132014,NYRangers,NYR,LosAngeles,LAK,150.0,-170.0,5.0,-105.0,-115.0,-1.5
+2014-06-13,20132014,NY Rangers,NYR,Los Angeles,LAK,150.0,-170.0,5.0,-105.0,-115.0,-1.5
 2019-10-02,20192020,Ottawa,OTT,Toronto,TOR,270.0,-310.0,6.5,-115.0,-105.0,-1.5
 2020-01-17,20192020,Detroit,DET,Pittsburgh,PIT,205.0,-230.0,6.0,-105.0,-115.0,-1.5
 2020-08-01,20192020,Montreal,MTL,Pittsburgh,PIT,143.0,-158.0,5.5,100.0,-120.0,-1.5
-2020-09-28,20192020,TampaBay,TBL,Dallas,DAL,-170.0,155.0,5.0,-135.0,115.0,1.5
+2020-09-28,20192020,Tampa Bay,TBL,Dallas,DAL,-170.0,155.0,5.0,-135.0,115.0,1.5
 2021-01-13,20202021,Pittsburgh,PIT,Philadelphia,PHI,-115.0,-105.0,6.0,105.0,-125.0,1.5
 2021-04-26,20202021,Vancouver,VAN,Ottawa,OTT,-117.0,107.0,6.0,100.0,-120.0,1.5
 2021-07-07,20202021,Montreal,MTL,Tampa Bay,TBL,215.0,-245.0,5.0,-140.0,120.0,-1.5

@@ -20,94 +20,7 @@
             },
             "justMyCode": true
         },
-        {
-            "name": "model-pt train-test regresssor",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "lib.regressor",
-            "env": {
-                "PYDEVD_DISABLE_FILE_VALIDATION": "1",
-            },
-            "justMyCode": true,
-            "cwd": "${workspaceFolder}/models",
-            "args": [
-                // "train", "2026.08/mlb.json", "MLB-P-DK",
-                // "train", "2026.08/nhl.json", "NHL-skater*", 
-                "train", "2026.08/nfl.json", "NFL-team-win", // "*", 
-                // "train", "2026.08/nhl.json", "*", 
-                // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
-                // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
-
-                // "--info",
-                // "--slack",
-                // "--feature_na_fail_pct", ".65#*shift*",
-                // "--exclude_model_file", "/tmp/exclude-test.txt",
-                // "--data_limit", "1000",
-
-                "--exists_mode", "reuse",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.08/data",
-                "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.08/models",
-                // "--dest_filename", "XYZ",
-                // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
-                // "--description", "testing",
-
-                // "--algo", "dummy", 
-
-                "--algo", "flaml",
-                "--max_train_mins", "1",
-                // "--flaml:max_iter", "20",
-                // "--disable_gpu"
-
-                // "--algo", "autogluon",
-                // "--ag:preset", "medium",
-                // "--ag:preset", "best_v150",
-                // "--disable_gpu",
-                // "--max_train_mins", "1",
-                // "--verbose", "3",
-
-                // "--algo", "nn",
-                // "--batch_size", "256",
-                // "--hidden_size", "64",
-                // "--layers", "3",
-                // "--lr", ".000001",
-                // "--max_epochs", "2",
-                // "--early_stop", "2",
-                // "--checkpoint_dir", "/tmp/fantasy-test-checks",
-                // "--checkpoint_freq", "10"
-                // "--nn:resume", "/tmp/fantasy-nn-checkpoints:NFL-QB-DK.dk_score_off.nn.2026-03-22T211827.vocna4b5/nn-checkpoint-033.best.pt",
-            ]
-        },
-        {
-            "name": "model-pt catalog",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "lib.regressor",
-            "justMyCode": true,
-            "cwd": "${workspaceFolder}/models",
-            "args": [
-                "catalog",
-                "--best",
-                "--root", "/fantasy-isync/fantasy-modeling/2026.08",
-                "--include", "flaml"
-                // "--exclude", "MLB"
-            ]
-        },
-        {
-            "name": "model-pt performance",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "lib.regressor",
-            "justMyCode": true,
-            "cwd": "${workspaceFolder}/models",
-            "args": [
-                "performance",
-                "/tmp/NBA-DK.dk_score.dummy.2026-03-17T223354.model",
-                "--cfg", "/fantasy-experiments/models/2026.03/nba.json",
-                "--op", "calc", // "--skip_backups",
-                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",
-                // "--max_missing_infer", "1"
-            ]
-        },
+        
         {
             "name": "df-hist retrieval (win)",
             "type": "debugpy",
@@ -203,6 +116,106 @@
             "args": [
                 "/fantasy-isync/fantasy-dfs-hist/models/2026.08",
                 // "/tmp/fantasy-test",
+            ]
+        },{
+            "name": "model-pt train-test regresssor",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.regressor",
+            "env": {
+                "PYDEVD_DISABLE_FILE_VALIDATION": "1",
+            },
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                // "train", "2026.08/mlb.json", "MLB-P-DK",
+                // "train", "2026.08/nhl.json", "NHL-skater*", 
+                "train", "2026.08/nfl.json", "NFL-team-win", // "*", 
+                // "train", "2026.08/nhl.json", "*", 
+                // "retrain", "/fantasy-isync/fantasy-modeling/2024.04/pt/MLB-H-DK.dk_score.tpot-light.2024-04-01T020727.model",
+                // "--orig_cfg_file", "/fantasy-experiments/models/2024.04/mlb.json",
+
+                // "--info",
+                // "--slack",
+                // "--feature_na_fail_pct", ".65#*shift*",
+                // "--exclude_model_file", "/tmp/exclude-test.txt",
+                // "--data_limit", "1000",
+
+                "--exists_mode", "reuse",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.08/data",
+                "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.08/models",
+                // "--dest_filename", "XYZ",
+                // "--dest_dir", "/fantasy-isync/fantasy-modeling/2026.01/models-best",
+                // "--description", "testing",
+
+                // "--algo", "dummy", 
+
+                "--algo", "flaml",
+                "--max_train_mins", "1",
+                // "--flaml:max_iter", "20",
+                // "--disable_gpu"
+
+                // "--algo", "autogluon",
+                // "--ag:preset", "medium",
+                // "--ag:preset", "best_v150",
+                // "--disable_gpu",
+                // "--max_train_mins", "1",
+                // "--verbose", "3",
+
+                // "--algo", "nn",
+                // "--batch_size", "256",
+                // "--hidden_size", "64",
+                // "--layers", "3",
+                // "--lr", ".000001",
+                // "--max_epochs", "2",
+                // "--early_stop", "2",
+                // "--checkpoint_dir", "/tmp/fantasy-test-checks",
+                // "--checkpoint_freq", "10"
+                // "--nn:resume", "/tmp/fantasy-nn-checkpoints:NFL-QB-DK.dk_score_off.nn.2026-03-22T211827.vocna4b5/nn-checkpoint-033.best.pt",
+            ]
+        },
+        {
+            "name": "model-pt catalog",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.regressor",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                "catalog",
+                "--best",
+                "--root", "/fantasy-isync/fantasy-modeling/2026.08",
+                "--include", "flaml"
+                // "--exclude", "MLB"
+            ]
+        },
+        {
+            "name": "model-pt performance",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "lib.regressor",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/models",
+            "args": [
+                "performance",
+                "/tmp/NBA-DK.dk_score.dummy.2026-03-17T223354.model",
+                "--cfg", "/fantasy-experiments/models/2026.03/nba.json",
+                "--op", "calc", // "--skip_backups",
+                "--data_dir", "/fantasy-isync/fantasy-modeling/2026.03/data",
+                // "--max_missing_infer", "1"
+            ]
+        },
+        {
+            "name": "odds-archive",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "odds_archive",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/odds-archive",
+            "args": [
+                "nfl",
+                // "--dry-run",
+                "--out-dir", "."
             ]
         },
         {

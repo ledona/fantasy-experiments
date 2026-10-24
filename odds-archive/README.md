@@ -37,26 +37,33 @@ One row per game, indexed by `date`. Columns: `season, away-team, away-abbr, hom
 - Odds are American style.
 - `spread` is the home team's spread: negative means home is favored, 0 is pick'em.
 - `over-odds`/`under-odds` are None when not available.
+- `away-team`/`home-team` are names in one style for all sources (e.g. `Kansas City`, `LA Rams`, `NY Yankees`), from `team_names.json`.
 
 ## How it works
 
-1. **Load:** each source (`odds_archive/sources/`) reads its raw files and converts each pair of away/home rows into a game row (`pairing.py`). Seasons come from the sport's season calendar (`seasons.py`). Team abbreviations come from `team_abbrs.json` plus a few season rules (`teams.py`).
-2. **Validate:** values outside the sport's valid range are set to null, and games left with no odds are dropped (`schema.py`).
-3. **Merge:** sources are combined in priority order. A game (date, away, home) comes from the highest-priority source that has it (`merge.py`).
-4. **Report/compare/write:** logs counts per source (games, skipped by reason, values nulled, merge conflicts), optionally compares against a reference archive (`compare.py`), then writes the file.
+1. **Load:** each source (`odds_archive/sources/`) reads its raw files and converts them to game rows. Sources with one row per team (sportsbook, betiq) pair away/home rows with `pairing.py`. Seasons come from the sport's season calendar (`seasons.py`).
+2. **Team abbrs** (`teams.py`): source team names are mapped with `team_abbrs.json` and a few season rules, then a few source typos are fixed, then the sport's fantasy_py `team_abbr_sub` is applied (e.g. JAX→JAC).
+3. **Validate:** values outside the sport's valid range are set to null, and games left with no odds are dropped (`schema.py`).
+4. **Merge:** sources are combined in priority order. A game (away, home, date) comes from the highest-priority source that has it. For nfl, dates within 3 days count as the same game, to catch source date errors (`merge.py`).
+5. **Team names:** `away-team`/`home-team` are set from the abbrs using `team_names.json`. Its keys are the valid abbrs, and any other abbr is an error.
+6. **Report/compare/write:** logs counts per source (games, skipped by reason, values nulled, merge conflicts), optionally compares against a reference archive (`compare.py`), then writes the file.
 
 ### Sources
 
 | Name | Sports | Files |
 |---|---|---|
-| `sportsbook` | all | `*Sheet*.csv`, one season per file |
-| `betiq` | mlb, nfl | `{sport}-odds.betiq.tsv` |
+| `sportsbook` | all | `*Sheet*.csv`, one season per file, two rows per game |
+| `betiq` | mlb, nfl | `{sport}-odds.betiq.tsv`, two rows per game |
+| `nflverse` | nfl | `nflverse-games.csv`, one row per game, seasons 2009-2025 used |
+
+Default priority (highest first): nfl `nflverse, sportsbook, betiq`; mlb `sportsbook, betiq`; nba/nhl `sportsbook`.
 
 ### Adding a source
 
-1. Create `odds_archive/sources/{name}.py` with an `OddsSource` subclass (see `sources/base.py`) that sets `NAME`, `SPORTS` and `load(ctx)`. `load` returns a frame in the archive schema, and `pair_games` and `to_archive_frame` usually do most of the work.
+1. Create `odds_archive/sources/{name}.py` with an `OddsSource` subclass (see `sources/base.py`) that sets `NAME`, `SPORTS` and `load(ctx)`. `load` returns a frame in the archive schema built with `to_archive_frame`. Use `pair_games` for two-rows-per-game data, and `ctx.teams.abbr()` for team abbrs.
 2. Register it in `SOURCES` and `SOURCE_PRIORITY` in `sources/__init__.py`.
-3. Add unit tests and regression input/expected files.
+3. If the source uses new team names or abbrs, add them to `team_names.json` or map them in `team_abbrs.json`.
+4. Add unit tests and regression input/expected files.
 
 ## Tests
 
