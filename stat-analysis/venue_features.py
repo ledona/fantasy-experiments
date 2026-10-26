@@ -73,7 +73,7 @@ def _get_scoring_data(db_obj, min_season: None | int, max_season: None | int):
     _LOGGER.info("Loading scoring data min_season=%s max_season=%s", min_season, max_season)
     with db_obj.session_scoped() as session:
         stmt = select(
-            db.Game.venue,
+            func.upper(db.Game.venue).label('venue'),
             db.Game.season,
             db.Game.game_number,
             db.Game.home_team_id,
@@ -121,6 +121,13 @@ def _get_elo_data(db_obj, min_season: None | int, max_season: None | int):
 
     df["elo"] = df.apply(lambda row: row.elo + (home_team_adjustment if row.is_home else 0), axis=1)
     return df
+
+
+def _next_season(final_season: int):
+    if len(final_season_str := str(final_season)) == 8:
+        s1 = final_season_str[:4]
+        return ((int(s1) + 1) * 10000) + (int(s1) + 2)
+    return final_season + 1
 
 
 def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
@@ -189,11 +196,7 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
     final_season_home_teams = df.query("season == @final_season")[
         ["venue", "home_team_id", "home_team_abbr", "home_team_name"]
     ].drop_duplicates()
-    if len(final_season_str := str(final_season)) == 8:
-        s1 = final_season_str[:4]
-        pad_season = ((int(s1) + 1) * 10000) + (int(s1) + 2)
-    else:
-        pad_season = final_season + 1
+    pad_season = _next_season(final_season)
     pad_df = final_season_home_teams.assign(season=pad_season)
 
     # Combine and Sort
@@ -218,18 +221,18 @@ def _park_factor(db_obj, min_season: None | int, max_season: None | int):
     df = _get_scoring_data(db_obj, min_season, max_season)
 
     # 1. Calculate Raw Annual Park Factor
-    # Total runs per game at each venue (Home + Opponent)
+    # mean total score per game at each venue (Home + Opponent) by season when a specific team is the home team
     home_stats = (
         df.groupby(["venue", "season", "home_team_id"])
         .apply(lambda x: (x["score_home"] + x["score_away"]).mean())
-        .reset_index(name="avg_runs_home")
+        .reset_index(name="avg_home_total_score")
     )
 
-    # Total runs per game for each team when they are away
+    # mean total score (home + opponent) per game for each team when they are away
     away_stats = (
         df.groupby(["season", "away_team_id"])
         .apply(lambda x: (x["score_home"] + x["score_away"]).mean())
-        .reset_index(name="avg_runs_away")
+        .reset_index(name="avg_away_total_score")
     )
 
     # Merge to get the 1-year Raw PF
@@ -239,7 +242,7 @@ def _park_factor(db_obj, min_season: None | int, max_season: None | int):
         left_on=["season", "home_team_id"],
         right_on=["season", "away_team_id"],
     )
-    raw_pf["raw_pf"] = raw_pf["avg_runs_home"] / raw_pf["avg_runs_away"]
+    raw_pf["raw_pf"] = raw_pf["avg_home_total_score"] / raw_pf["avg_away_total_score"]
 
     # handle rare case of teams sharing a venue
     raw_pf = raw_pf.groupby(["venue", "season"])["raw_pf"].mean().reset_index()
@@ -248,8 +251,9 @@ def _park_factor(db_obj, min_season: None | int, max_season: None | int):
     # Add padding rows for inference season and Sort to ensure LAG/Shift operations align correctly
     final_season = df.season.max()
     final_season_venues = df.query("season == @final_season").venue.unique()
+    pad_season = _next_season(final_season)
     pad_df = pd.DataFrame(
-        {"season": [final_season + 1] * len(final_season_venues), "venue": final_season_venues}
+        {"season": [pad_season] * len(final_season_venues), "venue": final_season_venues}
     )
     padded_df = pd.concat([raw_pf, pad_df], ignore_index=False).sort_values(["venue", "season"])
 
