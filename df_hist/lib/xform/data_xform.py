@@ -3,7 +3,6 @@ import re
 from collections.abc import Callable
 from datetime import date, timedelta
 from functools import partial
-from typing import Any, cast
 
 import pandas as pd
 from fantasy_py import (
@@ -21,9 +20,11 @@ from fantasy_py.analysis.backtest.daily_fantasy import (
     bt_winscore_team_input_data,
 )
 from fantasy_py.betting import Contest, FiftyFifty, GeneralPrizePool
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
+from ..data_cfg import CFGDict
 from .slate_scoring import SlateScoreCacheMode, score_cache_ctx, slate_scoring
 
 _LOGGER = log.get_logger(__name__)
@@ -198,25 +199,33 @@ _EXPECTED_CONTEST_COLS = {
 
 
 def _get_orig_contest_df(
-    service_name, sport, style, contest_type: Contest, min_date, max_date, contest_data_path
-) -> pd.DataFrame:
+    service_name,
+    sport,
+    style,
+    contest_type: Contest,
+    date_range: tuple[date, date],
+    contest_data_path,
+):
     """
     create a dataframe from the contest dataset from the original data source
     """
     contest_csv_path = os.path.join(contest_data_path, service_name + ".contest.csv")
     contest_df = pd.read_csv(contest_csv_path, parse_dates=["date"]).query(
-        "sport == @sport and @min_date <= date < @max_date"
+        "sport == @sport and @date_range[0] <= date < @date_range[1]"
     )
+    if sport == "nba":
+        contest_df = contest_df.query('not title.str.contains("WNBA")')
     if len(contest_df) == 0:
         raise DataNotAvailableException(
-            f"No contest data for {sport=} {min_date=} {max_date=} found in '{contest_csv_path}'"
+            f"No contest data for {sport=} {date_range=} found in '{contest_csv_path}'"
         )
     if missing_cols := _EXPECTED_CONTEST_COLS.difference(contest_df.keys()):
         raise DataNotAvailableException(
             f"Not all expected contest data columns were found in '{contest_csv_path}'. Missing cols={missing_cols}"
         )
-    contest_df.date = contest_df.date.dt.normalize()
-    contest_df = contest_df.where(contest_df.notnull(), None)
+    contest_df = contest_df.assign(date=contest_df.date.dt.normalize()).where(
+        contest_df.notnull(), None
+    )
 
     # add style and type
     contest_type_cols = contest_df.apply(
@@ -241,25 +250,26 @@ def _get_orig_contest_df(
     return contest_df
 
 
-def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) -> pd.DataFrame:
+def _get_draft_df(service, sport, style, date_range, contest_data_path) -> pd.DataFrame:
     """load drafted players from scraped dataset"""
     csv_path = os.path.join(contest_data_path, service + ".draft.csv")
     draft_df = pd.read_csv(csv_path, parse_dates=["date"]).query(
-        "sport == @sport and @min_date <= date < @max_date"
+        "sport == @sport and @date_range[0] <= date < @date_range[1]"
     )
     if len(draft_df) == 0:
         raise DataNotAvailableException(
-            f"No draft data found for {sport=}, {service=}, {style=}, {min_date=}, "
-            f"{max_date=} in '{csv_path}'. Perhaps the last data retrieval run had "
+            f"No draft data found for {sport=} {service=} {style=} {date_range=} "
+            f"in '{csv_path}'. Perhaps the last data retrieval run had "
             "too many constraints (date for example)?"
         )
 
-    draft_df["service"] = draft_df.contest.map(lambda contest: contest.split("-", 1)[0])
-    draft_df["team_abbr"] = draft_df.team_abbr.str.upper()
+    draft_df = draft_df.assign(
+        service=draft_df.contest.map(lambda contest: contest.split("-", 1)[0]),
+        team_abbr=draft_df.team_abbr.str.upper(),
+    )
     if sport in _ABBR_REMAPPERS:
-        draft_df["team_abbr"] = draft_df.apply(
-            partial(_ABBR_REMAPPERS[sport], service),
-            axis=1,
+        draft_df = draft_df.assign(
+            team_abbr=draft_df.apply(partial(_ABBR_REMAPPERS[sport], service), axis=1)
         )
     service_abbr = _SERVICE_NAME_TO_ABBR[service]
     draft_df = draft_df.query("service == @service_abbr and team_abbr.notnull()")[
@@ -269,14 +279,20 @@ def _get_draft_df(service, sport, style, min_date, max_date, contest_data_path) 
     return draft_df
 
 
-def _create_contest_df(contest_df, draft_df, service, sport):
+def _date_to_epoch_str(db_manager, ts):
+    epoch = db_manager.epoch_for_date(ts.date())
+    return f"{epoch.season}-{epoch.game_number}"
+
+
+def _create_contest_df(contest_df, draft_df, service, db_manager):
     """group contests together and create team sets used in each contest"""
     service_cls = CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service)
 
     # add team/lineup draft data
     contest_draft_df = pd.merge(contest_df, draft_df, on="contest_id")
     contest_draft_df["team_abbr"] = contest_draft_df.apply(
-        (lambda row: service_cls.get_team_abbr(row.team_abbr, sport, row.date.date())), axis=1
+        (lambda row: service_cls.get_team_abbr(row.team_abbr, db_manager.ABBR, row.date.date())),
+        axis=1,
     )
 
     def _common_title(title_series: pd.Series) -> str:
@@ -294,39 +310,47 @@ def _create_contest_df(contest_df, draft_df, service, sport):
             }
         )
     ).reset_index()
-    tc_df = tc_df.rename(columns={"team_abbr": "teams"})
-    tc_df["draft_team_count"] = tc_df.teams.map(len)
-    return tc_df
+
+    df = tc_df.rename(columns={"team_abbr": "teams"}).assign(
+        epoch=tc_df.date.map(partial(_date_to_epoch_str, db_manager)),
+        draft_team_count=tc_df.team_abbr.map(len),
+    )
+    return df
 
 
-def _get_slate_df(session: Session, service, style, min_date, max_date):
+def _get_slate_df(session: Session, service, style, date_range: tuple[date, date]):
+    """return dataframe with slate information, index by epoch string of '{season}-{number}'"""
     sql = f"""
-    select distinct daily_fantasy_slate.id as slate_id, date, 
+    select distinct daily_fantasy_slate.id as slate_id, date,
         daily_fantasy_slate.name as slate_name, style as contest_style, abbr
     from daily_fantasy_slate 
         join daily_fantasy_cost on daily_fantasy_slate.id = daily_fantasy_cost.daily_fantasy_slate_id
         join team on team_id = team.id
-    where service = '{service}' and date between '{min_date}' and date('{max_date}', '-1 days')
+    where service = '{service}' and date between '{date_range[0]}' and '{date_range[1]}'
     """
     if style is not None:
         sql += f" and style = '{style.name}'"
 
     db_df = pd.read_sql_query(sql, session.connection(), parse_dates=["date"])
     if len(db_df) == 0:
-        raise DataNotAvailableException("No slates found for", service, style, min_date, max_date)
+        raise DataNotAvailableException("No slates found for", service, style, date_range)
 
     # get team sets
     slate_db_df = pd.DataFrame(
         db_df.groupby(["slate_id", "date", "slate_name", "contest_style"]).agg({"abbr": set})
     ).reset_index()
 
+    slate_db_df = slate_db_df.assign(
+        epoch=slate_db_df.date.map(partial(_date_to_epoch_str, session.info["fantasy.db_manager"]))
+    )
+
     try:
-        slate_db_df = slate_db_df.set_index("date").rename(columns={"abbr": "teams"})
+        slate_db_df = slate_db_df.set_index("epoch").rename(columns={"abbr": "teams"})
     except Exception as ex:
         raise ValueError("Error processing slate db df", slate_db_df) from ex
 
     if style != DFSContestStyle.SHOWDOWN:
-        slate_db_df["team_count"] = slate_db_df.teams.map(len)
+        slate_db_df = slate_db_df.assign(team_count=slate_db_df.teams.map(len))
     return slate_db_df
 
 
@@ -339,11 +363,11 @@ def _get_slate_id(contest_row: pd.Series, slate_db_df: pd.DataFrame) -> pd.Serie
     returns - series of (slate_id, number of teams playing in slate)
     """
     try:
-        date_slates = slate_db_df.loc[[contest_row.date]]
+        date_slates = slate_db_df.loc[[contest_row.epoch]]
     except KeyError:
         _LOGGER.warning(
             "get_slate_id::Key error/No slates found for %s %s '%s'",
-            contest_row.date,
+            contest_row.date.date(),
             contest_row.style,
             contest_row.title,
         )
@@ -385,8 +409,8 @@ def _generate_dataset(
     contest_type: Contest,
     contest_data_path,
     top_percentile,
-    min_date: date,
-    max_date: date,
+    date_range: tuple[date, date],
+    fail_on_impute_error: bool,
     max_count: None | int = None,
     slate_score_cache_mode: SlateScoreCacheMode = "default",
     datapath: str = "data",
@@ -394,8 +418,7 @@ def _generate_dataset(
 ) -> pd.DataFrame:
     """
     max_count: maximum number of slates to process
-    min_date: inclusive
-    max_date: not inclusive
+    date_range: (min_date, max_date not inclusive)
     datapath: target directory for data
     contest_data_path: input data path
     top_score_cache_mode:
@@ -405,30 +428,41 @@ def _generate_dataset(
     """
     # get dfs contests from scraped dataset
     db_obj = db.get_db_obj(cfg["db_filename"], readonly=True)
-    orig_contest_df = _get_orig_contest_df(
-        service_name,
-        db_obj.db_manager.ABBR,
-        style,
-        contest_type,
-        min_date,
-        max_date,
-        contest_data_path,
-    )
-    if len(orig_contest_df) == 0:
-        raise DataNotAvailableException(f"No contest data found for {min_date=} {max_date=}")
-
-    if orig_contest_df is not None and max_count is not None:
-        orig_contest_df = orig_contest_df.head(max_count)
-
-    draft_df = _get_draft_df(
-        service_name, db_obj.db_manager.ABBR, style, min_date, max_date, contest_data_path
-    )
-
-    contest_df = _create_contest_df(orig_contest_df, draft_df, service_name, db_obj.db_manager.ABBR)
-    assert len(contest_df) > 0
-
     with db_obj.session_scoped() as session:
-        slate_db_df = _get_slate_df(session, service_name, style, min_date, max_date)
+        max_game_date = session.query(func.max(db.Game.date)).one()[0]
+        if date_range[1] > (day_after_max_game_date := max_game_date + timedelta(days=1)):
+            _LOGGER.warning(
+                "Requested max date (not inclusive) %s for %s %s is beyond the max db game date %s. "
+                "Max db game date plus 1 day will be used.",
+                date_range[1],
+                db_obj.db_manager.ABBR,
+                service_name,
+                max_game_date,
+            )
+            date_range = date_range[0], day_after_max_game_date
+
+        orig_contest_df = _get_orig_contest_df(
+            service_name,
+            db_obj.db_manager.ABBR,
+            style,
+            contest_type,
+            date_range,
+            contest_data_path,
+        )
+        if len(orig_contest_df) == 0:
+            raise DataNotAvailableException(f"No contest data found for {date_range=}")
+
+        if orig_contest_df is not None and max_count is not None:
+            orig_contest_df = orig_contest_df.head(max_count)
+
+        draft_df = _get_draft_df(
+            service_name, db_obj.db_manager.ABBR, style, date_range, contest_data_path
+        )
+
+        contest_df = _create_contest_df(orig_contest_df, draft_df, service_name, db_obj.db_manager)
+        assert len(contest_df) > 0
+
+        slate_db_df = _get_slate_df(session, service_name, style, date_range)
 
         # note that some slates will not be found due to mismatches in games found in
         # cost files and the games in the the downloaded contest results, and other slates
@@ -444,26 +478,26 @@ def _generate_dataset(
         if team_count_and_slate_id_df.slate_id.isna().any():
             defined_slates_df = team_count_and_slate_id_df.dropna(subset="slate_id")
             _LOGGER.warning(
-                "%d of %s slate score features skipped for %s %s %s %s %s - %s due to slate not matched in DB",
+                "%d of %s slate score features skipped for %s %s %s %s %s - %s due to slate not matched to DB",
                 len(contest_df) - len(defined_slates_df),
                 len(contest_df),
                 service_name,
                 db_obj.db_manager.ABBR,
                 style,
                 contest_type.TYPE_NAME,
-                min_date,
-                max_date,
+                date_range[0],
+                date_range[1],
             )
             if len(defined_slates_df) == 0:
                 raise DataNotAvailableException(
                     "No slates ids found (based on teams contest df) for "
-                    f"{service_name} {db_obj.db_manager.ABBR} {style} {contest_type.TYPE_NAME} {min_date} - {max_date}"
+                    f"{service_name} {db_obj.db_manager.ABBR} {style} {contest_type.TYPE_NAME} {date_range=}"
                 )
         else:
             defined_slates_df = team_count_and_slate_id_df
 
         # df with index of slate_id and columns team_count and date
-        defined_slates_df = defined_slates_df.set_index("slate_id").drop_duplicates()
+        defined_slates_df = defined_slates_df.drop_duplicates().set_index("slate_id")
 
         if "team_count" in defined_slates_df:
             # sort slates by date (ascending) and slate side (descending) so that bigger
@@ -507,17 +541,24 @@ def _generate_dataset(
                     .date()
                     .strftime("%Y%m%d")
                 )
-                tqdm_iter.set_postfix_str(slate_date_str)
+                tqdm_iter.set_postfix_str(f"{db_obj.db_manager.ABBR}:{slate_date_str}")
                 ss = slate_scoring(
                     session,
                     slate_id,
                     score_cache=slate_score_cache,
                     screen_lineup_constraints_mode=screen_lineup_constraints_mode,
+                    fail_on_impute_error=fail_on_impute_error,
                 )
                 if ss:
                     slate_scores[int(slate_id)] = ss
 
     # expect that DF will include target and descriptive data
+    _LOGGER.info(
+        "Merging winscore features for %s %s %s",
+        db_obj.db_manager.ABBR,
+        style.name,
+        contest_type.TYPE_NAME,
+    )
     df = bt_merge_winscore_features(
         db_obj.db_manager.ABBR,
         style,
@@ -546,25 +587,33 @@ def _generate_dataset(
     return inf_df
 
 
-def _get_date_range(cfg: dict, service: str) -> tuple[date | None, date | None]:
-    min_date_by_service = cast(dict, cfg["min_date"])
-    max_date_by_service = cast(dict, cfg["max_date"])
-    min_date = (
-        min_date_by_service.get(service, min_date_by_service.get(None))
-        if isinstance(min_date_by_service, dict)
-        else min_date_by_service
-    )
-    max_date = (
-        max_date_by_service.get(service, max_date_by_service.get(None))
-        if isinstance(max_date_by_service, dict)
-        else max_date_by_service
-    )
+def _get_date_range(date_override: tuple[date, date] | None, cfg: CFGDict, service: str):
+    """return the date range to use, cfg is a value in ..data_cfg.SPORT_CFGS"""
+    if date_override:
+        min_date, max_date = date_override
+    else:
+        min_date_by_service = cfg["min_date"]
+        max_date_by_service = cfg["max_date"]
+        min_date = (
+            min_date_by_service.get(service, min_date_by_service[None])
+            if isinstance(min_date_by_service, dict)
+            else min_date_by_service
+        )
+        max_date = (
+            max_date_by_service.get(service, max_date_by_service[None])
+            if isinstance(max_date_by_service, dict)
+            else max_date_by_service
+        )
+    if min_date > max_date:
+        raise ValueError(f"{min_date=} is greater than {max_date=}")
+    if max_date == min_date:
+        max_date += timedelta(days=1)
     return min_date, max_date
 
 
 def xform(
     sport,
-    cfg: dict[str, Any],
+    cfg: CFGDict,
     services: list[str],
     styles: list[DFSContestStyle],
     contest_types,
@@ -573,26 +622,19 @@ def xform(
     contest_data_path,
     top_percentile,
     date_override: tuple[date, date] | None,
+    fail_on_impute_error: bool,
 ):
     """
     returns a dict mapping tuples describing the data generated to dataframes with the data
     """
     dfs: dict[tuple, pd.DataFrame] = {}
-    if date_override:
-        min_date, max_date = date_override
+    failures = []
     for service in (service_iter := tqdm(services, desc="dfs-service", disable=len(services) == 1)):
         service_iter.set_postfix_str(service)
-        if date_override is None:
-            min_date, max_date = _get_date_range(cfg, service)
-        assert (min_date is None) or (max_date is None) or min_date <= max_date, (
-            "invalid date range. max_date must be greater than min_date. Or one must be None"
-        )
+        date_range = _get_date_range(date_override, cfg, service)
         assert DFSContestStyle.CLASSIC not in styles or styles[0] == DFSContestStyle.CLASSIC, (
             "if classic is in styles it should be first so that its lineup generation cache can be reused"
         )
-
-        if min_date == max_date:
-            max_date += timedelta(days=1)
         for style in (style_iter := tqdm(styles, desc="contest-style", disable=len(styles) == 1)):
             style_iter.set_postfix_str(style.name)
             for contest_type in (
@@ -615,13 +657,13 @@ def xform(
                         contest_type,
                         contest_data_path,
                         top_percentile,
-                        min_date=min_date,
-                        max_date=max_date,
+                        date_range,
+                        fail_on_impute_error,
                         slate_score_cache_mode=top_score_cache_mode,
                         screen_lineup_constraints_mode=slcm,
                         datapath=data_path,
                     )
-                    _LOGGER.info(
+                    _LOGGER.success(
                         "Finished processing %s %s %s %s. %i rows in dataset",
                         sport,
                         service,
@@ -631,13 +673,16 @@ def xform(
                     )
                 except DataNotAvailableException as ex:
                     _LOGGER.error(
-                        "Error processing %s %s %s %s. No data retrieved for xform.",
+                        "Error processing %s %s %s %s. No data exported.",
                         sport,
                         service,
                         style,
                         contest_type.TYPE_NAME,
                         exc_info=ex,
                     )
+                    failures.append(f"{sport} {service} {style.name} {contest_type.TYPE_NAME}")
 
-    _LOGGER.info("Finished with %s", sport)
+    _LOGGER.success("Finished with %s", sport)
+    if failures:
+        _LOGGER.error("The following failed and did not generate data: %s", failures)
     return dfs

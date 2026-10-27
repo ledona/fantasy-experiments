@@ -15,6 +15,7 @@ from fantasy_py import (
 )
 from fantasy_py.analysis.backtest.daily_fantasy import BT_TOP_PERCENTILE
 from fantasy_py.betting import FiftyFifty, GeneralPrizePool
+from fantasy_py.inference import PTPredictModel
 from tqdm import tqdm
 
 from ..data_cfg import SPORT_CFGS
@@ -103,6 +104,21 @@ def _process_cmd_line(cmd_line_str=None):
         "Default is the dates in the config for the sport",
     )
 
+    parser.add_argument(
+        "--max_missing_infer_cols",
+        "--max_missing_features",
+        type=float,
+        help="Threshold for maximum fraction or number of fully imputed features above which "
+        f"inference will fail. Default={PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL}",
+    )
+    parser.add_argument(
+        "--fail_on_impute_error",
+        action="store_true",
+        default=False,
+        help="If there is an impute error while making predictions then default is to skip "
+        "the data associated with the prediction and log a warning/error. Use this to fail instead",
+    )
+
     parser.add_argument("--sports", nargs="+", choices=SPORT_CFGS.keys(), default=SPORT_CFGS.keys())
     CacheSettings.add_parser_args(
         parser,
@@ -116,6 +132,13 @@ def _process_cmd_line(cmd_line_str=None):
 
     print(f"{args=}")
 
+    if args.max_missing_infer_cols is not None:
+        if 0 <= args.max_missing_infer_cols < 1:
+            PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL = args.max_missing_infer_cols
+        elif args.max_missing_infer_cols >= 1:
+            PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL = int(args.max_missing_infer_cols)
+        else:
+            parser.error("--max_missing_infer_cols must be >= 0")
     CacheSettings.update(args)
 
     dfs: dict[tuple, pd.DataFrame] = {}
@@ -135,6 +158,7 @@ def _process_cmd_line(cmd_line_str=None):
                 args.contest_data_path,
                 args.top_percentile,
                 args.date_range,
+                args.fail_on_impute_error,
             )
         )
 

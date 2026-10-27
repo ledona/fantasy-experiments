@@ -42,14 +42,30 @@ First make sure that _lib/data_cfg.py_ is up to date, then run _data_xform_.
 
 If data retrieval (the previous section) was not last run on all data (no constraints on date, sport, etc) then run it again now with no constraints to ensure that all betting data is ready for transformation.
 
-If slate scoring data needs to be recalculated (e.g. rational lineup param changes or other slate scoring pipeline updates,
-remove ```*slate.score.json``` from the xform output directory
+### Clean xform run
+Attempt a 'clean' first run and examine the results. For this run use settings that will surface any data issues but will not fail fast. See the help
+for the xform program for information on other important parameters like the cache and output directory destinations.
 
-The following example uses _data_xform_ to create datasets for all sports using defaults for all settings.
-Default settings will read betting data from _/fantasy-isync/fantasy-dfs-hist/betting_ and write training data to _/fantasy-isync/fantasy-dfs-hist/data_.
 ```
-python -m lib.xform.cli
+# full clean/test run to seed the cache, this should process all data and for any item where there are missing inference features, the xform features will be na
+python -m lib.xform.cli --max_missing_infer_cols 0
 ```
+
+Surfaced data issues will look like holes in the xform output for missing slates or missing features. Missing slates are typically due to missing historic slate data (maybe fixable if historic data can be pulled) or team name/abbreviation inconsistencies (fixable with team abbr aliasing). The list of missing slates is logged as warnings at the very start of every run.
+
+Missing features can be caused by unmatched slates (see previous item for fixes), failures predicting player/team performance due to missing data (e.g. missing odds data), other failures in xform feature generation. Examine the log to identify what is going on. If features are missing for predicting player/team performance see how many features are missing and use this to set a higher max missing infer cols threshold.
+
+### Rerunning xform
+Based on what is learned in the clean run, set the missing inf parameter to something that will tolerate the expected # of missing inf features for the sport. And for the final run set
+the program to fail fast to lock things in and surface anything unexpected.
+```
+# rerun/final form with fail fast and final missing infer cols cap
+python -m lib.xform.cli --max_missing_infer_cols N --fail_on_impute_error
+```
+
+### clean the scoring cache files
+If slate scoring data needs to be recalculated (e.g. rational lineup param changes or other slate scoring pipeline updates),
+remove ```*slate.score.json``` from the xform output directory.
 
 ## Create models
 Review/update _model_cfg.json_ then run the following. Models will be written to the _./models_ directory by default. Use _--model_path_ to write models to a different directory. Evaluation results will be written to a timestamp named file in 

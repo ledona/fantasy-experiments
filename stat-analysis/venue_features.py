@@ -56,7 +56,7 @@ def _create_cli_parser():
         "--csv",
         nargs="?",
         const="",
-        help="write the result to a csv file at this path"
+        help="write the result to a csv file at this path "
         "if filepath is not given then default path+name will be used. "
         "default={$FANTASY_ARCHIVE_BASE}/{sport}/{feature}.csv",
         metavar="filepath",

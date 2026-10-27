@@ -1,4 +1,4 @@
-# The following are kwargs for the instanciation of regressor class of the framework
+// The following are kwargs for the instanciation of regressor class of the framework
 {
     "dummy": null,
     "ridge": null,
@@ -7,7 +7,7 @@
     "regchain_tree": null,
     "regchain_ridge": null,
     "flaml": {
-        # in seconds. best model is typically found in under 10 secs
+        // in seconds. best model is typically found in under 10 secs
         "time_budget": 60,
         "early_stop": true,
         "estimator_list": ["lgbm", "xgboost", "rf", "extra_tree"],

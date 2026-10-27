@@ -6,6 +6,7 @@ from argparse import Namespace
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import astuple
+from datetime import date
 from typing import Literal, cast
 
 from fantasy_py import (
@@ -16,6 +17,7 @@ from fantasy_py import (
     UnexpectedValueError,
     db,
     log,
+    today,
 )
 from fantasy_py.analysis.backtest.daily_fantasy import (
     SlateScoreItem,
@@ -26,6 +28,7 @@ from fantasy_py.analysis.backtest.daily_fantasy import (
     get_best_rational_lineup,
     get_rational_lineup_gen_params,
 )
+from fantasy_py.inference import PTPredictModel
 from fantasy_py.lineup import FantasyService, GenLineupsParams
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import SportDBManager
@@ -152,6 +155,11 @@ def score_cache_ctx(
     score_cache_filepath = os.path.join(cache_dir, score_cache_filename)
 
     rational_lineup_params = get_rational_lineup_gen_params(sport, contest_style, service_name)
+
+    if today() >= date(2026, 11, 1):
+        raise NotImplementedError(
+            "TODO: this hash is not sufficient, player/team inference model versions need to be included"
+        )
     rlp_hash = constant_hasher(rational_lineup_params)
 
     score_cache = ScoreCache(score_cache_filepath, rlp_hash, cache_mode)
@@ -189,6 +197,7 @@ def slate_scoring(
     slate_id,
     score_cache: None | ScoreCache = None,
     screen_lineup_constraints_mode="fail",
+    fail_on_impute_error=False,
 ):
     """
     Calculate the best possible fantasy score and difference between mean historic score
@@ -211,8 +220,21 @@ def slate_scoring(
 
     slate_id = int(slate_id)
     if score_cache:
-        if slate_id in score_cache:
-            return score_cache[slate_id]
+        if slate_id in score_cache and (cached_score := score_cache[slate_id]):
+            same_threshold_type = (
+                isinstance(cached_score.impute_fail_threshold, int)
+                and isinstance(PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL, int)
+            ) or (
+                isinstance(cached_score.impute_fail_threshold, float)
+                and isinstance(PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL, float)
+            )
+            if (
+                same_threshold_type
+                and cached_score.impute_fail_threshold
+                <= PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL
+            ):
+                return cached_score
+
         _LOGGER.info("slate_id=%i not in best score cache", slate_id)
 
     db_manager = cast(SportDBManager, session.info["fantasy.db_manager"])
@@ -280,6 +302,7 @@ def slate_scoring(
         "top-lineup",
         top_lineup_params,
         True,
+        raise_impute_exception=fail_on_impute_error,
     )
     if lineup_score_info is None:
         return None
@@ -319,6 +342,7 @@ def slate_scoring(
         top_players_scoring_diff_pctl=top_pctl_players_diff,
         addl_scoring=addl_scoring,
         games_count=len(starters.games),
+        impute_fail_threshold=PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL,
     )
     if score_cache is not None:
         score_cache[slate_id] = scoring

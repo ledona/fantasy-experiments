@@ -20,7 +20,6 @@
             },
             "justMyCode": true
         },
-        
         {
             "name": "df-hist retrieval (win)",
             "type": "debugpy",
@@ -72,19 +71,43 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
+                "--no_df",
+                "--cache_mode", "enable",
+
                 "--input_data_path", "/fantasy-isync/fantasy-dfs-hist/betting",
+
                 // to rebuild the xformed data using cached data and recalculated slate scoring remove *slate.score.json from the output directory
+
+                // testing
+                // "--output_data_path", "/fantasy/test-fantasy-xformed-data", // "--cache_dir", "/fantasy/test-fantasy-xformed-cache",
+
+                // real cache and output
                 "--output_data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
-                // "--output_data_path", "/fantasy/test-fantasy-dfs-hist-xformed-data",
                 "--cache_dir", "/fantasy-isync/fantasy-dfs-hist/xformed-data/cache",
+
                 "--services", "draftkings",
                 // "--style", "classic",
                 // "--style", "showdown",
                 // "--type", "GPP",
                 // "--type", "FIFTY_FIFTY",
-                // "--dates", "20241001", "20241101",
-                "--sports", "nfl", "nhl", "nba", "mlb",
-                "--cache_mode", "enable",
+                // "--dates", "20220911", "20220911",
+
+                // missing feature tolerance of sporadic missing bullpen data feature or occasional all 6 missing odds features (double-headers)
+                "--sports", "mlb",
+                "--max_missing_infer_cols", "6",
+                "--fail_on_impute_error"
+
+                // missing feature tolerance of 3 for nba, spread and over/under odds prior to 20222023
+                // "--sports", "nba",
+                // "--max_missing_infer_cols", "3",
+                // "--fail_on_impute_error",
+
+                // "--sports", "nfl",
+
+                // missing feature tolerance of 5 features for nhl for occasional missing odds
+                // "--sports", "nhl",
+                // "--max_missing_infer_cols", "5",
+                // "--fail_on_impute_error"
             ]
         },
         {
@@ -96,7 +119,7 @@
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
                 "--mode", "reuse", 
-                "--model_path", "/fantasy-isync/fantasy-dfs-hist/models/2026.10",
+                "--model_path", "${env:FANTASY_DF_WINSCORE_MODEL_PATH}",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
                 "nfl", "mlb", "nhl", "nba", //"lol",
                 "--styles", "showdown", "classic",
@@ -227,14 +250,14 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/stat-analysis",
             "args": [
-                "/fantasy/mlb.hist.2008-2026_partial.scored.db",
+                "/fantasy/mlb.hist.2008-2026.scored.db",
                 // "/fantasy/nfl.hist.2009-2025.scored.db",
                 // "/fantasy/nba.hist.20082009-20252026.scored.db",
                 // "/fantasy/nhl.hist.20072008-20252026.scored.db",
                 "pf",
                 // "thfa",
                 // "--min_season", "20222023",
-                "--max_season", "2025",
+                // "--max_season", "2025",
 
                 // "--parquet", // "/fantasy-archive/mlb/park_factor-2026.parquet",
                 "--csv", // "/fantasy-archive/mlb/park_factor.2008-2026.csv"
