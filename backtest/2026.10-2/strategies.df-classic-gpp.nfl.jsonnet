@@ -49,10 +49,19 @@ local utils = import 'utils.libsonnet';
     {
       name: 'QB-cap:%s%sk' % budget,
       gen_lineups_params: {
-        group_cost_budget: { QB: '%s%d' % [budget[0], budget[1] * 1000] },
+        slot_budget: { QB: '%s%d' % [budget[0], budget[1] * 1000] },
       },
     }
     for budget in [['<', 5], ['<', 5.5], ['<', 6], ['<', 6.5], ['<', 7], ['>=', 7]]
+  ] + [
+    {
+      local range = 2,
+      name: 'QB-cost-range:%s-%sk' % [budget_min, budget_min + range],
+      gen_lineups_params: {
+        slot_budget: { QB: '%d-%d' % [budget_min * 1000, (budget_min + range) * 1000] },
+      },
+    }
+    for budget_min in std.range(5, 9)
   ] + [
     {
       name: 'RBs-cap:%s%sK' % budget,
@@ -62,5 +71,15 @@ local utils = import 'utils.libsonnet';
       },
     }
     for budget in [['<', 12], ['<', 13], ['<', 14], ['<', 16], ['<', 18], ['<', 20], ['<', 22], ['>=', 22]]
+  ] + [
+    {
+      local range = 3,
+      name: 'RBs-range:%s-%sK' % [budget_min, budget_min + range],
+      description: 'cap total spend on running backs',
+      gen_lineups_params: {
+        group_cost_budget: { RB: '%d-%d' % [(budget_min * 1000), (budget_min + range) * 1000] },
+      },
+    }
+    for budget_min in std.range(10, 23)
   ],
 }

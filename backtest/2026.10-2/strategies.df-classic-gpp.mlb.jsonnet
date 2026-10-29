@@ -139,5 +139,14 @@ local utils = import 'utils.libsonnet';
     }
     for cond in ['<', '>=']
     for budget in [17, 18, 18.5, 19]
+  ] + [
+    {
+      local range = 3,
+      name: 'pitcher-budget:%s-%sk' % [budget_min, budget_min + range],
+      gen_lineups_params: {
+        group_cost_budget: { P: '%s-%s' % [budget_min * 1000, (budget_min + range) * 1000] },
+      },
+    }
+    for budget_min in std.range(10, 20)
   ],
 }

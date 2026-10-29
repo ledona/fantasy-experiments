@@ -102,6 +102,17 @@ local utils = import 'utils.libsonnet';
     for budget in [8.5, 9, 9.5, 10, 10.5]
     for score_type in ['predicted', 'ceiling']
   ] + [
+    {
+      name: 'cpt-budget-range:%s-%sk%s' % [budget_min, budget_min + range, utils.score_type_post(score_type)],
+      score_data_type: score_type,
+      gen_lineups_params: {
+        slot_budget: { CPT: '%d-%d' % [budget_min * 1000, ((budget_min + range) * 1000)] },
+      },
+    }
+    for budget_min in [3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5]
+    for range in [2, 3]
+    for score_type in ['predicted', 'ceiling']
+  ] + [
     // minimum budget
     {
       name: 'budget-min:46k',

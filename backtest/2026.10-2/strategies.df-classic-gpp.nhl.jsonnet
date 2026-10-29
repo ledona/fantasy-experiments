@@ -9,7 +9,7 @@ local utils = import 'utils.libsonnet';
     max_bets_per_contest: 1,
     sport_filter: 'nhl',
   },
-  starting_budget: 1000,
+  starting_bankroll: 1000,
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
@@ -53,10 +53,19 @@ local utils = import 'utils.libsonnet';
     {
       name: 'dk-goalie:<%sk' % budget,
       gen_lineups_params: {
-        group_cost_budget: { G: '<%d' % (budget * 1000) },
+        slot_budget: { G: '<%d' % (budget * 1000) },
       },
     }
     for budget in [7, 7.5, 8, 8.5]
+  ] + [
+    {
+      local range = 1,
+      name: 'dk-goalie:%s-%sk' % [budget_min, budget_min + range],
+      gen_lineups_params: {
+        slot_budget: { G: '%d-%d' % [(budget_min * 1000), ((budget_min + range) * 1000)] },
+      },
+    }
+    for budget_min in [6, 6.5, 7, 7.5, 8]
   ] + [
     {
       name: 'vs-G-%d.%d:%s%s' % [stack, pctl, ppg_pctl, utils.score_type_post(score_type)],
