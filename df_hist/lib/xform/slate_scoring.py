@@ -14,6 +14,7 @@ from fantasy_py import (
     CLSRegistry,
     DataNotAvailableException,
     DFSContestStyle,
+    NotSupportedException,
     UnexpectedValueError,
     db,
     log,
@@ -38,7 +39,13 @@ from typeguard import check_type
 _LOGGER = log.get_logger(__name__)
 
 
-SlateScoreCacheMode = Literal["default", "overwrite", "missing"]
+SlateScoreCacheMode = Literal["default", "overwrite", "missing", "readonly"]
+"""
+default = load and use the cache, add entries that do not exist, reuse entries that already appear, reset the cache if underlying models or lineup gen parameters change
+overwrite = overwrite all existing cache data if any exists
+missing = use all existing valid cache data, any cached failures will be rerun
+readonly = fail if an entry is not already in the cache
+"""
 
 
 class ScoreCache:
@@ -61,12 +68,17 @@ class ScoreCache:
         """hash used to test if cached data should be reused"""
 
         self.score_cache_filepath = score_cache_filepath
+        self.readonly = cache_mode == "readonly"
 
         if cache_mode == "overwrite":
             _LOGGER.info("Overwriting existing best score cache data at '%s'", score_cache_filepath)
             return
 
         if not os.path.isfile(score_cache_filepath):
+            if cache_mode == "readonly":
+                raise DataNotAvailableException(
+                    f"Readonly score cache mode requested but no cache found at '{score_cache_filepath}'"
+                )
             _LOGGER.info(
                 "Best score cache data not found! Starting a new cache at '%s'",
                 score_cache_filepath,
@@ -81,6 +93,10 @@ class ScoreCache:
                 "Cached slate scores in '%s' cannot be used because of change in lineup gen params",
                 score_cache_filepath,
             )
+            if cache_mode == "readonly":
+                raise DataNotAvailableException(
+                    f"Readonly score cache mode requested but existing cache at '{score_cache_filepath}' cannot be reused (see log)."
+                )
             return
 
         for slate_id, score_data in cache_data["scores"].items():
@@ -105,6 +121,8 @@ class ScoreCache:
     def __setitem__(self, slate_id, item: SlateScoreItem):
         if self.data.get(slate_id) == item:
             return
+        if self.readonly:
+            raise NotSupportedException("setting an item is not supported in readonly mode")
         self.data[slate_id] = item
         self._unsaved_updates += 1
         if self._unsaved_updates >= self._UPDATE_TO_SAVE_PERIOD:
@@ -122,6 +140,8 @@ class ScoreCache:
     def save(self):
         if not self._unsaved_updates > 0:
             return
+        if self.readonly:
+            raise NotSupportedException("save is not supported in readonly mode")
 
         data = {slate_id: astuple(ssi) for slate_id, ssi in self.data.items()}
         with open(self.score_cache_filepath, "w") as f:
@@ -235,7 +255,11 @@ def slate_scoring(
             ):
                 return cached_score
 
-        _LOGGER.info("slate_id=%i not in best score cache", slate_id)
+        if score_cache.readonly:
+            raise DataNotAvailableException(
+                f"score-cache is in readonly mode and {slate_id=} not found in cache"
+            )
+        _LOGGER.info("slate_id=%i not in score cache", slate_id)
 
     db_manager = cast(SportDBManager, session.info["fantasy.db_manager"])
 

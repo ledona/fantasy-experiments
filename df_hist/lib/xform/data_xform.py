@@ -617,7 +617,7 @@ def xform(
     services: list[str],
     styles: list[DFSContestStyle],
     contest_types,
-    top_score_cache_mode,
+    top_score_cache_mode: SlateScoreCacheMode,
     data_path,
     contest_data_path,
     top_percentile,
@@ -680,9 +680,14 @@ def xform(
                         contest_type.TYPE_NAME,
                         exc_info=ex,
                     )
-                    failures.append(f"{sport} {service} {style.name} {contest_type.TYPE_NAME}")
+                    failures.append(f"{sport} {service} {style.name} {contest_type.TYPE_NAME}: {ex}")
 
     _LOGGER.success("Finished with %s", sport)
     if failures:
-        _LOGGER.error("The following failed and did not generate data: %s", failures)
+        print(f"""{log.RED}
+
+Following datasets failed (n={len(failures)})
+{'\n'.join(failures)}
+{log.COLOR_RESET}
+""")
     return dfs

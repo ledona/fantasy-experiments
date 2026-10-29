@@ -73,6 +73,7 @@
             "args": [
                 "--no_df",
                 "--cache_mode", "enable",
+                // "--slate_score_cache_mode", "readonly",
 
                 "--input_data_path", "/fantasy-isync/fantasy-dfs-hist/betting",
 
