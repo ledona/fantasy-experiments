@@ -119,7 +119,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
-                "--mode", "reuse", 
+                "--mode", "reuse",
                 "--model_path", "${env:FANTASY_DF_WINSCORE_MODEL_PATH}",
                 "--data_path", "/fantasy-isync/fantasy-dfs-hist/xformed-data",
                 "nfl", "mlb", "nhl", "nba", //"lol",
@@ -139,7 +139,7 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/df_hist",
             "args": [
-                "/fantasy-isync/fantasy-dfs-hist/models/2026.08",
+                "${env:FANTASY_DF_WINSCORE_MODEL_PATH}",
                 // "/tmp/fantasy-test",
             ]
         },{

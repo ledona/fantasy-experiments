@@ -67,15 +67,24 @@ python -m lib.xform.cli --max_missing_infer_cols N --fail_on_impute_error
 If slate scoring data needs to be recalculated (e.g. rational lineup param changes or other slate scoring pipeline updates),
 remove ```*slate.score.json``` from the xform output directory.
 
-## Create models
-Review/update _model_cfg.json_ then run the following. Models will be written to the _./models_ directory by default. Use _--model_path_ to write models to a different directory. Evaluation results will be written to a timestamp named file in 
-_eval\_results_ .
+## Create models (min and top cash/win score predictions for a slate/contest)
+Review/update _model_cfg.json_ then run the following to create models. Cash model creation is basically
+a grid search over all requested combinations of model parameters (framework, features, output type, etc).
+Models will be written to the _./models_ directory by default. Use _--model_path_ to write models to a different directory. 
+Evaluation results will be written to a timestamp named file in _[MODEL-DIRECTORY]/eval-results_ .
+
+After model creation is complete, a performance summary report must be generated that spans all models. 
+This report compares and sorts by performance single models that create top and min cash predictions in one shot
+to complimentary paired top and min prediction models that are of the same model type (same features, and model algo, etc).
 ```
+# create models
 python -m lib.modeling.cli nfl nba \
-   --model_path /fantasy-isync/fantasy-dfs-hist/models/2026.10 \
-   --results_path /fantasy-isync/fantasy-dfs-hist/eval_results
-   --data_path /fantasy-isync/fantasy-dfs-hist/data
+   --model_path [MODEL-DEST-DIRECTORY] \
+   --data_path [XFORM-DATA-DEST-DIRECTORY] \
    --framework regchain_tree
+
+# create evaluation summary
+python -m model-eval-xform [MODEL-DEST-DIRECTORY]
 ```
 ## Update Environment
 Backtesting uses models in the directory at the environment variable _FANTASY_BACKTEST_WINSCORE_MODELS_PATH_. Make sure to update it

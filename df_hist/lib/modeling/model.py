@@ -49,7 +49,7 @@ ExistingModelMode = Literal["reuse", "overwrite", "fail"]
 def _error_report(
     model,
     target: ModelTarget,
-    X_test,
+    X_test: pd.DataFrame,
     y_test_fit_data,
     slate_ids,
     desc: str,
@@ -70,7 +70,21 @@ def _error_report(
                 f"Invalid input data for model. Columns don't match. First mismatch is col={i + 1}. {expected_feature=} input_col='{col}'"
             )
         raise NotImplementedError("should not get here")
-    predictions_raw = model.predict(X_test)
+    try:
+        predictions_raw = model.predict(X_test)
+    except ValueError as ex:
+        if not ("Input X contains NaN" in str(ex) and X_test.isna().any().any()):
+            raise
+        notna_mask = X_test.notna().all(axis=1).values
+        X_test = X_test[notna_mask]
+        y_test_fit_data = y_test_fit_data[notna_mask]
+        _LOGGER.warning(
+            "Model %s failed to generate error evaluation predictions due to NaN values in input data. "
+            "Dropping %d rows containing NaNs and retrying",
+            desc,
+            (~notna_mask).sum(),
+        )
+        predictions_raw = model.predict(X_test)
 
     if target.is_log:
         predictions = np.sign(predictions_raw) * np.expm1(np.abs(predictions_raw))
