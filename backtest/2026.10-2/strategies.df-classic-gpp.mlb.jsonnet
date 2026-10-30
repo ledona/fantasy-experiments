@@ -7,13 +7,77 @@ local utils = import 'utils.libsonnet';
     max_wager_pct_per_epoch: 0.1,
     max_bets_per_epoch: 1,
     max_bets_per_contest: 1,
-    sport_filter: ['mlb'],
+    sport_filter: 'mlb',
   },
   starting_bankroll: 1000,
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
     { name: 'baseline' },
+    {
+      name: 'rational-1',
+      gen_lineups_params: {
+        stacks: [5, 2],
+        stackable_teams_predicted_pctl: 50,
+        exclude_below_ppg_pctl: { P: 50, '': 20 },
+        exclude_below_games_played: { '': 3, P: 1 },
+        constraints: [
+          ['no_opp_team', {
+            position: 'P',
+            opp_excluded_positions: ['C,1B,2B,3B,SS,LF,CF,RF,OF,DH'],
+            max_opp_players: 0,
+          }],
+        ],
+      },
+    },
+    {
+      name: 'rational-2',
+      gen_lineups_params: {
+        stacks: [4, 3],
+        stackable_teams_predicted_pctl: 50,
+        exclude_below_ppg_pctl: { P: 50, '': 20 },
+        exclude_below_games_played: { '': 3, P: 1 },
+        constraints: [
+          ['no_opp_team', {
+            position: 'P',
+            opp_excluded_positions: ['C,1B,2B,3B,SS,LF,CF,RF,OF,DH'],
+            max_opp_players: 0,
+          }],
+        ],
+      },
+    },
+    {
+      name: 'rational-3:should work for most slates',
+      gen_lineups_params: {
+        stacks: [3, 2],
+        stackable_teams_predicted_pctl: 50,
+        exclude_below_ppg_pctl: { P: 50, '': 20 },
+        exclude_below_games_played: { '': 3, P: 1 },
+        constraints: [
+          ['no_opp_team', {
+            position: 'P',
+            opp_excluded_positions: ['C,1B,2B,3B,SS,LF,CF,RF,OF,DH'],
+            max_opp_players: 0,
+          }],
+        ],
+      },
+    },
+    {
+      name: 'rational-4:for mini slate (2 games)',
+      gen_lineups_params: {
+        stacks: [3],
+        stackable_teams_predicted_pctl: 50,
+        exclude_below_ppg_pctl: { P: 25, '': 20 },
+        exclude_below_games_played: 1,
+        constraints: [
+          ['no_opp_team', {
+            position: 'P',
+            opp_excluded_positions: ['C,1B,2B,3B,SS,LF,CF,RF,OF,DH'],
+            max_opp_players: 2,
+          }],
+        ],
+      },
+    },
     {
       name: 'good-P-vs-bad-offense',
       gen_lineups_params: {
@@ -48,7 +112,7 @@ local utils = import 'utils.libsonnet';
     for stacks in [[3, 2], [4, 1], [5, 1]]
   ] + [
     {
-      name: 'vs-P-5.20.ceiling',
+      name: 'vs-P-5.20:ceiling',
       score_data_type: 'ceiling',
       gen_lineups_params: {
         stacks: [5],
@@ -56,7 +120,7 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'vs-P-4.20.ceiling',
+      name: 'vs-P-4.20:ceiling',
       score_data_type: 'ceiling',
       gen_lineups_params: {
         stacks: [4],
@@ -64,7 +128,7 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'vs-P-43.30.ceiling',
+      name: 'vs-P-43.30:ceiling',
       score_data_type: 'ceiling',
       gen_lineups_params: {
         stacks: [4, 3],
@@ -106,7 +170,7 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'pitcher-budget:<18.5k.ceiling',
+      name: 'pitcher-budget:<18.5k:ceiling',
       score_data_type: 'ceiling',
       gen_lineups_params: {
         group_cost_budget: { P: '<18500' },
@@ -147,6 +211,6 @@ local utils = import 'utils.libsonnet';
         group_cost_budget: { P: '%s-%s' % [budget_min * 1000, (budget_min + range) * 1000] },
       },
     }
-    for budget_min in std.range(10, 20)
+    for budget_min in std.range(13, 20)
   ],
 }

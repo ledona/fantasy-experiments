@@ -15,7 +15,7 @@
     },
   ] + [
     {
-      name: 'natural-multi-w/noise-%d:%s:%s' % [bets, noise_diff[0] * 100, noise_diff[1] * 100],
+      name: 'natural-multi-w/noise-%d:%g:%s' % [bets, noise_diff[0] * 100, noise_diff[1] * 100],
       noise: noise_diff[0],
       diff_pct: noise_diff[1],
       max_bets_per_epoch: bets,

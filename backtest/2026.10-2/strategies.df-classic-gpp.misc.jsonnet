@@ -14,8 +14,8 @@ local utils = import 'utils.libsonnet';
     // baseline strategies
     [
       {
-        name: 'baseline%s' + utils.score_type_post(score_type),
-        score_type: score_type,
+        name: 'baseline%s' % utils.score_type_post(score_type),
+        score_data_type: score_type,
       }
       for score_type in ['predicted', 'ceiling']
     ] +
@@ -31,7 +31,7 @@ local utils = import 'utils.libsonnet';
       for time_off in [2, 3, 4, 5]
     ] + [
       {
-        name: 'drop-inactive-players-4.ceiling',
+        name: 'drop-inactive-players-4:ceiling',
         score_data_type: 'ceiling',
         gen_lineups_params: {
           exclude_for_time_off: 4,
@@ -189,7 +189,7 @@ local utils = import 'utils.libsonnet';
     // drop players against top team by position
     [
       {
-        name: 'drop-players-against-top-team-vs-pos.%d.ceiling' % pctl,
+        name: 'drop-players-against-top-team-vs-pos.%d:ceiling' % pctl,
         score_data_type: 'ceiling',
         gen_lineups_params: {
           exclude_player_for_opp_team_vs_pos_pctl: {
