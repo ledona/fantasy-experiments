@@ -780,10 +780,7 @@ def _handle_performance(args):
             sys.exit(1)
         model_filepaths = [args.model_filepath]
 
-    if args.max_missing_infer_cols is not None:
-        if args.max_missing_infer_cols < 0 or args.max_missing_infer_cols > 1:
-            args.parser.error("--max_missing_infer_cols must be between 0 and 1")
-        PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL = args.max_missing_infer_cols
+    PTPredictModel.set_max_missing_infer_cols(args)
 
     _LOGGER.info(
         "Executing performance op=%s on %i models matching '%s'",
@@ -819,14 +816,7 @@ def _add_performance_parser(sub_parsers):
         "repair=identify and update model files with incomplete metrics; "
         "test=(default) identify model files with incomplete metrics",
     )
-    parser.add_argument(
-        "--max_missing_infer_cols",
-        "--max_missing_features",
-        type=float,
-        help="Threshold for maximum percentage of missing inference features above which "
-        "inference/prediction should fail. "
-        f"Default={PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL}",
-    )
+    PTPredictModel.add_max_missing_infer_cols_arg(parser)
     parser.add_argument(
         "--skip_backups",
         default=False,

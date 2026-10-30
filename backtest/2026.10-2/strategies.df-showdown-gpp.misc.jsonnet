@@ -10,6 +10,7 @@ local utils = import 'utils.libsonnet';
     max_bets_per_contest: 1,
     max_slates_to_try: null,
   },
+  missing_inference_cols_threshold_fail: { mlb: 5, nhl: 3 },
   starting_bankroll: 1000,
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-showdown-gpp.json',
@@ -21,6 +22,61 @@ local utils = import 'utils.libsonnet';
     }
     for score_type in ['predicted', 'ceiling']
   ] + [
+    {
+      name: 'mlb-rational:Pitcher/Hitter Split: starting pitcher CPT -> max of 2 opposing hitters',
+      sport_filter: 'mlb',
+      gen_lineups_params: {
+        slot_pos_opp_team_cap: 'CPT:P:2.DH,C,1B,2B,3B,SS,LF,CF,RF,OF,DH',
+        exclude_for_cost: '<=3000',
+      },
+    },
+    {
+      name: 'nba-rational.1:Force the lineup to contain at least 2 of the top 70th ppg percentile players',
+      sport_filter: 'nba',
+      gen_lineups_params: {
+        slot_budget: { CPT: '>=8500' },
+        ppg_pctl_player_pool: [2, 70],
+        exclude_for_cost: '<2000',
+      },
+    },
+    {
+      name: 'nba-rational.2',
+      sport_filter: 'nba',
+      gen_lineups_params: {
+        ppg_pctl_player_pool: [2, 60],
+        exclude_for_cost: '<2000',
+      },
+    },
+    {
+      name: 'nba-rational.3',
+      sport_filter: 'nba',
+      gen_lineups_params: {
+        ppg_pctl_player_pool: [2, 40],
+        exclude_for_cost: '<2000',
+      },
+    },
+    {
+      name: 'nfl-rational:no Defense and opposing QB',
+      sport_filter: 'nfl',
+      gen_lineups_params: {
+        exclude_for_cost: '<2000',
+        constraints: [
+          ['no_opp_team', {
+            team_position: 'team.D',
+            position: 'team.D',
+            opp_excluded_positions: ['QB'],
+          }],
+        ],
+      },
+    },
+    {
+      name: 'nhl-rational:Goalie/Skater Lockout',
+      sport_filter: 'nhl',
+      gen_lineups_params: {
+        exclude_for_cost: '<=2000',
+        slot_pos_opp_team_cap: 'CPT:G:2.W,LW,RW,C',
+      },
+    },
     {
       name: 'nhl-exclude-G-from-CPT',
       sport_filter: ['nhl'],
@@ -251,9 +307,9 @@ local utils = import 'utils.libsonnet';
   ] + [
     {
       name: 'nhl-2G-low-score',
-      description: 'place the bet if predicting low scores for both teams and natural lineup has 1 goalies',
+      description: 'place the bet if predicting low scores for both teams and natural lineup has 2 goalies',
       sport_filter: ['nhl'],
-      players_in_pos_filter: [['both', ['G'], '=1']],
+      players_in_pos_filter: [['both', ['G'], '=2']],
       score_cond: ['both', '<2.9'],
     },
   ] + [
@@ -294,7 +350,7 @@ local utils = import 'utils.libsonnet';
       ['players_in_pos_' + type]: [
         ['max', ['W', 'C', 'D'], '>=4'],
       ],
-      score_cond: ['diff', '>.6'],
+      score_cond: ['diff', '>%s' % diff],
     }
     for type in ['filter', 'lineup_gen']
     for diff in [0.4, 0.5, 0.6, 0.7, 0.8]

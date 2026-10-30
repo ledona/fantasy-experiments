@@ -6,7 +6,6 @@ from argparse import Namespace
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import astuple
-from datetime import date
 from typing import Literal, cast
 
 from fantasy_py import (
@@ -18,7 +17,6 @@ from fantasy_py import (
     UnexpectedValueError,
     db,
     log,
-    today,
 )
 from fantasy_py.analysis.backtest.daily_fantasy import (
     SlateScoreItem,
@@ -29,7 +27,7 @@ from fantasy_py.analysis.backtest.daily_fantasy import (
     get_best_rational_lineup,
     get_rational_lineup_gen_params,
 )
-from fantasy_py.inference import PTPredictModel
+from fantasy_py.inference import PTPredictModel, get_models_by_name
 from fantasy_py.lineup import FantasyService, GenLineupsParams
 from fantasy_py.lineup.knapsack import MixedIntegerKnapsackSolver
 from fantasy_py.sport import SportDBManager
@@ -176,11 +174,12 @@ def score_cache_ctx(
 
     rational_lineup_params = get_rational_lineup_gen_params(sport, contest_style, service_name)
 
-    if today() >= date(2026, 11, 1):
-        raise NotImplementedError(
-            "TODO: this hash is not sufficient, player/team inference model versions need to be included"
-        )
-    rlp_hash = constant_hasher(rational_lineup_params)
+    service_cls = cast(
+        type[FantasyService], CLSRegistry.get_class(FANTASY_SERVICE_DOMAIN, service_name)
+    )
+    models = get_models_by_name(service_cls.DEFAULT_MODEL_NAMES[sport])
+    model_versions = [(model.name, model.dt_trained) for model in models]
+    rlp_hash = constant_hasher([rational_lineup_params, model_versions])
 
     score_cache = ScoreCache(score_cache_filepath, rlp_hash, cache_mode)
 

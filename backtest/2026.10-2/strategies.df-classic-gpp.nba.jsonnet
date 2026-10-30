@@ -6,7 +6,7 @@ local utils = import 'utils.libsonnet';
     max_wager_pct_per_epoch: 0.1,
     max_bets_per_epoch: 1,
     max_bets_per_contest: 1,
-    sport_filter: ['nba'],
+    sport_filter: 'nba',
   },
   starting_bankroll: 1000,
   allow_negative_bankroll: true,
@@ -14,6 +14,26 @@ local utils = import 'utils.libsonnet';
   strategies: [
     {
       name: 'baseline',
+    },
+    {
+      name: 'rational-1',
+      gen_lineups_params: {
+        exclude_below_ppg_pctl: 15,
+        exclude_below_games_played: 2,
+      },
+    },
+    {
+      name: 'rational-2',
+      gen_lineups_params: {
+        exclude_below_ppg_pctl: 10,
+        exclude_below_games_played: 2,
+      },
+    },
+    {
+      name: 'rational-3',
+      gen_lineups_params: {
+        exclude_below_games_played: 2,
+      },
     },
   ] + [
     {

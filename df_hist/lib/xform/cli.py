@@ -104,13 +104,7 @@ def _process_cmd_line(cmd_line_str=None):
         "Default is the dates in the config for the sport",
     )
 
-    parser.add_argument(
-        "--max_missing_infer_cols",
-        "--max_missing_features",
-        type=float,
-        help="Threshold for maximum fraction or number of fully imputed features above which "
-        f"inference will fail. Default={PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL}",
-    )
+    PTPredictModel.add_max_missing_infer_cols_arg(parser)
     parser.add_argument(
         "--fail_on_impute_error",
         action="store_true",
@@ -132,13 +126,7 @@ def _process_cmd_line(cmd_line_str=None):
 
     print(f"{args=}")
 
-    if args.max_missing_infer_cols is not None:
-        if 0 <= args.max_missing_infer_cols < 1:
-            PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL = args.max_missing_infer_cols
-        elif args.max_missing_infer_cols >= 1:
-            PTPredictModel.MISSING_INFERENCE_COLS_THRESHOLD_FAIL = int(args.max_missing_infer_cols)
-        else:
-            parser.error("--max_missing_infer_cols must be >= 0")
+    PTPredictModel.set_max_missing_infer_cols(args)
     CacheSettings.update(args)
 
     dfs: dict[tuple, pd.DataFrame] = {}

@@ -17,6 +17,43 @@ local utils = import 'utils.libsonnet';
       name: 'baseline',
     },
     {
+      name: 'rational.1',
+      gen_lineups_params: {
+        stacks: [4, 3],
+        stackable_teams_predicted_pctl: 80,
+        stackable_players_ppg_pctl: 65,
+        exclude_below_ppg_pctl: { G: 80 },
+        constraints: [
+          ['no_opp_team', { position: 'G', opp_excluded_positions: ['W', 'LW', 'RW', 'C'] }],
+        ],
+      },
+    },
+    {
+      name: 'rational.2',
+      gen_lineups_params: {
+        stacks: [4, 3],
+        stackable_teams_predicted_pctl: 60,
+        stackable_players_ppg_pctl: 55,
+        exclude_below_ppg_pctl: { G: 60 },
+        constraints: [
+          ['no_opp_team', { position: 'G', opp_excluded_positions: ['W', 'LW', 'RW', 'C'] }],
+        ],
+      },
+    },
+    {
+      // fallback for failure to solve but with a large number of games, so lossen exclusion but increase stackable threshold
+      name: 'rational.3',
+      gen_lineups_params: {
+        stacks: [4, 3],
+        stackable_teams_predicted_pctl: 75,
+        stackable_players_ppg_pctl: 55,
+        exclude_below_ppg_pctl: { G: 60 },
+        constraints: [
+          ['no_opp_team', { position: 'G', opp_excluded_positions: ['W', 'LW', 'RW', 'C'] }],
+        ],
+      },
+    },
+    {
       name: 'good-G-vs-bad-offense',
       gen_lineups_params: {
         exclude_below_ppg_pctl: { G: 60 },
@@ -107,7 +144,7 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'stack-vs-crappy-5:nhl.ceiling',
+      name: 'stack-vs-crappy-5:nhl:ceiling',
       score_data_type: 'ceiling',
       gen_lineups_params: {
         stackable_teams_against_pos_ppg_pctl: ['W,C,D', 75],

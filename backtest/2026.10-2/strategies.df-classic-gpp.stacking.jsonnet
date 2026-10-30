@@ -7,13 +7,14 @@ local utils = import 'utils.libsonnet';
     max_bets_per_epoch: 1,
     max_bets_per_contest: 1,
   },
+  missing_inference_cols_threshold_fail: { mlb: 1 },
   starting_bankroll: 1000,
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
     { name: 'baseline' },
     {
-      name: 'player-pctl-22.40.ceiling',
+      name: 'player-pctl-22.40:ceiling',
       score_data_type: 'ceiling',
       sport_filter: '!nfl',
       gen_lineups_params: {
@@ -22,7 +23,7 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'top-games-43:1.ceiling',
+      name: 'top-games-43:1:ceiling',
       sport_filter: 'nhl,nba',
       score_data_type: 'ceiling',
       multi_lineup_stack_top_games: [4, 3, 65],

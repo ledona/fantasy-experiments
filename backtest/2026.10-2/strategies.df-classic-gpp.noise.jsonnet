@@ -6,6 +6,7 @@
     max_bets_per_epoch: 1,
     max_bets_per_contest: 1,
   },
+  missing_inference_cols_threshold_fail: { mlb: 1 },
   starting_bankroll: 1000,
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-classic-gpp.json',
@@ -15,7 +16,7 @@
     },
   ] + [
     {
-      name: 'natural-multi-w/noise-%d:%s:%s' % [bets, noise_diff[0] * 100, noise_diff[1] * 100],
+      name: 'natural-multi-w/noise-%d:%g:%s' % [bets, noise_diff[0] * 100, noise_diff[1] * 100],
       noise: noise_diff[0],
       diff_pct: noise_diff[1],
       max_bets_per_epoch: bets,
