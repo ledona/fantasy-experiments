@@ -13,8 +13,11 @@ local utils = import 'utils.libsonnet';
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
     {
-      name: 'baseline',
-    },
+      name: 'baseline%s' % utils.score_type_post(score_type),
+      score_data_type: score_type,
+    }
+    for score_type in ['predicted', 'ceiling']
+  ] + [
     {
       name: 'rational-1',
       gen_lineups_params: {

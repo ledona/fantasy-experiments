@@ -93,7 +93,8 @@ local utils = import 'utils.libsonnet';
         name: 'avoid-tired-teams:nba|nhl',
         sport_filter: 'nba,nhl',
         gen_lineups_params: {
-          exclude_teams_for_consec_epochs_played: 2,
+          // back to back
+          exclude_teams_for_consec_epochs_played: 1,
         },
       },
     ] + [

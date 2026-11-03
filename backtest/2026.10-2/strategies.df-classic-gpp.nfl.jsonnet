@@ -14,8 +14,11 @@ local utils = import 'utils.libsonnet';
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
     {
-      name: 'baseline',
-    },
+      name: 'baseline%s' % utils.score_type_post(score_type),
+      score_data_type: score_type,
+    }
+    for score_type in ['predicted', 'ceiling']
+  ] + [
     {
       name: 'rational.1',
       gen_lineups_params: {
@@ -58,26 +61,9 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'rational.3:mini-slate-1',
+      name: 'rational.3:mini-slate',
       gen_lineups_params: {
         stacks: [2],
-        stackable_teams_predicted_pctl: 75,
-        exclude_for_cost: '<=1000',
-        constraints: [
-          ['stack_same_team_diff_pos', {
-            position: 'QB',
-            team_position: 'team.D',
-            stack_positions: ['TE', 'WR'],
-          }],
-          ['no_opp_team', { team_position: 'team.D', position: 'team.D' }],
-        ],
-      },
-    },
-    {
-      name: 'rational.4:mini-slate-2',
-      gen_lineups_params: {
-        // needed for mini slates (e.g. 4 or 2 games in the playoffs
-        stacks: 2,
         stackable_teams_predicted_pctl: 75,
         exclude_for_cost: '<=1000',
         constraints: [
@@ -134,8 +120,8 @@ local utils = import 'utils.libsonnet';
         slot_budget: { QB: '%d-%d' % [budget_min * 1000, (budget_min + range) * 1000] },
       },
     }
-    for budget_min in [5, 5.5, 6, 6.5, 7, 7.5, 8]
-    for range in [1, 2, 3]
+    for budget_min in [5, 5.5, 6, 6.5, 7, 7.5]
+    for range in [1, 1.5, 2]
   ] + [
     {
       name: 'RBs-cap:%s%sK' % budget,

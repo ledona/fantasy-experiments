@@ -238,13 +238,6 @@ local utils = import 'utils.libsonnet';
         slot_pos_exclusions: [['CPT', ['P']]],
       },
     },
-    {
-      name: 'mlb-opp_hitter_cap',
-      sport_filter: 'mlb',
-      gen_lineups_params: {
-        slot_pos_opp_team_cap: [['CPT', 'P', 2]],
-      },
-    },
   ] + [
     {
       name: 'mlb-2P-low-score-' + type,

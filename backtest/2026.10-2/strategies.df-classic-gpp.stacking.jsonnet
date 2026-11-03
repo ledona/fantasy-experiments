@@ -12,7 +12,12 @@ local utils = import 'utils.libsonnet';
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
-    { name: 'baseline' },
+    {
+      name: 'baseline%s' % utils.score_type_post(score_type),
+      score_data_type: score_type,
+    }
+    for score_type in ['predicted', 'ceiling']
+  ] + [
     {
       name: 'player-pctl-22.40:ceiling',
       score_data_type: 'ceiling',

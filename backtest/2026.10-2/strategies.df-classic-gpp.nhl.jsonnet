@@ -14,8 +14,11 @@ local utils = import 'utils.libsonnet';
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
     {
-      name: 'baseline',
-    },
+      name: 'baseline%s' % utils.score_type_post(score_type),
+      score_data_type: score_type,
+    }
+    for score_type in ['predicted', 'ceiling']
+  ] + [
     {
       name: 'rational.1',
       gen_lineups_params: {
@@ -61,13 +64,6 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'vs-G-43.20',
-      gen_lineups_params: {
-        stacks: [4, 3],
-        stackable_teams_against_pos_ppg_pctl: ['G', 20],
-      },
-    },
-    {
       name: 'prioritize-G',
       gen_lineups_params: {
         require_top_predicted_players: 'G',
@@ -105,28 +101,18 @@ local utils = import 'utils.libsonnet';
     for budget_min in [6, 6.5, 7, 7.5, 8]
   ] + [
     {
-      name: 'vs-G-%d.%d:%s%s' % [stack, pctl, ppg_pctl, utils.score_type_post(score_type)],
+      name: 'vs-G-%s.%d:%s%s' % [stack, g_pctl, ppg_pctl, utils.score_type_post(score_type)],
       score_data_type: score_type,
       gen_lineups_params: {
-        stacks: [stack],
+        stacks: stack,
         stackable_players_ppg_pctl: ppg_pctl,
-        stackable_teams_against_pos_ppg_pctl: ['G', pctl],
+        stackable_teams_against_pos_ppg_pctl: ['G', g_pctl],
       },
     }
-    for stack in [4, 5]
-    for ppg_pctl in [null, 10, 25, 40]
-    for pctl in [10, 20, 30, 40]
+    for stack in [[4], [4, 3], [5]]
+    for ppg_pctl in [null, 10, 25, 40, 55]
+    for g_pctl in [10, 20, 30, 40]
     for score_type in ['predicted', 'ceiling']
-  ] + [
-    {
-      name: 'vs-G-43.%d:45' % pctl,
-      gen_lineups_params: {
-        stacks: [4, 3],
-        stackable_teams_against_pos_ppg_pctl: ['G', pctl],
-        stackable_players_ppg_pctl: 45,
-      },
-    }
-    for pctl in [10, 20, 30, 40]
   ] + [
     {
       name: 'S-budget:>=%dk' % budget,
@@ -134,36 +120,6 @@ local utils = import 'utils.libsonnet';
         group_cost_budget: { 'W,C': '>=%d' % (budget * 1000) },
       },
     }
-    for budget in [17, 15, 13]
-  ] + [
-    {
-      name: 'stack-vs-crappy-5:nhl',
-      gen_lineups_params: {
-        stackable_teams_against_pos_ppg_pctl: ['W,C,D', 75],
-        stacks: [5],
-      },
-    },
-    {
-      name: 'stack-vs-crappy-5:nhl:ceiling',
-      score_data_type: 'ceiling',
-      gen_lineups_params: {
-        stackable_teams_against_pos_ppg_pctl: ['W,C,D', 75],
-        stacks: [5],
-      },
-    },
-    {
-      name: 'stack-vs-crappy-43.75:nhl',
-      gen_lineups_params: {
-        stackable_teams_against_pos_ppg_pctl: ['W,C,D', 75],
-        stacks: [4, 3],
-      },
-    },
-    {
-      name: 'stack-vs-crappy-43.60:nhl',
-      gen_lineups_params: {
-        stackable_teams_against_pos_ppg_pctl: ['W,C,D', 60],
-        stacks: [4, 3],
-      },
-    },
+    for budget in [30, 32.5, 35, 37.5, 40]
   ],
 }
