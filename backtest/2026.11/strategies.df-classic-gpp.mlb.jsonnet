@@ -1,0 +1,184 @@
+local utils = import 'utils.libsonnet';
+{
+  name: 'df-classic-mlb',
+  params: {
+    service_filter: 'draftkings',
+    max_wager_per_bet: null,
+    max_wager_pct_per_epoch: 0.1,
+    max_bets_per_epoch: 1,
+    max_bets_per_contest: 1,
+    sport_filter: 'mlb',
+  },
+  missing_inference_cols_threshold_fail: 1,
+  starting_bankroll: 1000,
+  allow_negative_bankroll: true,
+  filepath: 'config/strategy/df-classic-gpp.json',
+  strategies:
+    [
+      {
+        name: 'baseline%s' % utils.score_type_post(score_type),
+        score_data_type: score_type,
+      }
+      for score_type in ['predicted', 'ceiling']
+    ] + [
+      {
+        name: 'rational-1',
+        gen_lineups_params: {
+          stacks: [5, 2],
+          stackable_teams_predicted_pctl: 50,
+          exclude_below_ppg_pctl: { P: 50, '': 20 },
+          exclude_below_games_played: { '': 3, P: 1 },
+          constraints: [
+            ['no_opp_team', {
+              position: 'P',
+              opp_excluded_positions: 'C,1B,2B,3B,SS,LF,CF,RF,OF,DH',
+              max_opp_players: 0,
+            }],
+          ],
+        },
+      },
+      {
+        name: 'rational-2',
+        gen_lineups_params: {
+          stacks: [4, 3],
+          stackable_teams_predicted_pctl: 50,
+          exclude_below_ppg_pctl: { P: 50, '': 20 },
+          exclude_below_games_played: { '': 3, P: 1 },
+          constraints: [
+            ['no_opp_team', {
+              position: 'P',
+              opp_excluded_positions: 'C,1B,2B,3B,SS,LF,CF,RF,OF,DH',
+              max_opp_players: 0,
+            }],
+          ],
+        },
+      },
+      {
+        name: 'rational-3',
+        gen_lineups_params: {
+          stacks: [3, 2],
+          stackable_teams_predicted_pctl: 50,
+          exclude_below_ppg_pctl: { P: 50, '': 20 },
+          exclude_below_games_played: { '': 3, P: 1 },
+          constraints: [
+            ['no_opp_team', {
+              position: 'P',
+              opp_excluded_positions: 'C,1B,2B,3B,SS,LF,CF,RF,OF,DH',
+              max_opp_players: 0,
+            }],
+          ],
+        },
+      },
+      {
+        name: 'rational-4:for mini slate (2 games)',
+        gen_lineups_params: {
+          stacks: [3],
+          stackable_teams_predicted_pctl: 50,
+          exclude_below_ppg_pctl: { P: 25, '': 20 },
+          exclude_below_games_played: 1,
+          constraints: [
+            ['no_opp_team', {
+              position: 'P',
+              opp_excluded_positions: 'C,1B,2B,3B,SS,LF,CF,RF,OF,DH',
+              max_opp_players: 2,
+            }],
+          ],
+        },
+      },
+      {
+        name: 'good-P-vs-bad-offense',
+        gen_lineups_params: {
+          exclude_below_ppg_pctl: { P: 60 },
+          exclude_player_vs_team_predicted_pctl: { P: 25 },
+        },
+      },
+    ] + [
+      {
+        name: 'current-recommended' + (if data_type != 'predicted' then ':' + data_type else ''),
+        score_data_type: data_type,
+        gen_lineups_params: {
+          stacks: [4, 3],
+          stackable_teams_predicted_pctl: 75,
+          stackable_players_ppg_pctl: 50,
+          exclude_below_ppg_pctl: { P: 70 },
+          exclude_below_games_played: 2,
+        },
+      }
+      for data_type in ['predicted', 'ceiling']
+    ] + [
+      {
+        name: 'batting-order-stack-%d.%d%s' % [size, max_dist, utils.score_type_post(data_type)],
+        score_data_type: data_type,
+        gen_lineups_params: {
+          constraints: [
+            ['mlb_bo_stack', { stack_size: size, max_bo_distance: max_dist }],
+          ],
+        },
+      }
+      for data_type in ['predicted', 'ceiling']
+      for size in std.range(3, 5)
+      for max_dist in std.range(size - 1, (9 - std.ceil(9 / size)))
+    ] + [
+      {
+        name: 'vs-P-%s.%d%s' % [stacks, pctl, utils.score_type_post(data_type)],
+        score_data_type: data_type,
+        gen_lineups_params: {
+          stacks: stacks,
+          stackable_teams_against_pos_ppg_pctl: ['P', pctl],
+        },
+      }
+      for pctl in [10, 20, 30, 40]
+      for stacks in [[5], [4], [4, 3]]
+      for data_type in ['predicted', 'ceiling']
+    ] + [
+      {
+        name: 'prioritize-P',
+        gen_lineups_params: {
+          require_top_predicted_players: ['P', 2],
+        },
+      },
+      {
+        name: 'pitcher-budget:<18.5k:ceiling',
+        score_data_type: 'ceiling',
+        gen_lineups_params: {
+          group_cost_budget: { P: '<18500' },
+        },
+      },
+      {
+        name: 'pitcher-budget:>=19.5k',
+        gen_lineups_params: {
+          group_cost_budget: { P: '>=19500' },
+        },
+      },
+      {
+        name: 'pitcher-budget:>=20k',
+        gen_lineups_params: {
+          group_cost_budget: { P: '>=20000' },
+        },
+      },
+      {
+        name: 'pitcher-budget:<17.5k',
+        gen_lineups_params: {
+          group_cost_budget: { P: '<17500' },
+        },
+      },
+    ] + [
+      {
+        name: 'pitcher-budget:%s%sk' % [cond, budget],
+        gen_lineups_params: {
+          group_cost_budget: { P: '%s%d' % [cond, budget * 1000] },
+        },
+      }
+      for cond in ['<', '>=']
+      for budget in [17, 18, 18.5, 19]
+    ] + [
+      {
+        local range = 3,
+        name: 'pitcher-budget:%s-%sk' % [budget_min, budget_min + range],
+        gen_lineups_params: {
+          group_cost_budget: { P: '%s-%s' % [budget_min * 1000, (budget_min + range) * 1000] },
+        },
+      }
+      for budget_min in std.range(13, 20)
+    ],
+}
