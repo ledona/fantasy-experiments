@@ -1,4 +1,5 @@
-local utils = import 'utils.libsonnet';
+// Keep this file close to plain JSON: explicit strategy blocks and simple grid comprehensions; no helper
+// functions, object extension or conditional field names. Add a 1-2 line attribution comment to changed blocks.
 {
   name: 'df-classic-nba',
   params: {
@@ -13,10 +14,8 @@ local utils = import 'utils.libsonnet';
   filepath: 'config/strategy/df-classic-gpp.json',
   strategies: [
     {
-      name: 'baseline%s' % utils.score_type_post(score_type),
-      score_data_type: score_type,
-    }
-    for score_type in ['predicted', 'ceiling']
+      name: 'baseline',
+    },
   ] + [
     {
       name: 'rational-1',
@@ -31,44 +30,29 @@ local utils = import 'utils.libsonnet';
         exclude_below_games_played: 2,
       },
     },
-  ] + [
+    // 2026.11: sentinel for the pruned nba forced-stack family (2026.10-2 NBA §4)
     {
-      name: '3x2.T70.ppg25',
+      name: '3x3.T70.ppg25',
       gen_lineups_params: {
-        stacks: [3, 2],
+        stacks: [3, 3],
         stackable_teams_predicted_pctl: 70,
         exclude_below_ppg_pctl: 25,
       },
     },
-    {
-      name: '3x2x2.T50.ppg25',
-      gen_lineups_params: {
-        stacks: [3, 2, 2],
-        stackable_teams_predicted_pctl: 50,
-        exclude_below_ppg_pctl: 25,
-      },
-    },
   ] + [
+    // 2026.11: per-player cost floor, binds ~55%/80% of 2026.10-2 baseline lineups
     {
-      name: '3x3.T70.ppg%d' % ppg_pctl,
-      gen_lineups_params: {
-        stacks: [3, 3],
-        stackable_teams_predicted_pctl: 70,
-        exclude_below_ppg_pctl: ppg_pctl,
-      },
+      name: 'cost-floor:<%gk' % floor,
+      gen_lineups_params: { exclude_for_cost: '<%d' % (floor * 1000) },
     }
-    for ppg_pctl in [35, 40]
+    for floor in [3.5, 4]
   ] + [
+    // 2026.11: cap the number of expensive players (winner's-curse test, showdown CPT caps helped);
+    // binds ~26%/27%/20% of 2026.10-2 baseline lineups
     {
-      name: '3x3.T%d.ppg25' % pctl + utils.score_type_post(score_type),
-      score_data_type: score_type,
-      gen_lineups_params: {
-        stacks: [3, 3],
-        stackable_teams_predicted_pctl: pctl,
-        exclude_below_ppg_pctl: 25,
-      },
+      name: 'max-expensive:%gk-max%d' % [pool[0] / 1000, pool[1]],
+      gen_lineups_params: { cost_player_pool: ['>=%d' % pool[0], '<=%d' % pool[1]] },
     }
-    for pctl in [50, 60, 70]
-    for score_type in ['predicted', 'ceiling']
+    for pool in [[8000, 2], [9000, 1], [10000, 0]]
   ],
 }

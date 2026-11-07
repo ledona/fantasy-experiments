@@ -1,3 +1,5 @@
+// Keep this file close to plain JSON: explicit strategy blocks and simple grid comprehensions; no helper
+// functions, object extension or conditional field names. Add a 1-2 line attribution comment to changed blocks.
 local utils = import 'utils.libsonnet';
 {
   name: 'df-showdown-misc',
@@ -5,8 +7,8 @@ local utils = import 'utils.libsonnet';
     service_filter: 'draftkings',
     max_wager_per_bet: null,
     max_wager_pct_per_epoch: 0.1,
-    // default is to try for 3x bets per epoch
-    max_bets_per_epoch: 3,
+    // 2026.11: bet all slates so every strategy pairs with baseline on all slates (2026.10-2 2.g)
+    max_bets_per_epoch: null,
     max_bets_per_contest: 1,
     max_slates_to_try: null,
   },
@@ -14,11 +16,13 @@ local utils = import 'utils.libsonnet';
   starting_bankroll: 1000,
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-showdown-gpp.json',
+  // 2026.11: ceiling variants limited to nfl/nba, ceiling lost in nhl/mlb showdown (2026.10-2).
+  // baseline:ceiling and cpt-budget:<9k:ceiling run for all sports as ceiling sentinels.
+  local ceiling_sport_filter = '!nhl,!mlb',
   strategies: [
     {
       name: 'baseline' + utils.score_type_post(score_type),
       score_data_type: score_type,
-      max_bets_per_epoch: null,
     }
     for score_type in ['predicted', 'ceiling']
   ] + [
@@ -31,7 +35,8 @@ local utils = import 'utils.libsonnet';
       },
     },
     {
-      name: 'nba-rational.1:Force the lineup to contain at least 2 of the top 70th ppg percentile players',
+      // 2026.11: renamed to list all constraints (2026.10-2 NBA 2.1.c)
+      name: 'nba-rational.1:CPT >=8.5k, at least 2 top 70th ppg pctl players, no players <2k',
       sport_filter: 'nba',
       gen_lineups_params: {
         slot_budget: { CPT: '>=8500' },
@@ -61,10 +66,10 @@ local utils = import 'utils.libsonnet';
       gen_lineups_params: {
         exclude_for_cost: '<2000',
         constraints: [
-          ['no_opp_team', {
+          ['opp_team', {
             team_position: 'team.D',
             position: 'team.D',
-            opp_excluded_positions: ['QB'],
+            opp_positions: ['QB'],
           }],
         ],
       },
@@ -126,6 +131,7 @@ local utils = import 'utils.libsonnet';
       name: 'rank-betting:prob%s' % utils.score_type_post(score_type),
       score_data_type: score_type,
       rank_betting: 'prob',
+      sport_filter: if score_type == 'ceiling' then ceiling_sport_filter else null,
     }
     for score_type in ['predicted', 'ceiling']
   ] + [
@@ -147,49 +153,109 @@ local utils = import 'utils.libsonnet';
       ['nhl-old', 'nhl', [2.0, 3.5, 5.0]],
       ['nhl-default', 'nhl', null],
     ]
+    if score_type == 'predicted' || !std.member(['nhl', 'mlb'], sport_range[1])
   ] + [
+    // 2026.11: static ranges from 2026.10-2 predicted team score pctls, defaults put 80-100% of slates in one category
     {
-      name: 'cpt-budget:<%gk' % budget + utils.score_type_post(score_type),
-      score_data_type: score_type,
-      gen_lineups_params: {
-        slot_budget: { CPT: '<%d' % (budget * 1000) },
-      },
+      name: 'rank-betting-static:%s' % sport_range[0],
+      rank_betting: 'static',
+      sport_filter: sport_range[1],
+      rank_betting_static_range: sport_range[2],
     }
-    for budget in [8.5, 9, 9.5, 10, 10.5]
-    for score_type in ['predicted', 'ceiling']
+    for sport_range in [
+      ['mlb-p33-67-90', 'mlb', [4.19, 4.69, 5.36]],
+      ['mlb-p10-50-90', 'mlb', [3.77, 4.42, 5.36]],
+      ['nfl-p33-67-90', 'nfl', [21.0, 24.7, 27.2]],
+      ['nfl-p10-50-90', 'nfl', [18.0, 22.8, 27.2]],
+      ['nba-p33-67-90', 'nba', [113.0, 118.1, 122.0]],
+      ['nba-p10-50-90', 'nba', [108.5, 115.7, 122.0]],
+      ['nhl-p33-67-90', 'nhl', [2.76, 3.02, 3.37]],
+      ['nhl-p10-50-90', 'nhl', [2.60, 2.88, 3.37]],
+    ]
   ] + [
+    // 2026.11: prob cutoffs (low total, high total, lop-sided margin) around the new mid-set defaults (2026.10-2 pctls)
+    //   tight = totals p33/p67, margin p67; loose = totals p20/p80, margin p85
     {
-      name: 'cpt-budget-range:%s-%sk%s' % [budget_min, budget_min + range, utils.score_type_post(score_type)],
-      score_data_type: score_type,
-      gen_lineups_params: {
-        slot_budget: { CPT: '%d-%d' % [budget_min * 1000, ((budget_min + range) * 1000)] },
-      },
+      name: 'rank-betting:prob:%s' % sport_cutoffs[0],
+      rank_betting: 'prob',
+      sport_filter: sport_cutoffs[1],
+      rank_betting_prob_cutoffs: sport_cutoffs[2],
     }
-    for budget_min in [3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5]
-    for range in [2, 3]
-    for score_type in ['predicted', 'ceiling']
+    for sport_cutoffs in [
+      ['mlb-tight', 'mlb', [8.55, 9.17, 0.89]],
+      ['mlb-loose', 'mlb', [8.32, 9.57, 1.27]],
+      ['nfl-tight', 'nfl', [44.0, 47.2, 6.2]],
+      ['nfl-loose', 'nfl', [42.9, 48.2, 8.8]],
+      ['nba-tight', 'nba', [227.5, 233.6, 8.1]],
+      ['nba-loose', 'nba', [225.5, 237.2, 10.2]],
+      ['nhl-tight', 'nhl', [5.71, 5.93, 0.45]],
+      ['nhl-loose', 'nhl', [5.58, 6.05, 0.84]],
+    ]
   ] + [
-    // minimum budget
+    // 2026.11: prob slate selection by confidence (probability the predicted category happens)
     {
-      name: 'budget-min:46k',
-      sport_filter: '!nhl,!nfl',
-      gen_lineups_params: { min_budget: 46000 },
+      name: 'rank-betting:prob:min-conf-%g' % min_conf,
+      rank_betting: 'prob',
+      rank_betting_min_conf: min_conf,
+    }
+    for min_conf in [0.3, 0.4, 0.5]
+  ] + [
+    // 2026.11: rank-betting on top of the CPT cap, do category plans add anything (2026.10-2 cpt-budget:<9k)
+    {
+      name: 'rank-betting:prob+cpt-budget:<9k',
+      rank_betting: 'prob',
+      gen_lineups_params: { slot_budget: { CPT: '<9000' } },
     },
   ] + [
     {
-      name: 'budget-min:%gk' % budget + utils.score_type_post(score_type),
-      score_data_type: score_type,
-      gen_lineups_params: { min_budget: budget * 1000 },
+      name: 'rank-betting-static:%s-default+cpt-budget:<9k' % sport,
+      rank_betting: 'static',
+      sport_filter: sport,
+      gen_lineups_params: { slot_budget: { CPT: '<9000' } },
     }
-    for budget in [47.5, 49]
-    for score_type in ['predicted', 'ceiling']
+    for sport in ['mlb', 'nfl', 'nba', 'nhl']
+  ] + [
+    // 2026.11: CPT cap x floor grid, predicted only (2026.10-2 CPT dose-response in nba/nfl/nhl)
+    {
+      name: 'cpt-budget:<%gk' % cap,
+      gen_lineups_params: {
+        slot_budget: { CPT: '<%d' % (cap * 1000) },
+      },
+    }
+    for cap in [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5]
   ] + [
     {
-      name: 'full-budget:50k' + utils.score_type_post(score_type),
-      score_data_type: score_type,
-      gen_lineups_params: { min_budget: 50000 },
+      name: 'cpt-budget-range:%g-%gk' % [floor, cap],
+      gen_lineups_params: {
+        slot_budget: { CPT: '%d-%d' % [floor * 1000, cap * 1000] },
+      },
     }
-    for score_type in ['predicted', 'ceiling']
+    for floor in [3, 4, 4.5, 5]
+    for cap in [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5]
+    if cap - floor >= 1.5
+  ] + [
+    // 2026.11: ceiling CPT variants, <9k is the all-sport ceiling sentinel, 3-5k was nfl's best (2026.10-2)
+    {
+      name: 'cpt-budget:<9k:ceiling',
+      score_data_type: 'ceiling',
+      gen_lineups_params: { slot_budget: { CPT: '<9000' } },
+    },
+    {
+      name: 'cpt-budget-range:3-5k:ceiling',
+      score_data_type: 'ceiling',
+      sport_filter: 'nfl',
+      gen_lineups_params: { slot_budget: { CPT: '3000-5000' } },
+    },
+  ] + [
+    // 2026.11 sentinels for pruned families: expensive CPT floor, min budget (2026.10-2)
+    {
+      name: 'cpt-budget-range:9-12k',
+      gen_lineups_params: { slot_budget: { CPT: '9000-12000' } },
+    },
+    {
+      name: 'budget-min:49k',
+      gen_lineups_params: { min_budget: 49000 },
+    },
   ] + [
     {
       name: 'mlb-all-off-' + type,
@@ -199,15 +265,13 @@ local utils = import 'utils.libsonnet';
     for type in ['filter', 'lineup_gen']
   ] + [
     {
-      name: 'mlb-all-off-high-score:>=%g:%s%s' % [min_score, type, utils.score_type_post(score_type)],
+      name: 'mlb-all-off-high-score:>=%g:%s' % [min_score, type],
       sport_filter: 'mlb',
-      score_data_type: score_type,
       ['players_in_pos_' + type]: ['both', ['P'], '=0'],
       score_cond: ['both', '>=%g' % min_score],
     }
     for type in ['filter', 'lineup_gen']
     for min_score in [4.5, 4.75, 4.8, 4.9, 5]
-    for score_type in ['predicted', 'ceiling']
   ] + [
     {
       name: 'cpt-budget:<11k',
@@ -221,6 +285,21 @@ local utils = import 'utils.libsonnet';
       sport_filter: 'mlb',
       players_in_pos_filter: [['max', ['P'], '=1'], ['min', ['H'], '<3']],
       score_cond: ['min', '<4'],
+    },
+    // 2026.11: best selection filters combined with a CPT cap (2026.10-2 MLB/NHL showdown selection results)
+    {
+      name: 'mlb-1P+cpt-budget:<10.5k',
+      sport_filter: 'mlb',
+      gen_lineups_params: { slot_budget: { CPT: '<10500' } },
+      players_in_pos_filter: [['max', ['P'], '=1'], ['min', ['H'], '<3']],
+      score_cond: ['min', '<4'],
+    },
+    {
+      name: 'nhl-1G:filter:3+cpt-budget-range:4.5-6.5k',
+      sport_filter: 'nhl',
+      gen_lineups_params: { slot_budget: { CPT: '4500-6500' } },
+      players_in_pos_filter: [['max', ['G'], '=1'], ['min', ['W', 'C', 'D'], '<3']],
+      score_cond: ['min', '<3'],
     },
     {
       name: 'mlb-1P-CPT',
@@ -289,14 +368,12 @@ local utils = import 'utils.libsonnet';
     },
   ] + [
     {
-      name: 'nhl-all-offense:%g%s' % [min_score, utils.score_type_post(score_type)],
-      score_data_type: score_type,
+      name: 'nhl-all-offense:%g' % min_score,
       sport_filter: ['nhl'],
       players_in_pos_filter: [['both', ['G'], '=0']],
       score_cond: ['both', '>=%g' % min_score],
     }
     for min_score in [2.7, 2.8, 2.9, 3]
-    for score_type in ['predicted', 'ceiling']
   ] + [
     {
       name: 'nhl-2G-low-score',
@@ -321,10 +398,9 @@ local utils = import 'utils.libsonnet';
     for type in ['filter', 'lineup_gen']
   ] + [
     {
-      name: 'nhl-1G:%s:%g%s' % [type, loser_score_max, utils.score_type_post(score_type)],
+      name: 'nhl-1G:%s:%g' % [type, loser_score_max],
       description: 'require goalie if opposing team is low scoring',
       sport_filter: ['nhl'],
-      score_data_type: score_type,
       ['players_in_pos_' + type]: [
         ['max', ['G'], '=1'],
         ['min', ['W', 'C', 'D'], '<3'],
@@ -333,13 +409,11 @@ local utils = import 'utils.libsonnet';
     }
     for loser_score_max in [2.8, 2.9, 3, 3.1, 3.2]
     for type in ['filter', 'lineup_gen']
-    for score_type in ['predicted', 'ceiling']
   ] + [
     {
-      name: 'nhl-prefer-fav:%s:%g%s' % [type, diff, utils.score_type_post(score_type)],
+      name: 'nhl-prefer-fav:%s:%g' % [type, diff],
       description: 'Use lineups favoring heavily favored teams',
       sport_filter: ['nhl'],
-      score_data_type: score_type,
       ['players_in_pos_' + type]: [
         ['max', ['W', 'C', 'D'], '>=4'],
       ],
@@ -347,7 +421,6 @@ local utils = import 'utils.libsonnet';
     }
     for type in ['filter', 'lineup_gen']
     for diff in [0.4, 0.5, 0.6, 0.7, 0.8]
-    for score_type in ['predicted', 'ceiling']
   ] + [
     {
       name: 'nfl-prefer-fav.1' + utils.score_type_post(score_type),
@@ -382,5 +455,14 @@ local utils = import 'utils.libsonnet';
       },
     }
     for cap in [1, 2]
+  ] + [
+    // 2026.11: per-player cost floor per sport, binds ~66% (mlb), 37% (nba), 69% (nfl), 76% (nhl)
+    // of 2026.10-2 baseline FLEX slots
+    {
+      name: 'cost-floor:<%gk' % sport_floor[1],
+      sport_filter: sport_floor[0],
+      gen_lineups_params: { exclude_for_cost: '<%d' % (sport_floor[1] * 1000) },
+    }
+    for sport_floor in [['mlb', 4], ['nba', 4], ['nfl', 3], ['nhl', 3]]
   ],
 }

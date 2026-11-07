@@ -1,3 +1,5 @@
+// Keep this file close to plain JSON: explicit strategy blocks and simple grid comprehensions; no helper
+// functions, object extension or conditional field names. Add a 1-2 line attribution comment to changed blocks.
 local utils = import 'utils.libsonnet';
 {
   name: 'df-classic-misc',
@@ -11,6 +13,9 @@ local utils = import 'utils.libsonnet';
   starting_bankroll: 1000,
   allow_negative_bankroll: true,
   filepath: 'config/strategy/df-classic-gpp.json',
+  // 2026.11: few ceiling variants for nba/mlb classic, ceiling lost to predicted (2026.10-2).
+  // baseline:ceiling and one pivot:ceiling per sport stay as ceiling sentinels.
+  local ceiling_sport_filter = '!nba,!mlb',
   strategies:
     // baseline strategies
     [
@@ -21,21 +26,12 @@ local utils = import 'utils.libsonnet';
       for score_type in ['predicted', 'ceiling']
     ] +
 
-    // drop inactive
+    // 2026.11 sentinel for the pruned drop-inactive family (2026.10-2)
     [
       {
-        name: 'drop-inactive-players-%d' % time_off,
+        name: 'drop-inactive-players-3',
         gen_lineups_params: {
-          exclude_for_time_off: time_off,
-        },
-      }
-      for time_off in [2, 3, 4, 5]
-    ] + [
-      {
-        name: 'drop-inactive-players-4:ceiling',
-        score_data_type: 'ceiling',
-        gen_lineups_params: {
-          exclude_for_time_off: 4,
+          exclude_for_time_off: 3,
         },
       },
     ] +
@@ -111,26 +107,32 @@ local utils = import 'utils.libsonnet';
     // pivot players
     [
       {
-        name: 'top-player-pivot:mlb-P:%d%s' % [bets, utils.score_type_post(score_type)],
+        name: 'top-player-pivot:mlb-P:%d' % bets,
         sport_filter: 'mlb',
-        score_data_type: score_type,
         multi_lineup_req_top_predicted_player: 'P',
         max_bets_per_contest: bets,
         max_bets_per_epoch: bets,
       }
       for bets in [1, 2, 3]
-      for score_type in ['predicted', 'ceiling']
+    ] + [
+      // 2026.11: ceiling sentinel for mlb classic
+      {
+        name: 'top-player-pivot:mlb-P:1:ceiling',
+        sport_filter: 'mlb',
+        score_data_type: 'ceiling',
+        multi_lineup_req_top_predicted_player: 'P',
+        max_bets_per_contest: 1,
+        max_bets_per_epoch: 1,
+      },
     ] + [
       {
-        name: 'top-player-pivot:mlb-H:%d%s' % [bets, utils.score_type_post(score_type)],
+        name: 'top-player-pivot:mlb-H:%d' % bets,
         sport_filter: 'mlb',
-        score_data_type: score_type,
         multi_lineup_req_top_predicted_player: 'C,1B,2B,3B,SS,LF,CF,RF,OF',
         max_bets_per_contest: bets,
         max_bets_per_epoch: bets,
       }
       for bets in [1, 2, 3]
-      for score_type in ['predicted', 'ceiling']
     ] + [
       {
         name: 'top-player-pivot:nfl-QB:%d%s' % [bets, utils.score_type_post(score_type)],
@@ -166,15 +168,34 @@ local utils = import 'utils.libsonnet';
       for score_type in ['predicted', 'ceiling']
     ] + [
       {
-        name: 'top-player-pivot:nba:%d%s' % [bets, utils.score_type_post(score_type)],
+        name: 'top-player-pivot:nba:%d' % bets,
         sport_filter: 'nba',
-        score_data_type: score_type,
         multi_lineup_req_top_predicted_player: true,
         max_bets_per_contest: bets,
         max_bets_per_epoch: bets,
       }
-      for bets in [2, 3]
-      for score_type in ['predicted', 'ceiling']
+      // 2026.11: N up to 5 (2026.10-2 NBA best-of-3 +12.9)
+      for bets in [2, 3, 4, 5]
+    ] + [
+      // 2026.11: pivot on a position group instead of any player
+      {
+        name: 'top-player-pivot:nba-%s:3' % pos,
+        sport_filter: 'nba',
+        multi_lineup_req_top_predicted_player: pos,
+        max_bets_per_contest: 3,
+        max_bets_per_epoch: 3,
+      }
+      for pos in ['C', 'G', 'F']
+    ] + [
+      // 2026.11: ceiling sentinel for nba classic
+      {
+        name: 'top-player-pivot:nba:3:ceiling',
+        sport_filter: 'nba',
+        score_data_type: 'ceiling',
+        multi_lineup_req_top_predicted_player: true,
+        max_bets_per_contest: 3,
+        max_bets_per_epoch: 3,
+      },
     ] + [
       {
         name: 'top-player-pivot:nhl-WC:%d%s' % [bets, utils.score_type_post(score_type)],
@@ -193,6 +214,7 @@ local utils = import 'utils.libsonnet';
       {
         name: 'drop-players-against-top-team-vs-pos.%d:ceiling' % pctl,
         score_data_type: 'ceiling',
+        sport_filter: ceiling_sport_filter,
         gen_lineups_params: {
           exclude_player_for_opp_team_vs_pos_pctl: {
             '': pctl,
@@ -204,6 +226,8 @@ local utils = import 'utils.libsonnet';
     [
       {
         name: 'drop-players-against-top-team-vs-pos.%d' % pctl,
+        // 2026.11: nba only at 70 as a sentinel, lost at every pctl (2026.10-2 NBA §4)
+        sport_filter: if pctl == 70 then null else '!nba',
         gen_lineups_params: {
           exclude_player_for_opp_team_vs_pos_pctl: {
             '': pctl,
