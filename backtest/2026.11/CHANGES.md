@@ -12,6 +12,7 @@
 | `constraint/opp_team.py` | renamed `no_opp_team`→`opp_team`, `opp_excluded_positions`→`opp_positions`; new `min_opp_players` (bring-back), `max_opp_players: null` = no cap; team items no longer always anchors; tighter big-M (faster solves) |
 | `config/strategy/showdown-rank-betting.draftkings.json` | MLB lop-sided plan: `P=0` removed |
 | `scripts/bet.py` | accepts strategy `.json` paths; `--strategy_params JSON` to run any backtested strategy |
+| `lineup.py` (commit `6b1c0a32c`) | realized lineup totals apply slot multipliers (showdown CPT 1.5×); previously the CPT counted at base score. Showdown runs only (classic has no multipliers) |
 
 ## Strategies (this directory)
 - **Showdown pairing:** file-level `max_bets_per_epoch: null`, so all strategies can bet every slate.
@@ -63,6 +64,7 @@ NFL showdown lineups grow about 4× despite fewer strategies, because the 3-slat
 - **Optimal params** may be given as `bet.py` commands.
 
 ## Not comparable to 2026.10-2
+- All showdown results: CPT multiplier fix raises realized scores on identical lineups (baseline NBA 198.2→216.6, MLB 54.8→62.0, NFL 74.5→83.3, NHL 61.5→67.8); earlier CPT-cap gains were an artifact.
 - `rank-betting:prob*`: the method and the default cutoffs changed.
 - MLB `rank-betting*`: the lop-sided plan changed.
 - Showdown summary totals: no bet cap now.
