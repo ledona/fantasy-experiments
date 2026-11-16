@@ -12,12 +12,11 @@ from fantasy_py.calculation import elo
 from fantasy_py.sport.extra_stats import VenueAdvantageFeature, expected_elo_mov
 from sqlalchemy import func, select
 from tabulate import tabulate
-from tqdm import tqdm
 
 _WEIGHTS = [0.5, 0.33, 0.17]
 """weights used for weighted average from most recent season to least recent"""
 
-_FEATHURE_ABBR_TO_NAME: dict[VenueAdvantageFeature, str] = {
+_FEATURE_ABBR_TO_NAME: dict[VenueAdvantageFeature, str] = {
     "pf": "park-factor",
     "thfa": "true-home-field-ad",
 }
@@ -25,12 +24,14 @@ _FEATHURE_ABBR_TO_NAME: dict[VenueAdvantageFeature, str] = {
 
 
 def _create_cli_parser():
-    parser = argparse.ArgumentParser(description="Predictions for past/future games")
+    parser = argparse.ArgumentParser(
+        description="Generate historic true-home-field-advantage and venue/park-effect lookup files"
+    )
     parser.add_argument("DB_FILE", help="The database file")
     parser.add_argument(
         "feature",
         choices=literal_type_strs(VenueAdvantageFeature),
-        help="What feature to generate data for. pf=park-factor thfa=true-home-field-adventage. "
+        help="What feature to generate data for. pf=park-factor thfa=true-home-field-advantage. "
         "See VenueFeatures.md for details",
     )
 
@@ -49,7 +50,7 @@ def _create_cli_parser():
         const="",
         help="write the result to a parquet file at this path, "
         "if filepath is not given then default path+name will be used. "
-        "default={$FANTASY_ARCHIVE_BASE}/{sport}/{feature}.pq",
+        "default={$FANTASY_ARCHIVE_BASE}/{sport}/{feature}.{season-range}.pq",
         metavar="filepath",
     )
     me_output_group.add_argument(
@@ -58,7 +59,7 @@ def _create_cli_parser():
         const="",
         help="write the result to a csv file at this path "
         "if filepath is not given then default path+name will be used. "
-        "default={$FANTASY_ARCHIVE_BASE}/{sport}/{feature}.csv",
+        "default={$FANTASY_ARCHIVE_BASE}/{sport}/{feature}.{season-range}.csv",
         metavar="filepath",
     )
 
@@ -73,7 +74,7 @@ def _get_scoring_data(db_obj, min_season: None | int, max_season: None | int):
     _LOGGER.info("Loading scoring data min_season=%s max_season=%s", min_season, max_season)
     with db_obj.session_scoped() as session:
         stmt = select(
-            func.upper(db.Game.venue).label('venue'),
+            func.upper(db.Game.venue).label("venue"),
             db.Game.season,
             db.Game.game_number,
             db.Game.home_team_id,
@@ -93,19 +94,17 @@ def _get_scoring_data(db_obj, min_season: None | int, max_season: None | int):
 
 def _get_elo_data(db_obj, min_season: None | int, max_season: None | int):
     """
-    return home field advantage adjusted mov elo scores for the requested seasons
+    return post-game mov elo scores (no home field adjustment) for the requested seasons
 
     returns dataframe with columns season, game_number, team_id, elo. sorted by season, game_number
     """
     _LOGGER.info("Loading elo data min_season=%s max_season=%s", min_season, max_season)
-    home_team_adjustment = elo.HOME_FIELD_ADVANTAGE_MODIFIERS[db_obj.db_manager.ABBR]
 
     with db_obj.session_scoped() as session:
         stmt = (
             select(
                 db.Game.season,
                 db.Game.game_number,
-                (db.Game.home_team_id == db.CalculationDatum.team_id).label("is_home"),
                 db.CalculationDatum.team_id,
                 db.CalculationDatum.value.label("elo"),
             )
@@ -119,15 +118,7 @@ def _get_elo_data(db_obj, min_season: None | int, max_season: None | int):
         stmt = stmt.order_by(db.Game.season, db.Game.game_number)
         df = pd.read_sql(stmt, session.bind)
 
-    df["elo"] = df.apply(lambda row: row.elo + (home_team_adjustment if row.is_home else 0), axis=1)
     return df
-
-
-def _next_season(final_season: int):
-    if len(final_season_str := str(final_season)) == 8:
-        s1 = final_season_str[:4]
-        return ((int(s1) + 1) * 10000) + (int(s1) + 2)
-    return final_season + 1
 
 
 def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
@@ -148,25 +139,32 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
     )
     elo_df = _get_elo_data(db_obj, min_season, max_season)
 
-    def _get_elo(row, ha: Literal["home", "away"]):
-        """for the game in the row return the starting elo for the requested team"""
-        if row.game_number == 1:
-            return 1500
-        team_id = row[ha + "_team_id"]
-        elo_row = elo_df.query(
-            "season == @row.season and team_id == @team_id and game_number < @row.game_number"
+    sorted_elo_df = elo_df[["season", "game_number", "team_id", "elo"]].sort_values(
+        "game_number", kind="stable"
+    )
+
+    def _get_pregame_elo(ha: Literal["home", "away"]) -> pd.Series:
+        """return each game's starting elo for the requested team, 1500 if no prior elo"""
+        games_df = (
+            df[["season", "game_number", f"{ha}_team_id"]]
+            .rename(columns={f"{ha}_team_id": "team_id"})
+            .reset_index()
+            .sort_values("game_number", kind="stable")
         )
-        if len(elo_row) == 0:
-            return 1500
-        return elo_row.iloc[-1].elo
+        # doubleheaders: if a team has multiple elo rows with the same game_number, one is used arbitrarily
+        merged_df = pd.merge_asof(
+            games_df,
+            sorted_elo_df,
+            on="game_number",
+            by=["season", "team_id"],
+            allow_exact_matches=False,
+        )
+        return merged_df.set_index("index").elo.reindex(df.index).fillna(1500)
 
     # 1. Calculate Game-Level Venue Performance
     # Fetch Elo for both teams going into the game
-    tqdm.pandas(desc="get-home-elo-pregame")
-    home_elo = df.progress_apply(_get_elo, args=("home",), axis=1)
-    tqdm.pandas(desc="get-away-elo-pregame")
-    away_elo = df.progress_apply(_get_elo, args=("away",), axis=1)
-    df_w_elo = df.assign(home_elo=home_elo, away_elo=away_elo)
+    _LOGGER.info("looking up pregame elo for all games")
+    df_w_elo = df.assign(home_elo=_get_pregame_elo("home"), away_elo=_get_pregame_elo("away"))
 
     # Expected margin (Neutral site assumption)
     _LOGGER.info("calculating expected home margin-of-victory for all games")
@@ -196,22 +194,32 @@ def _true_home_field_advantage(db_obj, min_season: int, max_season: int):
     final_season_home_teams = df.query("season == @final_season")[
         ["venue", "home_team_id", "home_team_abbr", "home_team_name"]
     ].drop_duplicates()
-    pad_season = _next_season(final_season)
+    pad_season = db_obj.db_manager.season_increment(final_season)
     pad_df = final_season_home_teams.assign(season=pad_season)
 
     # Combine and Sort
     full_venue_df = pd.concat([venue_stats, pad_df], ignore_index=True)
     full_venue_df = full_venue_df.sort_values(["venue", "season"])
 
+    # missing lags are filled with the lag season's league mean venue effect,
+    # or the elo model's HFA (in points) if that season isn't in the data
+    league_mean_effect = historical_perf.groupby("season").venue_effect.mean()
+    sport = db_obj.db_manager.ABBR
+    default_effect = expected_elo_mov(sport, 1500 + elo.HOME_FIELD_ADVANTAGE_MODIFIERS[sport], 1500)
+
     # 3. Apply  Weights
     # Create shifted columns (Lags) for each venue
     for i in range(1, len(_WEIGHTS) + 1):
-        full_venue_df[f"v_lag{i}"] = full_venue_df.groupby(
-            ["venue", "home_team_id"]
-        ).venue_effect.shift(i)
+        lag_season = full_venue_df.season.map(
+            lambda s, i=i: db_obj.db_manager.season_increment(s, -i)
+        )
+        lag_fill = lag_season.map(league_mean_effect).fillna(default_effect)
+        full_venue_df[f"v_lag{i}"] = (
+            full_venue_df.groupby(["venue", "home_team_id"]).venue_effect.shift(i).fillna(lag_fill)
+        )
 
     full_venue_df["score"] = sum(
-        full_venue_df[f"v_lag{i}"].fillna(0) * weight for i, weight in enumerate(_WEIGHTS, 1)
+        full_venue_df[f"v_lag{i}"] * weight for i, weight in enumerate(_WEIGHTS, 1)
     )
 
     return full_venue_df[["venue", "season", "score", "home_team_abbr", "home_team_name"]]
@@ -251,7 +259,7 @@ def _park_factor(db_obj, min_season: None | int, max_season: None | int):
     # Add padding rows for inference season and Sort to ensure LAG/Shift operations align correctly
     final_season = df.season.max()
     final_season_venues = df.query("season == @final_season").venue.unique()
-    pad_season = _next_season(final_season)
+    pad_season = db_obj.db_manager.season_increment(final_season)
     pad_df = pd.DataFrame(
         {"season": [pad_season] * len(final_season_venues), "venue": final_season_venues}
     )
@@ -317,7 +325,7 @@ def _initialize(parser, cli_args):
         filepath_parts = [
             os.environ["FANTASY_ARCHIVE_BASE"],
             db_obj.db_manager.ABBR,
-            f"{_FEATHURE_ABBR_TO_NAME[cli_args.feature]}.{min_season}-{final_output_season}.{filetype}",
+            f"{_FEATURE_ABBR_TO_NAME[cli_args.feature]}.{min_season}-{final_output_season}.{filetype}",
         ]
         output_filepath = os.path.join(*filepath_parts)
 
@@ -331,14 +339,14 @@ if __name__ == "__main__":
     cli_parser = _create_cli_parser()
     cli_args = cli_parser.parse_args()
 
-    _LOGGER.info("*** %s processing ***", _FEATHURE_ABBR_TO_NAME[cli_args.feature])
+    _LOGGER.info("*** %s processing ***", _FEATURE_ABBR_TO_NAME[cli_args.feature])
 
     db_obj, output_filepath, min_season, max_season = _initialize(cli_parser, cli_args)
 
     if cli_args.feature == "pf":
-        df = _park_factor(db_obj, cli_args.min_season, cli_args.max_season)
+        df = _park_factor(db_obj, min_season, max_season)
     elif cli_args.feature == "thfa":
-        df = _true_home_field_advantage(db_obj, cli_args.min_season, cli_args.max_season)
+        df = _true_home_field_advantage(db_obj, min_season, max_season)
     else:
         cli_parser.error(f"feature={cli_args.feature} not implemented!")
 
@@ -358,4 +366,4 @@ if __name__ == "__main__":
             "no output format was identified"
         )
 
-    _LOGGER.success("*** Finished %s Processing ***", _FEATHURE_ABBR_TO_NAME[cli_args.feature])
+    _LOGGER.success("*** Finished %s Processing ***", _FEATURE_ABBR_TO_NAME[cli_args.feature])
