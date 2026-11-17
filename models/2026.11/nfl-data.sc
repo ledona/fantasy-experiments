@@ -1,0 +1,97 @@
+#!/bin/bash
+
+DB_FILE=${FANTASY_HOME}/nfl.hist.2009-2025.scored.db
+DEST=/fantasy-isync/fantasy-modeling/2026.11/data
+SEASONS="2015 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025"
+TEAM_STATS="op_pts op_turnovers op_yds pen* pts turnovers yds"
+OWN_TEAM_STATS="$TEAM_STATS passing_yds rushing_yds"
+OPP_TEAM_STATS="$TEAM_STATS def_fumble_recov def_int def_sacks op_passing_yds op_rushing_yds"
+SHARED_NOFAILS="extra:thfa#2009"
+# SHARED_NOFAILS="extra:thfa#2009 extra:odds_ou_*_odds#2005-2022 extra:odds_spread_odds#2005-2022"
+CURRENT_X="playoff indoors is_home neutral_site elo_mov odds_ou_* odds_spread_* venue thfa pf weather* tempo days_rest_team expected_team_volume"
+CURRENT_OPP_X="expected_team_volume days_rest_team"
+HIST_ARGS="--hist_recent_games 5 --hist_recent_mode m"
+# same number of tasks as seasons
+DASK_TASKS=11
+
+# WR TE
+dumpdata.sc ${DB_FILE} \
+    --dask_mode processes --dask_tasks ${DASK_TASKS} \
+    --seasons $SEASONS --no_teams --pos WR TE \
+    --stats fumbles_lost "receiving*" \
+    --player_team_stats $OWN_TEAM_STATS \
+    --opp_team_stats $OPP_TEAM_STATS  \
+    --calc_stats "*_score_off" \
+    --current_extra usage "game_pos_*_rank" epa_target success_rate_target $CURRENT_X \
+        target_share target_share_rz air_yards_share epa_team_db success_rate_team_db \
+        cpoe_team anya_team \
+    --current_opp_extra $CURRENT_OPP_X anya_team_allowed epa_team_db_allowed success_rate_team_db_allowed  \
+    --target_stats receiving_rec receiving_targets receiving_tds receiving_yds \
+    --target_calc_stats "*_score_off" \
+    --inf_nofail_cols $SHARED_NOFAILS \
+    ${HIST_ARGS} \
+    --slack -f ${DEST}/nfl_WRTE.csv
+
+# RB
+dumpdata.sc ${DB_FILE} \
+    --dask_mode processes --dask_tasks ${DASK_TASKS} \
+    --seasons $SEASONS --no_teams --pos RB \
+    --stats fumbles_lost "receiving*" "rushing*" tds \
+    --player_team_stats $OWN_TEAM_STATS \
+    --opp_team_stats $OPP_TEAM_STATS  \
+    --calc_stats "*_score_off" \
+    --current_extra usage "game_pos_*_rank" epa_target epa_run success_rate_run $CURRENT_X \
+        epa_team success_rate_team anya_team \
+    --current_opp_extra $CURRENT_OPP_X epa_team_db_allowed epa_team_run_allowed success_rate_run_allowed  \
+    --target_stats receiving_rec receiving_targets receiving_yds \
+        rushing_att rushing_tds rushing_yds tds \
+    --target_calc_stats "*_score_off" \
+    --inf_nofail_cols extra:thfa#2009 \
+    ${HIST_ARGS} \
+    --slack -f ${DEST}/nfl_RB.csv
+
+# QB: starting_qb is included so that data preprocessing can filter for starters before training
+dumpdata.sc ${DB_FILE} \
+    --dask_mode processes --dask_tasks ${DASK_TASKS} \
+    --seasons $SEASONS --no_teams --pos QB \
+    --stats fumbles_lost "passing*" "rushing*" tds \
+    --player_team_stats $OWN_TEAM_STATS \
+    --opp_team_stats $OPP_TEAM_STATS  \
+    --calc_stats "*_score_off" \
+    --current_extra usage epa_db epa_run anya cpoe success_rate_db $CURRENT_X \
+        epa_team_run success_rate_team_run \
+    --current_opp_extra $CURRENT_OPP_X epa_team_db_allowed success_rate_team_db_allowed anya_team_allowed \
+    --target_stats "passing_*" rushing_att rushing_tds rushing_yds tds starting_qb \
+    --target_calc_stats "*_score_off" \
+    ${HIST_ARGS} \
+    --inf_nofail_cols $SHARED_NOFAILES "stat:rushing_twoptm:*" \
+    --slack -f ${DEST}/nfl_QB.csv
+
+# Kicker
+dumpdata.sc ${DB_FILE} \
+    --dask_mode processes --dask_tasks ${DASK_TASKS} \
+    --seasons $SEASONS --no_teams --pos K \
+    --stats "kicking_f*" \
+    --player_team_stats $TEAM_STATS \
+    --opp_team_stats $TEAM_STATS \
+    --current_extra $CURRENT_X \
+    --current_opp_extra $$CURRENT_OPP_X \
+    --target_stats kicking_fgm \
+    ${HIST_ARGS} \
+    --inf_nofail_cols $SHARED_NOFAILS \
+    --slack -f ${DEST}/nfl_K.csv
+
+# team defense, score and win
+dumpdata.sc ${DB_FILE} \
+    --dask_mode processes --dask_tasks ${DASK_TASKS} \
+    --seasons $SEASONS --no_players \
+    --stats "*" \
+    --opp_team_stats "*" \
+    --calc_stats "*_score_def" \
+    --current_extra $CURRENT_X epa epa_allowed odds_ml elo_win_prob game_number \
+    --current_opp_extra $CURRENT_OPP_X odds_ml \
+    --target_stat pts win \
+    --target_calc_stats "*_score_def" \
+    ${HIST_ARGS} \
+    --inf_nofail_cols "stat:def_safety*" $SHARED_NOFAILS \
+    --slack -f ${DEST}/nfl_team.csv

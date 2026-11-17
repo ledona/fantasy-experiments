@@ -1,0 +1,33 @@
+#!/bin/bash
+
+DB_FILE=${FANTASY_HOME}/nba.hist.20082009-20252026.scored.db
+DEST=/fantasy-isync/fantasy-modeling/2026.11/data
+SHARED_X="is_home odds_ou_* odds_spread_* elo_mov thfa days_rest_team_b expected_game_pace playoff"
+SEASONS="20152016 20162017 20172018 20182019 20192020 20202021 20212022 20222023 20232024 20242025 20252026"
+# same number of tasks as seasons
+DASK_TASKS=11
+
+# player
+dumpdata.sc $DB_FILE --seasons $SEASONS --no_teams \
+    --stats asst blks "*_reb" "f*" "p*" stls "t*" \
+    --player_team_stats "*" \
+    --opp_team_stats "*" \
+    --calc_stats "*_score" \
+    --current_extra starter days_rest_player usage $SHARED_X \
+    --current_opp_extra days_rest_team \
+    --target_calc_stats "*" \
+    --target_stats asst blks d_reb ft_made o_reb fg_att pts tfg_att tfg_made turnovers \
+    --hist_recent_games 5 --hist_recent_mode m \
+    --dask_inf_multi_season_mode processes --dask_tasks $DASK_TASKS \
+    --slack --format parquet -f ${DEST}/nba_player.parquet
+
+# team
+dumpdata.sc $DB_FILE --seasons $SEASONS --no_players \
+    --stats "*" \
+    --opp_team_stats "*" \
+    --current_extra elo_win_prob game_number days_rest_team $SHARED_X \
+    --current_opp_extra days_rest_team \
+    --target_stats pts win \
+    --hist_recent_games 5 --hist_recent_mode m \
+    --dask_inf_multi_season_mode processes --dask_tasks $DASK_TASKS \
+    --slack --format parquet -f ${DEST}/nba_team.parquet
